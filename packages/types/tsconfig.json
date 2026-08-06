@@ -1,0 +1,4 @@
+{
+  "extends": "@sam-group/tsconfig/base.json",
+  "include": ["src"]
+}

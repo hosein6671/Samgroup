@@ -1,0 +1,17 @@
+{
+  "name": "@sam-group/types",
+  "version": "0.1.0",
+  "private": true,
+  "types": "./src/index.ts",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@sam-group/tsconfig": "workspace:*",
+    "typescript": "6.0.3"
+  }
+}

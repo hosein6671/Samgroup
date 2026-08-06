@@ -1,0 +1,20 @@
+{
+  "name": "@sam-group/ui",
+  "version": "0.1.0",
+  "private": true,
+  "types": "./src/index.ts",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@sam-group/tsconfig": "workspace:*",
+    "typescript": "6.0.3"
+  }
+}

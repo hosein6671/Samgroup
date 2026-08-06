@@ -1,0 +1,7 @@
+{
+  "extends": "@sam-group/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}
