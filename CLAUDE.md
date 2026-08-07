@@ -1,45 +1,159 @@
-# SAM Group Platform — AI Project Context
+# CLAUDE.md — Operating Guide for This Repository
 
-Read this first, in any new session. It's a map, not a manual — every section links to the document that actually holds the detail, so nothing here duplicates what's already written elsewhere.
+This is the operating guide for any AI assistant working on **SAM Group Platform** (short form: **SAM Platform**). It defines how to work here, not what has been built. Read it first, in every session, before touching anything.
 
-> **New to this project, or picking it up cold?** Read [`docs/PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) — full status, what exists vs. what doesn't, implementation order, frozen decisions, and current blockers.
+It is deliberately **not** a status report. Repository status changes; this file should not. For current state, read [`docs/ROADMAP.md`](./docs/ROADMAP.md) "Current Status" and [`docs/PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md), and then **verify against the repository itself** — status documents in this project have gone stale before, and at least one is known to be stale now.
 
-## What this project is
+What the project is: a custom B2B web platform for the petroleum, lubricants, and petrochemical industry — not a brochure website, and designed to grow into a full business system over several years. Full detail: [`docs/PROJECT_VISION.md`](./docs/PROJECT_VISION.md).
 
-SAM Group Platform is a custom B2B web platform for the petroleum, lubricants, and petrochemical industry — not a simple company website, a platform meant to grow into a full business system over several years. Full detail: [`docs/PROJECT_VISION.md`](./docs/PROJECT_VISION.md).
+---
 
-## Current phase
+## 1. Source of Truth Priority
 
-**Architecture Frozen. No application code exists yet.** `apps/web`, `apps/api`, `apps/cms`, `docker/`, `scripts/`, `.github/` are empty placeholder directories.
+When two documents disagree, the higher entry wins. Do not resolve a conflict silently — report it.
 
-The architecture and documentation baseline is committed as `3fa6f8d` (`chore: initial architecture and documentation baseline`) on branch `main`, pushed to `origin` (`https://github.com/hosein6671/Samgroup`), with `origin/main` synchronized and a clean working tree.
+| Priority | Source                                                                                                                                                                                     | Governs                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| 1        | [`docs/AI_RULES.md`](./docs/AI_RULES.md)                                                                                                                                                   | Coding hygiene and non-negotiable engineering rules       |
+| 2        | [`AI_CONTEXT.md`](./AI_CONTEXT.md)                                                                                                                                                         | Behavioral rules, workflow conventions, live open threads |
+| 3        | [`docs/ADR/`](./docs/ADR/README.md)                                                                                                                                                        | Contested architecture decisions, in order                |
+| 4        | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)                                                                                                                                           | System boundaries, modules, integration, auth             |
+| 5        | [`docs/PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md)                                                                                                                                     | Status, implementation order, blockers                    |
+| 6        | Implementation docs (`DATA_MODEL`, `API_CONTRACT_FINAL`, `SECURITY`, `DEVOPS`, `PROJECT_STRUCTURE`, `CODING_STANDARDS`, `SITE_STRUCTURE`, `frontend/`, `content/`, `i18n/`, `seo/`, `ai/`) | Field-, endpoint-, and page-level specifics               |
 
-Of the 15-step Bootstrap Plan, **steps 1–2 are complete** (monorepo foundation, shared packages); **step 3 — workspace install (`pnpm install`) — is next**. Live status and milestone tracking: [`docs/ROADMAP.md`](./docs/ROADMAP.md) (see "Current Status" at the top).
+**Read before writing.** Check [`docs/API_CONTRACT_FINAL.md`](./docs/API_CONTRACT_FINAL.md) before an endpoint, [`docs/DATA_MODEL.md`](./docs/DATA_MODEL.md) before a schema, [`docs/content/PAYLOAD_CONTENT_ARCHITECTURE.md`](./docs/content/PAYLOAD_CONTENT_ARCHITECTURE.md) before a Payload collection. This project's specification is unusually complete; code written without reading it will contradict something.
 
-## Reading order for `docs/`
+---
 
-1. [`PROJECT_VISION.md`](./docs/PROJECT_VISION.md) — why this project exists, Phase 1 scope, future phases
-2. [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — architecture style, module boundaries, CMS integration, auth
-3. [`TECH_STACK.md`](./docs/TECH_STACK.md) — concrete tools/frameworks (see also [`technology/FRONTEND_STACK.md`](./docs/technology/FRONTEND_STACK.md) for frontend-specific rationale)
-4. [`PROJECT_STRUCTURE.md`](./docs/PROJECT_STRUCTURE.md) — monorepo layout
-5. [`DATABASE.md`](./docs/DATABASE.md) + [`DATA_MODEL.md`](./docs/DATA_MODEL.md) — entity index and field-level ER model
-6. [`API_DESIGN.md`](./docs/API_DESIGN.md) — REST conventions and the single-gateway pattern
-7. [`SECURITY.md`](./docs/SECURITY.md) — auth, RBAC matrix, secrets, data protection
-8. [`CODING_STANDARDS.md`](./docs/CODING_STANDARDS.md) — naming, folder conventions, git/commit rules
-9. [`DEVOPS.md`](./docs/DEVOPS.md) — environments, CI/CD, Postgres database split
-10. [`SITE_STRUCTURE.md`](./docs/SITE_STRUCTURE.md) — Phase 1 page/content blueprint (sourced from `docs/content/`)
-11. [`ROADMAP.md`](./docs/ROADMAP.md) — milestones and current status
-12. [`ADR/`](./docs/ADR/README.md) — why the contested decisions were made, in order
+## 2. Frozen Architecture
 
-## Frozen architecture — do not change without a new ADR and explicit sign-off
+**Do not change any of the following without a new ADR and explicit sign-off.** If a request appears to conflict with one, say so and ask — do not quietly comply and do not quietly refuse.
 
-- **Payload CMS** is the only CMS. Never introduce or reference any other CMS (e.g. Sanity).
-- **NestJS** is the only backend framework, and the only API surface the frontend calls (ADR-003).
-- **Prisma + PostgreSQL**, split into two independent databases (`sam_platform`, `sam_cms`) — see ADR-002. Never merge them or use Payload's experimental `schemaName` option instead.
-- **pnpm workspaces + Turborepo** is the monorepo strategy — see ADR-001.
+The **Source** column names the document that actually contains the decision. Most of this project's decisions live in `ARCHITECTURE.md` or `AI_CONTEXT.md`, not in an ADR — do not assume an ADR exists for a rule just because the rule is frozen.
 
-These four are the ones explicitly called out as non-negotiable across this project's history. The full frozen set (folder structure, API strategy, CMS strategy, auth strategy) is confirmed in the Architecture Freeze — see [`ADR/README.md`](./docs/ADR/README.md) for the decision log.
+| Area                | Decision                                                                                                                                                                                                                                                           | Source                                                                                                                                                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Architecture style  | **Modular Monolith.** Every module is self-contained so a later move to microservices needs no rewrite. **A module never imports another module's repository or database model directly** — cross-module access goes through the other module's service interface. | [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) §Architecture Style, §Modules                                                                                                                                                                |
+| Monorepo            | **pnpm workspaces + Turborepo.** One repository, three apps plus shared packages.                                                                                                                                                                                  | [ADR-001](./docs/ADR/ADR-001-monorepo.md)                                                                                                                                                                                                |
+| Frontend            | **`apps/web`** — Next.js. Public site **and** the Admin Dashboard at `app/(admin)/admin/*`, one app, two areas. **No fourth application** — `apps/admin` was explicitly rejected.                                                                                  | [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) §Admin Dashboard · [`AI_CONTEXT.md`](./AI_CONTEXT.md) · [`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.4                                                                               |
+| Backend             | **`apps/api`** — NestJS. The only API surface the frontend calls, **and that includes the Admin Dashboard**. No exceptions.                                                                                                                                        | [ADR-003](./docs/ADR/ADR-003-api-gateway.md) · [`AI_CONTEXT.md`](./AI_CONTEXT.md)                                                                                                                                                        |
+| CMS                 | **`apps/cms`** — Payload. The only CMS, ever; never introduce or reference another (e.g. Sanity). NestJS fronts Payload server-to-server; the frontend has no awareness Payload exists.                                                                            | [`AI_CONTEXT.md`](./AI_CONTEXT.md) · [`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.1 · [ADR-003](./docs/ADR/ADR-003-api-gateway.md) (gateway pattern only)                                                                        |
+| Database            | **PostgreSQL, two independent databases**: `sam_platform` (Prisma, `apps/api`) and `sam_cms` (Payload, `apps/cms`). Never merge them; never use Payload's experimental `schemaName` option. Isolation is enforced by Postgres credentials, not convention.         | [ADR-002](./docs/ADR/ADR-002-two-databases.md)                                                                                                                                                                                           |
+| Object store        | **S3-compatible object storage.** The development implementation is **MinIO**; **the production replacement is undecided** — MinIO's upstream is archived and the pinned images receive no security updates. Commit to "S3-compatible", not to MinIO.              | [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) §Storage · [`DEVOPS.md`](./docs/DEVOPS.md) §Object storage (MinIO)                                                                                                                           |
+| Auth                | **JWT issued only by NestJS**; **argon2id** password hashing; RBAC per the matrix in `SECURITY.md`.                                                                                                                                                                | [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) §Authentication + [ADR-003](./docs/ADR/ADR-003-api-gateway.md) (JWT ownership) · [ADR-004](./docs/ADR/ADR-004-freeze-decisions.md) (argon2id) · [`SECURITY.md`](./docs/SECURITY.md) (matrix) |
+| Payload admin       | **Separate authentication.** Payload keeps its own admin users in `sam_cms`. **No SSO bridge. No account syncing. No shared cookies** between the public domain and the CMS subdomain. Payload has its own role model mirroring the CMS-facing RBAC rules.         | [ADR-006](./docs/ADR/ADR-006-payload-admin-authentication.md)                                                                                                                                                                            |
+| Deployment topology | **Docker on a single Linux VPS**, Compose behind Nginx, no external hosting provider, **no staging environment** (a staging environment would need a new architecture decision).                                                                                   | [ADR-005](./docs/ADR/ADR-005-vps-docker-deployment.md)                                                                                                                                                                                   |
+| Deployment status   | **The VPS does not exist yet**, and is acquired only after the application is complete. Hosting provider, machine sizing, and provisioning method are all undecided and must not be chosen or assumed.                                                             | [`DEVOPS.md`](./docs/DEVOPS.md) §Deployment Target                                                                                                                                                                                       |
 
-## Behavioral rules for AI assistants working on this repo
+**Also frozen, recorded outside the ADR set:**
 
-See [`AI_CONTEXT.md`](./AI_CONTEXT.md) for workflow conventions, absolute constraints, and known open threads — read it before making any non-trivial change. See [`docs/AI_RULES.md`](./docs/AI_RULES.md) for general coding hygiene rules (these apply once code actually exists).
+- **`apps/web` never calls Payload or a database directly** — the Admin Dashboard included. ([`AI_CONTEXT.md`](./AI_CONTEXT.md), [`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.6)
+- **Layout is code, editorial content is CMS.** No generic page builder; no hardcoded lists, cards, timelines, or FAQs — repeating content is always a CMS array/repeater. ([`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.7, [`CODING_STANDARDS.md`](./docs/CODING_STANDARDS.md) §CMS Content)
+- **Media ownership**: Payload Media for Payload content, Prisma `Media` for Prisma-owned entities. ([`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.8)
+- **The locale list is data**, a `Locale` table, never code. Adding a language must never require a code change. ([`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.9)
+- **URL strategy**: structural page URLs stay fixed English across locales; localized slugs apply **only** to products, categories, and blog articles. ([`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.12, [`i18n/`](./docs/i18n/INTERNATIONALIZATION_STRATEGY.md), [`seo/`](./docs/seo/SEO_ARCHITECTURE.md))
+- **Job Applications are Admin-only**; **Certifications require Admin to publish.** ([`SECURITY.md`](./docs/SECURITY.md), [`PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md) §6.11)
+- **RAG** indexes on an allow-list, never a deny-list; it never queries `sam_platform`, `sam_cms`, or object storage directly — only the NestJS API — and **its vector store is its own isolated database, never grafted onto an existing one**. ([`AI_CONTEXT.md`](./AI_CONTEXT.md), [`docs/ai/RAG_ARCHITECTURE.md`](./docs/ai/RAG_ARCHITECTURE.md) §0)
+- **Future-phase discipline**: Customer Portal, CRM, Workflow Management, ERP Integration, and AI/RAG get **no speculative infrastructure or abstractions** before their phase is approved and started, beyond what [`DATA_MODEL.md`](./docs/DATA_MODEL.md) §2 already anchors. ([`AI_CONTEXT.md`](./AI_CONTEXT.md))
+
+---
+
+## 3. Naming
+
+Use the project's existing terminology. Do not invent synonyms, and do not rename anything for tidiness.
+
+| Concept       | Canonical name                                       | Never write                                                               |
+| ------------- | ---------------------------------------------------- | ------------------------------------------------------------------------- |
+| The platform  | **SAM Group Platform** — short form **SAM Platform** | "the site", "the app", "the CMS platform", or any newly invented name     |
+| Frontend app  | **`web`** / Next.js                                  | "frontend app", "client", "UI app"                                        |
+| Backend app   | **`api`** / NestJS                                   | "server", "backend service", "gateway app"                                |
+| CMS app       | **`cms`** / Payload                                  | "the CMS" without qualification, "content app"                            |
+| Main database | **`sam_platform`**                                   | "the main DB", "primary database", "app DB"                               |
+| CMS database  | **`sam_cms`**                                        | "the CMS DB", "content database"                                          |
+| Public domain | **`samgp.com`**                                      | any other domain, placeholder or otherwise                                |
+| CMS domain    | **`cms.samgp.com`**                                  | `samgp.com/admin` (that path is the Admin Dashboard, a different surface) |
+
+Two admin surfaces exist and are not interchangeable: the **Admin Dashboard** at `samgp.com/admin/*` (inside `web`, Prisma-owned data) and **Payload's admin UI** at `cms.samgp.com` (Payload-owned editorial content).
+
+---
+
+## 4. Change Control
+
+**Before any implementation, in this order:**
+
+1. Read the relevant documentation for the area (§1).
+2. Check the frozen decisions (§2) for anything the change touches.
+3. Identify every file the change would modify.
+4. Report, and stop:
+
+```
+Finding:
+Impact:
+Recommendation:
+Waiting for approval.
+```
+
+**Documentation changes and code changes are separate approval gates.** Approval to update docs, or to produce a plan, is not approval to write code, run installs, or scaffold a framework — even immediately afterwards.
+
+**Do not:**
+
+- make an architecture decision autonomously, or choose silently between alternatives
+- add, upgrade, or remove a dependency without approval
+- create or amend an ADR without approval
+- modify files unrelated to the approved task
+- refactor, reformat, rename, or "clean up" for consistency without approval
+- change line endings, or let a tool change them as a side effect
+- commit, push, or bypass a git hook without approval
+
+**Do:**
+
+- verify a third-party library's actual capability before a decision depends on it — ADR-002 exists because a design was checked against Payload's real issue tracker and turned out to rely on an experimental feature
+- work incrementally and stop for review
+- write an ADR for anything architecture-affecting, rather than editing prose in place
+- treat `[TO CONFIRM]` and `[ESTIMATE — CONFIRM]` markers as placeholders, never as facts, and never seed them into a database or a page
+
+---
+
+## 5. Task Isolation
+
+Every task belongs to exactly one area:
+
+**Database** · **Backend** · **CMS** · **Frontend** · **DevOps** · **Documentation**
+
+Do not modify files in more than one area unless the request explicitly covers both. If completing a task appears to require touching a second area, stop and report it as a Finding rather than expanding the task. A change that spans areas is a change that needs its own approval.
+
+---
+
+## 6. Validation and Reporting
+
+Never present an assumption as a verified fact. Every claim about behavior falls into one of three buckets, and the bucket must be stated:
+
+- **Tested** — actually executed here, with the command and its result shown.
+- **Assumed** — believed correct from documentation or reasoning, not executed.
+- **Not tested** — not attempted, or not possible in this environment.
+
+State what could not be verified and why. "It should work" is not a result. If a command failed, report the exact error rather than paraphrasing it, and do not retry a different way in order to produce a passing-looking outcome.
+
+---
+
+## Document map
+
+| Document                                                                                                                                                                                        | Purpose                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [`AI_CONTEXT.md`](./AI_CONTEXT.md)                                                                                                                                                              | Behavioral rules, workflow conventions, live open threads |
+| [`docs/AI_RULES.md`](./docs/AI_RULES.md)                                                                                                                                                        | General coding hygiene                                    |
+| [`docs/PROJECT_VISION.md`](./docs/PROJECT_VISION.md)                                                                                                                                            | Why the project exists, Phase 1 scope, future phases      |
+| [`docs/PROJECT_HANDOFF.md`](./docs/PROJECT_HANDOFF.md)                                                                                                                                          | Status, implementation order, frozen decisions, blockers  |
+| [`docs/ROADMAP.md`](./docs/ROADMAP.md)                                                                                                                                                          | Milestones M1–M5 and current status                       |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)                                                                                                                                                | Style, applications, modules, CMS integration, auth       |
+| [`docs/ADR/README.md`](./docs/ADR/README.md)                                                                                                                                                    | Decision log — ADR-001 through ADR-006                    |
+| [`docs/TECH_STACK.md`](./docs/TECH_STACK.md) · [`docs/technology/FRONTEND_STACK.md`](./docs/technology/FRONTEND_STACK.md)                                                                       | Concrete tools, then per-library rationale                |
+| [`docs/PROJECT_STRUCTURE.md`](./docs/PROJECT_STRUCTURE.md)                                                                                                                                      | Monorepo layout                                           |
+| [`docs/DATA_MODEL.md`](./docs/DATA_MODEL.md) · [`docs/DATABASE.md`](./docs/DATABASE.md)                                                                                                         | Field-level ER model, then entity index                   |
+| [`docs/API_CONTRACT_FINAL.md`](./docs/API_CONTRACT_FINAL.md) · [`docs/API_DESIGN.md`](./docs/API_DESIGN.md)                                                                                     | Authoritative endpoint list, then conventions             |
+| [`docs/SECURITY.md`](./docs/SECURITY.md)                                                                                                                                                        | Auth, RBAC matrix, Payload admin access, retention        |
+| [`docs/DEVOPS.md`](./docs/DEVOPS.md)                                                                                                                                                            | Environments, CI/CD, database split, object storage       |
+| [`docs/CODING_STANDARDS.md`](./docs/CODING_STANDARDS.md) · [`docs/TESTING_STRATEGY.md`](./docs/TESTING_STRATEGY.md)                                                                             | Conventions and test strategy                             |
+| [`docs/SITE_STRUCTURE.md`](./docs/SITE_STRUCTURE.md)                                                                                                                                            | 27-page sitemap and per-page content spec                 |
+| [`docs/frontend/`](./docs/frontend/FRONTEND_ARCHITECTURE.md) · [`docs/design/`](./docs/design/FRONTEND_DESIGN_DIRECTION.md) · [`docs/content/`](./docs/content/PAYLOAD_CONTENT_ARCHITECTURE.md) | Routes and components, visual direction, Payload model    |
+| [`docs/i18n/`](./docs/i18n/INTERNATIONALIZATION_STRATEGY.md) · [`docs/seo/`](./docs/seo/SEO_ARCHITECTURE.md) · [`docs/ai/`](./docs/ai/RAG_ARCHITECTURE.md)                                      | Locales, SEO, RAG (future phase)                          |
