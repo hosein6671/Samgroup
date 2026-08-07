@@ -233,7 +233,7 @@ JWT issuance, argon2id hashing, RBAC guards from the [SECURITY.md](./SECURITY.md
 
 ### 6. Payload CMS setup
 
-Scaffold `apps/cms` against `sam_cms` using the **default `public` schema** — never the experimental `schemaName` option. Build the Globals and collections from [content/PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md). **Resolve the Payload admin authentication blocker before this step** (§7).
+Scaffold `apps/cms` against `sam_cms` using the **default `public` schema** — never the experimental `schemaName` option. Build the Globals and collections from [content/PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md). Payload uses **its own admin authentication and its own role model** — minimum `Admin` and `Content Manager`, with the certification publish gate enforced in Payload's access control ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)). No SSO bridge, no syncing from `User`. This step is no longer blocked.
 
 ### 7. CMS integration
 
@@ -278,7 +278,7 @@ Only genuinely unresolved items.
 
 ### Architectural
 
-1. **Payload admin authentication.** [ARCHITECTURE.md](./ARCHITECTURE.md) states editors authenticate via the platform login, "not a separate Payload account" — but Payload's admin UI requires its own session. With two admin surfaces now confirmed, the mechanism is undecided: SSO bridge, synced Payload accounts, or accept two logins and amend the doc. **Blocks step 6.**
+1. ~~Payload admin authentication~~ — **resolved 7 August 2026.** Payload Admin uses **separate authentication**: its own admin users in `sam_cms`, reached at `cms.<domain>/admin`. NestJS does not manage Payload sessions, **no SSO bridge** will be built, no accounts are synced from `User`, and cookies are never shared between the two hosts. Payload maintains its own role model (minimum `Admin`, `Content Manager`) mirroring the CMS-facing RBAC rules, including the Admin-only certification publish gate. Recorded as [ADR-006](./ADR/ADR-006-payload-admin-authentication.md); [ARCHITECTURE.md](./ARCHITECTURE.md) and [SECURITY.md](./SECURITY.md#payload-admin-access) amended. **Step 6 unblocked.** Two consequences carried forward: staff sign in twice, and **Payload account lifecycle is manual** — disabling a platform user does not revoke CMS access, so account creation/removal is now a mandatory part of onboarding and offboarding.
 2. **Draft preview.** Editors have no way to view unpublished content — they publish blind. Cheap now, awkward once caching assumes published-only. Decide before frontend page work.
 3. **RTL typeface pairing.** The chosen Latin faces have no Arabic/Persian glyph coverage. Candidates proposed; needs design sign-off. Blocks `fa`/`ar` visual parity.
 

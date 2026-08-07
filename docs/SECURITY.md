@@ -11,6 +11,8 @@ Security is the highest priority per [AI_RULES.md](./AI_RULES.md). This document
 - Refresh token: longer-lived (7 days), stored as an httpOnly, secure, same-site cookie — never in localStorage
 - Passwords hashed with **argon2id**, never stored or logged in plain text (decided at Architecture Freeze — chosen over bcrypt for stronger resistance to GPU/ASIC cracking)
 
+**Scope of this section: platform identity only.** Everything above governs the identities NestJS issues — public site, Admin Dashboard, and the API. **Payload's admin UI authenticates independently** and is not covered by any of it: Payload issues its own sessions and hashes its own admin passwords with its native implementation, so the argon2id requirement from [ADR-004](./ADR/ADR-004-freeze-decisions.md) does not extend to Payload accounts. See [Payload Admin Access](#payload-admin-access) below and [ADR-006](./ADR/ADR-006-payload-admin-authentication.md).
+
 ---
 
 ## RBAC Permission Matrix
@@ -24,11 +26,42 @@ Security is the highest priority per [AI_RULES.md](./AI_RULES.md). This document
 
 This matrix is the source of truth for RBAC guards in NestJS. Update it whenever a new role or resource is introduced.
 
+**It is enforced in two systems, not one.** The **CMS Content** and **Certifications** columns describe rules that take effect inside Payload's admin UI, where that content is actually edited — and under [ADR-006](./ADR/ADR-006-payload-admin-authentication.md) Payload authenticates independently and knows nothing about platform users or their roles. Payload therefore maintains **its own role model** (minimum `Admin` and `Content Manager`) mirroring those two columns. The matrix remains the single source of truth for what a role may do; Payload is a second place where the CMS-facing subset of it is enforced, kept aligned by hand. A change to either column is a change in two systems. Details: [Payload Admin Access](#payload-admin-access).
+
 **On the Certifications column:** it's broken out separately because it's the one deliberate exception to Content Manager's otherwise-full CMS Content access. A certification is a verifiable third-party claim — a buyer who checks one and finds it doesn't exist is a lost buyer — so publishing requires Admin approval even though drafting doesn't. Approved as decision 7 in [docs/content/PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md#decisions-log); enforced in Payload's access control, not only in the NestJS guard, since editing happens in the CMS admin UI.
 
 **On the Job Applications column: Admin-only, deliberately.** CVs and cover letters are the most sensitive personal data the platform holds, and a job application is not a sales lead. Routing it into a Sales Expert's queue would expose applicant personal data to a team with no business need for it — so Sales Expert and Content Manager both get **none**, not read. This is why `JobApplication` carries no `assignedToId` in [DATA_MODEL.md](./DATA_MODEL.md), unlike every other submission entity. If a dedicated HR/Recruiter role is introduced later, it gets its own row here rather than widening any existing one.
 
 **"Forms & Leads"** covers Inquiry (including Sample Requests), Custom Formulation Request, Distributor Application, and Download Request — the lead-bearing submissions Sales Expert works. Job Applications and Newsletter Subscriptions are deliberately excluded from that column.
+
+---
+
+## Payload Admin Access
+
+**Payload's admin UI is a separate authentication system** ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)). This is the second of the platform's two admin surfaces — the first is the Admin Dashboard inside `apps/web`, covered in the next section — and the two share no identity, no session, and no cookie.
+
+### Authentication boundary
+
+- **Payload keeps its own admin authentication.** `cms.<domain>/admin` is reached with a Payload account stored in `sam_cms`. A platform JWT is not accepted there and is not exchangeable for a Payload session.
+- **NestJS does not manage Payload admin sessions**, and **no SSO bridge exists** between the two systems. Building one is a new decision requiring its own ADR.
+- **Authentication cookies are never shared between the main domain and the CMS subdomain.** The subdomain split from [ADR-005](./ADR/ADR-005-vps-docker-deployment.md) already places them in separate cookie scopes; treat that separation as a rule, not an incidental property. No cookie issued by either surface may be scoped to a parent domain that would make it readable by the other.
+- **NestJS's service-level access to Payload is a different thing entirely** and is unchanged: the Content module calls Payload's REST API server-to-server on the internal network, authenticated as a service, never as an editor (ADR-003).
+
+### Payload's own role model
+
+Payload cannot read platform roles, so it expresses the CMS-facing access rules itself:
+
+- **Minimum roles: `Admin` and `Content Manager`**, mirroring the CMS Content and Certifications columns of the RBAC matrix above.
+- **The Certification publishing restriction must exist in Payload's permissions**, not only in a NestJS guard: a Content Manager may create and edit certification drafts; **only an Admin may publish**. This is the one deliberate exception to Content Manager's otherwise-full CMS Content access, and certifications are edited in Payload, so Payload is where it has to hold.
+- **Payload RBAC is not synchronized with NestJS users.** Role assignment inside Payload is an independent administrative act, performed in Payload.
+
+### Account lifecycle — mandatory procedure
+
+Because nothing is synchronized, **revoking a platform user does not revoke their CMS access.** Someone whose platform account has been disabled retains access to `cms.<domain>` until their Payload account is disabled separately.
+
+**Rule: creating, reviewing, disabling, and removing Payload admin accounts is a mandatory part of CMS onboarding and offboarding procedures.** Offboarding is not complete until the Payload account has been disabled or removed. Payload admin accounts are also reviewed periodically against the current staff list, since drift here is silent by construction.
+
+No automation for this is being built. It is a documented manual procedure, and the accepted cost of the separate-authentication decision.
 
 ---
 

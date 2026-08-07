@@ -32,7 +32,7 @@ It exists because Payload's admin UI structurally cannot serve it — ADR-002 fo
 - **A separate _area_, not merely more pages.** It has its own route segment, its own layout, its own authentication boundary, and no SEO surface at all. It shares the codebase, not the page architecture.
 - **Same API rule, no exception.** It calls only NestJS, at `/api/v1/admin/*` ([API_CONTRACT_FINAL.md §2.10](./API_CONTRACT_FINAL.md)). It never queries a database and never calls Payload — ADR-003 holds for the admin surface exactly as it does for the public one.
 - **The Payload/Prisma split defines who edits what**: Prisma-owned data (catalog, blog, submissions, users, locales, redirects) → Admin Dashboard; Payload-owned editorial content → Payload's admin UI. Full table in [API_CONTRACT_FINAL.md §2.11](./API_CONTRACT_FINAL.md).
-- **Two admin surfaces, two hosts.** The Admin Dashboard is served at `/admin/*` on the main domain. Payload's own admin UI is served from a **separate subdomain, `cms.<domain>`**, because Payload's admin route also defaults to `/admin` and the two would collide behind one origin. The split also keeps their sessions in separate cookie scopes — relevant to the still-open question of how CMS editors authenticate. Confirmed 7 August 2026; see [ADR-005](./ADR/ADR-005-vps-docker-deployment.md) and [DEVOPS.md](./DEVOPS.md#public-routing).
+- **Two admin surfaces, two hosts.** The Admin Dashboard is served at `/admin/*` on the main domain. Payload's own admin UI is served from a **separate subdomain, `cms.<domain>`**, because Payload's admin route also defaults to `/admin` and the two would collide behind one origin. The split also keeps their sessions in separate cookie scopes, which the separate-authentication decision below depends on. Confirmed 7 August 2026; see [ADR-005](./ADR/ADR-005-vps-docker-deployment.md), [ADR-006](./ADR/ADR-006-payload-admin-authentication.md) and [DEVOPS.md](./DEVOPS.md#public-routing).
 
 Route structure, authentication boundary, and RBAC integration: [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) and [SECURITY.md](./SECURITY.md#admin-dashboard-access).
 
@@ -66,8 +66,8 @@ Modules must not import each other's repositories/database models directly — c
 ## Authentication & Authorization
 
 - JWT is issued **only by NestJS** — the single identity system for platform users (Admin, Content Manager, Sales Expert, Customer; see [DATABASE.md](./DATABASE.md)).
-- Payload's built-in auth is used internally only, for NestJS's service-level access to the CMS. CMS editors authenticate through the platform's normal login (Admin/Content Manager roles), not a separate Payload account.
-- Role → permission mapping (RBAC matrix) is defined in [SECURITY.md](./SECURITY.md), not here.
+- **Payload Admin uses separate authentication ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)).** Payload keeps its own admin authentication and its own admin users, in `sam_cms`. CMS editors sign in at `cms.<domain>/admin` with a Payload account — not with their platform login. NestJS does not manage Payload admin sessions, no SSO bridge exists between the two, and authentication cookies are never shared between the main domain and the CMS subdomain. NestJS's **service-level** access to Payload is separate and unchanged: the Content module calls Payload's REST API server-to-server on the internal network, authenticated as a service, never as an editor.
+- Role → permission mapping (RBAC matrix) is defined in [SECURITY.md](./SECURITY.md), not here. Payload maintains its **own** role model (minimum `Admin` and `Content Manager`) mirroring the CMS-facing rules in that matrix; it is not synchronized with platform users — see [SECURITY.md](./SECURITY.md#payload-admin-access).
 
 ---
 
