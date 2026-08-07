@@ -286,20 +286,21 @@ Only genuinely unresolved items.
 
 4. **Email delivery is entirely unspecified** — no provider, sender domain, or deliverability plan. Four flows depend on it: newsletter double opt-in, form acknowledgements, download links, admin notifications.
 5. ~~Vercel/VPS split~~ — **resolved 7 August 2026.** The whole platform deploys to a single Linux VPS via Docker Compose behind Nginx; the Vercel split-hosting proposal is dropped. Reconciled across [TECH_STACK.md](./TECH_STACK.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DEVOPS.md](./DEVOPS.md), and [technology/FRONTEND_STACK.md](./technology/FRONTEND_STACK.md). The CORS concern is resolved with it — `web` and `api` now share one origin behind Nginx. Recorded as [ADR-005](./ADR/ADR-005-vps-docker-deployment.md). **Still to build:** the Docker and GitHub Actions files themselves.
+6. **The VPS does not exist, and its purchase is deferred until the application is complete.** The deployment target is decided (ADR-005) but nothing is provisioned: no server, no DNS, no certificates. **Hosting provider, machine sizing, and provisioning method are all undecided** and are not to be chosen or assumed before purchase. Consequences to plan around: CI/CD Phases 2 and 3 cannot be finished, no production URL exists for testing, and TLS cannot be issued. Nothing in the current work depends on the host — the local Docker stack is self-contained. See the status note under [DEVOPS.md § Deployment Target](./DEVOPS.md#deployment-target).
 
 ### Legal
 
-6. **Privacy Policy** — every form's consent checkbox is legally inert without it. Blocks form launch.
-7. **Retention periods** — approved as a requirement; concrete durations need legal input. Deliberately not guessed at.
+7. **Privacy Policy** — every form's consent checkbox is legally inert without it. Blocks form launch.
+8. **Retention periods** — approved as a requirement; concrete durations need legal input. Deliberately not guessed at.
 
 ### Content _(blocks launch, not development)_
 
-8. Photography (facility, products, team), audited company statistics, **real certifications** (the Admin-approval workflow currently has nothing to approve), contact details, MOQs, lead times, and the final export market list. All tracked in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#outstanding-confirmations-needed).
+9. Photography (facility, products, team), audited company statistics, **real certifications** (the Admin-approval workflow currently has nothing to approve), contact details, MOQs, lead times, and the final export market list. All tracked in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#outstanding-confirmations-needed).
 
 ### Housekeeping
 
-9. ~~Nothing is pushed to a remote~~ — **resolved.** Baseline committed (`3fa6f8d`), remote `origin` configured (`https://github.com/hosein6671/Samgroup`), `origin/main` synchronized. The branch-name mismatch is resolved with it: the branch is `main`, matching what [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers.
-10. ~~`docs/Design/` casing mismatch~~ — **resolved.** Directory renamed to lowercase `docs/design/`, matching the other subdirectories and all references.
+10. ~~Nothing is pushed to a remote~~ — **resolved.** Baseline committed (`3fa6f8d`), remote `origin` configured (`https://github.com/hosein6671/Samgroup`), `origin/main` synchronized. The branch-name mismatch is resolved with it: the branch is `main`, matching what [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers.
+11. ~~`docs/Design/` casing mismatch~~ — **resolved.** Directory renamed to lowercase `docs/design/`, matching the other subdirectories and all references.
 
 ---
 

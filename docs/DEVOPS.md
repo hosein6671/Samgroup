@@ -54,7 +54,7 @@ Nginx only ever proxies `sam-public`. The private bucket has no route — reachi
 | Local       | Development on a machine | manual (`docker compose up`)     |
 | Production  | Live platform            | merge to `main`, manual approval |
 
-**There is no staging environment and no second host.** One VPS runs the whole platform: `samgp.com` and `cms.samgp.com` both resolve to it and are served by the same Docker Compose stack (`nginx`, `web`, `api`, `cms`, `postgres`, `minio`). Introducing a staging environment later requires a new architecture decision — see [ADR-005](./ADR/ADR-005-vps-docker-deployment.md), approved implementation decision 6.
+**There is no staging environment and no second host.** One VPS will run the whole platform: `samgp.com` and `cms.samgp.com` will both resolve to it and be served by the same Docker Compose stack (`nginx`, `web`, `api`, `cms`, `postgres`, `minio`). That VPS does not exist yet — see the status note under [Deployment Target](#deployment-target). Introducing a staging environment later requires a new architecture decision — see [ADR-005](./ADR/ADR-005-vps-docker-deployment.md), approved implementation decision 6.
 
 ---
 
@@ -97,7 +97,9 @@ Production deploys additionally require the manual approval gate noted under Env
 
 ## Deployment Target
 
-**One Linux VPS, running every service in Docker.** There is no external hosting provider for any part of the platform.
+> **Status: the VPS is a future production target, not an existing environment.** No server has been purchased, and nothing described in this section is provisioned or running anywhere. **The VPS is acquired only after the application is complete.** Hosting provider, machine sizing, and the provisioning method are all **undecided** — none of them has been chosen, and none should be chosen or assumed before that point. Everything below describes the intended shape of that future deployment, so it can be built once the host exists.
+
+**One Linux VPS will run every service in Docker.** There is no external hosting provider for any part of the platform.
 
 - **Orchestration:** Docker Compose, using the same service model as local development with production values for image tags, secrets, and resource limits.
 - **Ingress:** Nginx as reverse proxy and TLS termination in front of every HTTP-facing service.
