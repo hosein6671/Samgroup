@@ -1,0 +1,116 @@
+# ---------------------------------------------------------------------------
+# HTTP proxy — the same template drives local development and the VPS.
+#
+# nginx cannot read environment variables itself. The official image solves
+# this by running `envsubst` over /etc/nginx/templates/*.template at container
+# start and writing the result into /etc/nginx/conf.d/. Nothing here is
+# hard-coded to a hostname or a domain.
+#
+# NGINX_ENVSUBST_FILTER is set to ^SAM_ in docker-compose.yml, so ONLY
+# variables named SAM_* are substituted. That is what keeps nginx's own
+# runtime variables — $host, $remote_addr, $proxy_add_x_forwarded_for — from
+# being blanked out by envsubst, which is the classic way this feature breaks.
+#
+# Local development stays independent of DNS: the server below is the default
+# server, so it answers on localhost regardless of what SAM_PUBLIC_HOST is set
+# to, and browsers resolve *.localhost to the loopback address with no hosts
+# file entry.
+#
+# TLS is NOT configured here. See production-tls.conf.template.example.
+# ---------------------------------------------------------------------------
+
+# Docker's embedded DNS. Upstreams are assigned to nginx variables so they are
+# resolved per request rather than at startup. With a literal address, nginx
+# REFUSES TO START when the name cannot be resolved — which is the state today
+# (no applications exist) and recurs whenever an app container restarts.
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+# WebSocket upgrades must be conditional. A bare `proxy_set_header Connection
+# "upgrade"` sends that header on EVERY request, telling the upstream each
+# ordinary request is an upgrade attempt — which breaks keep-alive against Node
+# servers, and web/api/cms will all be Node. This map sends `upgrade` only when
+# the client actually asked for one, and `close` otherwise.
+# `$http_upgrade` and `$connection_upgrade` survive envsubst because the filter
+# is restricted to SAM_* names.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 80 default_server;
+    server_name ${SAM_PUBLIC_HOST} _;
+
+    # Product documents and CVs are not small.
+    client_max_body_size 25m;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        $connection_upgrade;
+
+    # Liveness for the container healthcheck. Answers with no backend present,
+    # so nginx stays green while web/api/cms do not yet exist.
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "nginx ok\n";
+    }
+
+    # Public bucket only. The private bucket is NEVER proxied — those objects
+    # are reached through short-lived presigned URLs issued by the API.
+    # See docs/DEVOPS.md "Object storage (MinIO)".
+    location /media/ {
+        set $minio_upstream ${SAM_MINIO_UPSTREAM};
+        rewrite ^/media/(.*)$ /${SAM_PUBLIC_BUCKET}/$1 break;
+        proxy_pass $minio_upstream;
+
+        proxy_hide_header x-amz-id-2;
+        proxy_hide_header x-amz-request-id;
+        add_header Cache-Control "public, max-age=3600";
+    }
+
+    # --- The two routes below have no backend yet ---------------------------
+    # They return 502 until the applications are scaffolded. That is expected.
+    # In development SAM_*_UPSTREAM points at the host gateway, because the
+    # apps run on the host via `pnpm dev`; in production they point at the
+    # compose service names.
+
+    location /api/ {
+        set $api_upstream ${SAM_API_UPSTREAM};
+        proxy_pass $api_upstream;
+    }
+
+    # Includes the Admin Dashboard at /admin/*, which is an area of apps/web.
+    location / {
+        set $web_upstream ${SAM_WEB_UPSTREAM};
+        proxy_pass $web_upstream;
+    }
+}
+
+# Payload's admin UI, on its own host. Payload defaults its admin route to
+# /admin, which collides with the Admin Dashboard that apps/web serves there —
+# hence a separate host rather than a path (ADR-005).
+server {
+    listen 80;
+    server_name ${SAM_CMS_HOST};
+
+    client_max_body_size 25m;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # The CMS admin must never be indexed, on any host.
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
+    location / {
+        set $cms_upstream ${SAM_CMS_UPSTREAM};
+        proxy_pass $cms_upstream;
+    }
+}

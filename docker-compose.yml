@@ -1,0 +1,158 @@
+# ---------------------------------------------------------------------------
+# Infrastructure stack (Bootstrap step 5B-1).
+#
+# Scope: postgres, minio, nginx. The applications are deliberately absent —
+# apps/web, apps/api and apps/cms are not scaffolded yet, and the approved
+# development model runs them on the host via `pnpm dev` regardless
+# (ADR-005, approved implementation decision 4).
+#
+# This file publishes NO host ports. Compose merges `ports` by appending, so a
+# port declared here could never be removed by an environment-specific override
+# — it would follow the stack into production. Publishing therefore belongs to
+# the overrides: docker-compose.override.yml for development, and the future
+# docker-compose.prod.yml for the VPS.
+#
+# Usage:
+#   cp .env.example .env
+#   docker compose up -d
+#   ./scripts/verify-db-isolation.sh
+# ---------------------------------------------------------------------------
+name: sam-group-platform
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      # Consumed by the init script, not by the postgres entrypoint itself.
+      POSTGRES_PLATFORM_DB: ${POSTGRES_PLATFORM_DB}
+      POSTGRES_PLATFORM_USER: ${POSTGRES_PLATFORM_USER}
+      POSTGRES_PLATFORM_PASSWORD: ${POSTGRES_PLATFORM_PASSWORD}
+      POSTGRES_CMS_DB: ${POSTGRES_CMS_DB}
+      POSTGRES_CMS_USER: ${POSTGRES_CMS_USER}
+      POSTGRES_CMS_PASSWORD: ${POSTGRES_CMS_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      # Runs on first initialisation only, i.e. when the volume is empty.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    # No `ports:` by design — the database is never published. Local access is
+    # opt-in through docker-compose.override.yml.
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  minio:
+    # Pinned to the last tag MinIO published. The upstream repository was
+    # archived on 25 April 2026 and the community edition is now distributed as
+    # source only, so no newer official image exists and none will — see
+    # docs/DEVOPS.md "Object storage (MinIO)" for the consequence and the
+    # decision still owed before production.
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    # On both networks: nginx (edge) proxies public media, while the
+    # applications (data) use the S3 API. postgres stays off edge entirely.
+    networks:
+      - data
+      - edge
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # One-shot: creates the buckets and sets their access policies, then exits.
+  minio-init:
+    # Last published mc tag, for the same reason as the server image above.
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET}
+      MINIO_PRIVATE_BUCKET: ${MINIO_PRIVATE_BUCKET}
+    networks:
+      - data
+    # `anonymous set none` on the private bucket is the point: CVs and
+    # confidential documents must never be reachable without a presigned URL
+    # (docs/SECURITY.md "Data Protection").
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD"
+        mc mb --ignore-existing "local/$$MINIO_PUBLIC_BUCKET"
+        mc mb --ignore-existing "local/$$MINIO_PRIVATE_BUCKET"
+        mc anonymous set download "local/$$MINIO_PUBLIC_BUCKET"
+        mc anonymous set none "local/$$MINIO_PRIVATE_BUCKET"
+        echo "buckets ready: $$MINIO_PUBLIC_BUCKET (public read), $$MINIO_PRIVATE_BUCKET (private)"
+    restart: "no"
+
+  nginx:
+    image: nginx:stable-alpine
+    restart: unless-stopped
+    # No `ports:` anywhere in this file — see the note at the top. Development
+    # publishes in docker-compose.override.yml; production will publish 80/443
+    # in its own override.
+    environment:
+      # The image runs envsubst over /etc/nginx/templates/*.template at start.
+      # The filter restricts substitution to SAM_* names, which is what stops
+      # envsubst from also blanking nginx's own $host / $remote_addr variables.
+      NGINX_ENVSUBST_FILTER: "^SAM_"
+      # Renamed at this boundary so .env keeps one unprefixed source of truth
+      # and the SAM_ prefix stays an implementation detail of this container.
+      SAM_PUBLIC_HOST: ${PUBLIC_HOST}
+      SAM_CMS_HOST: ${CMS_HOST}
+      SAM_WEB_UPSTREAM: ${WEB_UPSTREAM}
+      SAM_API_UPSTREAM: ${API_UPSTREAM}
+      SAM_CMS_UPSTREAM: ${CMS_UPSTREAM}
+      SAM_MINIO_UPSTREAM: ${MINIO_UPSTREAM}
+      SAM_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET}
+    volumes:
+      # Templates, not conf.d: the entrypoint needs conf.d writable to place
+      # the rendered output there, so conf.d must not be a read-only mount.
+      - ./docker/nginx/templates:/etc/nginx/templates:ro
+    # Not on `data`: a compromised proxy must not be able to reach postgres.
+    # It reaches minio because minio also joins `edge`.
+    networks:
+      - edge
+    # Lets the dev config proxy to applications running on the host. Built in
+    # on Docker Desktop; this mapping is what makes it work on Linux too.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  edge:
+    driver: bridge
+  data:
+    driver: bridge
+    # No route off the host. The data plane has no reason to reach the
+    # internet, and postgres sits only here.
+    internal: true
+
+volumes:
+  postgres_data:
+  minio_data:

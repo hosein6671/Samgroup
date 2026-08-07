@@ -30,6 +30,23 @@ One `postgres` container/server for both apps, but **two independent databases**
 
 ---
 
+## Object storage (MinIO)
+
+Media never lives in a database or on a container volume belonging to an app — it lives in S3-compatible object storage, split across **two buckets with different access policies**. One bucket would not be sufficient, because the platform stores objects at two very different sensitivity levels.
+
+| Bucket        | Contents                                                                 | Anonymous access                    | Served how                                                     |
+| ------------- | ------------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------------------- |
+| `sam-public`  | Product imagery, published documents, other freely readable media        | `download` — public read            | Proxied and cached by Nginx at `/media/*`                      |
+| `sam-private` | **CVs** (`JobApplication.cvMediaId`), confidential formulation documents | `none` — no anonymous access at all | Short-lived presigned URLs issued by NestJS; **never proxied** |
+
+The split implements [SECURITY.md](./SECURITY.md#data-protection) directly: CV files are the most sensitive assets in object storage and must be "always access-controlled, never served from a public/guessable URL, and readable only by Admin". A single bucket with per-object policies would make that a per-upload decision, and the failure mode of forgetting is silent public exposure. Two buckets make the default safe: anything written to `sam-private` is unreachable without a signed URL, regardless of how it got there.
+
+Nginx only ever proxies `sam-public`. The private bucket has no route — reaching it requires a presigned URL from the API, which is where RBAC is enforced. Both buckets and both policies are created by the `minio-init` one-shot service in `docker-compose.yml`.
+
+> **Upstream status — decision owed before production.** MinIO's repository was archived on 25 April 2026, and the community edition is now distributed as source only, with no further pre-compiled binaries or official container images. The stack is pinned to the last published tags (`minio/minio:RELEASE.2025-09-07T16-13-09Z`, `minio/mc:RELEASE.2025-08-13T08-35-41Z`), which is correct for local development but means **no security updates**. Before production, choose one: build MinIO from source and self-maintain the image, move to the commercial successor, or adopt a different S3-compatible store. The last option would change a `TECH_STACK.md` entry and needs its own ADR — though the blast radius is contained, because [ARCHITECTURE.md](./ARCHITECTURE.md#storage) commits to "an S3-compatible object store", not to MinIO's API specifically.
+
+---
+
 ## Environments
 
 | Environment | Purpose                     | Deploy trigger                   |
@@ -71,7 +88,7 @@ Both resolve to `turbo run` tasks, and no package in the workspace currently def
 8. Pull the new image tags and recreate the affected services via Docker Compose
 9. Run health checks; on failure, roll back by redeploying the previous SHA tag
 
-Phases 2 and 3 depend on Dockerfiles and a `docker-compose.yml` that do not exist yet (`docker/` and the root `docker-compose.yml` are still empty placeholders), and on registry/SSH secrets that have not been created. Both remain future work under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
+The infrastructure half of this now exists: `docker-compose.yml`, the Postgres init script, and the Nginx templates are in place and run locally. Phases 2 and 3 still depend on the **application Dockerfiles**, which cannot be written until `apps/web`, `apps/api`, and `apps/cms` are scaffolded — `turbo prune <app>` has no package to target before then — and on registry/SSH secrets that have not been created. Both remain future work under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
 Production deploys additionally require the manual approval gate noted under Environments. Staging runs the same three phases from `develop` without that gate.
 

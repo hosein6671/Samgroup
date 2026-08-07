@@ -31,8 +31,12 @@ sam-group-platform/
 │   ├── web.Dockerfile
 │   ├── api.Dockerfile
 │   ├── cms.Dockerfile
-│   └── nginx/          # Nginx site config, bind-mounted into the official image
+│   ├── nginx/          # Nginx templates + README, bind-mounted into the official image
+│   └── postgres/init/  # First-boot script creating the two ADR-002 databases
+├── scripts/            # Operational scripts (e.g. the ADR-002 isolation check)
 ├── docker-compose.yml
+├── docker-compose.override.yml   # Local development overrides, auto-loaded
+├── .env.example
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json
@@ -48,3 +52,7 @@ sam-group-platform/
 - `packages/ui` is the shared frontend component foundation for `apps/web` — empty until Next.js/React are actually configured there. Both areas of `apps/web` (public site and Admin Dashboard) consume it.
 - **`apps/web` contains two application areas, not one**: the public site under `app/[locale]/*` and the Admin Dashboard under `app/(admin)/admin/*`. They share the build, the design system, the API client, and `packages/types` — but have separate layouts, separate auth boundaries, and no shared page architecture. A fourth app (`apps/admin`) was rejected because it would duplicate the whole toolchain for a surface that reuses all of it — see [ARCHITECTURE.md](./ARCHITECTURE.md#admin-dashboard).
 - Each app has its own `Dockerfile`; `docker-compose.yml` at the root orchestrates `nginx`, `postgres`, and `minio` for local development, with `web`/`api`/`cms` running on the host via `pnpm dev` and available as an opt-in containerized profile (see [DEVOPS.md](./DEVOPS.md#local-development)). `nginx` has no Dockerfile — it runs the official image with the config in `docker/nginx/` bind-mounted, so a routing change never requires an image rebuild.
+- **`docker-compose.yml` publishes no host ports.** Compose merges `ports` by appending, so a port declared in the base file could never be withdrawn by an environment-specific override and would follow the stack into production. Publishing therefore belongs to the overrides: `docker-compose.override.yml` (loaded automatically for local development) and the future `docker-compose.prod.yml`.
+- `docker/postgres/init/` holds the first-boot script that creates `sam_platform` and `sam_cms` as independent databases and revokes cross-database `CONNECT` ([ADR-002](./ADR/ADR-002-two-databases.md)). The official Postgres image runs it only when the data volume is empty.
+- `scripts/` holds operational scripts that are not part of any application — currently `verify-db-isolation.sh`, which asserts the ADR-002 boundary is enforced by PostgreSQL rather than assumed.
+- `.env.example` at the root documents the compose-level variables with local-development placeholders. Per-app `.env.example` files arrive with their apps. No `.env` file is ever committed ([SECURITY.md](./SECURITY.md#secrets-management)).

@@ -1,0 +1,50 @@
+# ---------------------------------------------------------------------------
+# Local development overrides. Docker Compose loads this automatically on top
+# of docker-compose.yml, so it must never contain anything unsafe by default.
+#
+# Production does NOT use this file — the VPS runs
+# `docker compose -f docker-compose.yml -f docker-compose.prod.yml ...`
+# (docker-compose.prod.yml belongs to the VPS deployment work, not to 5B-1).
+#
+# All host port publishing lives here rather than in the base file, because
+# Compose merges `ports` by appending: anything published in the base file
+# could not be withdrawn by an override and would reach production with it.
+#
+# Every port below binds to 127.0.0.1 explicitly, so nothing is reachable from
+# the local network.
+# ---------------------------------------------------------------------------
+
+services:
+  nginx:
+    ports:
+      # The only entry point in development. Port 8080 rather than 80 so it
+      # needs no elevated privileges and cannot collide with an existing
+      # listener on port 80.
+      - "127.0.0.1:${HTTP_PORT:-8080}:80"
+
+  postgres:
+    # ---------------------------------------------------------------------
+    # The database port is CLOSED. It is closed because neither this file nor
+    # the base file publishes it — there is no directive to "keep" it closed.
+    #
+    # Uncomment only if a host tool (psql, DBeaver, pgAdmin) or a host-run
+    # application needs to reach PostgreSQL directly, then:
+    #     docker compose up -d postgres
+    #
+    # This WILL be needed once apps/api and apps/cms are scaffolded, because
+    # the approved development model runs them on the host rather than in
+    # containers, and a host process cannot reach an unpublished container
+    # port. Until then, leaving it closed keeps the surface minimal.
+    # ---------------------------------------------------------------------
+    # ports:
+    #   - "127.0.0.1:${POSTGRES_LOCAL_PORT:-5432}:5432"
+
+  minio:
+    ports:
+      # Web console — development only, for confirming buckets and policies by
+      # eye. It is deliberately absent from the base file so it can never be
+      # published in production.
+      - "127.0.0.1:9001:9001"
+      # S3 API. Uncomment when host-run applications need object storage;
+      # nginx already reaches MinIO over the internal network without it.
+      # - "127.0.0.1:9000:9000"

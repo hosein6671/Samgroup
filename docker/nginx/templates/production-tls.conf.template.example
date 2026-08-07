@@ -1,0 +1,127 @@
+# ---------------------------------------------------------------------------
+# PREPARED, NOT ACTIVE.
+#
+# The nginx image processes only files ending in `.template`. The trailing
+# `.example` keeps this file inert, so it can live beside the active template
+# and be reviewed now without affecting any running container.
+#
+# Hostnames are environment-driven exactly like the active template — there is
+# no domain hard-coded anywhere in this file. On the VPS, SAM_PUBLIC_HOST and
+# SAM_CMS_HOST are set to samgp.com and cms.samgp.com; locally they stay
+# localhost and cms.localhost.
+#
+# Activate only when the VPS exists and DNS resolves (docker/nginx/README.md):
+#   1. Point A records for both hosts at the VPS.
+#   2. Obtain certificates with certbot in webroot mode — this file cannot be
+#      active yet, because nginx will not start while ssl_certificate refers to
+#      a file that does not exist.
+#   3. Rename to production-tls.conf.template, remove default.conf.template,
+#      and restart nginx.
+# ---------------------------------------------------------------------------
+
+resolver 127.0.0.11 valid=10s ipv6=off;
+
+# WebSocket upgrades must be conditional — see the same map in
+# default.conf.template. Sending `Connection: upgrade` unconditionally breaks
+# upstream keep-alive against Node servers.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+# HTTP: serve the ACME challenge, redirect everything else to HTTPS.
+server {
+    listen 80;
+    server_name ${SAM_PUBLIC_HOST} ${SAM_CMS_HOST};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# --- Public site + API ------------------------------------------------------
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${SAM_PUBLIC_HOST};
+
+    ssl_certificate     /etc/letsencrypt/live/${SAM_PUBLIC_HOST}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SAM_PUBLIC_HOST}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Enable only after HTTPS is confirmed working end to end — browsers cache
+    # this for max-age, so turning it on prematurely is painful to reverse.
+    # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    client_max_body_size 25m;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        $connection_upgrade;
+
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "nginx ok\n";
+    }
+
+    location /media/ {
+        set $minio_upstream ${SAM_MINIO_UPSTREAM};
+        rewrite ^/media/(.*)$ /${SAM_PUBLIC_BUCKET}/$1 break;
+        proxy_pass $minio_upstream;
+        add_header Cache-Control "public, max-age=3600";
+    }
+
+    location /api/ {
+        set $api_upstream ${SAM_API_UPSTREAM};
+        proxy_pass $api_upstream;
+    }
+
+    location / {
+        set $web_upstream ${SAM_WEB_UPSTREAM};
+        proxy_pass $web_upstream;
+    }
+}
+
+# --- Payload admin, separate host (ADR-005) ---------------------------------
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${SAM_CMS_HOST};
+
+    ssl_certificate     /etc/letsencrypt/live/${SAM_CMS_HOST}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SAM_CMS_HOST}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
+    client_max_body_size 25m;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    location / {
+        set $cms_upstream ${SAM_CMS_UPSTREAM};
+        proxy_pass $cms_upstream;
+    }
+}
