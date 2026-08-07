@@ -24,6 +24,16 @@ This ADR resolves that thread.
 
 The stack on the host is `nginx`, `web`, `api`, `cms`, `postgres`, and `minio`; supporting services join it only when a phase actually requires one. Nginx terminates TLS and reverse-proxies every HTTP-facing service. `postgres` and `minio` are reachable only on the internal Docker network. Full service table, environments, and the three-phase CI/CD flow: [DEVOPS.md](../DEVOPS.md#deployment-target).
 
+### Approved implementation decisions
+
+Confirmed 7 August 2026, from the design review held before the first Dockerfile was written:
+
+1. **Payload's admin UI is served from its own subdomain, `cms.<domain>`** — not a path on the main domain. Payload's admin route defaults to `/admin`, which collides with the Admin Dashboard already specified at `/admin` inside `apps/web` ([ARCHITECTURE.md](../ARCHITECTURE.md#admin-dashboard)). A subdomain avoids `basePath` rewriting and keeps the two admin surfaces in separate cookie scopes. This does **not** resolve the outstanding Payload admin authentication question, which remains open.
+2. **Nginx runs as its own container from the official image, with its configuration bind-mounted** from `docker/nginx/`. Proxy configuration is operational data, not application code — baking it into a custom image would force an image rebuild to change a routing rule.
+3. **GitHub Container Registry (GHCR)** holds the three application images. CI is already GitHub Actions and authenticates with the built-in token, so no second vendor is introduced — consistent with this ADR's single-target reasoning.
+4. **Local development runs infrastructure in Docker and the applications on the host** via `pnpm dev`. Rebuilding images on every code change is not a workable inner loop. A fully containerized profile stays available for pre-release parity checks.
+5. **Phase 1 accepts brief downtime during a Compose update.** `docker compose up -d` recreates containers rather than draining them, so an affected service has a short gap. Genuine zero-downtime needs blue/green or rolling deployment, which a single Compose host does not provide natively.
+
 ## Consequences
 
 **Positive**

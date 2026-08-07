@@ -30,7 +30,8 @@ sam-group-platform/
 ├── docker/
 │   ├── web.Dockerfile
 │   ├── api.Dockerfile
-│   └── cms.Dockerfile
+│   ├── cms.Dockerfile
+│   └── nginx/          # Nginx site config, bind-mounted into the official image
 ├── docker-compose.yml
 ├── turbo.json
 ├── pnpm-workspace.yaml
@@ -46,4 +47,4 @@ sam-group-platform/
 - ESLint and TypeScript config were split into their own dedicated packages (`packages/eslint-config`, `packages/tsconfig`) rather than one monolithic `config` package — standard Turborepo convention, and it lets an app extend just what it needs. `packages/config` is left for framework-agnostic runtime config only (e.g. a future shared Tailwind config, once `apps/web` is scaffolded) — see [CODING_STANDARDS.md](./CODING_STANDARDS.md).
 - `packages/ui` is the shared frontend component foundation for `apps/web` — empty until Next.js/React are actually configured there. Both areas of `apps/web` (public site and Admin Dashboard) consume it.
 - **`apps/web` contains two application areas, not one**: the public site under `app/[locale]/*` and the Admin Dashboard under `app/(admin)/admin/*`. They share the build, the design system, the API client, and `packages/types` — but have separate layouts, separate auth boundaries, and no shared page architecture. A fourth app (`apps/admin`) was rejected because it would duplicate the whole toolchain for a surface that reuses all of it — see [ARCHITECTURE.md](./ARCHITECTURE.md#admin-dashboard).
-- Each app has its own `Dockerfile`; `docker-compose.yml` at the root orchestrates `web`, `api`, `cms`, `postgres`, and `minio` for local development (see [DEVOPS.md](./DEVOPS.md)).
+- Each app has its own `Dockerfile`; `docker-compose.yml` at the root orchestrates `nginx`, `postgres`, and `minio` for local development, with `web`/`api`/`cms` running on the host via `pnpm dev` and available as an opt-in containerized profile (see [DEVOPS.md](./DEVOPS.md#local-development)). `nginx` has no Dockerfile — it runs the official image with the config in `docker/nginx/` bind-mounted, so a routing change never requires an image rebuild.

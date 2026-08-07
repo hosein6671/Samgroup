@@ -2,7 +2,14 @@
 
 ## Local Development
 
-- `docker-compose.yml` runs: `postgres`, `minio`, `api`, `web`, `cms`
+**Infrastructure runs in Docker; the applications run on the host** via `pnpm dev` (Turborepo). Rebuilding an image on every code change is not a workable inner loop, so containers cover only what is awkward to run locally.
+
+- **In Docker:** `postgres`, `minio`, `nginx`
+- **On the host:** `web`, `api`, `cms` — through `pnpm dev`
+- **Full-stack profile:** an opt-in Compose profile runs every service containerized, for verifying production parity before a release rather than for daily work
+
+`nginx` runs locally as well as in production so that both environments serve everything from **one origin**. This matters more than it appears: the refresh token is an httpOnly cookie, so a dev setup reaching `web` and `api` on different ports would exercise different cookie and CORS behaviour than production, and would hide that entire class of bug until deployment.
+
 - Each app reads config from its own `.env` (see `.env.example` per app in [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md))
 - `.env` files are never committed; `.env.example` documents required variables with placeholder values
 
@@ -56,7 +63,7 @@ Both resolve to `turbo run` tasks, and no package in the workspace currently def
 **Phase 2 — Build images** (on merge to `main`, only if Phase 1 passed) — **not yet implemented**
 
 5. Build one Docker image per deployable app: `web`, `api`, `cms`
-6. Tag each by commit SHA, and push to the container registry
+6. Tag each by commit SHA, and push to **GitHub Container Registry (GHCR)** — authenticated with the workflow's built-in token, so no additional registry vendor is involved
 
 **Phase 3 — Deploy to VPS** (only if Phase 2 published images) — **not yet implemented**
 
@@ -80,20 +87,36 @@ Production deploys additionally require the manual approval gate noted under Env
 
 ### Services on the host
 
-| Service    | Contents                                                          | Reachable from                                                           |
-| ---------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `nginx`    | Reverse proxy, TLS termination                                    | public (`:80`, `:443`)                                                   |
-| `web`      | Next.js (`apps/web`), including the `/admin` Admin Dashboard area | public, via `nginx`                                                      |
-| `api`      | NestJS (`apps/api`) — the only API surface `web` calls (ADR-003)  | public, via `nginx`; the sole client of `cms`                            |
-| `cms`      | Payload CMS (`apps/cms`)                                          | admin UI via `nginx`; content read by `api` on the internal network only |
-| `postgres` | Both databases — `sam_platform` and `sam_cms` (ADR-002)           | internal network only                                                    |
-| `minio`    | S3-compatible object storage                                      | internal network; public reads proxied through `nginx`                   |
+| Service    | Contents                                                                                         | Reachable from                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `nginx`    | Reverse proxy, TLS termination — official image, configuration bind-mounted from `docker/nginx/` | public (`:80`, `:443`)                                                                     |
+| `web`      | Next.js (`apps/web`), including the `/admin` Admin Dashboard area                                | public, via `nginx`                                                                        |
+| `api`      | NestJS (`apps/api`) — the only API surface `web` calls (ADR-003)                                 | public, via `nginx`; the sole client of `cms`                                              |
+| `cms`      | Payload CMS (`apps/cms`) — itself a Next.js application                                          | admin UI at `cms.<domain>` via `nginx`; content read by `api` on the internal network only |
+| `postgres` | Both databases — `sam_platform` and `sam_cms` (ADR-002)                                          | internal network only                                                                      |
+| `minio`    | S3-compatible object storage                                                                     | internal network; public reads proxied through `nginx`                                     |
 
 Supporting services (Redis, search, queue — see [TECH_STACK.md](./TECH_STACK.md) "Future Technologies") join this same stack if and when a phase actually requires one. None are provisioned speculatively.
 
 Because `web` and `api` are served from a single origin behind `nginx`, browser traffic between them is same-origin and needs no cross-origin CORS configuration.
 
-**Implication for `apps/web`:** running Next.js as a container means it is served by its own Node process rather than a managed platform, so the app is built in standalone output mode and the container serves it directly. This is a build/runtime configuration detail to apply when `apps/web` is scaffolded — it does not change the application architecture.
+### Public routing
+
+Nginx is the single entry point. Everything below is served over HTTPS; port 80 redirects to 443.
+
+| Host / path        | Upstream                                              |
+| ------------------ | ----------------------------------------------------- |
+| `<domain>/`        | `web` — public site                                   |
+| `<domain>/api/*`   | `api` — same origin as `web`, so no CORS between them |
+| `<domain>/admin/*` | `web` — the Admin Dashboard area                      |
+| `<domain>/media/*` | `minio`, public bucket only, cached                   |
+| `cms.<domain>`     | `cms` — Payload's admin UI                            |
+
+Payload's admin UI gets its **own subdomain** because Payload's admin route also defaults to `/admin`, which would collide with the Admin Dashboard that `apps/web` already serves there. The split also keeps the two admin surfaces in separate cookie scopes. See [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
+
+**Implication for `apps/web`:** running Next.js as a container means it is served by its own Node process rather than a managed platform, so the app is built in standalone output mode and the container serves it directly. This is a build/runtime configuration detail to apply when `apps/web` is scaffolded — it does not change the application architecture. The same applies to `apps/cms`: Payload runs fully inside Next.js, so the CMS container has the same standalone runtime shape as `web`, not a separate Node server.
+
+**Deploys accept brief downtime.** `docker compose up -d` recreates changed containers rather than draining connections, so an updated service has a short gap. Zero-downtime would require blue/green or rolling deployment, which a single Compose host does not provide natively — accepted for Phase 1 under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
 ---
 

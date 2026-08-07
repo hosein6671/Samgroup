@@ -32,6 +32,7 @@ It exists because Payload's admin UI structurally cannot serve it — ADR-002 fo
 - **A separate _area_, not merely more pages.** It has its own route segment, its own layout, its own authentication boundary, and no SEO surface at all. It shares the codebase, not the page architecture.
 - **Same API rule, no exception.** It calls only NestJS, at `/api/v1/admin/*` ([API_CONTRACT_FINAL.md §2.10](./API_CONTRACT_FINAL.md)). It never queries a database and never calls Payload — ADR-003 holds for the admin surface exactly as it does for the public one.
 - **The Payload/Prisma split defines who edits what**: Prisma-owned data (catalog, blog, submissions, users, locales, redirects) → Admin Dashboard; Payload-owned editorial content → Payload's admin UI. Full table in [API_CONTRACT_FINAL.md §2.11](./API_CONTRACT_FINAL.md).
+- **Two admin surfaces, two hosts.** The Admin Dashboard is served at `/admin/*` on the main domain. Payload's own admin UI is served from a **separate subdomain, `cms.<domain>`**, because Payload's admin route also defaults to `/admin` and the two would collide behind one origin. The split also keeps their sessions in separate cookie scopes — relevant to the still-open question of how CMS editors authenticate. Confirmed 7 August 2026; see [ADR-005](./ADR/ADR-005-vps-docker-deployment.md) and [DEVOPS.md](./DEVOPS.md#public-routing).
 
 Route structure, authentication boundary, and RBAC integration: [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) and [SECURITY.md](./SECURITY.md#admin-dashboard-access).
 
