@@ -137,7 +137,7 @@ An independent module consuming **only** the public API — never a database con
 
 ```
 sam-group-platform/
-├── .git/                     initialized — BUT SEE THE WARNING BELOW
+├── .git/                     initialized; baseline committed and pushed (see below)
 ├── .gitignore                real file
 ├── package.json              root manifest, pnpm@11.20.0 pinned, turbo scripts
 ├── pnpm-workspace.yaml       apps/*, packages/*
@@ -159,13 +159,19 @@ sam-group-platform/
 - Empty: `docker/`, `scripts/`, `.github/`, and root `README.md` / `docker-compose.yml` (zero-byte placeholders).
 - No Prisma schema, no migrations, no Payload config, no Docker Compose, no CI workflow.
 
-### ⚠️ Git has zero commits
+### Git state
 
-**Everything is untracked.** `git log` reports no commits; `git status` shows 11 untracked entries including all of `docs/`.
+The repository is initialized, committed, and backed up to a remote.
 
-This is the **single highest-risk item in this handoff**: the entire architecture — weeks of design work — exists only as working-directory files with no version history. A mistaken `git clean`, a bad checkout, or a disk failure loses all of it. There is also nothing for a new engineer to clone.
+| | |
+|---|---|
+| Baseline commit | `3fa6f8d` — `chore: initial architecture and documentation baseline` |
+| Branch | `main` — matches the branch [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers |
+| Remote | `origin` → `https://github.com/hosein6671/Samgroup` |
+| Sync | `origin/main` synchronized — nothing unpushed |
+| Working tree | Clean |
 
-**Recommended first action before anything else:** make an initial commit and push to a remote.
+The architecture is under version control and clonable by a new engineer.
 
 ### Bootstrap phase status
 
@@ -175,7 +181,8 @@ The 15-step Bootstrap Plan is **2 of 15 complete**:
 |---|---|
 | 1. Monorepo init (git, `.gitignore`, folders) | ✅ Done |
 | 2. Shared packages (`packages/*`) | ✅ Done |
-| 3–15 (workspace install, app scaffolds, Postgres, Prisma, Docker, env, hooks, lint, CI) | ⬜ Not started |
+| 3. Workspace install (`pnpm install`, lockfile) | ⬜ **Next** |
+| 4–15 (app scaffolds, Postgres, Prisma, Docker, env, hooks, lint, CI) | ⬜ Not started |
 
 ---
 
@@ -183,8 +190,8 @@ The 15-step Bootstrap Plan is **2 of 15 complete**:
 
 Dependency order, not a schedule. Each step assumes the previous ones landed.
 
-### 0. Commit and push *(do this first)*
-See the git warning above. Everything below is at risk until this is done.
+### 0. Commit and push — ✅ done
+The baseline is committed as `3fa6f8d` on `main` and pushed to `origin`. See §4 "Git state". Keep committing incrementally as each step below lands.
 
 ### 1. Finish the monorepo shell
 `pnpm install` at the root — the first time this repo will actually resolve dependencies. Then ESLint/Prettier wiring, Husky + lint-staged, and the GitHub Actions CI workflow (lint → type-check → test → build).
@@ -258,7 +265,7 @@ Only genuinely unresolved items.
 8. Photography (facility, products, team), audited company statistics, **real certifications** (the Admin-approval workflow currently has nothing to approve), contact details, MOQs, lead times, and the final export market list. All tracked in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#outstanding-confirmations-needed).
 
 ### Housekeeping
-9. **Nothing is pushed to a remote.** The initial commit exists locally (`chore: initial architecture and documentation baseline`), but no remote is configured, so the architecture lives on one machine. Also note the current branch is `master` while [DEVOPS.md](./DEVOPS.md) references `main` for CI/deploy triggers — reconcile when adding the remote.
+9. ~~Nothing is pushed to a remote~~ — **resolved.** Baseline committed (`3fa6f8d`), remote `origin` configured (`https://github.com/hosein6671/Samgroup`), `origin/main` synchronized. The branch-name mismatch is resolved with it: the branch is `main`, matching what [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers.
 10. ~~`docs/Design/` casing mismatch~~ — **resolved.** Directory renamed to lowercase `docs/design/`, matching the other subdirectories and all references.
 
 ---

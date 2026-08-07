@@ -8,9 +8,10 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 
 **M1 in progress.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized. Bootstrap executing incrementally, step by step, with approval between each:
 
-- ✅ Step 1 — Monorepo foundation: git initialized, real `.gitignore`, `pnpm-workspace.yaml`, root `package.json`, `turbo.json`, empty `apps/web`/`apps/api`/`apps/cms` skeletons.
+- ✅ Step 1 — Monorepo foundation: git initialized, real `.gitignore`, `pnpm-workspace.yaml`, root `package.json`, `turbo.json`, empty `apps/web`/`apps/api`/`apps/cms` skeletons. Baseline committed as `3fa6f8d` on branch `main` and pushed to `origin` (`https://github.com/hosein6671/Samgroup`); `origin/main` synchronized, working tree clean.
 - ✅ Step 2 — Shared package foundation: `packages/types`, `packages/ui`, `packages/config`, `packages/eslint-config`, `packages/tsconfig` created as minimal config-only scaffolds.
-- ⬜ Not yet done: `pnpm install` has never been run (nothing is actually downloaded/linked); no Next.js/NestJS/Payload scaffolding; no Docker Compose stack; no Prisma schema; no CI. `docker/`, `scripts/`, `.github/`, root `README.md`/`docker-compose.yml` are still empty.
+- ⬜ **Step 3 — next:** workspace install (`pnpm install` at the root, producing the first lockfile).
+- ⬜ Not yet done beyond that: no Next.js/NestJS/Payload scaffolding; no Docker Compose stack; no Prisma schema; no CI. `docker/`, `scripts/`, `.github/`, root `README.md`/`docker-compose.yml` are still empty.
 
 Update this line as each further step lands — this is the one fact in `docs/` most likely to go stale.
 

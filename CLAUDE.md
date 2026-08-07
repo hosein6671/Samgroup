@@ -10,7 +10,11 @@ SAM Group Platform is a custom B2B web platform for the petroleum, lubricants, a
 
 ## Current phase
 
-**Architecture Frozen. No application code exists yet.** `apps/web`, `apps/api`, `apps/cms`, `docker/`, `scripts/`, `.github/` are empty placeholder directories; there is no git history yet. A Bootstrap Plan exists and was approved, but has not been executed. Live status and milestone tracking: [`docs/ROADMAP.md`](./docs/ROADMAP.md) (see "Current Status" at the top).
+**Architecture Frozen. No application code exists yet.** `apps/web`, `apps/api`, `apps/cms`, `docker/`, `scripts/`, `.github/` are empty placeholder directories.
+
+The architecture and documentation baseline is committed as `3fa6f8d` (`chore: initial architecture and documentation baseline`) on branch `main`, pushed to `origin` (`https://github.com/hosein6671/Samgroup`), with `origin/main` synchronized and a clean working tree.
+
+Of the 15-step Bootstrap Plan, **steps 1–2 are complete** (monorepo foundation, shared packages); **step 3 — workspace install (`pnpm install`) — is next**. Live status and milestone tracking: [`docs/ROADMAP.md`](./docs/ROADMAP.md) (see "Current Status" at the top).
 
 ## Reading order for `docs/`
 

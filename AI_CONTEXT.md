@@ -36,7 +36,7 @@ This file is the companion to [`CLAUDE.md`](./CLAUDE.md). Where `CLAUDE.md` is t
 
 ## Known environment oddities
 
-- **Fixed** (Bootstrap Step 1): `.gitignore` is now a real file; git is initialized; `pnpm-workspace.yaml`/root `package.json`/`turbo.json` exist.
+- **Fixed** (Bootstrap Step 1): `.gitignore` is now a real file; git is initialized; `pnpm-workspace.yaml`/root `package.json`/`turbo.json` exist. The baseline is committed (`3fa6f8d`) on branch `main` and pushed to `origin` (`https://github.com/hosein6671/Samgroup`); `origin/main` is synchronized and the working tree is clean — the repo is version-controlled and clonable.
 - **Fixed** (Bootstrap Step 2): `packages/types`, `packages/ui`, `packages/config`, `packages/eslint-config`, `packages/tsconfig` exist as minimal config-only scaffolds — no build tooling installed, nothing runnable yet.
 - **Still true**: `apps/web`, `apps/api`, `apps/cms` are `.gitkeep`-only skeletons — no framework scaffolded. `docker/`, `scripts/`, `.github/`, root `README.md`/`docker-compose.yml` are still empty. No `pnpm install` has ever been run — nothing in any `package.json` is actually downloaded/linked yet.
 
