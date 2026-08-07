@@ -1,0 +1,14 @@
+# Generated / vendored — never reformat
+node_modules/
+dist/
+build/
+out/
+.next/
+.turbo/
+coverage/
+
+# Lockfile is tool-owned; reformatting it produces noise and diff churn
+pnpm-lock.yaml
+
+# Binary source material (see docs/PROJECT_HANDOFF.md §3 "Source material")
+*.xlsx

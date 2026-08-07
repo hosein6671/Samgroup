@@ -9,11 +9,21 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "type-check": "turbo run type-check",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@sam-group/eslint-config": "workspace:*",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "prettier": "^3.9.6",
     "turbo": "^2.10.8"
   }
 }
