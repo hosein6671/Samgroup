@@ -296,14 +296,14 @@ erDiagram
 
 These are **not built yet** and carry no field-level guarantees — they exist here only to confirm the Phase 1 schema above can support them later without breaking changes (renamed/dropped columns, migrated foreign keys). Each gets its own full design pass in this document when its phase starts (see [ROADMAP.md](./ROADMAP.md#future-phases)).
 
-| Module | Planned entities | How it anchors to Phase 1 |
-|---|---|---|
-| Customer Portal | `Order`, `Quote`, `SupportTicket` | FK to `ORGANIZATION` (company-level) and `USER` (individual actor) |
-| CRM | `Lead`, `Opportunity`, `Activity` | `INQUIRY`/`CUSTOM_FORMULATION_REQUEST`/`DISTRIBUTOR_APPLICATION`/`DOWNLOAD_REQUEST` already behave as proto-leads (status + `assignedToId`); CRM generalizes them rather than replacing them |
-| Workflow | `WorkflowDefinition`, `WorkflowStep`, `WorkflowInstance` | Generalizes `STATUS_HISTORY` into configurable, multi-step approval flows |
-| Notifications | `Notification` | FK to `USER`; triggered by `STATUS_HISTORY` changes and future `WorkflowInstance` transitions |
-| ERP Integration | `ExternalSyncMap` (`entityType`, `entityId`, `externalSystem`, `externalId`, `lastSyncedAt`) | Generic mapping table so no Phase 1 entity needs an ERP-specific column bolted on later |
-| AI / RAG | None in this schema — deliberately. Its vector store is its own isolated database, never `sam_platform` | Reads Phase 1 content exclusively through the existing NestJS API, the same way `apps/web` does — see [docs/ai/RAG_ARCHITECTURE.md](./ai/RAG_ARCHITECTURE.md) |
+| Module          | Planned entities                                                                                        | How it anchors to Phase 1                                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Customer Portal | `Order`, `Quote`, `SupportTicket`                                                                       | FK to `ORGANIZATION` (company-level) and `USER` (individual actor)                                                                                                                           |
+| CRM             | `Lead`, `Opportunity`, `Activity`                                                                       | `INQUIRY`/`CUSTOM_FORMULATION_REQUEST`/`DISTRIBUTOR_APPLICATION`/`DOWNLOAD_REQUEST` already behave as proto-leads (status + `assignedToId`); CRM generalizes them rather than replacing them |
+| Workflow        | `WorkflowDefinition`, `WorkflowStep`, `WorkflowInstance`                                                | Generalizes `STATUS_HISTORY` into configurable, multi-step approval flows                                                                                                                    |
+| Notifications   | `Notification`                                                                                          | FK to `USER`; triggered by `STATUS_HISTORY` changes and future `WorkflowInstance` transitions                                                                                                |
+| ERP Integration | `ExternalSyncMap` (`entityType`, `entityId`, `externalSystem`, `externalId`, `lastSyncedAt`)            | Generic mapping table so no Phase 1 entity needs an ERP-specific column bolted on later                                                                                                      |
+| AI / RAG        | None in this schema — deliberately. Its vector store is its own isolated database, never `sam_platform` | Reads Phase 1 content exclusively through the existing NestJS API, the same way `apps/web` does — see [docs/ai/RAG_ARCHITECTURE.md](./ai/RAG_ARCHITECTURE.md)                                |
 
 ---
 

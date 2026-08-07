@@ -33,7 +33,7 @@ Two integration patterns were considered:
 - One API surface, one auth scheme, one error/response shape for the frontend to handle.
 - Caching, rate limiting, and request logging live in one place (NestJS) instead of being duplicated per backend.
 - Payload can be replaced, upgraded, or restructured later without touching `web` — only NestJS's Content module needs to change.
-- Fits the "CMS only manages content, no business logic in CMS" rule already in `ARCHITECTURE.md`: business rules about *how* content is exposed live in NestJS, not Payload.
+- Fits the "CMS only manages content, no business logic in CMS" rule already in `ARCHITECTURE.md`: business rules about _how_ content is exposed live in NestJS, not Payload.
 
 **Negative**
 

@@ -12,10 +12,10 @@
 
 One `postgres` container/server for both apps, but **two independent databases** inside it — not a shared database with separate schemas (see [ARCHITECTURE.md](./ARCHITECTURE.md#cms-integration) for why):
 
-| Database | Owner | Used by | Connection string env var |
-|---|---|---|---|
-| `sam_platform` | Prisma | `apps/api` | `DATABASE_URL` (api) |
-| `sam_cms` | Payload | `apps/cms` | `DATABASE_URI` (cms) |
+| Database       | Owner   | Used by    | Connection string env var |
+| -------------- | ------- | ---------- | ------------------------- |
+| `sam_platform` | Prisma  | `apps/api` | `DATABASE_URL` (api)      |
+| `sam_cms`      | Payload | `apps/cms` | `DATABASE_URI` (cms)      |
 
 - Both databases are created on container init (e.g. via an init SQL script or `POSTGRES_MULTIPLE_DATABASES`-style entrypoint in `docker-compose.yml`).
 - Each app is given credentials/connection string for **only its own database** — the api's database user should not even have login rights to `sam_cms`, and vice versa. This makes the separation a hard boundary, not just a config convention.
@@ -25,11 +25,11 @@ One `postgres` container/server for both apps, but **two independent databases**
 
 ## Environments
 
-| Environment | Purpose | Deploy trigger |
-|---|---|---|
-| Local | Development on a machine | manual (`docker compose up`) |
-| Staging | Pre-production verification | push/merge to `develop` |
-| Production | Live platform | merge to `main`, manual approval |
+| Environment | Purpose                     | Deploy trigger                   |
+| ----------- | --------------------------- | -------------------------------- |
+| Local       | Development on a machine    | manual (`docker compose up`)     |
+| Staging     | Pre-production verification | push/merge to `develop`          |
+| Production  | Live platform               | merge to `main`, manual approval |
 
 ---
 

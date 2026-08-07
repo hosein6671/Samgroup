@@ -1,6 +1,7 @@
 # Sam Group Frontend Design Direction
 
 ## Vision
+
 هدف سایت:
 یک تجربه دیجیتال لوکس، صنعتی، تکنولوژیک و بین‌المللی.
 
@@ -18,6 +19,7 @@
 - Helvetica Neue style
 
 Characteristics:
+
 - Oversized headlines
 - Editorial hierarchy
 - Luxury spacing
@@ -36,6 +38,7 @@ Characteristics:
 - Framer Motion
 
 Rules:
+
 - Premium
 - Smooth
 - Performance focused
@@ -47,6 +50,7 @@ Rules:
 - Drei
 
 Rules:
+
 - Use only when valuable
 - Optimize performance
 - Provide fallback
@@ -64,6 +68,7 @@ Rules:
 All editable content comes from Payload CMS.
 
 Examples:
+
 - Hero
 - Products
 - Articles

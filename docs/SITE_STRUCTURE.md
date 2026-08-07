@@ -8,35 +8,35 @@ This is **content and information architecture, not implementation** — same gr
 
 ## 0. Full Sitemap
 
-| Level | Page | URL | Nav | Status |
-|---|---|---|---|---|
-| 1 | Home | `/` | Yes (logo) | Defined |
-| 1 | About Us | `/about-us` | Yes | Defined |
-| 1 | Products | `/products` | Yes (mega-menu) | Defined |
-| 2 | Base Oils | `/products/base-oils` | Yes (sub) | Defined |
-| 2 | Lubricant Additives & Components | `/products/lubricant-additives` | Yes (sub) | Defined |
-| 2 | Engine Oils & Automotive Lubricants | `/products/engine-oils-automotive-lubricants` | Yes (sub) | Defined |
-| 2 | Industrial Oils & Lubricants | `/products/industrial-oils-lubricants` | Yes (sub) | Defined |
-| 2 | Marine Oils & Lubricants | `/products/marine-oils-lubricants` | Yes (sub) | Defined |
-| 2 | Antifreeze & Coolants | `/products/antifreeze-coolants` | Yes (sub) | Defined |
-| 2 | Product Finder | `/products/finder` | No | Defined |
-| 1 | Customized Solutions | `/customized-solutions` | Yes | Defined |
-| 1 | Export & Logistics | `/export-logistics` | Yes | Defined |
-| 1 | Quality & Certifications | `/quality-certifications` | Yes | **[NEW]** — blocked until real certificate list confirmed |
-| 1 | Insights (Blog index) | `/insights` | Yes | **[NEW]** |
-| 2 | Article | `/insights/[slug]` | No | **[NEW]** |
-| 1 | Contact Us | `/contact-us` | Yes | Defined |
-| 2 | Request a Quote | `/contact-us/request-a-quote` | No (CTA) | Defined — pre-filtered Inquiry form |
-| 1 | Become a Distributor | `/become-a-distributor` | No (footer) | **[NEW]** |
-| 1 | FAQ | `/faq` | No (footer) | **[NEW]** — feeds `FAQPage` schema |
-| 1 | Careers | `/careers` | No (footer) | **[NEW]** — optional at launch |
-| 1 | Privacy Policy | `/privacy-policy` | No (footer) | **[NEW]** — legally required before the contact form can launch |
-| 1 | Terms of Use | `/terms-of-use` | No (footer) | **[NEW]** — required |
-| 1 | Cookie Notice | `/cookie-notice` | No (footer) | **[NEW]** — required if analytics/marketing cookies are used |
-| 1 | General Sales Conditions | `/general-sales-conditions` | No (footer) | **[NEW]** — recommended for B2B export |
-| 1 | Sitemap (HTML) | `/sitemap` | No (footer) | **[NEW]**, plus `sitemap.xml` (already covered by [SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md)) |
-| — | 404 / Error | — | No | **[NEW]** — designed state with product links |
-| — | Thank You | `/thank-you` | No | **[NEW]** — post-submission, required for conversion tracking |
+| Level | Page                                | URL                                           | Nav             | Status                                                                                              |
+| ----- | ----------------------------------- | --------------------------------------------- | --------------- | --------------------------------------------------------------------------------------------------- |
+| 1     | Home                                | `/`                                           | Yes (logo)      | Defined                                                                                             |
+| 1     | About Us                            | `/about-us`                                   | Yes             | Defined                                                                                             |
+| 1     | Products                            | `/products`                                   | Yes (mega-menu) | Defined                                                                                             |
+| 2     | Base Oils                           | `/products/base-oils`                         | Yes (sub)       | Defined                                                                                             |
+| 2     | Lubricant Additives & Components    | `/products/lubricant-additives`               | Yes (sub)       | Defined                                                                                             |
+| 2     | Engine Oils & Automotive Lubricants | `/products/engine-oils-automotive-lubricants` | Yes (sub)       | Defined                                                                                             |
+| 2     | Industrial Oils & Lubricants        | `/products/industrial-oils-lubricants`        | Yes (sub)       | Defined                                                                                             |
+| 2     | Marine Oils & Lubricants            | `/products/marine-oils-lubricants`            | Yes (sub)       | Defined                                                                                             |
+| 2     | Antifreeze & Coolants               | `/products/antifreeze-coolants`               | Yes (sub)       | Defined                                                                                             |
+| 2     | Product Finder                      | `/products/finder`                            | No              | Defined                                                                                             |
+| 1     | Customized Solutions                | `/customized-solutions`                       | Yes             | Defined                                                                                             |
+| 1     | Export & Logistics                  | `/export-logistics`                           | Yes             | Defined                                                                                             |
+| 1     | Quality & Certifications            | `/quality-certifications`                     | Yes             | **[NEW]** — blocked until real certificate list confirmed                                           |
+| 1     | Insights (Blog index)               | `/insights`                                   | Yes             | **[NEW]**                                                                                           |
+| 2     | Article                             | `/insights/[slug]`                            | No              | **[NEW]**                                                                                           |
+| 1     | Contact Us                          | `/contact-us`                                 | Yes             | Defined                                                                                             |
+| 2     | Request a Quote                     | `/contact-us/request-a-quote`                 | No (CTA)        | Defined — pre-filtered Inquiry form                                                                 |
+| 1     | Become a Distributor                | `/become-a-distributor`                       | No (footer)     | **[NEW]**                                                                                           |
+| 1     | FAQ                                 | `/faq`                                        | No (footer)     | **[NEW]** — feeds `FAQPage` schema                                                                  |
+| 1     | Careers                             | `/careers`                                    | No (footer)     | **[NEW]** — optional at launch                                                                      |
+| 1     | Privacy Policy                      | `/privacy-policy`                             | No (footer)     | **[NEW]** — legally required before the contact form can launch                                     |
+| 1     | Terms of Use                        | `/terms-of-use`                               | No (footer)     | **[NEW]** — required                                                                                |
+| 1     | Cookie Notice                       | `/cookie-notice`                              | No (footer)     | **[NEW]** — required if analytics/marketing cookies are used                                        |
+| 1     | General Sales Conditions            | `/general-sales-conditions`                   | No (footer)     | **[NEW]** — recommended for B2B export                                                              |
+| 1     | Sitemap (HTML)                      | `/sitemap`                                    | No (footer)     | **[NEW]**, plus `sitemap.xml` (already covered by [SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md)) |
+| —     | 404 / Error                         | —                                             | No              | **[NEW]** — designed state with product links                                                       |
+| —     | Thank You                           | `/thank-you`                                  | No              | **[NEW]** — post-submission, required for conversion tracking                                       |
 
 27 pages total (was 6). Every product category page and every net-new page below still fits inside the frozen architecture — Prisma-owned catalog/blog data, Payload-owned everything else, NestJS as the only API surface (ADR-002/003) — nothing here changes that.
 
@@ -44,17 +44,17 @@ This is **content and information architecture, not implementation** — same gr
 
 ## 1. Home Page
 
-| Section | Notes |
-|---|---|
-| Hero Section | Unchanged copy; primary CTA "Explore Our Products," secondary "Request a Quote" |
-| Who We Are | Unchanged |
-| Company Statistics | **[NEW]** Six counter-style figures (25+ years, 30+ export destinations, 100,000+ tons capacity, 200+ formulations, 100% batch-tested, 24/7 support). Explicitly marked `[ESTIMATE — CONFIRM]` in the source — industry-plausible placeholders, **must be replaced with audited figures before launch** |
-| Product Portfolio Overview | Six product cards (one per category below), 3×2 grid |
-| Why Choose Sam Group | Unchanged 6-item grid |
-| Industries We Serve | **[Expanded]** now 7 industries (added Marine & Shipping, Agriculture/Construction/Mining) |
-| Custom Formulation Highlight | 5-step process teaser + note that a sample is issued at the first stage for both engine oil and base oil enquiries |
-| Latest News / Insights | Pulls 3 most recent posts from Blog; 4 suggested launch articles listed on the Blog & Insights sheet |
-| Footer | Full 5-column spec — see [§13 Global Components](#13-global-components) |
+| Section                      | Notes                                                                                                                                                                                                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hero Section                 | Unchanged copy; primary CTA "Explore Our Products," secondary "Request a Quote"                                                                                                                                                                                                                         |
+| Who We Are                   | Unchanged                                                                                                                                                                                                                                                                                               |
+| Company Statistics           | **[NEW]** Six counter-style figures (25+ years, 30+ export destinations, 100,000+ tons capacity, 200+ formulations, 100% batch-tested, 24/7 support). Explicitly marked `[ESTIMATE — CONFIRM]` in the source — industry-plausible placeholders, **must be replaced with audited figures before launch** |
+| Product Portfolio Overview   | Six product cards (one per category below), 3×2 grid                                                                                                                                                                                                                                                    |
+| Why Choose Sam Group         | Unchanged 6-item grid                                                                                                                                                                                                                                                                                   |
+| Industries We Serve          | **[Expanded]** now 7 industries (added Marine & Shipping, Agriculture/Construction/Mining)                                                                                                                                                                                                              |
+| Custom Formulation Highlight | 5-step process teaser + note that a sample is issued at the first stage for both engine oil and base oil enquiries                                                                                                                                                                                      |
+| Latest News / Insights       | Pulls 3 most recent posts from Blog; 4 suggested launch articles listed on the Blog & Insights sheet                                                                                                                                                                                                    |
+| Footer                       | Full 5-column spec — see [§13 Global Components](#13-global-components)                                                                                                                                                                                                                                 |
 
 ---
 
@@ -62,16 +62,16 @@ This is **content and information architecture, not implementation** — same gr
 
 **Not a static page.** Layout (section order, visual composition) is code, per [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) — but every piece of editorial content below is Payload-managed and editable without a code change: text, images, video, company information, milestones, and each field's localized versions (`en`/`fa`/`ar`). This isn't specific to About Us — it's the general rule for every `[CMS]`-tagged section in this document (see [FRONTEND_ARCHITECTURE.md §10](./frontend/FRONTEND_ARCHITECTURE.md#10-payload-cms-data-fetching-strategy)) — About Us just happens to be where it matters most, because two of its sections are open-ended lists.
 
-| Section | Notes | CMS field shape |
-|---|---|---|
-| Hero Section | Same as Home | Text/rich-text + image/video fields |
-| Who We Are | **[Expanded]** into 6 finished sub-sections: what Sam Group does, where it operates (Iran-based production; exports to Africa, neighboring markets, India, Turkiye, Middle East, Asia, Europe — `[ESTIMATE — CONFIRM]`), core categories, customers, direct-producer positioning, long-term B2B partnership focus | Rich text |
-| Company Milestones | **[NEW]** Timeline, 2000–2026, marked `[ESTIMATE — CONFIRM]` — replace every year/event with real company history | **Repeater/array field** (year, title, description per entry) — an editor adds, removes, or reorders milestones directly; the count is never fixed in code |
-| Our Expertise | **[Expanded]** now 6 items (added Base Oil Processing / thin film polishing, Quality Laboratory) | Repeater/array field (icon, title, description) |
-| Our Competitive Advantages | Unchanged 6-item grid | Repeater/array field |
-| Quality & Standards | **[NEW]** COA-per-batch, TDS/SDS, sample-before-commitment, batch traceability; `[TO CONFIRM]` actual certifications held | Rich text + repeater for the bullet list |
-| Our Team | **[NEW]**, optional at launch — **blocked on photography** (see [§13](#13-global-components)) | **Repeater/array field** (photo, name, role, bio per person) — same open-ended-list treatment as Milestones |
-| Final CTA | Unchanged | Text + button fields |
+| Section                    | Notes                                                                                                                                                                                                                                                                                                             | CMS field shape                                                                                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hero Section               | Same as Home                                                                                                                                                                                                                                                                                                      | Text/rich-text + image/video fields                                                                                                                        |
+| Who We Are                 | **[Expanded]** into 6 finished sub-sections: what Sam Group does, where it operates (Iran-based production; exports to Africa, neighboring markets, India, Turkiye, Middle East, Asia, Europe — `[ESTIMATE — CONFIRM]`), core categories, customers, direct-producer positioning, long-term B2B partnership focus | Rich text                                                                                                                                                  |
+| Company Milestones         | **[NEW]** Timeline, 2000–2026, marked `[ESTIMATE — CONFIRM]` — replace every year/event with real company history                                                                                                                                                                                                 | **Repeater/array field** (year, title, description per entry) — an editor adds, removes, or reorders milestones directly; the count is never fixed in code |
+| Our Expertise              | **[Expanded]** now 6 items (added Base Oil Processing / thin film polishing, Quality Laboratory)                                                                                                                                                                                                                  | Repeater/array field (icon, title, description)                                                                                                            |
+| Our Competitive Advantages | Unchanged 6-item grid                                                                                                                                                                                                                                                                                             | Repeater/array field                                                                                                                                       |
+| Quality & Standards        | **[NEW]** COA-per-batch, TDS/SDS, sample-before-commitment, batch traceability; `[TO CONFIRM]` actual certifications held                                                                                                                                                                                         | Rich text + repeater for the bullet list                                                                                                                   |
+| Our Team                   | **[NEW]**, optional at launch — **blocked on photography** (see [§13](#13-global-components))                                                                                                                                                                                                                     | **Repeater/array field** (photo, name, role, bio per person) — same open-ended-list treatment as Milestones                                                |
+| Final CTA                  | Unchanged                                                                                                                                                                                                                                                                                                         | Text + button fields                                                                                                                                       |
 
 ---
 
@@ -83,7 +83,7 @@ Hero ("A Complete Range of Petroleum Products") → six category cards (below) �
 
 ## 4. Product Category Pages (P1–P6)
 
-**Structural clarification, not in the previous version of this document:** each of the six product lines is **one rich category-level page**, not a category-listing-page-plus-per-SKU-detail-pages. All grades/SKUs within a category (e.g. SN 150, SN 350, SN 500, SN 650, BS 150 under Base Oils) are sections *within* that one page (accordion or filterable table), not separately routed. See the [Data Model Gaps](#data-model-gaps-surfaced-by-this-structure) section below for what this implies for `Product`/`Category`.
+**Structural clarification, not in the previous version of this document:** each of the six product lines is **one rich category-level page**, not a category-listing-page-plus-per-SKU-detail-pages. All grades/SKUs within a category (e.g. SN 150, SN 350, SN 500, SN 650, BS 150 under Base Oils) are sections _within_ that one page (accordion or filterable table), not separately routed. See the [Data Model Gaps](#data-model-gaps-surfaced-by-this-structure) section below for what this implies for `Product`/`Category`.
 
 **Shared template** (every one of the six follows this exact structure):
 
@@ -100,14 +100,14 @@ Hero ("A Complete Range of Petroleum Products") → six category cards (below) �
 11. FAQ (also feeds `FAQPage` schema per-page)
 12. Product Page CTA (shared, per §3)
 
-| Page | URL | Distinguishing content | Reference taxonomy |
-|---|---|---|---|
-| Base Oils | `/products/base-oils` | Group I (SN 150/350/500/650), Group II, Group III, Naphthenic, Bright Stock (BS 150), Synthetics (PAO/Ester/PAG), Virgin & Re-refined grades; Thin Film Polishing named block | afzoonravan.com |
-| Lubricant Additives & Components | `/products/lubricant-additives` | Additive packages by application (gasoline/diesel engine oil, driveline, gear, ATF, grease, anti-freeze, brake fluid, fuel) + lubricant components (transformer oil, white oil, rubber process oil) | afzoonravan.com |
-| Engine Oils & Automotive Lubricants | `/products/engine-oils-automotive-lubricants` | Segmented by vehicle type (Passenger Cars, Trucks & Buses, Motorcycle & ATV, Agriculture, Construction & Mining, Gardening) × fluid type; sample issued at first stage of every enquiry | wolflubes.com |
-| Industrial Oils & Lubricants | `/products/industrial-oils-lubricants` | Hydraulic, gear, compressor, cutting/metalworking, heat transfer, pneumatic, slideway, stationary engine oils, industrial greases | wolflubes.com |
-| Marine Oils & Lubricants | `/products/marine-oils-lubricants` | TPEO, cylinder oils, system oils, stern tube/gear oils, deck hydraulic, marine greases | wolflubes.com |
-| Antifreeze & Coolants | `/products/antifreeze-coolants` | By base fluid (MEG/MPG) and inhibitor technology (IAT/OAT/HOAT/Si-OAT, NAP-free); concentrate or ready-to-use | No source reference — taxonomy derived from automotive reference site |
+| Page                                | URL                                           | Distinguishing content                                                                                                                                                                              | Reference taxonomy                                                    |
+| ----------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Base Oils                           | `/products/base-oils`                         | Group I (SN 150/350/500/650), Group II, Group III, Naphthenic, Bright Stock (BS 150), Synthetics (PAO/Ester/PAG), Virgin & Re-refined grades; Thin Film Polishing named block                       | afzoonravan.com                                                       |
+| Lubricant Additives & Components    | `/products/lubricant-additives`               | Additive packages by application (gasoline/diesel engine oil, driveline, gear, ATF, grease, anti-freeze, brake fluid, fuel) + lubricant components (transformer oil, white oil, rubber process oil) | afzoonravan.com                                                       |
+| Engine Oils & Automotive Lubricants | `/products/engine-oils-automotive-lubricants` | Segmented by vehicle type (Passenger Cars, Trucks & Buses, Motorcycle & ATV, Agriculture, Construction & Mining, Gardening) × fluid type; sample issued at first stage of every enquiry             | wolflubes.com                                                         |
+| Industrial Oils & Lubricants        | `/products/industrial-oils-lubricants`        | Hydraulic, gear, compressor, cutting/metalworking, heat transfer, pneumatic, slideway, stationary engine oils, industrial greases                                                                   | wolflubes.com                                                         |
+| Marine Oils & Lubricants            | `/products/marine-oils-lubricants`            | TPEO, cylinder oils, system oils, stern tube/gear oils, deck hydraulic, marine greases                                                                                                              | wolflubes.com                                                         |
+| Antifreeze & Coolants               | `/products/antifreeze-coolants`               | By base fluid (MEG/MPG) and inhibitor technology (IAT/OAT/HOAT/Si-OAT, NAP-free); concentrate or ready-to-use                                                                                       | No source reference — taxonomy derived from automotive reference site |
 
 Every category page's FAQ, Documentation, and Customization sections link back to [Quality & Certifications](#7-quality--certifications), [Customized Solutions](#5-customized-solutions), and the Inquiry/Sample-request flow on [Contact Us](#10-contact-us).
 
@@ -149,15 +149,15 @@ Consolidates the per-page FAQs already embedded in Home/About/each product page/
 
 ## 10. Contact Us
 
-| Section | Notes |
-|---|---|
-| Hero Section | Unchanged |
-| Contact Options | 4 cards, unchanged |
-| Contact Information | **[Expanded]** — Head Office + Factory/Production Site addresses, 3 email addresses (general/sales/technical), phone, **WhatsApp Business given explicit visual priority** (per the Notes sheet — "communication with foreign customers is mainly via WhatsApp"), working hours (Iran timezone), embedded map. All contact details currently placeholders |
-| Main Contact / Inquiry Form | **[Expanded field set]** — see below |
-| Direct Contact CTA | Email/Call/WhatsApp, unchanged |
-| Global Inquiries | Unchanged |
-| Contact FAQ | **[NEW]** — deflects the 4 most common first-email questions (MOQ, samples, markets, response time) |
+| Section                     | Notes                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hero Section                | Unchanged                                                                                                                                                                                                                                                                                                                                                 |
+| Contact Options             | 4 cards, unchanged                                                                                                                                                                                                                                                                                                                                        |
+| Contact Information         | **[Expanded]** — Head Office + Factory/Production Site addresses, 3 email addresses (general/sales/technical), phone, **WhatsApp Business given explicit visual priority** (per the Notes sheet — "communication with foreign customers is mainly via WhatsApp"), working hours (Iran timezone), embedded map. All contact details currently placeholders |
+| Main Contact / Inquiry Form | **[Expanded field set]** — see below                                                                                                                                                                                                                                                                                                                      |
+| Direct Contact CTA          | Email/Call/WhatsApp, unchanged                                                                                                                                                                                                                                                                                                                            |
+| Global Inquiries            | Unchanged                                                                                                                                                                                                                                                                                                                                                 |
+| Contact FAQ                 | **[NEW]** — deflects the 4 most common first-email questions (MOQ, samples, markets, response time)                                                                                                                                                                                                                                                       |
 
 **Main Inquiry form fields** (supersedes the field list previously in this document): First Name\*, Last Name\*, Company Name\*, Country\*, Email\*, Phone/WhatsApp, Industry\*, Inquiry Type (dropdown, same 6 values as before), Product of Interest (multi-select, same 6 categories + Petroleum Derivatives/Customized Products/Other), Required Quantity, **[NEW]** Destination Country/Port, **[NEW]** Preferred Incoterm (EXW/FOB/CFR/CIF/Not sure), Message, File Upload, Consent checkbox. **[NEW]** Anti-spam via invisible captcha (not a visible challenge) — an implementation note, not a data-model change. See [Data Model Gaps](#data-model-gaps-surfaced-by-this-structure) — `Inquiry` needs two new fields.
 
@@ -193,24 +193,24 @@ Privacy Policy, Terms of Use, Cookie Notice, General Sales Conditions, and a Tec
 
 Per-page meta title/description/primary keyword/schema type, for all 16 top-level indexable pages — this **supersedes** the earlier structured-data mapping table in this document.
 
-| Page | URL | Primary Keyword | Schema Type |
-|---|---|---|---|
-| Home | `/` | petroleum products manufacturer | `Organization` + `WebSite` |
-| About Us | `/about-us` | petroleum products manufacturer Iran | `AboutPage` + `Organization` |
-| Products | `/products` | lubricant products supplier | `CollectionPage` |
-| Base Oils | `/products/base-oils` | base oil supplier | `Product` + `FAQPage` |
-| Additives | `/products/lubricant-additives` | lubricant additive packages | `Product` + `FAQPage` |
-| Engine Oils | `/products/engine-oils-automotive-lubricants` | engine oil manufacturer | `Product` + `FAQPage` |
-| Industrial Oils | `/products/industrial-oils-lubricants` | industrial lubricants manufacturer | `Product` + `FAQPage` |
-| Marine Oils | `/products/marine-oils-lubricants` | marine lubricants supplier | `Product` + `FAQPage` |
-| Antifreeze & Coolants | `/products/antifreeze-coolants` | antifreeze manufacturer | `Product` + `FAQPage` |
-| Customized Solutions | `/customized-solutions` | custom lubricant formulation | `Service` |
-| Export & Logistics | `/export-logistics` | lubricant export supplier | `Service` |
-| Quality & Certifications | `/quality-certifications` | lubricant quality certification | `AboutPage` |
-| Insights | `/insights` | base oil industry insights | `Blog` |
-| Contact Us | `/contact-us` | contact base oil supplier | `ContactPage` |
-| Become a Distributor | `/become-a-distributor` | lubricant distributor opportunity | `WebPage` |
-| FAQ | `/faq` | base oil supplier FAQ | `FAQPage` |
+| Page                     | URL                                           | Primary Keyword                      | Schema Type                  |
+| ------------------------ | --------------------------------------------- | ------------------------------------ | ---------------------------- |
+| Home                     | `/`                                           | petroleum products manufacturer      | `Organization` + `WebSite`   |
+| About Us                 | `/about-us`                                   | petroleum products manufacturer Iran | `AboutPage` + `Organization` |
+| Products                 | `/products`                                   | lubricant products supplier          | `CollectionPage`             |
+| Base Oils                | `/products/base-oils`                         | base oil supplier                    | `Product` + `FAQPage`        |
+| Additives                | `/products/lubricant-additives`               | lubricant additive packages          | `Product` + `FAQPage`        |
+| Engine Oils              | `/products/engine-oils-automotive-lubricants` | engine oil manufacturer              | `Product` + `FAQPage`        |
+| Industrial Oils          | `/products/industrial-oils-lubricants`        | industrial lubricants manufacturer   | `Product` + `FAQPage`        |
+| Marine Oils              | `/products/marine-oils-lubricants`            | marine lubricants supplier           | `Product` + `FAQPage`        |
+| Antifreeze & Coolants    | `/products/antifreeze-coolants`               | antifreeze manufacturer              | `Product` + `FAQPage`        |
+| Customized Solutions     | `/customized-solutions`                       | custom lubricant formulation         | `Service`                    |
+| Export & Logistics       | `/export-logistics`                           | lubricant export supplier            | `Service`                    |
+| Quality & Certifications | `/quality-certifications`                     | lubricant quality certification      | `AboutPage`                  |
+| Insights                 | `/insights`                                   | base oil industry insights           | `Blog`                       |
+| Contact Us               | `/contact-us`                                 | contact base oil supplier            | `ContactPage`                |
+| Become a Distributor     | `/become-a-distributor`                       | lubricant distributor opportunity    | `WebPage`                    |
+| FAQ                      | `/faq`                                        | base oil supplier FAQ                | `FAQPage`                    |
 
 Cross-reference: [docs/seo/SEO_ARCHITECTURE.md §8](./seo/SEO_ARCHITECTURE.md#8-structured-data-schemaorg) — `FAQPage` and `LocalBusiness` were previously marked "not applicable to Phase 1 content." **`FAQPage` is now applicable** (every product page plus the dedicated FAQ page needs it) — that section of the SEO doc should be revisited in a future SEO-focused pass; not changed here since it wasn't in this task's file list.
 

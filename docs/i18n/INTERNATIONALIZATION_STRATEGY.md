@@ -11,7 +11,7 @@ The request to localize "Pages, Products, Product categories, Blog articles, Com
 - **Payload-owned** (`sam_cms`): Pages, Company information, Landing Pages (all just `Pages` with a template field — see [DATABASE.md](../DATABASE.md#cms)), Documents (metadata only). These get **Payload's native field-level localization** — no new mechanism needed, Payload already does this.
 - **Prisma-owned** (`sam_platform`): Products, Product Categories, Blog Articles. Prisma has **no built-in localization feature** — this document introduces one, in a shape consistent with patterns already established in [DATA_MODEL.md](../DATA_MODEL.md) (the same polymorphic, key/value approach already used by `Specification`, `SeoMeta`, and `StatusHistory`).
 
-Same principle as [docs/seo/SEO_ARCHITECTURE.md §0](../seo/SEO_ARCHITECTURE.md#0-the-core-design-problem-and-how-its-resolved): one consistent *capability* ("this content is localizable"), implemented twice because storage is split, unified at the NestJS layer before `apps/web` ever sees it. `apps/web` never needs to know whether a given piece of localized content came from Payload or Prisma.
+Same principle as [docs/seo/SEO_ARCHITECTURE.md §0](../seo/SEO_ARCHITECTURE.md#0-the-core-design-problem-and-how-its-resolved): one consistent _capability_ ("this content is localizable"), implemented twice because storage is split, unified at the NestJS layer before `apps/web` ever sees it. `apps/web` never needs to know whether a given piece of localized content came from Payload or Prisma.
 
 ---
 
@@ -32,30 +32,39 @@ This is also why the architecture is "allow adding new languages without changin
 ## 2. Frontend Internationalization (next-intl)
 
 ### Locale routing
+
 `next-intl`'s middleware-based routing, locale segment as the first URL path part. Unprefixed paths (`/`) redirect to the resolved locale (§ Language detection).
 
 ### Language detection
+
 Priority order, standard and predictable:
+
 1. Explicit locale already in the URL (source of truth once present).
 2. `NEXT_LOCALE` cookie (a returning visitor's last explicit choice).
 3. `Accept-Language` header, matched against the active locale list from the `Locale` table.
 4. Fall back to the default locale, **`en`**.
 
 ### Language switching
+
 A switcher component changes the locale segment **and** resolves to that locale's own translated slug for the current entity — not a naive string-replace of the locale prefix. Because slugs are localized (§3), `/en/products/base-oil` switching to Arabic must resolve to `/ar/products/<arabic-slug>`, which requires looking up the equivalent translation via the entity's shared `entityId`, not assuming the slug string carries over. If a translation doesn't exist yet for the target locale, fall back to that locale's home page (or the nearest translated ancestor page) rather than 404ing.
 
 ### Translation management
+
 Two separate systems, deliberately not merged (see §5's Content Rules):
+
 - **UI chrome / static system text** (button labels, form field labels, validation messages, navigation labels) — `next-intl` JSON message catalogs, one file per locale, colocated with the components that use them per [CODING_STANDARDS.md](../CODING_STANDARDS.md).
 - **Business content** (page copy, product names/descriptions, blog posts) — Payload's localized fields or Prisma's `ContentTranslation` table (§3), edited through the CMS/admin UI, not through message catalog files. A translator or content editor should never need to touch `apps/web`'s source code to translate business content.
 
 ### LTR/RTL support
+
 See §7 for the full direction/layout/typography strategy. At the routing level: `Locale.direction` drives the `<html dir="...">` attribute per locale, set at the root layout based on the active locale segment.
 
 ### Middleware strategy
+
 `next-intl`'s middleware handles locale detection/redirection (§ above) and runs before the `Redirect` lookup already defined in [docs/seo/SEO_ARCHITECTURE.md §2](../seo/SEO_ARCHITECTURE.md#redirect-management) — so a locale-aware redirect and a slug-changed redirect can both apply to the same request without conflicting. Order: resolve locale first, then check redirects within that locale.
 
 ### SEO integration
+
 See §4 — this is where `hreflang`, localized sitemaps, and localized metadata actually get generated from everything above.
 
 ---
@@ -65,6 +74,7 @@ See §4 — this is where `hreflang`, localized sitemaps, and localized metadata
 ### Payload CMS (Pages, Company Information, Landing Pages, Documents metadata)
 
 Payload's native localization feature handles this directly:
+
 - The active locale list (from the `Locale` table, §1) feeds Payload's `localization` config (`locales`, `defaultLocale`, `fallback: true`).
 - Individual fields on the `Pages` collection (title, body content, SEO fields per [docs/seo/SEO_ARCHITECTURE.md §3](../seo/SEO_ARCHITECTURE.md#3-payload-cms-seo-architecture)) are marked `localized: true`.
 - **One content model, localized fields — no per-language collections**, exactly as required. Adding a locale to Payload means adding it to the `locales` array (driven by the `Locale` table) — the collection schema itself doesn't change.
@@ -88,27 +98,28 @@ CONTENT_TRANSLATION {
 
 - The base entity's own field (`Product.name`, `Product.slug`, `Product.description`, etc.) holds the **default locale's** value directly — no special-casing, no empty default row.
 - Every other locale's value for that field is a row in `ContentTranslation`, keyed by `entityType` + `entityId` + `locale` + `field`.
-- This mirrors the key/value shape `Specification` already uses ([DATA_MODEL.md](../DATA_MODEL.md)) and the polymorphic `entityType`/`entityId` shape `SeoMeta` and `StatusHistory` already use — no new architectural *pattern*, just one more application of a pattern this project already relies on.
+- This mirrors the key/value shape `Specification` already uses ([DATA_MODEL.md](../DATA_MODEL.md)) and the polymorphic `entityType`/`entityId` shape `SeoMeta` and `StatusHistory` already use — no new architectural _pattern_, just one more application of a pattern this project already relies on.
 - **Localized slugs**: a translated product needs its own human-readable, translated URL, not the default locale's slug reused — `field: "slug"` rows in `ContentTranslation` carry this per locale, resolved by the NestJS Catalog/Blog modules before `apps/web` ever sees a URL.
 - Adding a locale here means inserting `ContentTranslation` rows (content translation work) — again, no schema change, no code change.
 
 ### Why not one shared mechanism for both
 
-Because ADR-002 already made Prisma and Payload physically separate databases — the same reason [docs/seo/SEO_ARCHITECTURE.md §0](../seo/SEO_ARCHITECTURE.md#0-the-core-design-problem-and-how-its-resolved) gives for SEO. Fighting that split to force one storage mechanism would mean re-opening ADR-002, which is out of scope here and unnecessary — both mechanisms achieve the same *capability* (field-level localization, one content model, no per-language duplication) independently.
+Because ADR-002 already made Prisma and Payload physically separate databases — the same reason [docs/seo/SEO_ARCHITECTURE.md §0](../seo/SEO_ARCHITECTURE.md#0-the-core-design-problem-and-how-its-resolved) gives for SEO. Fighting that split to force one storage mechanism would mean re-opening ADR-002, which is out of scope here and unnecessary — both mechanisms achieve the same _capability_ (field-level localization, one content model, no per-language duplication) independently.
 
 ### Translation Workflow
 
 **Decided: hybrid.** Machine-assisted drafts are allowed everywhere, but human review is required before publish for content where an inaccurate translation carries real business or safety risk.
 
-| Content | Machine-assisted draft OK? | Human review required before publish? |
-|---|---|---|
-| Product specifications & technical data | Yes, as a starting draft | **Yes** — technical/safety accuracy matters (viscosity, compatibility, certifications) |
-| Company Information, About Us, legal/compliance content, Contact Us | Yes, as a starting draft | **Yes** — brand voice and factual commitments |
-| Custom Product Request / Inquiry form labels & CMS UI copy on those pages | Yes, as a starting draft | **Yes** — these drive real sales leads; a mistranslated form field can lose a lead |
-| Blog articles, general marketing copy | Yes | Recommended, not required — may publish machine-assisted and get reviewed opportunistically |
-| UI chrome (buttons, nav, system messages) | Yes | Recommended, not required — low individual risk, high volume |
+| Content                                                                   | Machine-assisted draft OK? | Human review required before publish?                                                       |
+| ------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------- |
+| Product specifications & technical data                                   | Yes, as a starting draft   | **Yes** — technical/safety accuracy matters (viscosity, compatibility, certifications)      |
+| Company Information, About Us, legal/compliance content, Contact Us       | Yes, as a starting draft   | **Yes** — brand voice and factual commitments                                               |
+| Custom Product Request / Inquiry form labels & CMS UI copy on those pages | Yes, as a starting draft   | **Yes** — these drive real sales leads; a mistranslated form field can lose a lead          |
+| Blog articles, general marketing copy                                     | Yes                        | Recommended, not required — may publish machine-assisted and get reviewed opportunistically |
+| UI chrome (buttons, nav, system messages)                                 | Yes                        | Recommended, not required — low individual risk, high volume                                |
 
 Mechanically:
+
 - **Prisma-owned content**: `ContentTranslation.translationStatus` (`machine_draft` | `human_reviewed`) tracks this per field, per locale. A status change is logged via `StatusHistory` (already the generic, polymorphic status-audit entity in [DATA_MODEL.md](../DATA_MODEL.md) — no new audit mechanism needed) so there's a record of who reviewed what and when.
 - **Payload-owned content**: Payload's existing draft/publish versioning is the natural home for this — a machine-assisted translation is saved as a draft in that locale and stays unpublished until a human reviews and publishes it. No new field needed; this reuses a Payload feature already implied by using Payload at all.
 - The table above is a starting policy, not a hard schema constraint — an editor can still choose to human-review low-risk content or (with the `machine_draft` status visibly flagged in the CMS/admin UI) leave the two required-review categories unpublished until reviewed. The system tracks status; it doesn't block publishing on its own, since that's an editorial workflow decision, not an architectural one.
@@ -130,10 +141,10 @@ Concretizes [docs/seo/SEO_ARCHITECTURE.md §5](../seo/SEO_ARCHITECTURE.md#5-inte
 
 **Do not hardcode user-facing text inside components.** Two correct destinations for text, never a third (inline strings):
 
-| Kind of text | Lives in | Example |
-|---|---|---|
-| UI chrome (buttons, labels, validation/error messages, nav) | `next-intl` message catalogs | "Submit Inquiry", "Required field" |
-| Business content (page copy, product info, blog posts) | Payload localized fields / Prisma `ContentTranslation` | Product descriptions, page body copy |
+| Kind of text                                                | Lives in                                               | Example                              |
+| ----------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------ |
+| UI chrome (buttons, labels, validation/error messages, nav) | `next-intl` message catalogs                           | "Submit Inquiry", "Required field"   |
+| Business content (page copy, product info, blog posts)      | Payload localized fields / Prisma `ContentTranslation` | Product descriptions, page body copy |
 
 This is added as an explicit rule in [CODING_STANDARDS.md](../CODING_STANDARDS.md). A code reviewer should treat any literal user-facing string in a component as a defect, not a style nitpick — once i18n is adopted, an un-keyed string is a string that silently never gets translated.
 
@@ -144,15 +155,18 @@ This is added as an explicit rule in [CODING_STANDARDS.md](../CODING_STANDARDS.m
 Required now: **Persian, Arabic** (RTL) alongside **English** (LTR), plus unlimited future languages in either direction (`Locale.direction` per §1 makes this a data property, not a hardcoded LTR/RTL branch per language).
 
 ### Direction handling
+
 - `<html dir="rtl">`/`dir="ltr"` set at the root layout from the active locale's `Locale.direction`.
 - Tailwind's logical properties (`ms-`/`me-`/`ps-`/`pe-` instead of `ml-`/`mr-`/`pl-`/`pr-`) throughout — this is the mechanism that makes a component correct in both directions without a separate RTL stylesheet or per-component direction branching, consistent with [CODING_STANDARDS.md](../CODING_STANDARDS.md)'s existing Tailwind conventions.
 
 ### Layout compatibility
+
 - Icons/illustrations that are inherently directional (arrows, the step-sequence chevrons already used in [SITE_STRUCTURE.md](../SITE_STRUCTURE.md)'s process sections) need an RTL-mirrored variant, not just a flipped container.
 - Animation: GSAP/Framer Motion transforms (`translateX`, rotation) do not auto-mirror for RTL — every directional animation (per [technology/FRONTEND_STACK.md](../technology/FRONTEND_STACK.md)'s Animation section) needs explicit direction-aware sign-flipping. This was already flagged as a risk during the frontend design-direction review; this document is where it gets a concrete owner (the animation implementation, gated by `Locale.direction`, not a guess at implementation time).
 - Maps (Mapbox, per [technology/FRONTEND_STACK.md](../technology/FRONTEND_STACK.md)) don't mirror — that's expected and correct; only surrounding UI chrome mirrors, not the map itself.
 
 ### Typography considerations
+
 `docs/design/FRONTEND_DESIGN_DIRECTION.md`'s chosen typefaces (Inter, Neue Haas Grotesk style, Helvetica Neue style) **have no Arabic or Persian glyph coverage** — already flagged during the design-direction review, restated here because it's now a hard blocker for the RTL requirement, not a hypothetical one. A distinct, genuinely Arabic/Persian-capable typeface pairing is needed for RTL locales (e.g. a geometric-grotesque Arabic/Persian face that reads as the same brand register as the Latin typefaces — candidates like Vazirmatn for Persian or IBM Plex Sans Arabic for Arabic are reasonable starting points to evaluate, not a final pick). **This needs design-team confirmation** — see remaining decisions.
 
 ---

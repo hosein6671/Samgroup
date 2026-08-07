@@ -1,6 +1,6 @@
 # Data Model Gap Review
 
-Review of every data-capture point in the approved website structure against the current Prisma model. **No schema is defined here, no Prisma code is written, no approved architecture is changed** — this identifies gaps and recommends where each belongs. Field lists below are the *required shape*, not a migration.
+Review of every data-capture point in the approved website structure against the current Prisma model. **No schema is defined here, no Prisma code is written, no approved architecture is changed** — this identifies gaps and recommends where each belongs. Field lists below are the _required shape_, not a migration.
 
 > **Status: all findings reviewed and approved.** Every gap below is now resolved by a decision — see the [Decisions Log](#decisions-log). The approved entity shapes have been carried into [DATA_MODEL.md](./DATA_MODEL.md) and [DATABASE.md](./DATABASE.md), which are now authoritative. This document is retained as the analysis record and the reasoning behind each decision.
 
@@ -10,19 +10,19 @@ Sources reconciled: [DATA_MODEL.md](./DATA_MODEL.md), [DATABASE.md](./DATABASE.m
 
 ## Summary
 
-| # | Gap | Prisma or Payload | Outcome |
-|---|---|---|---|
-| 1 | `CustomFormulationRequest` — **no email/phone field at all** | Prisma (fix existing) | ✅ 5 fields added |
-| 2 | `Inquiry` — missing 2 fields | Prisma (fix existing) | ✅ 6 fields added (2 from the form + 4 from the merge) |
-| 3 | `DistributorApplication` — entity missing | Prisma (new) | ✅ Approved |
-| 4 | `JobApplication` — entity missing | Prisma (new) | ✅ Approved, **Admin-only** |
-| 5 | `DownloadRequest` — entity missing, **explicitly required by the source document** | Prisma (new) | ✅ Approved, **catalogues only** |
-| 6 | `NewsletterSubscription` — entity missing, **not previously tracked in any gap list** | Prisma (new) | ✅ Approved for Phase 1 |
-| 7 | `SampleRequest` — keep, or fold into `Inquiry`? | Prisma (decision) | ✅ **Merged into `Inquiry`** |
-| 8 | Personal-data retention undefined | Policy, not schema | ✅ Recorded as a requirement; periods pending legal |
-| — | FAQ content | **Payload** (`FaqEntries`) | Resolved — not a Prisma gap |
-| — | Certifications | **Payload** (`Certifications`) | Resolved — not a Prisma gap |
-| — | Request-a-Quote workflow | **No new entity** — see §8 | Resolved — pre-filtered `Inquiry` |
+| #   | Gap                                                                                   | Prisma or Payload              | Outcome                                                |
+| --- | ------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------ |
+| 1   | `CustomFormulationRequest` — **no email/phone field at all**                          | Prisma (fix existing)          | ✅ 5 fields added                                      |
+| 2   | `Inquiry` — missing 2 fields                                                          | Prisma (fix existing)          | ✅ 6 fields added (2 from the form + 4 from the merge) |
+| 3   | `DistributorApplication` — entity missing                                             | Prisma (new)                   | ✅ Approved                                            |
+| 4   | `JobApplication` — entity missing                                                     | Prisma (new)                   | ✅ Approved, **Admin-only**                            |
+| 5   | `DownloadRequest` — entity missing, **explicitly required by the source document**    | Prisma (new)                   | ✅ Approved, **catalogues only**                       |
+| 6   | `NewsletterSubscription` — entity missing, **not previously tracked in any gap list** | Prisma (new)                   | ✅ Approved for Phase 1                                |
+| 7   | `SampleRequest` — keep, or fold into `Inquiry`?                                       | Prisma (decision)              | ✅ **Merged into `Inquiry`**                           |
+| 8   | Personal-data retention undefined                                                     | Policy, not schema             | ✅ Recorded as a requirement; periods pending legal    |
+| —   | FAQ content                                                                           | **Payload** (`FaqEntries`)     | Resolved — not a Prisma gap                            |
+| —   | Certifications                                                                        | **Payload** (`Certifications`) | Resolved — not a Prisma gap                            |
+| —   | Request-a-Quote workflow                                                              | **No new entity** — see §8     | Resolved — pre-filtered `Inquiry`                      |
 
 Two gaps previously listed in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#data-model-gaps-surfaced-by-this-structure) (FAQ content, Certifications) are **closed by the approved Payload architecture** — both are editorial content, correctly Payload-owned, and need nothing in Prisma. Two gaps are **newly found in this review** (#5, #6) and appear in no prior gap list.
 
@@ -34,13 +34,13 @@ Two gaps previously listed in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#data-model
 
 **Required additions:**
 
-| Field | Type | Notes |
-|---|---|---|
-| `email` | string, **required** | Form marks it required; currently absent entirely |
-| `phone` | string, nullable | "Phone / WhatsApp" — WhatsApp is the primary channel for international customers ([PROJECT_VISION.md](./PROJECT_VISION.md)) |
-| `destinationCountry` | string, nullable | "Target market / destination country" |
-| `preferredIncoterm` | enum-like string, nullable | `EXW`/`FOB`/`CFR`/`CIF` |
-| `consentGiven` | boolean, required | Consent checkbox linked to Privacy Policy — legally required before this form can collect data at all |
+| Field                | Type                       | Notes                                                                                                                       |
+| -------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `email`              | string, **required**       | Form marks it required; currently absent entirely                                                                           |
+| `phone`              | string, nullable           | "Phone / WhatsApp" — WhatsApp is the primary channel for international customers ([PROJECT_VISION.md](./PROJECT_VISION.md)) |
+| `destinationCountry` | string, nullable           | "Target market / destination country"                                                                                       |
+| `preferredIncoterm`  | enum-like string, nullable | `EXW`/`FOB`/`CFR`/`CIF`                                                                                                     |
+| `consentGiven`       | boolean, required          | Consent checkbox linked to Privacy Policy — legally required before this form can collect data at all                       |
 
 **Relationships:** unchanged — optional `userId`, optional `assignedToId` (Sales Expert), `attachmentMediaId` → `Media`, `StatusHistory`.
 **Ownership:** **Prisma.** Transactional submission data, not editorial content.
@@ -51,10 +51,10 @@ Two gaps previously listed in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#data-model
 
 Already flagged in `SITE_STRUCTURE.md`; restated with exact shape.
 
-| Field | Type | Notes |
-|---|---|---|
-| `destinationCountryPort` | string, nullable | Distinct from the existing `country` (buyer's own country ≠ where goods ship) |
-| `preferredIncoterm` | enum-like string, nullable | `EXW`/`FOB`/`CFR`/`CIF`/`Not sure` — note the extra "Not sure" option the Customized Solutions form doesn't have |
+| Field                    | Type                       | Notes                                                                                                            |
+| ------------------------ | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `destinationCountryPort` | string, nullable           | Distinct from the existing `country` (buyer's own country ≠ where goods ship)                                    |
+| `preferredIncoterm`      | enum-like string, nullable | `EXW`/`FOB`/`CFR`/`CIF`/`Not sure` — note the extra "Not sure" option the Customized Solutions form doesn't have |
 
 **Also worth resolving while this entity is open:** `productsOfInterest` is currently a single `string`, but the form is a **multi-select** across 9 options. A delimited string makes "which inquiries mentioned Marine Lubricants?" unqueryable. Recommend a string array or a join table. Minor, but cheaper to fix now than after real submissions exist.
 
@@ -93,7 +93,7 @@ Already flagged in `SITE_STRUCTURE.md`; restated with exact shape.
 
 ## 5. `DownloadRequest` — new entity (**newly found**)
 
-**Not "if needed" — explicitly required by the source document**, which states for the Products Documentation block: *"Gate the full catalogue behind a short form (name, company, country, email) so the sales team gets a qualified lead from each download."* Lead capture from downloads is a stated business requirement, not an optional analytics nicety. Download CTAs appear on the Products landing, all six category pages, Quality & Certifications, and the Thank You page.
+**Not "if needed" — explicitly required by the source document**, which states for the Products Documentation block: _"Gate the full catalogue behind a short form (name, company, country, email) so the sales team gets a qualified lead from each download."_ Lead capture from downloads is a stated business requirement, not an optional analytics nicety. Download CTAs appear on the Products landing, all six category pages, Quality & Certifications, and the Thank You page.
 
 **Purpose:** Captures the qualifying form gating document downloads, producing a sales lead per download and a record of who accessed which document.
 
@@ -101,7 +101,7 @@ Already flagged in `SITE_STRUCTURE.md`; restated with exact shape.
 
 **Relationships:** `documentKey` resolves to either a Prisma `Media` record (product-specific TDS/SDS) or a Payload upload (company-wide catalogue) — deliberately a **string key, not a foreign key**, because the target lives on either side of the ADR-002 split. Optional `assignedToId` → `User`.
 
-**Ownership:** **Prisma.** This is lead data, unambiguously. The *documents* stay where the approved media boundary puts them (Prisma `Media` for product docs, Payload uploads for company-wide assets) — only the *access record* is new.
+**Ownership:** **Prisma.** This is lead data, unambiguously. The _documents_ stay where the approved media boundary puts them (Prisma `Media` for product docs, Payload uploads for company-wide assets) — only the _access record_ is new.
 
 **Decided — gating scope is narrow:** only the **Company Catalogue** and **Product Catalogue** are gated. **TDS and SDS are explicitly not gated.** Those are the technical documents that build buyer trust, and putting a form in front of them adds friction exactly where it costs most — a blender evaluating a base oil spec shouldn't have to fill in a form to read a viscosity table. `documentType` is scoped to the two catalogue types accordingly.
 
@@ -164,11 +164,11 @@ For completeness, since both appeared in earlier Prisma gap lists and are now re
 All five decisions this review raised are resolved:
 
 1. **`SampleRequest` merges into `Inquiry`.** No separate entity. "Request Sample" CTAs submit an `Inquiry` with `inquiryType: 'Sample Request'` and `relatedProductId` set. Matches the evidence — the content source never defined a distinct sample form.
-   *Consequence found while applying this:* `Inquiry` was missing `assignedToId` and `userId`, both of which `SampleRequest` had. Without adding them, the merge would have silently dropped lead routing for every sample request. Both added.
+   _Consequence found while applying this:_ `Inquiry` was missing `assignedToId` and `userId`, both of which `SampleRequest` had. Without adding them, the merge would have silently dropped lead routing for every sample request. Both added.
 2. **`JobApplication` is Admin-only.** CV handling is deliberately not assigned to Sales roles — a job application is not a sales lead, and routing it to a Sales Expert would expose applicant personal data to a team with no business need for it. `JobApplication` therefore carries **no `assignedToId`**, unlike every other submission entity. [SECURITY.md](./SECURITY.md)'s RBAC matrix updated with a dedicated Job Applications column (Admin: full; Content Manager and Sales Expert: none). A future HR/Recruiter role would get its own row rather than widening an existing one.
 3. **`NewsletterSubscription` is a Prisma entity for Phase 1.** External email-provider integration deferred, not ruled out — the `status`/`confirmedAt` shape supports double opt-in from the start, which is the part that's expensive to retrofit.
 4. **Download gating is limited to the Company Catalogue and Product Catalogue.** TDS and SDS are **not** gated — those are the technical documents that build buyer trust, and a form in front of them adds friction exactly where it costs most. `DownloadRequest.documentType` is scoped accordingly.
-5. **Personal-data retention is recorded as a requirement.** CVs and all personal submissions need defined retention rules — see the new [Personal Data Retention](./SECURITY.md#personal-data-retention) section in `SECURITY.md`. The *requirement* is approved; the *concrete periods* still need legal input and are tracked as a remaining blocker below.
+5. **Personal-data retention is recorded as a requirement.** CVs and all personal submissions need defined retention rules — see the new [Personal Data Retention](./SECURITY.md#personal-data-retention) section in `SECURITY.md`. The _requirement_ is approved; the _concrete periods_ still need legal input and are tracked as a remaining blocker below.
 
 ---
 
@@ -177,14 +177,17 @@ All five decisions this review raised are resolved:
 No decisions remain. What's left is external input and sequencing:
 
 **Legal (blocks launch, not schema work):**
+
 - Concrete retention periods per entity, and confirmation of whether GDPR formally applies. Should be settled in the same pass as the Privacy Policy, which is already a launch blocker. Until then, no `retentionExpiresAt` field is added — guessing a period is worse than leaving the field out.
-- Privacy Policy itself: the consent checkbox on every form above is legally inert without a policy to consent *to*. This blocks form launch, not form modeling.
+- Privacy Policy itself: the consent checkbox on every form above is legally inert without a policy to consent _to_. This blocks form launch, not form modeling.
 
 **Content (blocks specific features, not the model):**
+
 - The `[TO CONFIRM]` items in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#outstanding-confirmations-needed) — MOQ, lead times, contact details, real certifications.
 - `JobOpenings` content in Payload: `JobApplication.jobOpeningKey` points at it, so vacancy-linked applications need at least one real listing (speculative applications work without one, since the key is nullable).
 
 **Sequencing (dependency order, not a schedule):**
+
 1. **`CustomFormulationRequest` and `Inquiry` first** — both are live Phase 1 forms in M4, and the missing `email` on the former is a functional defect. `Inquiry` must land with `relatedProductId` before any "Request Sample" CTA ships, or those submissions arrive unattributable to a product.
 2. **`DistributorApplication` and `DownloadRequest`** — confirmed requirements, no dependencies.
 3. **`NewsletterSubscription`** — independent of everything else; needs a double-opt-in confirmation email flow, which is the only genuinely new mechanism among these entities.

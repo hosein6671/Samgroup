@@ -42,7 +42,7 @@ One module = one business capability (see [ARCHITECTURE.md](./ARCHITECTURE.md#mo
 
 ## Comments
 
-- Add a comment only when the *why* isn't obvious from the code (a workaround, a non-obvious constraint)
+- Add a comment only when the _why_ isn't obvious from the code (a workaround, a non-obvious constraint)
 - Never leave commented-out code in a commit
 
 ---

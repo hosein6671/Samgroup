@@ -52,7 +52,7 @@ Payload CMS remains the project's only CMS (see [ARCHITECTURE.md §CMS Integrati
 - **Where used:** All layout and component styling across the six Phase 1 pages.
 - **Performance considerations:** Build-time purge keeps shipped CSS small regardless of how large the utility class surface grows; no runtime CSS-in-JS cost.
 - **SEO considerations:** None directly — styling doesn't affect crawlability, though consistent, fast-rendering layouts reduce layout shift (a Core Web Vitals/SEO ranking factor).
-- **Accessibility considerations:** Utility classes make it easy to *forget* focus states and color contrast unless enforced deliberately — best practice below addresses this.
+- **Accessibility considerations:** Utility classes make it easy to _forget_ focus states and color contrast unless enforced deliberately — best practice below addresses this.
 - **Best practices:** Define color/contrast tokens once in the shared Tailwind config so contrast ratios are correct by construction, not per-component; always pair interactive utility classes with visible `:focus-visible` styles.
 - **Future scalability:** Shared config in `packages/config` means new future-phase surfaces (Customer Portal, CRM dashboards) inherit the same design tokens without redefining them.
 
@@ -171,7 +171,7 @@ Payload CMS remains the project's only CMS (see [ARCHITECTURE.md §CMS Integrati
 - **Where used:** Offline, by whoever produces the 3D packaging models referenced under React Three Fiber above — not part of the `apps/web` codebase or build pipeline.
 - **Performance considerations:** Export models at the lowest polygon count/texture resolution that still reads well at the size they'll render on-site — oversized glTF files are the single biggest risk to the 3D sections' load performance.
 - **SEO considerations:** Not applicable — Blender output is a binary asset, not crawlable content.
-- **Accessibility considerations:** Not applicable to the tool itself; the accessibility burden is on how the exported model is *used* (see Three.js/R3F above).
+- **Accessibility considerations:** Not applicable to the tool itself; the accessibility burden is on how the exported model is _used_ (see Three.js/R3F above).
 - **Best practices:** Export via glTF/GLB (not raw `.blend` files) into a project asset pipeline, with compression (Draco or Meshopt) applied before the model ships to `apps/web`.
 - **Future scalability:** No concern — this is an authoring tool, not part of the deployed system; scales with however many product models future phases need.
 

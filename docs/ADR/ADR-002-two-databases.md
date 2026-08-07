@@ -17,7 +17,7 @@ That approach was verified against Payload's own documentation and issue tracker
 - A previously reported bug ([payloadcms/payload#5822](https://github.com/payloadcms/payload/issues/5822)) showed collection changes not applying correctly to tables in a non-default schema after the initial creation.
 - The `public` schema was historically hardcoded in several places in the adapter's internals ([payloadcms/payload#4818](https://github.com/payloadcms/payload/discussions/4818)); this was fixed, but it shows the non-default-schema path is less exercised than the default.
 
-Running Prisma and Payload against schemas in the *same* database also means both tools share the same migration lock/connection pool namespace, increasing the blast radius of a mistake (e.g. a `migrateFresh` accidentally targeting the wrong schema).
+Running Prisma and Payload against schemas in the _same_ database also means both tools share the same migration lock/connection pool namespace, increasing the blast radius of a mistake (e.g. a `migrateFresh` accidentally targeting the wrong schema).
 
 ## Decision
 

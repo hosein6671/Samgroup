@@ -1,6 +1,6 @@
 # API Design
 
-> **[API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) is authoritative for the endpoint list.** This document remains the statement of *conventions* — versioning, resource naming, the request/response envelope, pagination, error shape — which the final contract builds on and does not change. Where the two overlap on specific endpoints, the final contract wins.
+> **[API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) is authoritative for the endpoint list.** This document remains the statement of _conventions_ — versioning, resource naming, the request/response envelope, pagination, error shape — which the final contract builds on and does not change. Where the two overlap on specific endpoints, the final contract wins.
 
 ## Single API Surface
 
@@ -29,8 +29,8 @@ Success:
 
 ```json
 {
-  "data": { },
-  "meta": { }
+  "data": {},
+  "meta": {}
 }
 ```
 

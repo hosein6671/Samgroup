@@ -15,12 +15,12 @@ Security is the highest priority per [AI_RULES.md](./AI_RULES.md). This document
 
 ## RBAC Permission Matrix
 
-| Role | Products/Catalog | Blog | CMS Content | Certifications | Forms & Leads | Job Applications | Users | Admin Settings |
-|---|---|---|---|---|---|---|---|---|
-| Admin | full | full | full | full (incl. publish) | full | **full — sole access** | full | full |
-| Content Manager | read | full | full | create/edit drafts only — **no publish** | read | **none** | none | none |
-| Sales Expert | read | read | none | read | full (own leads) | **none** | none | none |
-| Customer | read | read | none | read (published only) | create (own) | create (own) | own profile only | none |
+| Role            | Products/Catalog | Blog | CMS Content | Certifications                           | Forms & Leads    | Job Applications       | Users            | Admin Settings |
+| --------------- | ---------------- | ---- | ----------- | ---------------------------------------- | ---------------- | ---------------------- | ---------------- | -------------- |
+| Admin           | full             | full | full        | full (incl. publish)                     | full             | **full — sole access** | full             | full           |
+| Content Manager | read             | full | full        | create/edit drafts only — **no publish** | read             | **none**               | none             | none           |
+| Sales Expert    | read             | read | none        | read                                     | full (own leads) | **none**               | none             | none           |
+| Customer        | read             | read | none        | read (published only)                    | create (own)     | create (own)           | own profile only | none           |
 
 This matrix is the source of truth for RBAC guards in NestJS. Update it whenever a new role or resource is introduced.
 
@@ -38,9 +38,9 @@ The Admin Dashboard is an application area inside `apps/web` ([ARCHITECTURE.md](
 
 ### Authentication boundary
 
-- **The public site is entirely unauthenticated in Phase 1.** No Phase 1 page authenticates an end user — the Customer role exists for the future Customer Portal. So the admin area is the *only* authenticated surface, which keeps the boundary unusually clean: one protected route segment, everything else public.
+- **The public site is entirely unauthenticated in Phase 1.** No Phase 1 page authenticates an end user — the Customer role exists for the future Customer Portal. So the admin area is the _only_ authenticated surface, which keeps the boundary unusually clean: one protected route segment, everything else public.
 - **Admin routes are protected in middleware**, before any page renders. An unauthenticated request to an admin path is redirected to login — never served a shell that fetches and fails, which leaks the surface's existence and structure.
-- **Access is denied by default.** The admin segment requires a valid session for *every* route within it; individual routes opt into higher role requirements, never opt out of the base requirement.
+- **Access is denied by default.** The admin segment requires a valid session for _every_ route within it; individual routes opt into higher role requirements, never opt out of the base requirement.
 
 ### Token handling — a clarification that follows from the architecture
 
@@ -104,14 +104,14 @@ The admin area sits outside the localized public route tree, is excluded from `s
 
 Entities in scope, in rough order of sensitivity:
 
-| Entity | Personal data held | Retention consideration |
-|---|---|---|
-| `JobApplication` | Name, contact details, **CV file**, cover letter | Highest sensitivity. Unsuccessful-applicant data typically carries a short, explicitly-stated window; keeping a CV "in case something opens up" generally requires separate consent |
-| `Inquiry` (incl. Sample Requests) | Name, company, contact details, free-text message, attachments | Commercial lead data — longer retention is usually defensible, but not indefinite |
-| `CustomFormulationRequest` | Contact details, technical requirements, attachments | As above; attachments may also contain the customer's own confidential specifications |
-| `DistributorApplication` | Contact details, commercial business data | As above |
-| `DownloadRequest` | Name, company, country, email | Lightest — but highest volume, so the largest accumulation of personal records over time |
-| `NewsletterSubscription` | Email, locale | Retained until unsubscribe; unsubscribed records should be purged or reduced to a suppression hash rather than kept whole |
+| Entity                            | Personal data held                                             | Retention consideration                                                                                                                                                             |
+| --------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JobApplication`                  | Name, contact details, **CV file**, cover letter               | Highest sensitivity. Unsuccessful-applicant data typically carries a short, explicitly-stated window; keeping a CV "in case something opens up" generally requires separate consent |
+| `Inquiry` (incl. Sample Requests) | Name, company, contact details, free-text message, attachments | Commercial lead data — longer retention is usually defensible, but not indefinite                                                                                                   |
+| `CustomFormulationRequest`        | Contact details, technical requirements, attachments           | As above; attachments may also contain the customer's own confidential specifications                                                                                               |
+| `DistributorApplication`          | Contact details, commercial business data                      | As above                                                                                                                                                                            |
+| `DownloadRequest`                 | Name, company, country, email                                  | Lightest — but highest volume, so the largest accumulation of personal records over time                                                                                            |
+| `NewsletterSubscription`          | Email, locale                                                  | Retained until unsubscribe; unsubscribed records should be purged or reduced to a suppression hash rather than kept whole                                                           |
 
 **Requirements this establishes now:**
 
