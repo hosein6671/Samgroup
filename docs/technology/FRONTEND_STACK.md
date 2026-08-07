@@ -179,13 +179,15 @@ Payload CMS remains the project's only CMS (see [ARCHITECTURE.md §CMS Integrati
 
 # Deployment
 
-## Vercel (Frontend)
+## Docker on a Linux VPS (Frontend)
 
-- **Purpose:** Hosting and deployment platform for `apps/web`.
-- **Why selected:** First-party hosting for Next.js — automatic preview deployments per PR, edge caching, and image optimization tuned specifically for the framework this project already committed to.
-- **Where used:** `apps/web` only. `apps/api` and `apps/cms` continue to deploy via Docker/Nginx on the Linux VPS per [DEVOPS.md](../DEVOPS.md) — **this split is new relative to what `ARCHITECTURE.md`/`DEVOPS.md` currently describe (a single undifferentiated Docker/Nginx/VPS deployment for all three apps). See the architectural concern below — this document does not modify that architecture, only records the frontend-specific piece of it.**
-- **Performance considerations:** Vercel's edge network benefits `apps/web`'s static/ISR pages directly; the app still calls the NestJS API on the VPS for all data, so API latency (not hosting choice) remains the bottleneck for dynamic content.
-- **SEO considerations:** Vercel's edge caching and automatic image optimization (via `next/image`) are net positives for Core Web Vitals, which factor into search ranking.
+**Confirmed 7 August 2026:** `apps/web` deploys as a Docker container on the same Linux VPS as every other service. An earlier proposal to host the frontend on Vercel was considered and **dropped** in favour of a single deployment target. Full topology: [DEVOPS.md](../DEVOPS.md).
+
+- **Purpose:** Hosting and deployment for `apps/web`, as one service in the platform's Docker Compose stack.
+- **Why selected:** One deployment target for the whole platform — a single host, one orchestration tool, one set of secrets, and no second vendor. It also puts `web` and `api` behind the same Nginx origin, which removes cross-origin/CORS configuration between them entirely.
+- **Where used:** `apps/web`, alongside `apps/api`, `apps/cms`, PostgreSQL, and MinIO on the same host.
+- **Performance considerations:** Next.js runs in standalone output mode served by its own Node process behind Nginx. Static and ISR pages are served from the origin rather than a third-party edge network, so first-byte latency depends on the VPS's location and Nginx caching rather than on global edge distribution. The app still calls the NestJS API for all data, and that call is now host-local rather than crossing the public internet — a net reduction in data-fetch latency.
+- **SEO considerations:** Core Web Vitals must be met from the origin. The budget in [seo/SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md) (LCP < 2.5s, INP < 200ms, CLS < 0.1) is unchanged, but meeting it now depends on Nginx cache headers, image optimization, and VPS proximity to primary markets rather than on edge caching. Putting a CDN in front of Nginx remains available if measurement shows the budget is hard to hit — that would be a later, separate decision.
 - **Accessibility considerations:** None specific to the hosting platform — accessibility is a property of the code deployed, not where it's deployed.
-- **Best practices:** Configure `apps/web`'s environment variables (the NestJS API base URL, Mapbox public token) per-environment in Vercel's dashboard, following the same never-commit-secrets rule as [SECURITY.md](../SECURITY.md); use Vercel's preview deployments for PR review before merging to `main`.
-- **Future scalability:** Scales automatically with traffic by design; the real future-scalability question is cross-origin/CORS configuration between Vercel-hosted `web` and VPS-hosted `api` as both environments (staging/production) multiply — worth deciding explicitly when the split deployment is formally adopted into `ARCHITECTURE.md`/`DEVOPS.md`.
+- **Best practices:** Supply `apps/web`'s environment variables (the NestJS API base URL, Mapbox public token) through the deployment environment, never baked into the image, per [SECURITY.md](../SECURITY.md).
+- **Future scalability:** A single VPS is the Phase 1 target. If load outgrows it, the paths are vertical scaling first, then horizontal scaling of the stateless `web`/`api` containers behind Nginx — revisited only when real traffic justifies it, per [DEVOPS.md](../DEVOPS.md).

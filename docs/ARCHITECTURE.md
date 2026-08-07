@@ -86,11 +86,11 @@ Media files are stored separately from the application database, using an S3-com
 
 ## Deployment
 
-Docker
+Every service — `apps/web`, `apps/api`, `apps/cms`, PostgreSQL, and MinIO — runs as a Docker container on a **single Linux VPS**, orchestrated with Docker Compose behind Nginx (reverse proxy + TLS termination). No part of the platform is hosted on an external provider.
 
-Nginx
+Because `web` and `api` are served from one origin behind Nginx, browser traffic between them is same-origin and requires no cross-origin CORS configuration.
 
-Linux VPS
+Full topology, service list, environments, and CI/CD flow: [DEVOPS.md](./DEVOPS.md).
 
 ---
 

@@ -62,10 +62,9 @@ Full rationale (purpose, why selected, performance/SEO/accessibility considerati
 
 ## Deployment
 
-- **Vercel** — Frontend (`apps/web`) only. Rationale: [technology/FRONTEND_STACK.md §Deployment](./technology/FRONTEND_STACK.md#deployment).
-- **Docker + Nginx + Linux VPS** — Backend (`apps/api`), Payload CMS (`apps/cms`), PostgreSQL.
+- **Docker + Docker Compose + Nginx + Linux VPS** — the entire platform: `apps/web`, `apps/api`, `apps/cms`, PostgreSQL, and MinIO.
 
-This is a split-hosting model: `apps/web` deploys to Vercel while `apps/api`/`apps/cms`/PostgreSQL deploy to the VPS as before. `ARCHITECTURE.md` and `DEVOPS.md` still describe a single, undifferentiated Docker/Nginx/VPS deployment for all three apps — that hasn't been updated to reflect this split yet (see the architecture note flagged alongside this change).
+Single-target model: every service runs as a container on one Linux VPS, orchestrated by Docker Compose behind Nginx. **Confirmed 7 August 2026**, superseding the earlier split-hosting proposal that would have placed `apps/web` on Vercel. No external hosting provider is used for any part of the platform. Full topology, service list, and CI/CD flow: [DEVOPS.md](./DEVOPS.md).
 
 ---
 

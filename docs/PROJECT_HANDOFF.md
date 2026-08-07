@@ -18,23 +18,23 @@ Full detail: [PROJECT_VISION.md](./PROJECT_VISION.md).
 
 ### Current architecture status
 
-**Architecture is frozen and complete.** Every major area has been designed, reviewed, and approved: frontend, CMS content model, data model, i18n, SEO, security, RAG, and the full API contract. Four ADRs record the contested decisions.
+**Architecture is frozen and complete.** Every major area has been designed, reviewed, and approved: frontend, CMS content model, data model, i18n, SEO, security, RAG, and the full API contract. Five ADRs record the contested decisions.
 
 **Implementation has barely started.** The monorepo shell exists (workspace config, shared package scaffolds). No framework has been scaffolded, no dependency has been installed, no application code exists.
 
 ### Main technology decisions
 
-| Layer    | Choice                                                           |
-| -------- | ---------------------------------------------------------------- |
-| Monorepo | pnpm workspaces + Turborepo                                      |
-| Frontend | Next.js 15, React 19, TypeScript, Tailwind                       |
-| Backend  | NestJS — the only API surface anything calls                     |
-| Database | PostgreSQL ×2 (`sam_platform` via Prisma, `sam_cms` via Payload) |
-| CMS      | Payload CMS                                                      |
-| Auth     | JWT issued only by NestJS, argon2id, RBAC                        |
-| Storage  | MinIO (S3-compatible)                                            |
-| i18n     | next-intl — `en` (default), `fa`, `ar`                           |
-| Deploy   | Vercel (frontend) + Docker/Nginx/VPS (api, cms, database)        |
+| Layer    | Choice                                                               |
+| -------- | -------------------------------------------------------------------- |
+| Monorepo | pnpm workspaces + Turborepo                                          |
+| Frontend | Next.js 15, React 19, TypeScript, Tailwind                           |
+| Backend  | NestJS — the only API surface anything calls                         |
+| Database | PostgreSQL ×2 (`sam_platform` via Prisma, `sam_cms` via Payload)     |
+| CMS      | Payload CMS                                                          |
+| Auth     | JWT issued only by NestJS, argon2id, RBAC                            |
+| Storage  | MinIO (S3-compatible)                                                |
+| i18n     | next-intl — `en` (default), `fa`, `ar`                               |
+| Deploy   | Docker + Docker Compose + Nginx on a single Linux VPS (all services) |
 
 ---
 
@@ -80,7 +80,7 @@ An independent module consuming **only** the public API — never a database con
 
 ## 3. Documentation Completed
 
-**30 markdown documents + 2 source spreadsheets.** Read in roughly this order.
+**31 markdown documents + 2 source spreadsheets.** Read in roughly this order.
 
 ### Start here
 
@@ -103,7 +103,7 @@ An independent module consuming **only** the public API — never a database con
 | Document                                       | Purpose                                                                    |
 | ---------------------------------------------- | -------------------------------------------------------------------------- |
 | [ARCHITECTURE.md](./ARCHITECTURE.md)           | Style, applications, modules, CMS integration, auth, admin dashboard, i18n |
-| [ADR/README.md](./ADR/README.md)               | Decision log — ADR-001 through ADR-004                                     |
+| [ADR/README.md](./ADR/README.md)               | Decision log — ADR-001 through ADR-005                                     |
 | [TECH_STACK.md](./TECH_STACK.md)               | Concrete tools                                                             |
 | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | Monorepo layout                                                            |
 | [DEVOPS.md](./DEVOPS.md)                       | Environments, CI/CD, two-database setup                                    |
@@ -285,7 +285,7 @@ Only genuinely unresolved items.
 ### Operational
 
 4. **Email delivery is entirely unspecified** — no provider, sender domain, or deliverability plan. Four flows depend on it: newsletter double opt-in, form acknowledgements, download links, admin notifications.
-5. **Vercel/VPS split** is recorded in `TECH_STACK.md` but not reconciled into `ARCHITECTURE.md`/`DEVOPS.md`, which still describe a single VPS deployment. Affects CORS and CI/CD.
+5. ~~Vercel/VPS split~~ — **resolved 7 August 2026.** The whole platform deploys to a single Linux VPS via Docker Compose behind Nginx; the Vercel split-hosting proposal is dropped. Reconciled across [TECH_STACK.md](./TECH_STACK.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DEVOPS.md](./DEVOPS.md), and [technology/FRONTEND_STACK.md](./technology/FRONTEND_STACK.md). The CORS concern is resolved with it — `web` and `api` now share one origin behind Nginx. Recorded as [ADR-005](./ADR/ADR-005-vps-docker-deployment.md). **Still to build:** the Docker and GitHub Actions files themselves.
 
 ### Legal
 
