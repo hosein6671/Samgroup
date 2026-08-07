@@ -1,0 +1,55 @@
+name: CI
+
+# Phase 1 (Validate) of the three-phase pipeline in docs/DEVOPS.md.
+# Phase 2 (build images) and Phase 3 (deploy to VPS) are deliberately not here yet —
+# this workflow builds nothing, publishes nothing, and needs no secrets.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer commit on the same ref makes an in-flight run obsolete.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Validation only reads the code. No write scope, no deployment scope.
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint, type-check, format
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      # Installs pnpm and Node in one step. The pnpm version is read from the
+      # "packageManager" field in package.json (pnpm@11.20.0) rather than repeated
+      # here, so the pin has exactly one source of truth.
+      # node@24 satisfies the ">=24.0.0" engines constraint while staying on the 24.x
+      # line — an unpinned range would silently jump major versions on release day.
+      # install:false because the install is run explicitly below, with --frozen-lockfile
+      # stated rather than inferred from the CI environment.
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Format check
+        run: pnpm format:check

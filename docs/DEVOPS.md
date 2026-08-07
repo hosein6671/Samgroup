@@ -37,24 +37,34 @@ One `postgres` container/server for both apps, but **two independent databases**
 
 Three phases, in strict order. Nothing is built into an image until validation passes, and nothing reaches the VPS until an image exists in the registry.
 
-**Phase 1 — Validate** (every pull request, and every push to `main`)
+**Only Phase 1 exists today**, as [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). Phases 2 and 3 describe the intended shape — there is no workflow for either yet, and nothing in this repository builds an image or contacts a server.
 
-1. Install dependencies (pnpm, cached via Turborepo)
+**Phase 1 — Validate** (every pull request, and every push to `main`) — **implemented**
+
+1. Install dependencies — `pnpm install --frozen-lockfile`, with the pnpm store cached between runs
 2. Lint — `pnpm lint`
 3. Type-check — `pnpm type-check`
-4. Test — `pnpm test` (see [TESTING_STRATEGY.md](./TESTING_STRATEGY.md))
-5. Build all apps — `pnpm build`
+4. Format check — `pnpm format:check`
 
-**Phase 2 — Build images** (on merge to `main`, only if Phase 1 passed)
+Two further checks belong in this phase but are **deliberately not wired up yet**:
 
-6. Build one Docker image per deployable app: `web`, `api`, `cms`
-7. Tag each by commit SHA, and push to the container registry
+- **Test** — `pnpm test` (see [TESTING_STRATEGY.md](./TESTING_STRATEGY.md))
+- **Build all apps** — `pnpm build`
 
-**Phase 3 — Deploy to VPS** (only if Phase 2 published images)
+Both resolve to `turbo run` tasks, and no package in the workspace currently defines a `test` or `build` script — `apps/web`, `apps/api`, and `apps/cms` are still empty placeholders. Adding them now would produce steps that always pass while verifying nothing, which is worse than their absence because it reads as coverage that does not exist. **Add each to Phase 1 at the point the first application package defines that script.**
 
-8. Connect to the VPS over SSH using a deploy key held in GitHub Actions secrets
-9. Pull the new image tags and recreate the affected services via Docker Compose
-10. Run health checks; on failure, roll back by redeploying the previous SHA tag
+**Phase 2 — Build images** (on merge to `main`, only if Phase 1 passed) — **not yet implemented**
+
+5. Build one Docker image per deployable app: `web`, `api`, `cms`
+6. Tag each by commit SHA, and push to the container registry
+
+**Phase 3 — Deploy to VPS** (only if Phase 2 published images) — **not yet implemented**
+
+7. Connect to the VPS over SSH using a deploy key held in GitHub Actions secrets
+8. Pull the new image tags and recreate the affected services via Docker Compose
+9. Run health checks; on failure, roll back by redeploying the previous SHA tag
+
+Phases 2 and 3 depend on Dockerfiles and a `docker-compose.yml` that do not exist yet (`docker/` and the root `docker-compose.yml` are still empty placeholders), and on registry/SSH secrets that have not been created. Both remain future work under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
 Production deploys additionally require the manual approval gate noted under Environments. Staging runs the same three phases from `develop` without that gate.
 
