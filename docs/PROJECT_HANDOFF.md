@@ -1,6 +1,6 @@
 # Project Handoff — SAM Group Platform
 
-**Prepared:** 7 August 2026 · **Phase:** Architecture complete, bootstrap partially executed, no application code written.
+**Prepared:** 7 August 2026 · **Updated:** 8 August 2026 · **Phase:** Architecture complete, infrastructure and tooling bootstrap complete, no application code written.
 
 This document exists so someone with **zero conversation history** can pick this project up and continue correctly. It is a map and a status report, not a substitute for the documents it points to.
 
@@ -18,9 +18,9 @@ Full detail: [PROJECT_VISION.md](./PROJECT_VISION.md).
 
 ### Current architecture status
 
-**Architecture is frozen and complete.** Every major area has been designed, reviewed, and approved: frontend, CMS content model, data model, i18n, SEO, security, RAG, and the full API contract. Five ADRs record the contested decisions.
+**Architecture is frozen and complete.** Every major area has been designed, reviewed, and approved: frontend, CMS content model, data model, i18n, SEO, security, RAG, and the full API contract. Six ADRs record the contested decisions.
 
-**Implementation has barely started.** The monorepo shell exists (workspace config, shared package scaffolds). No framework has been scaffolded, no dependency has been installed, no application code exists.
+**Implementation has started at the infrastructure layer.** The monorepo, workspace install, tooling, CI Phase 1, and the Docker development stack all exist and run. No framework has been scaffolded and no application code exists; the next boundary is the Prisma/database phase.
 
 ### Main technology decisions
 
@@ -80,7 +80,7 @@ An independent module consuming **only** the public API — never a database con
 
 ## 3. Documentation Completed
 
-**31 markdown documents + 2 source spreadsheets.** Read in roughly this order.
+**32 markdown documents + 2 source spreadsheets.** Read in roughly this order.
 
 ### Start here
 
@@ -103,7 +103,7 @@ An independent module consuming **only** the public API — never a database con
 | Document                                       | Purpose                                                                    |
 | ---------------------------------------------- | -------------------------------------------------------------------------- |
 | [ARCHITECTURE.md](./ARCHITECTURE.md)           | Style, applications, modules, CMS integration, auth, admin dashboard, i18n |
-| [ADR/README.md](./ADR/README.md)               | Decision log — ADR-001 through ADR-005                                     |
+| [ADR/README.md](./ADR/README.md)               | Decision log — ADR-001 through ADR-006                                     |
 | [TECH_STACK.md](./TECH_STACK.md)               | Concrete tools                                                             |
 | [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | Monorepo layout                                                            |
 | [DEVOPS.md](./DEVOPS.md)                       | Environments, CI/CD, two-database setup                                    |
@@ -154,13 +154,25 @@ An independent module consuming **only** the public API — never a database con
 
 ```
 sam-group-platform/
-├── .git/                     initialized; baseline committed and pushed (see below)
+├── .git/                     committed; 2 commits ahead of origin/main (see Git state)
 ├── .gitignore                real file
-├── package.json              root manifest, pnpm@11.20.0 pinned, turbo scripts
+├── .gitattributes            repository line-ending policy (LF everywhere)
+├── package.json              root manifest, pnpm@11.20.0 pinned, Node >=24, turbo scripts
+├── pnpm-lock.yaml            committed; `pnpm install` has been run
 ├── pnpm-workspace.yaml       apps/*, packages/*
 ├── turbo.json                v2 "tasks" schema
+├── eslint.config.js          ESLint 10 flat config
+├── .prettierrc.json .prettierignore .lintstagedrc.json
+├── .husky/pre-commit         runs lint-staged
+├── .github/workflows/ci.yml  CI Phase 1 — lint, type-check, format check
+├── docker-compose.yml        postgres, minio, minio-init, nginx — publishes no host ports
+├── docker-compose.override.yml  local development port publishing (127.0.0.1 only)
+├── docker/
+│   ├── nginx/templates/      proxy config, bind-mounted into the official image
+│   └── postgres/init/        first-boot script creating the two ADR-002 databases
+├── scripts/verify-db-isolation.sh   asserts the ADR-002 boundary
 ├── CLAUDE.md, AI_CONTEXT.md
-├── docs/                     29 .md + 2 .xlsx — complete
+├── docs/                     32 .md + 2 .xlsx — complete
 └── packages/
     ├── tsconfig/             package.json + base.json
     ├── eslint-config/        package.json + index.js (flat config)
@@ -169,37 +181,45 @@ sam-group-platform/
     └── config/               package.json + README (intentionally near-empty)
 ```
 
+### Runs today
+
+The infrastructure stack is functional, not just declared:
+
+- `docker compose up -d` brings up `postgres`, `minio` (+ `minio-init`), and `nginx`, all healthy.
+- `./scripts/verify-db-isolation.sh` passes **4/4** — both owners reach their own database, and **neither can reach the other's**. ADR-002 is enforced by PostgreSQL, not by convention.
+- `pnpm lint`, `pnpm type-check`, and `pnpm format:check` all run and pass.
+
 ### Does not exist
 
 - **No application code whatsoever.** `apps/web`, `apps/api`, `apps/cms` contain only `.gitkeep`.
-- **`pnpm install` has never been run.** No `node_modules`, no lockfile. Every dependency in every `package.json` is a _declaration_, not an installed package. **Nothing in this repo currently builds or runs.**
-- Empty: `docker/`, `scripts/`, `.github/`, and root `README.md` / `docker-compose.yml` (zero-byte placeholders).
-- No Prisma schema, no migrations, no Payload config, no Docker Compose, no CI workflow.
+- **No Prisma schema and no migrations.** `prisma/` does not exist. `sam_platform` is an empty database.
+- No Payload config, no application Dockerfiles, no CI Phases 2–3, no `docker-compose.prod.yml`, no TLS configuration (only a `.example` template).
+- Root `README.md` is still a zero-byte placeholder.
 
 ### Git state
-
-The repository is initialized, committed, and backed up to a remote.
 
 |                 |                                                                                        |
 | --------------- | -------------------------------------------------------------------------------------- |
 | Baseline commit | `3fa6f8d` — `chore: initial architecture and documentation baseline`                   |
 | Branch          | `main` — matches the branch [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers |
 | Remote          | `origin` → `https://github.com/hosein6671/Samgroup`                                    |
-| Sync            | `origin/main` synchronized — nothing unpushed                                          |
+| Sync            | **2 commits ahead of `origin/main`, unpushed**                                         |
 | Working tree    | Clean                                                                                  |
 
-The architecture is under version control and clonable by a new engineer.
+Unpushed: `bcee0c4` (development-only Postgres host access path) and `3f750bf` (repository line-ending policy).
 
 ### Bootstrap phase status
 
-The 15-step Bootstrap Plan is **2 of 15 complete**:
+**Infrastructure and tooling bootstrap is complete.** The original 15-step plan's numbering no longer maps cleanly onto what was actually executed — several later steps (tooling, CI, Docker) landed before the app scaffolds. Track by capability instead:
 
-| Step                                                                 | Status         |
-| -------------------------------------------------------------------- | -------------- |
-| 1. Monorepo init (git, `.gitignore`, folders)                        | ✅ Done        |
-| 2. Shared packages (`packages/*`)                                    | ✅ Done        |
-| 3. Workspace install (`pnpm install`, lockfile)                      | ⬜ **Next**    |
-| 4–15 (app scaffolds, Postgres, Prisma, Docker, env, hooks, lint, CI) | ⬜ Not started |
+| Capability                                                     | Status                  |
+| -------------------------------------------------------------- | ----------------------- |
+| Monorepo init, shared packages, workspace install              | ✅ Done                 |
+| Lint / format / pre-commit tooling                             | ✅ Done                 |
+| CI Phase 1 (validate)                                          | ✅ Done                 |
+| Docker infrastructure (postgres, minio, nginx) + ADR-002 check | ✅ Done, verified       |
+| **Prisma schema, migrations, `Locale` seed**                   | ⬜ **Next — §5 step 3** |
+| NestJS scaffold, auth, Payload, CMS integration, frontend      | ⬜ Not started          |
 
 ---
 
@@ -207,17 +227,19 @@ The 15-step Bootstrap Plan is **2 of 15 complete**:
 
 Dependency order, not a schedule. Each step assumes the previous ones landed.
 
-### 0. Commit and push — ✅ done
+### 0. Version control — ✅ done
 
-The baseline is committed as `3fa6f8d` on `main` and pushed to `origin`. See §4 "Git state". Keep committing incrementally as each step below lands.
+Baseline committed as `3fa6f8d` on `main`, remote `origin` configured. Keep committing incrementally as each step below lands. **Note:** two commits are currently unpushed — see §4 "Git state".
 
-### 1. Finish the monorepo shell
+### 1. Monorepo shell — ✅ done
 
-`pnpm install` at the root — the first time this repo will actually resolve dependencies. Then ESLint/Prettier wiring, Husky + lint-staged, and the GitHub Actions CI workflow (lint → type-check → test → build).
+`pnpm install` has been run and `pnpm-lock.yaml` is committed. ESLint 10 flat config, Prettier, and Husky + lint-staged are wired. The GitHub Actions CI workflow exists as **Phase 1 only** — lint → type-check → format check. `test` and `build` are deliberately omitted until a package actually defines those scripts; Phases 2 and 3 wait on the application Dockerfiles ([DEVOPS.md](./DEVOPS.md)).
 
-### 2. Database and Docker
+### 2. Database and Docker — ✅ done
 
-`docker-compose.yml` with `postgres`, `minio`, and the three app services. Postgres init script creating **two databases and two scoped users** — and verify the negative case: confirm the `sam_platform` user genuinely _cannot_ connect to `sam_cms`. That check is the whole point of ADR-002; skipping it means the isolation is convention, not enforcement.
+`docker-compose.yml` runs `postgres`, `minio` (+ `minio-init`) and `nginx`; the three app services are deliberately absent, since the approved development model runs them on the host ([ADR-005](./ADR/ADR-005-vps-docker-deployment.md), approved implementation decision 4). The Postgres init script creates **two databases and two scoped users**, and the negative case is verified rather than assumed: `scripts/verify-db-isolation.sh` passes 4/4, confirming the `sam_platform` user genuinely _cannot_ connect to `sam_cms`. That check is the whole point of ADR-002 — re-run it after any change to the init script or the Postgres volume.
+
+**Development note:** host-run applications reach PostgreSQL through `docker-compose.override.yml`, which publishes `127.0.0.1:5432` and attaches `postgres` to a development-only network. Publishing the port alone is not sufficient — the `data` network is `internal: true`, and Docker creates no host binding for a container whose networks are all internal.
 
 ### 3. Prisma setup
 
@@ -324,7 +346,9 @@ This project has an unusually complete specification. Nearly every implementatio
 
 ### Continue from the current phase
 
-The project is at **Bootstrap step 3 of 15**. Follow §5's order. Do not skip ahead to feature work — the database, API, and CMS layers are prerequisites, and building UI against endpoints that don't exist produces throwaway work.
+**Infrastructure and tooling bootstrap is complete** — monorepo, workspace install, lint/format/hooks, CI Phase 1, and the Docker stack (`postgres`, `minio`, `nginx`) all exist and run, with the ADR-002 database boundary verified. **The next implementation boundary is the Prisma/database phase** (§5 step 3): `prisma init` at the repo root, `schema.prisma` translated literally from [DATA_MODEL.md](./DATA_MODEL.md) §1, first migration against `sam_platform`, `Locale` seeded with `en`/`fa`/`ar`.
+
+Then follow §5's order from step 4. Do not skip ahead to feature work — the database, API, and CMS layers are prerequisites, and building UI against endpoints that don't exist produces throwaway work. Verify §4 against the repository before trusting it; status in this project has gone stale before.
 
 ### Working conventions established here
 

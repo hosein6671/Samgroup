@@ -36,9 +36,9 @@ This file is the companion to [`CLAUDE.md`](./CLAUDE.md). Where `CLAUDE.md` is t
 
 ## Known environment oddities
 
-- **Fixed** (Bootstrap Step 1): `.gitignore` is now a real file; git is initialized; `pnpm-workspace.yaml`/root `package.json`/`turbo.json` exist. The baseline is committed (`3fa6f8d`) on branch `main` and pushed to `origin` (`https://github.com/hosein6671/Samgroup`); `origin/main` is synchronized and the working tree is clean — the repo is version-controlled and clonable.
-- **Fixed** (Bootstrap Step 2): `packages/types`, `packages/ui`, `packages/config`, `packages/eslint-config`, `packages/tsconfig` exist as minimal config-only scaffolds — no build tooling installed, nothing runnable yet.
-- **Still true**: `apps/web`, `apps/api`, `apps/cms` are `.gitkeep`-only skeletons — no framework scaffolded. `docker/`, `scripts/`, `.github/`, root `README.md`/`docker-compose.yml` are still empty. No `pnpm install` has ever been run — nothing in any `package.json` is actually downloaded/linked yet.
+- **Resolved** — the monorepo, workspace install, and tooling are all in place. Git is initialized with a remote; `pnpm install` has been run and `pnpm-lock.yaml` is committed; ESLint/Prettier/Husky + lint-staged are wired; CI Phase 1 validates every push and PR. `packages/*` exist as config-only scaffolds. A `.gitattributes` file now pins LF line endings repository-wide — without it, a Windows checkout converted `docker/postgres/init/01-init-databases.sh` to CRLF, which breaks the script inside the Postgres container and would leave the ADR-002 boundary silently uncreated.
+- **Resolved** — the Docker development stack exists and runs: `docker-compose.yml` (`postgres`, `minio`, `minio-init`, `nginx`), `docker-compose.override.yml`, Nginx templates, and the Postgres init script. `scripts/verify-db-isolation.sh` passes 4/4, so **ADR-002 isolation is verified, not assumed**. Re-run it after any change to the init script or the Postgres volume — that script only runs on first initialisation of an empty volume.
+- **Still true**: `apps/web`, `apps/api`, `apps/cms` are `.gitkeep`-only skeletons — no framework scaffolded, no Prisma schema, no migrations, no Payload config, no application Dockerfiles, no CI Phases 2–3. Root `README.md` is still empty. **The next implementation boundary is the Prisma/database phase** — see [docs/PROJECT_HANDOFF.md](./docs/PROJECT_HANDOFF.md) §5 step 3.
 
 ## How to re-orient in a fresh session with no conversation history
 

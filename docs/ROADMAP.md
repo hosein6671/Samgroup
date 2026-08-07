@@ -6,14 +6,23 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 
 ## Current Status
 
-**M1 in progress.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized. Bootstrap executing incrementally, step by step, with approval between each:
+**M1 in progress — infrastructure and tooling bootstrap complete; the next implementation boundary is the Prisma/database phase.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized.
 
-- ✅ Step 1 — Monorepo foundation: git initialized, real `.gitignore`, `pnpm-workspace.yaml`, root `package.json`, `turbo.json`, empty `apps/web`/`apps/api`/`apps/cms` skeletons. Baseline committed as `3fa6f8d` on branch `main` and pushed to `origin` (`https://github.com/hosein6671/Samgroup`); `origin/main` synchronized, working tree clean.
-- ✅ Step 2 — Shared package foundation: `packages/types`, `packages/ui`, `packages/config`, `packages/eslint-config`, `packages/tsconfig` created as minimal config-only scaffolds.
-- ⬜ **Step 3 — next:** workspace install (`pnpm install` at the root, producing the first lockfile).
-- ⬜ Not yet done beyond that: no Next.js/NestJS/Payload scaffolding; no Docker Compose stack; no Prisma schema; no CI. `docker/`, `scripts/`, `.github/`, root `README.md`/`docker-compose.yml` are still empty.
+**Complete and verified:**
 
-Update this line as each further step lands — this is the one fact in `docs/` most likely to go stale.
+- ✅ **Monorepo foundation** — git, `.gitignore`, `.gitattributes`, `pnpm-workspace.yaml`, root `package.json` (pnpm@11.20.0, Node ≥24), `turbo.json` (v2 `tasks`).
+- ✅ **Shared packages** — `packages/types`, `ui`, `config`, `eslint-config`, `tsconfig`.
+- ✅ **Workspace install** — `pnpm install` has been run; `pnpm-lock.yaml` is committed and `node_modules` resolves.
+- ✅ **Developer tooling** — ESLint 10 flat config, Prettier, Husky + lint-staged pre-commit hook.
+- ✅ **CI Phase 1 (Validate)** — `.github/workflows/ci.yml`: install → lint → type-check → format check. Phases 2 and 3 are deliberately absent until app Dockerfiles exist ([DEVOPS.md](./DEVOPS.md)).
+- ✅ **Docker development infrastructure** — `docker-compose.yml` (`postgres`, `minio`, `minio-init`, `nginx`), `docker-compose.override.yml`, Nginx templates, and the Postgres init script creating `sam_platform` and `sam_cms` as independent databases.
+- ✅ **ADR-002 isolation proven, not assumed** — `scripts/verify-db-isolation.sh` passes 4/4, including both negative cases (neither application role can reach the other's database).
+
+**Next: the Prisma/database phase** — `prisma init` at the repo root, `schema.prisma` translated from [DATA_MODEL.md](./DATA_MODEL.md) §1, first migration against `sam_platform`, and `Locale` seeded with `en`/`fa`/`ar`. See [PROJECT_HANDOFF.md §5](./PROJECT_HANDOFF.md) step 3.
+
+**Not yet started:** no Next.js/NestJS/Payload scaffolding, no Prisma schema or migrations, no application Dockerfiles, no CI Phases 2–3. `apps/web`, `apps/api`, `apps/cms` hold only `.gitkeep`; root `README.md` is still empty.
+
+Update this section as each further step lands — this is the one fact in `docs/` most likely to go stale.
 
 ---
 
