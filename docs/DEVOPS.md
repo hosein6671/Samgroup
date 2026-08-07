@@ -49,11 +49,12 @@ Nginx only ever proxies `sam-public`. The private bucket has no route — reachi
 
 ## Environments
 
-| Environment | Purpose                     | Deploy trigger                   |
-| ----------- | --------------------------- | -------------------------------- |
-| Local       | Development on a machine    | manual (`docker compose up`)     |
-| Staging     | Pre-production verification | push/merge to `develop`          |
-| Production  | Live platform               | merge to `main`, manual approval |
+| Environment | Purpose                  | Deploy trigger                   |
+| ----------- | ------------------------ | -------------------------------- |
+| Local       | Development on a machine | manual (`docker compose up`)     |
+| Production  | Live platform            | merge to `main`, manual approval |
+
+**There is no staging environment and no second host.** One VPS runs the whole platform: `samgp.com` and `cms.samgp.com` both resolve to it and are served by the same Docker Compose stack (`nginx`, `web`, `api`, `cms`, `postgres`, `minio`). Introducing a staging environment later requires a new architecture decision — see [ADR-005](./ADR/ADR-005-vps-docker-deployment.md), approved implementation decision 6.
 
 ---
 
@@ -90,7 +91,7 @@ Both resolve to `turbo run` tasks, and no package in the workspace currently def
 
 The infrastructure half of this now exists: `docker-compose.yml`, the Postgres init script, and the Nginx templates are in place and run locally. Phases 2 and 3 still depend on the **application Dockerfiles**, which cannot be written until `apps/web`, `apps/api`, and `apps/cms` are scaffolded — `turbo prune <app>` has no package to target before then — and on registry/SSH secrets that have not been created. Both remain future work under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
-Production deploys additionally require the manual approval gate noted under Environments. Staging runs the same three phases from `develop` without that gate.
+Production deploys additionally require the manual approval gate noted under Environments.
 
 ---
 

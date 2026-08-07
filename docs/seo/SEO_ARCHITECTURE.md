@@ -154,7 +154,7 @@ Both halves — Payload's `seoFields()` group and Prisma's `SeoMeta` table — s
 
 - **Metadata API**: every route uses Next.js's `generateMetadata` (dynamic) rather than static `export const metadata` for any route backed by data (products, categories, blog posts, CMS pages) — the metadata always comes from the normalized SEO shape (§0) returned by NestJS.
 - **`sitemap.xml`**: implemented via Next.js's `sitemap.ts` convention, which calls a NestJS endpoint (§ below) that returns every indexable URL with `lastModified`, split by locale once locales exist.
-- **`robots.txt`**: implemented via Next.js's `robots.ts` convention — environment-aware (disallow everything on staging, allow production), and explicitly disallows non-indexable paths (auth-gated routes, internal admin paths).
+- **`robots.txt`**: implemented via Next.js's `robots.ts` convention, explicitly disallowing non-indexable paths (auth-gated routes, internal admin paths). There is no staging environment to gate on — one VPS serves production only ([ADR-005](../ADR/ADR-005-vps-docker-deployment.md), approved implementation decision 6) — so the CMS admin is kept out of the index at the Nginx layer instead, via the `X-Robots-Tag` on `cms.samgp.com`.
 - **Canonical URLs**: rendered from `SeoFields.canonicalUrl`, always an absolute URL, always pointing at the clean/unfiltered version of a list page (§7).
 - **`hreflang`**: rendered as `<link rel="alternate" hreflang="...">` tags, one per locale the entity has a translation for, generated from whichever locales are confirmed (§5) — the templating logic doesn't hardcode a locale count.
 - **Open Graph / Twitter Cards**: rendered via the Metadata API's `openGraph`/`twitter` fields, sourced from `SeoFields`.

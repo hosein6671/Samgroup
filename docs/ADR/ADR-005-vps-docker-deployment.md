@@ -33,6 +33,7 @@ Confirmed 7 August 2026, from the design review held before the first Dockerfile
 3. **GitHub Container Registry (GHCR)** holds the three application images. CI is already GitHub Actions and authenticates with the built-in token, so no second vendor is introduced — consistent with this ADR's single-target reasoning.
 4. **Local development runs infrastructure in Docker and the applications on the host** via `pnpm dev`. Rebuilding images on every code change is not a workable inner loop. A fully containerized profile stays available for pre-release parity checks.
 5. **Phase 1 accepts brief downtime during a Compose update.** `docker compose up -d` recreates containers rather than draining them, so an affected service has a short gap. Genuine zero-downtime needs blue/green or rolling deployment, which a single Compose host does not provide natively.
+6. **Phase 1 uses a single VPS deployment model with no separate staging environment. Any future staging environment requires a new architecture decision.** Both `samgp.com` and `cms.samgp.com` resolve to that one host, served by the same Docker Compose stack (`nginx`, `web`, `api`, `cms`, `postgres`, `minio`).
 
 ## Consequences
 
@@ -49,7 +50,7 @@ Confirmed 7 August 2026, from the design review held before the first Dockerfile
 - **We manage the infrastructure.** OS patching, TLS certificate renewal, Nginx configuration, backups, uptime monitoring, and capacity are our responsibility. No managed platform absorbs any of it. `DEVOPS.md` "Monitoring & Backups" is the Phase 1 minimum, not a complete operations plan.
 - **SEO performance now depends on our own VPS/CDN strategy.** There is no third-party edge network. The Core Web Vitals budget in [seo/SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md) (LCP < 2.5s, INP < 200ms, CLS < 0.1) is unchanged but must be met from the origin — through Nginx cache headers, image optimization, and VPS proximity to the primary export markets (Africa, regional neighbours, India, Turkiye). This needs real measurement at M5, not assumption.
 - **Single point of failure in Phase 1.** One host means host loss is total outage. Accepted for Phase 1; revisit when load or availability requirements justify it.
-- **No free per-PR preview deployments.** Vercel provided these automatically. The staging environment in `DEVOPS.md` covers pre-production verification; per-PR previews would have to be built deliberately if wanted.
+- **No pre-production environment at all.** Vercel provided per-PR previews automatically. With one VPS and no staging host, changes move from local development straight to production, gated only by CI validation and the manual approval step. Anything more — per-PR previews or a staging stack — would have to be built deliberately, and a staging environment would need a new architecture decision (see approved implementation decision 6).
 - **`apps/web` must run as a Node server.** Next.js is built in standalone output mode and served by its own process in the container, rather than by a managed platform. A build/runtime configuration detail for the `apps/web` scaffold — it changes no application architecture.
 
 ## Alternatives Considered
