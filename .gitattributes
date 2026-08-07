@@ -1,0 +1,38 @@
+# Line-ending policy for the whole repository.
+#
+# Without this file the behaviour depends on each machine's core.autocrlf,
+# which on this project is set by the Git for Windows installer at SYSTEM
+# scope — invisible to the repository and not shared with anyone else. Two
+# developers can therefore check out different bytes from the same commit.
+#
+# The repository stores LF for every text file. It already did before this
+# file existed; this makes that a rule rather than an accident.
+
+# Detect text automatically, and check it out with LF on every platform.
+# Every consumer of this repository that cares about line endings is Linux:
+# the containers, the CI runner, and the VPS. Windows editors handle LF fine.
+* text=auto eol=lf
+
+# Executed inside Linux containers — CRLF here is not a cosmetic problem, it
+# breaks the shebang and the psql heredocs. Restated explicitly so the rule
+# survives anyone narrowing the wildcard above.
+*.sh               text eol=lf
+.husky/*           text eol=lf
+
+# Read by the nginx container's envsubst entrypoint at start-up.
+*.template         text eol=lf
+*.template.example text eol=lf
+
+# Binary — never convert, never diff as text. Git already detects these by
+# content; stating it removes the guesswork.
+*.xlsx  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.avif  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
