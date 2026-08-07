@@ -24,20 +24,38 @@ services:
 
   postgres:
     # ---------------------------------------------------------------------
-    # The database port is CLOSED. It is closed because neither this file nor
-    # the base file publishes it — there is no directive to "keep" it closed.
+    # Development-only host access to the database.
     #
-    # Uncomment only if a host tool (psql, DBeaver, pgAdmin) or a host-run
-    # application needs to reach PostgreSQL directly, then:
-    #     docker compose up -d postgres
+    # Needed because the approved development model runs apps/api and apps/cms
+    # on the host via `pnpm dev` (ADR-005, approved implementation decision 4),
+    # and Prisma migrations run from the host as well. A host process cannot
+    # reach an unpublished container port.
     #
-    # This WILL be needed once apps/api and apps/cms are scaffolded, because
-    # the approved development model runs them on the host rather than in
-    # containers, and a host process cannot reach an unpublished container
-    # port. Until then, leaving it closed keeps the surface minimal.
+    # Publishing a port is NOT sufficient on its own. In docker-compose.yml
+    # postgres joins only `data`, which is `internal: true`, and Docker creates
+    # no host binding for a container whose networks are all internal: Compose
+    # resolves the mapping and HostConfig.PortBindings is populated, but
+    # NetworkSettings.Ports stays empty and the host connection is refused.
+    # Measured on Docker 29.6.2 / Compose v5.3.1 before this file was changed.
+    #
+    # `dev-host` exists solely to give the published port a network with a
+    # route to the host. It is declared in this file only, so it cannot follow
+    # the stack to the VPS, and docker-compose.yml is untouched: `data` stays
+    # internal and postgres stays on it.
+    #
+    # `dev-host` is deliberately NOT `edge`. nginx must not gain a route to the
+    # database, so this is a third network that only postgres joins.
+    #
+    # One accepted trade-off: `data` was internal partly so postgres had no
+    # route off the host. On this network it has one, in development only.
     # ---------------------------------------------------------------------
-    # ports:
-    #   - "127.0.0.1:${POSTGRES_LOCAL_PORT:-5432}:5432"
+    networks:
+      # Both listed explicitly so membership is stated rather than inherited
+      # through Compose's merge behaviour.
+      - data
+      - dev-host
+    ports:
+      - "127.0.0.1:${POSTGRES_LOCAL_PORT:-5432}:5432"
 
   minio:
     ports:
@@ -48,3 +66,17 @@ services:
       # S3 API. Uncomment when host-run applications need object storage;
       # nginx already reaches MinIO over the internal network without it.
       # - "127.0.0.1:9000:9000"
+
+networks:
+  # Development only, and declared only in this file — docker-compose.yml has
+  # no knowledge of it, so the production topology is unchanged and this
+  # network cannot reach the VPS.
+  #
+  # Not `internal`, because that is the entire point: a published host port
+  # requires a network with a route to the host, which is what `data` (kept
+  # internal) deliberately does not have.
+  #
+  # Only postgres joins it. It is not a general-purpose network, and nothing
+  # else should be attached to it without revisiting why it exists.
+  dev-host:
+    driver: bridge
