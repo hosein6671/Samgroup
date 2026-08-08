@@ -4,8 +4,8 @@ import { ContentEntityType } from "../../common/content/content-entity-type";
 import { ContentTranslationService } from "../../common/content/content-translation.service";
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
-import { MediaType } from "../../prisma/generated/client";
 import { PrismaService } from "../../prisma/prisma.service";
+import { MediaService } from "../media/media.service";
 import { SeoService } from "../seo/seo.service";
 
 import { CATEGORY_SELECT, CATEGORY_TRANSLATED_FIELDS } from "./categories.service";
@@ -117,6 +117,7 @@ export class ProductsService {
     private readonly prisma: PrismaService,
     private readonly translations: ContentTranslationService,
     private readonly seo: SeoService,
+    private readonly media: MediaService,
   ) {}
 
   /**
@@ -198,7 +199,11 @@ export class ProductsService {
         CATEGORY_TRANSLATED_FIELDS,
         locale,
       ),
-      this.findImages(product.id),
+      // Product imagery is read through MediaService, not `prisma.media`: `media` belongs to
+      // the Media module and ARCHITECTURE.md §Modules routes cross-module access through the
+      // owning module's service. The `type = image` filter that keeps COA/SDS/TDS out of a
+      // public gallery lives there too, where no caller can widen it.
+      this.media.findImagesForOwner(ContentEntityType.Product, product.id),
     ]);
 
     // `?? product` / `?? category` are the untranslated rows, not placeholders: localize
@@ -395,26 +400,6 @@ export class ProductsService {
     );
 
     return translatedId === null ? { slug } : { id: translatedId };
-  }
-
-  /**
-   * Public imagery only. `media` has no visibility column, so the boundary is drawn on `type`:
-   * `image` rows are the product gallery, while COA, SDS, TDS and every other document are
-   * `file`/`document` rows and never enter this result. Nothing here can be widened by adding
-   * a media row — a new document type is excluded by default.
-   *
-   * Ordered by id because `media` carries no sort or timestamp column; the value is arbitrary
-   * but the ORDER is stable, which is what a gallery needs.
-   */
-  private findImages(
-    productId: string,
-  ): Promise<{ id: string; url: string; altText: string | null }[]> {
-    return this.prisma.media.findMany({
-      // Matches @@index([ownerType, ownerId]).
-      where: { ownerType: ContentEntityType.Product, ownerId: productId, type: MediaType.IMAGE },
-      orderBy: { id: "asc" },
-      select: { id: true, url: true, altText: true },
-    });
   }
 }
 

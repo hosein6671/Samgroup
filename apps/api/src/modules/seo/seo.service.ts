@@ -66,9 +66,15 @@ const SEO_META_SELECT = {
   robotsFollow: true,
   keywords: true,
   structuredDataOverride: true,
-  // `Media` has no owning module, and the SeoMeta.socialImage relation is the only way to
-  // turn `social_image_id` into a URL. ProductsService already reads `media` directly for
-  // product imagery, so this crosses no boundary that was not already open.
+  // `media` belongs to the Media module, but this is not a read of that module's table: it is
+  // this module dereferencing `seo_meta.social_image_id`, a foreign key on a column SEO owns,
+  // as part of the same record read. Postgres resolves it in the one query.
+  //
+  // Routing it through MediaService instead would cost a second round trip per SEO record on
+  // every detail endpoint, and would require Media to expose an unfiltered `findById` —
+  // `social_image_id` may reference any media row, so such an accessor could not carry the
+  // owner allow-list that RAG_IMPLEMENTATION_ARCHITECTURE.md §4 makes mandatory. The boundary
+  // is better served by leaving this here.
   socialImage: { select: { url: true } },
 } as const;
 

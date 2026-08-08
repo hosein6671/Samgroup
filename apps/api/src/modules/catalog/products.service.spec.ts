@@ -2,6 +2,7 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { MediaService } from "../media/media.service";
 import { SeoService } from "../seo/seo.service";
 
 import { ProductsService } from "./products.service";
@@ -70,7 +71,7 @@ type Stubs = {
   productFindUnique: jest.Mock;
   categoryFindUnique: jest.Mock;
   specificationFindMany: jest.Mock;
-  mediaFindMany: jest.Mock;
+  findImagesForOwner: jest.Mock;
   translationFindMany: jest.Mock;
   translationFindFirst: jest.Mock;
   buildSeo: jest.Mock;
@@ -83,7 +84,7 @@ function createService(): Stubs {
   const productFindUnique = jest.fn().mockResolvedValue(DETAIL_ROW);
   const categoryFindUnique = jest.fn().mockResolvedValue({ id: CATEGORY.id });
   const specificationFindMany = jest.fn().mockResolvedValue(DETAIL_ROW.specifications);
-  const mediaFindMany = jest.fn().mockResolvedValue([]);
+  const findImagesForOwner = jest.fn().mockResolvedValue([]);
   const translationFindMany = jest.fn().mockResolvedValue([]);
   const translationFindFirst = jest.fn().mockResolvedValue(null);
   const buildSeo = jest.fn().mockResolvedValue(SEO);
@@ -92,7 +93,6 @@ function createService(): Stubs {
     product: { count: productCount, findMany: productFindMany, findUnique: productFindUnique },
     category: { findUnique: categoryFindUnique },
     specification: { findMany: specificationFindMany },
-    media: { findMany: mediaFindMany },
     contentTranslation: { findMany: translationFindMany, findFirst: translationFindFirst },
   } as unknown as PrismaService;
 
@@ -101,16 +101,21 @@ function createService(): Stubs {
   // contentTranslation mock that this file's translation assertions depend on.
   const seo = { buildFor: buildSeo } as unknown as SeoService;
 
+  // MediaService is stubbed for the same reason, and there is no `media` delegate on the
+  // Prisma mock above: this service no longer reaches `media` at all. What the query looks
+  // like is media.service.spec.ts's assertion; what this service asks for is this file's.
+  const media = { findImagesForOwner } as unknown as MediaService;
+
   return {
     // The real translation service, not a stub: it owns the translation queries these tests
     // assert on, and stubbing it would leave those assertions checking nothing.
-    service: new ProductsService(prisma, new ContentTranslationService(prisma), seo),
+    service: new ProductsService(prisma, new ContentTranslationService(prisma), seo, media),
     productCount,
     productFindMany,
     productFindUnique,
     categoryFindUnique,
     specificationFindMany,
-    mediaFindMany,
+    findImagesForOwner,
     translationFindMany,
     translationFindFirst,
     buildSeo,
@@ -449,9 +454,9 @@ describe("ProductsService.findBySlug", () => {
   });
 
   it("returns the category, the specifications and the images in one response", async () => {
-    const { service, mediaFindMany } = createService();
+    const { service, findImagesForOwner } = createService();
 
-    mediaFindMany.mockResolvedValue([
+    findImagesForOwner.mockResolvedValue([
       { id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" },
     ]);
 
@@ -464,19 +469,15 @@ describe("ProductsService.findBySlug", () => {
     ]);
   });
 
-  // COA, SDS, TDS and every other document are `file`/`document` rows. The type filter is what
-  // keeps them out — `media` has no visibility column to forget to set.
-  it("asks for image media owned by this product only", async () => {
-    const { service, mediaFindMany } = createService();
+  // What this service is responsible for is naming BOTH halves of the polymorphic owner key.
+  // Which rows that selects — the `type = image` filter that keeps COA, SDS and TDS out of a
+  // public gallery — is MediaService's to enforce and media.service.spec.ts's to assert.
+  it("asks MediaService for the images owned by this product", async () => {
+    const { service, findImagesForOwner } = createService();
 
     await service.findBySlug("sn-500", EN);
 
-    expect(mediaFindMany).toHaveBeenCalledWith({
-      // "IMAGE" is the Prisma enum member; PostgreSQL stores it as the mapped label `image`.
-      where: { ownerType: "Product", ownerId: PRODUCT_ROW.id, type: "IMAGE" },
-      orderBy: { id: "asc" },
-      select: { id: true, url: true, altText: true },
-    });
+    expect(findImagesForOwner).toHaveBeenCalledWith("Product", PRODUCT_ROW.id);
   });
 
   it("localizes the nested category as well as the product", async () => {
