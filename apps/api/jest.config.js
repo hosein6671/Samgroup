@@ -9,6 +9,14 @@ module.exports = {
   // "Reflect.getMetadata is not a function".
   setupFiles: ["reflect-metadata"],
   testMatch: ["<rootDir>/src/**/*.spec.ts"],
+  // tsconfig.json sets rewriteRelativeImportExtensions, which the generated Prisma client
+  // needs so the BUILT output requires "./enums.js". ts-jest applies the same rewrite, but
+  // tests run against the .ts sources with no dist to resolve against, so the rewritten
+  // specifier points at a file that does not exist. Mapping the extension back off lets
+  // Jest resolve the real source; production emit is unaffected.
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
   transform: {
     "^.+\\.ts$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.json" }],
   },

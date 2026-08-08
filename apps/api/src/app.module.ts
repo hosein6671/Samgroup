@@ -7,6 +7,7 @@ import { ResponseEnvelopeInterceptor } from "./common/interceptors/response-enve
 import configuration from "./config/configuration";
 import { validateEnv } from "./config/env.validation";
 import { SystemModule } from "./modules/system/system.module";
+import { PrismaModule } from "./prisma/prisma.module";
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { SystemModule } from "./modules/system/system.module";
       load: [configuration],
       validate: validateEnv,
     }),
+    // Imported here so the connection opens and closes with the application, not because
+    // AppModule queries anything. PrismaModule is not @Global: each future module that
+    // needs the database imports it for itself.
+    PrismaModule,
     SystemModule,
   ],
   // Registered as providers rather than app.useGlobal*() in main.ts: a filter constructed

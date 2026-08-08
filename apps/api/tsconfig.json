@@ -13,6 +13,11 @@
     "rootDir": "src",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    // The generated Prisma client imports its own modules with explicit .ts extensions
+    // (schema.prisma: importFileExtension = "ts"). Without this, tsc copies those
+    // specifiers verbatim and the emitted JS requires "./enums.ts" — a path that does not
+    // exist in dist, so the built application fails at first require.
+    "rewriteRelativeImportExtensions": true,
     "types": ["node", "jest"]
   },
   "include": ["src"],

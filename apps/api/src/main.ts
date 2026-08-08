@@ -33,6 +33,11 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
+  // Without this Nest ignores SIGTERM, so onModuleDestroy never runs and the Prisma
+  // connection is torn down by process death instead of being closed. Docker stops
+  // containers with SIGTERM, which makes this the normal shutdown path, not an edge case.
+  app.enableShutdownHooks();
+
   await app.listen(app.get(ConfigService).getOrThrow<number>("apiPort"));
 }
 
