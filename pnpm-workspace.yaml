@@ -1,3 +1,14 @@
 packages:
   - "apps/*"
   - "packages/*"
+# Build scripts pnpm blocks by default. All three are required:
+#   prisma / @prisma/engines — place the schema engine binary `prisma migrate`
+#     needs; while blocked, every pnpm-invoked command exits 1.
+#   esbuild — tsx depends on it; its postinstall installs the platform binary.
+allowBuilds:
+  "@prisma/engines": true
+  esbuild: true
+  prisma: true
+# Added by pnpm: tsx 4.23.11 is newer than the configured minimum release age.
+minimumReleaseAgeExclude:
+  - tsx@4.23.11

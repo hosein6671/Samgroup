@@ -8,7 +8,16 @@ const prettier = require("eslint-config-prettier/flat");
 module.exports = [
   {
     // node_modules is ignored by flat config already; these are the generated outputs.
-    ignores: ["**/dist/**", "**/build/**", "**/.next/**", "**/.turbo/**", "**/coverage/**"],
+    // prisma/generated holds the Prisma 7 client, which is emitted into the repository
+    // rather than node_modules since an explicit generator output path became required.
+    ignores: [
+      "**/dist/**",
+      "**/build/**",
+      "**/.next/**",
+      "**/.turbo/**",
+      "**/coverage/**",
+      "prisma/generated/**",
+    ],
   },
   ...samGroup,
   // Must stay last: disables any stylistic rule that would fight Prettier. A no-op against the

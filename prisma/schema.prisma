@@ -1,0 +1,576 @@
+// =============================================================================
+// SAM Group Platform — sam_platform
+//
+// A literal translation of docs/DATA_MODEL.md §1: 20 entities plus one join
+// table for the BlogPost/BlogTag many-to-many. Not a redesign.
+//
+// Boundaries this file must never cross:
+//   - It models sam_platform only. Payload owns sam_cms and is never modelled
+//     here, in any form (ADR-002).
+//   - References that cross into sam_cms are soft string keys, never foreign
+//     keys: JobApplication.jobOpeningKey, DownloadRequest.documentKey.
+//   - Future-phase entities (DATA_MODEL.md §2 — Order, Quote, Lead, Workflow*,
+//     Notification, ExternalSyncMap) are deliberately absent until their phase
+//     starts.
+//   - RAG has no presence here. Its vector store is a separate, isolated
+//     database (docs/ai/RAG_ARCHITECTURE.md §0).
+//
+// Conventions:
+//   - Physical tables and columns are snake_case (CODING_STANDARDS.md); the
+//     Prisma API stays PascalCase models / camelCase fields.
+//   - PostgreSQL maps Prisma `String` to `text` already, so DATA_MODEL.md's
+//     string/text distinction needs no annotation and no varchar limits are
+//     imposed.
+//   - PostgreSQL does not auto-index foreign keys, so every FK column carries
+//     an explicit @@index.
+//
+// Three constraints cannot be expressed here and must be added by hand to the
+// first migration (approved, pending the migration phase):
+//   1. locales_single_default              — only one Locale.isDefault
+//   2. redirects_from_path_global          — unique from_path where locale IS NULL
+//   3. content_translations_unique_slug    — unique slug per (entity_type, locale)
+// =============================================================================
+
+// Prisma 7 no longer accepts `url` here — the connection string for Migrate
+// lives in prisma.config.ts, and PrismaClient receives a driver adapter.
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider     = "prisma-client"
+  output       = "./generated/client"
+  moduleFormat = "cjs"
+  runtime      = "nodejs"
+}
+
+// --- Enums -------------------------------------------------------------------
+// Six enums, for closed value sets only. Submission `status` fields are
+// deliberately String: the business lifecycle is not yet defined.
+// Physical labels are the lowercase strings the documentation specifies; the
+// human-readable forms ("Request a Quote") are presentation strings and belong
+// to the translation catalogs, not to a Postgres type.
+
+enum UserRole {
+  ADMIN           @map("admin")
+  CONTENT_MANAGER @map("content_manager")
+  SALES_EXPERT    @map("sales_expert")
+  CUSTOMER        @map("customer")
+
+  @@map("user_role")
+}
+
+enum InquiryType {
+  PRODUCT_INQUIRY          @map("product_inquiry")
+  REQUEST_A_QUOTE          @map("request_a_quote")
+  CUSTOMIZED_SOLUTION      @map("customized_solution")
+  EXPORT_AND_LOGISTICS     @map("export_and_logistics")
+  DISTRIBUTION_PARTNERSHIP @map("distribution_partnership")
+  GENERAL_INQUIRY          @map("general_inquiry")
+  SAMPLE_REQUEST           @map("sample_request")
+
+  @@map("inquiry_type")
+}
+
+enum NewsletterStatus {
+  PENDING      @map("pending")
+  CONFIRMED    @map("confirmed")
+  UNSUBSCRIBED @map("unsubscribed")
+
+  @@map("newsletter_status")
+}
+
+enum LocaleDirection {
+  LTR @map("ltr")
+  RTL @map("rtl")
+
+  @@map("locale_direction")
+}
+
+enum TranslationStatus {
+  MACHINE_DRAFT  @map("machine_draft")
+  HUMAN_REVIEWED @map("human_reviewed")
+
+  @@map("translation_status")
+}
+
+enum MediaType {
+  IMAGE    @map("image")
+  FILE     @map("file")
+  VIDEO    @map("video")
+  DOCUMENT @map("document")
+
+  @@map("media_type")
+}
+
+// --- Identity & Access -------------------------------------------------------
+
+model User {
+  id             String   @id @default(uuid()) @db.Uuid
+  email          String   @unique
+  passwordHash   String   @map("password_hash")
+  role           UserRole
+  organizationId String?  @map("organization_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  organization                    Organization?              @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  inquiriesSubmitted              Inquiry[]                  @relation("InquirySubmitter")
+  inquiriesAssigned               Inquiry[]                  @relation("InquiryAssignee")
+  formulationRequestsSubmitted    CustomFormulationRequest[] @relation("FormulationSubmitter")
+  formulationRequestsAssigned     CustomFormulationRequest[] @relation("FormulationAssignee")
+  distributorApplicationsAssigned DistributorApplication[]
+  downloadRequestsAssigned        DownloadRequest[]
+  blogPosts                       BlogPost[]
+  statusChanges                   StatusHistory[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+/// A customer's company. Internal staff have no organization; Customer users
+/// belong to one — which is why User.organizationId is nullable.
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  type      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  users User[]
+
+  @@map("organizations")
+}
+
+// --- Catalog -----------------------------------------------------------------
+
+model Category {
+  id       String  @id @default(uuid()) @db.Uuid
+  name     String
+  slug     String  @unique
+  parentId String? @map("parent_id") @db.Uuid
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String   @unique
+  categoryId  String   @map("category_id") @db.Uuid
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  specifications Specification[]
+  inquiries      Inquiry[]       @relation("InquiryRelatedProduct")
+
+  // No Media relation: product imagery and documents attach through Media's
+  // polymorphic ownerType/ownerId, not a foreign key.
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+model Specification {
+  id        String  @id @default(uuid()) @db.Uuid
+  productId String  @map("product_id") @db.Uuid
+  key       String
+  value     String
+  unit      String?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  // No unique on (productId, key) by decision: a product may carry the same key
+  // more than once, e.g. one row per grade.
+
+  @@index([productId])
+  @@map("specifications")
+}
+
+// --- Media -------------------------------------------------------------------
+
+/// Polymorphic via ownerType/ownerId for owned assets (product imagery,
+/// documents), and additionally referenced by foreign key where a specific
+/// entity owns exactly one file (attachments, CVs, social images). Both
+/// patterns coexist by design — see DATA_MODEL.md.
+model Media {
+  id        String    @id @default(uuid()) @db.Uuid
+  url       String
+  type      MediaType
+  altText   String?   @map("alt_text")
+  ownerType String?   @map("owner_type")
+  ownerId   String?   @map("owner_id") @db.Uuid
+
+  inquiryAttachments     Inquiry[]                  @relation("InquiryAttachment")
+  formulationAttachments CustomFormulationRequest[] @relation("FormulationAttachment")
+  jobApplicationCvs      JobApplication[]           @relation("JobApplicationCv")
+  seoSocialImages        SeoMeta[]                  @relation("SeoSocialImage")
+
+  @@index([ownerType, ownerId])
+  @@index([type])
+  @@map("media")
+}
+
+// --- Blog --------------------------------------------------------------------
+
+model BlogPost {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  slug        String    @unique
+  content     String
+  categoryId  String    @map("category_id") @db.Uuid
+  authorId    String?   @map("author_id") @db.Uuid
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+
+  category BlogCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author   User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  tags     BlogPostTag[]
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+model BlogCategory {
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+  slug String @unique
+
+  posts BlogPost[]
+
+  @@map("blog_categories")
+}
+
+model BlogTag {
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+  slug String @unique
+
+  posts BlogPostTag[]
+
+  @@map("blog_tags")
+}
+
+/// Explicit join table rather than an implicit Prisma many-to-many, so the
+/// physical table can be named in snake_case like every other table.
+model BlogPostTag {
+  blogPostId String @map("blog_post_id") @db.Uuid
+  blogTagId  String @map("blog_tag_id") @db.Uuid
+
+  blogPost BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  blogTag  BlogTag  @relation(fields: [blogTagId], references: [id], onDelete: Cascade)
+
+  @@id([blogPostId, blogTagId])
+  @@index([blogTagId])
+  @@map("blog_post_tags")
+}
+
+// --- Forms & Submissions -----------------------------------------------------
+
+/// The single general-submission entity. Covers all six Contact Us inquiry
+/// types plus Sample Request — there is no separate SampleRequest entity;
+/// "Request Sample" CTAs submit an Inquiry with relatedProductId set.
+model Inquiry {
+  id                     String      @id @default(uuid()) @db.Uuid
+  userId                 String?     @map("user_id") @db.Uuid
+  assignedToId           String?     @map("assigned_to_id") @db.Uuid
+  firstName              String      @map("first_name")
+  lastName               String      @map("last_name")
+  companyName            String      @map("company_name")
+  country                String
+  email                  String
+  phone                  String?
+  industry               String
+  inquiryType            InquiryType @map("inquiry_type")
+  productsOfInterest     String[]    @map("products_of_interest")
+  relatedProductId       String?     @map("related_product_id") @db.Uuid
+  requiredQuantity       String?     @map("required_quantity")
+  destinationCountryPort String?     @map("destination_country_port")
+  preferredIncoterm      String?     @map("preferred_incoterm")
+  message                String?
+  attachmentMediaId      String?     @map("attachment_media_id") @db.Uuid
+  consentGiven           Boolean     @map("consent_given")
+  status                 String
+  createdAt              DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user           User?    @relation("InquirySubmitter", fields: [userId], references: [id], onDelete: SetNull)
+  assignedTo     User?    @relation("InquiryAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  relatedProduct Product? @relation("InquiryRelatedProduct", fields: [relatedProductId], references: [id], onDelete: SetNull)
+  attachment     Media?   @relation("InquiryAttachment", fields: [attachmentMediaId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([inquiryType])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([relatedProductId])
+  @@index([attachmentMediaId])
+  @@map("inquiries")
+}
+
+model CustomFormulationRequest {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String?  @map("user_id") @db.Uuid
+  assignedToId           String?  @map("assigned_to_id") @db.Uuid
+  companyName            String   @map("company_name")
+  country                String
+  industry               String
+  email                  String
+  phone                  String?
+  productOrApplication   String   @map("product_or_application")
+  requiredSpecifications String   @map("required_specifications")
+  estimatedQuantity      String?  @map("estimated_quantity")
+  packagingRequirements  String?  @map("packaging_requirements")
+  additionalInformation  String?  @map("additional_information")
+  destinationCountry     String?  @map("destination_country")
+  preferredIncoterm      String?  @map("preferred_incoterm")
+  attachmentMediaId      String?  @map("attachment_media_id") @db.Uuid
+  consentGiven           Boolean  @map("consent_given")
+  status                 String
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user       User?  @relation("FormulationSubmitter", fields: [userId], references: [id], onDelete: SetNull)
+  assignedTo User?  @relation("FormulationAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  attachment Media? @relation("FormulationAttachment", fields: [attachmentMediaId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([attachmentMediaId])
+  @@map("custom_formulation_requests")
+}
+
+model DistributorApplication {
+  id                         String   @id @default(uuid()) @db.Uuid
+  assignedToId               String?  @map("assigned_to_id") @db.Uuid
+  companyName                String   @map("company_name")
+  contactPerson              String   @map("contact_person")
+  countryTerritory           String   @map("country_territory")
+  email                      String
+  phone                      String?
+  website                    String?
+  yearsInBusiness            String?  @map("years_in_business")
+  currentProductLines        String?  @map("current_product_lines")
+  sectorsServed              String?  @map("sectors_served")
+  estimatedAnnualVolume      String?  @map("estimated_annual_volume")
+  storageCapacity            String?  @map("storage_capacity")
+  brandsCurrentlyDistributed String?  @map("brands_currently_distributed")
+  additionalInformation      String?  @map("additional_information")
+  consentGiven               Boolean  @map("consent_given")
+  status                     String
+  createdAt                  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  assignedTo User? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@map("distributor_applications")
+}
+
+/// Admin-only. Deliberately carries NO assignedToId: a job application is not a
+/// sales lead and must never enter a Sales Expert's queue (SECURITY.md). Do not
+/// "fix" this inconsistency with the other submission entities — it is the
+/// schema-level counterpart of the RBAC carve-out.
+model JobApplication {
+  id            String   @id @default(uuid()) @db.Uuid
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  email         String
+  phone         String?
+  /// Soft key to Payload's JobOpenings collection in sam_cms — never a foreign
+  /// key (ADR-002), resolved by NestJS. Null means a speculative application.
+  jobOpeningKey String?  @map("job_opening_key")
+  coverLetter   String?  @map("cover_letter")
+  cvMediaId     String?  @map("cv_media_id") @db.Uuid
+  consentGiven  Boolean  @map("consent_given")
+  status        String
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  cv Media? @relation("JobApplicationCv", fields: [cvMediaId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([jobOpeningKey])
+  @@index([cvMediaId])
+  @@map("job_applications")
+}
+
+/// Gates the Company Catalogue and Product Catalogue only. TDS and SDS
+/// downloads are deliberately ungated.
+model DownloadRequest {
+  id           String   @id @default(uuid()) @db.Uuid
+  assignedToId String?  @map("assigned_to_id") @db.Uuid
+  name         String
+  companyName  String   @map("company_name")
+  country      String
+  email        String
+  documentType String   @map("document_type")
+  /// Soft key: a catalogue may be a Payload upload or a Prisma Media record, so
+  /// this spans the ADR-002 split and cannot be a foreign key.
+  documentKey  String   @map("document_key")
+  consentGiven Boolean  @map("consent_given")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // No status field in DATA_MODEL.md, and correspondingly no StatusHistory.
+
+  assignedTo User? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@index([email])
+  @@map("download_requests")
+}
+
+/// Standalone by design — a subscriber is not an account holder, so there is no
+/// relation to User. status/confirmedAt support double opt-in.
+model NewsletterSubscription {
+  id             String           @id @default(uuid()) @db.Uuid
+  email          String           @unique
+  locale         String
+  status         NewsletterStatus @default(PENDING)
+  source         String
+  consentGiven   Boolean          @map("consent_given")
+  confirmedAt    DateTime?        @map("confirmed_at") @db.Timestamptz(6)
+  unsubscribedAt DateTime?        @map("unsubscribed_at") @db.Timestamptz(6)
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  localeRef Locale @relation(fields: [locale], references: [code], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([locale])
+  @@map("newsletter_subscriptions")
+}
+
+// --- SEO ---------------------------------------------------------------------
+
+/// Polymorphic (entityType + entityId) so any content type can carry SEO
+/// fields. One record per entity per locale. Slug lives on the owning entity,
+/// never here. docs/seo/SEO_ARCHITECTURE.md is authoritative on field meaning.
+model SeoMeta {
+  id                     String   @id @default(uuid()) @db.Uuid
+  entityType             String   @map("entity_type")
+  entityId               String   @map("entity_id") @db.Uuid
+  locale                 String
+  metaTitle              String?  @map("meta_title")
+  metaDescription        String?  @map("meta_description")
+  canonicalUrl           String?  @map("canonical_url")
+  ogTitle                String?  @map("og_title")
+  ogDescription          String?  @map("og_description")
+  ogImageUrl             String?  @map("og_image_url")
+  twitterCardType        String?  @map("twitter_card_type")
+  twitterTitle           String?  @map("twitter_title")
+  twitterDescription     String?  @map("twitter_description")
+  twitterImageUrl        String?  @map("twitter_image_url")
+  robotsIndex            Boolean  @default(true) @map("robots_index")
+  robotsFollow           Boolean  @default(true) @map("robots_follow")
+  keywords               String[]
+  structuredDataOverride Json?    @map("structured_data_override")
+  socialImageId          String?  @map("social_image_id") @db.Uuid
+
+  localeRef   Locale @relation(fields: [locale], references: [code], onDelete: Restrict, onUpdate: Cascade)
+  socialImage Media? @relation("SeoSocialImage", fields: [socialImageId], references: [id], onDelete: SetNull)
+
+  @@unique([entityType, entityId, locale])
+  @@index([entityType, entityId])
+  @@index([socialImageId])
+  @@index([locale])
+  @@map("seo_meta")
+}
+
+/// Flat and non-polymorphic: it operates on paths, not records, so a redirect
+/// survives deletion of whatever entity once lived at that path.
+model Redirect {
+  id         String   @id @default(uuid()) @db.Uuid
+  fromPath   String   @map("from_path")
+  toPath     String   @map("to_path")
+  statusCode Int      @default(301) @map("status_code")
+  locale     String?
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  localeRef Locale? @relation(fields: [locale], references: [code], onDelete: Restrict, onUpdate: Cascade)
+
+  // Note: this unique does NOT constrain rows where locale IS NULL, because
+  // PostgreSQL treats NULLs as distinct. The redirects_from_path_global partial
+  // index in the first migration closes that gap.
+  @@unique([fromPath, locale])
+  @@index([fromPath, isActive])
+  @@index([locale])
+  @@map("redirects")
+}
+
+// --- Internationalization ----------------------------------------------------
+
+/// The single source of truth for which languages are active. Adding a language
+/// is a row here plus translated content — never a code change.
+model Locale {
+  id         String          @id @default(uuid()) @db.Uuid
+  code       String          @unique
+  name       String
+  nativeName String          @map("native_name")
+  direction  LocaleDirection
+  isActive   Boolean         @default(true) @map("is_active")
+  isDefault  Boolean         @default(false) @map("is_default")
+  sortOrder  Int             @map("sort_order")
+
+  seoMetaRecords          SeoMeta[]
+  contentTranslations     ContentTranslation[]
+  redirects               Redirect[]
+  newsletterSubscriptions NewsletterSubscription[]
+
+  @@index([isActive, sortOrder])
+  @@map("locales")
+}
+
+/// Generic per-field translation for Prisma-owned content (Product, Category,
+/// BlogPost). The base entity's own field holds the default locale's value;
+/// every other locale is a row here.
+model ContentTranslation {
+  id                String            @id @default(uuid()) @db.Uuid
+  entityType        String            @map("entity_type")
+  entityId          String            @map("entity_id") @db.Uuid
+  locale            String
+  field             String
+  value             String
+  translationStatus TranslationStatus @map("translation_status")
+
+  localeRef Locale @relation(fields: [locale], references: [code], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([entityType, entityId, locale, field])
+  @@index([entityType, entityId])
+  @@index([locale, translationStatus])
+  @@map("content_translations")
+}
+
+// --- Audit -------------------------------------------------------------------
+
+/// Generic, polymorphic status-change audit trail. Attaches to Inquiry,
+/// CustomFormulationRequest, DistributorApplication, JobApplication and
+/// ContentTranslation by entityType/entityId — no foreign keys, because one
+/// table cannot hold an FK to five different parents. The anchor point the
+/// future Workflow module extends.
+model StatusHistory {
+  id          String   @id @default(uuid()) @db.Uuid
+  entityType  String   @map("entity_type")
+  entityId    String   @map("entity_id") @db.Uuid
+  fromStatus  String?  @map("from_status")
+  toStatus    String   @map("to_status")
+  changedById String?  @map("changed_by_id") @db.Uuid
+  changedAt   DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+  note        String?
+
+  changedBy User? @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([changedById])
+  @@index([changedAt])
+  @@map("status_history")
+}
