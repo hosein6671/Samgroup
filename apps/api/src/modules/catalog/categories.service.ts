@@ -40,6 +40,15 @@ type LocalizedCategory = {
   localeFallback: boolean;
 };
 
+/**
+ * The columns `/seo/sitemap-entries` needs from a category: what identifies it, and what it is
+ * called in the default locale. Nothing else — a sitemap entry carries no name and no parent.
+ */
+type CategorySitemapCandidate = {
+  id: string;
+  slug: string;
+};
+
 /** Exported alongside the field list, so a product's nested category selects the same columns. */
 export const CATEGORY_SELECT = {
   id: true,
@@ -126,6 +135,33 @@ export class CategoriesService {
     return { category: { ...localized, seo }, localeFallback };
   }
 
+  /**
+   * The categories that have a page of their own, for `/seo/sitemap-entries`.
+   *
+   * TOP-LEVEL ONLY, matching `findAll` and §2.3's "the six product categories": SITE_STRUCTURE.md
+   * §0 lists exactly six Level-2 product URLs and no deeper ones, so a child category has no
+   * page to submit even though `Category` supports the hierarchy. If nested categories ever gain
+   * routes, this filter is the one place that changes.
+   *
+   * Returns the DEFAULT locale's slug — the entity's own column. Translated slugs are
+   * `content_translations` rows, which the caller reads for itself; this module's job is to say
+   * which categories exist, not to localize them.
+   *
+   * No locale parameter and no `SeoFields`: the caller enumerates every locale at once, and a
+   * sitemap needs a URL, not metadata.
+   */
+  findSitemapCandidates(): Promise<CategorySitemapCandidate[]> {
+    return this.prisma.category.findMany({
+      // `parent_id IS NULL`, using @@index([parentId]) — the same read `findAll` makes for the
+      // root level.
+      where: { parentId: null },
+      // `categories` has no natural ordering column for this read; ordering by the primary key
+      // is what makes two requests emit the same sitemap in the same order.
+      orderBy: { id: "asc" },
+      select: { id: true, slug: true },
+    });
+  }
+
   private findByDefaultSlug(slug: string): Promise<CategoryRow | null> {
     return this.prisma.category.findUnique({ where: { slug }, select: CATEGORY_SELECT });
   }
@@ -170,4 +206,4 @@ export class CategoriesService {
   }
 }
 
-export type { LocalizedCategories, LocalizedCategory };
+export type { CategorySitemapCandidate, LocalizedCategories, LocalizedCategory };

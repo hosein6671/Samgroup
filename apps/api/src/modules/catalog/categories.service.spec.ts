@@ -351,3 +351,47 @@ describe("CategoriesService.findBySlug — SEO", () => {
     expect(buildSeo).not.toHaveBeenCalled();
   });
 });
+
+describe("CategoriesService.findSitemapCandidates", () => {
+  // SITE_STRUCTURE.md §0 lists six Level-2 product URLs and no deeper ones, so a child category
+  // has no page to submit even though the hierarchy supports one.
+  it("reads top-level categories only, in a deterministic order", async () => {
+    const { service, categoryFindMany } = createService();
+
+    categoryFindMany.mockResolvedValue([{ id: BASE_OILS.id, slug: BASE_OILS.slug }]);
+
+    await expect(service.findSitemapCandidates()).resolves.toEqual([
+      { id: BASE_OILS.id, slug: BASE_OILS.slug },
+    ]);
+
+    expect(categoryFindMany).toHaveBeenCalledWith({
+      where: { parentId: null },
+      orderBy: { id: "asc" },
+      select: { id: true, slug: true },
+    });
+  });
+
+  // A sitemap entry carries a URL, not a label — and the slug it carries is the base column,
+  // because the caller enumerates translated slugs for every locale itself.
+  it("selects neither the name nor the parent, and does not localize", async () => {
+    const { service, categoryFindMany, translationFindMany } = createService();
+
+    categoryFindMany.mockResolvedValue([{ id: BASE_OILS.id, slug: BASE_OILS.slug }]);
+
+    await service.findSitemapCandidates();
+
+    const call = categoryFindMany.mock.calls[0]?.[0] as { select: Record<string, unknown> };
+
+    expect(call.select).not.toHaveProperty("name");
+    expect(call.select).not.toHaveProperty("parentId");
+    expect(translationFindMany).not.toHaveBeenCalled();
+  });
+
+  it("returns an empty list when no category exists", async () => {
+    const { service, categoryFindMany } = createService();
+
+    categoryFindMany.mockResolvedValue([]);
+
+    await expect(service.findSitemapCandidates()).resolves.toEqual([]);
+  });
+});

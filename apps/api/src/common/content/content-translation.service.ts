@@ -161,6 +161,44 @@ export class ContentTranslationService {
   }
 
   /**
+   * The same read as `findTranslatedSlugs`, for MANY entities at once — the sitemap's raw
+   * material (`GET /seo/sitemap-entries`), where the per-entity form would mean one query per
+   * category.
+   *
+   * Identical rules, and for the identical reasons: `field: "slug"` because an entry exists to
+   * name a distinct crawlable URL and a locale with a translated name but no translated slug
+   * has none; `localeRef: { isActive: true }` because deactivating a language must not leave a
+   * sitemap advertising paths the site no longer serves; and the default locale absent by
+   * construction, since its slug is the entity's own column rather than a row here.
+   *
+   * `entityId` travels back in each row — with many entities in flight the caller can no longer
+   * infer it from the call.
+   */
+  async findTranslatedSlugsForEntities(
+    entityType: ContentEntityType,
+    entityIds: string[],
+  ): Promise<{ entityId: string; locale: string; slug: string }[]> {
+    if (entityIds.length === 0) {
+      return [];
+    }
+
+    const rows = await this.prisma.contentTranslation.findMany({
+      where: {
+        entityType,
+        entityId: { in: entityIds },
+        field: "slug",
+        localeRef: { isActive: true },
+      },
+      // `content_translations` has no natural ordering column, and the caller emits rows in the
+      // order they arrive — this is what makes two requests produce the same sitemap.
+      orderBy: [{ entityId: "asc" }, { locale: "asc" }],
+      select: { entityId: true, locale: true, value: true },
+    });
+
+    return rows.map((row) => ({ entityId: row.entityId, locale: row.locale, slug: row.value }));
+  }
+
+  /**
    * Entities whose translated text contains `query` — the localized half of `GET /products?q=`
    * (§2.7). Without it, a Persian search term could only ever match the English base row.
    *

@@ -221,6 +221,58 @@ describe("ContentTranslationService.findTranslatedSlugs", () => {
   });
 });
 
+describe("ContentTranslationService.findTranslatedSlugsForEntities", () => {
+  const CATEGORY_ID = "22222222-2222-4222-8222-222222222222";
+
+  it("returns every entity's translated slugs in one query, each tagged with its entity", async () => {
+    const { service, findMany } = createService();
+
+    findMany.mockResolvedValue([
+      { entityId: PRODUCT_ID, locale: "fa", value: "روغن-موتور" },
+      { entityId: CATEGORY_ID, locale: "ar", value: "زيوت-الأساس" },
+    ]);
+
+    await expect(
+      service.findTranslatedSlugsForEntities(ContentEntityType.Category, [PRODUCT_ID, CATEGORY_ID]),
+    ).resolves.toEqual([
+      { entityId: PRODUCT_ID, locale: "fa", slug: "روغن-موتور" },
+      { entityId: CATEGORY_ID, locale: "ar", slug: "زيوت-الأساس" },
+    ]);
+
+    expect(findMany).toHaveBeenCalledTimes(1);
+  });
+
+  // Deactivating a language must not leave a sitemap advertising paths the site no longer
+  // serves — the same rule the per-entity read applies to hreflang.
+  it("reads slug rows in active locales only, ordered for a stable sitemap", async () => {
+    const { service, findMany } = createService();
+
+    await service.findTranslatedSlugsForEntities(ContentEntityType.Category, [CATEGORY_ID]);
+
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        entityType: "Category",
+        entityId: { in: [CATEGORY_ID] },
+        field: "slug",
+        localeRef: { isActive: true },
+      },
+      orderBy: [{ entityId: "asc" }, { locale: "asc" }],
+      select: { entityId: true, locale: true, value: true },
+    });
+  });
+
+  // `entityId: { in: [] }` matches nothing, so the round trip would be pure waste.
+  it("queries nothing when given no entities", async () => {
+    const { service, findMany } = createService();
+
+    await expect(
+      service.findTranslatedSlugsForEntities(ContentEntityType.Category, []),
+    ).resolves.toEqual([]);
+
+    expect(findMany).not.toHaveBeenCalled();
+  });
+});
+
 describe("ContentTranslationService.findEntityIdsByTranslatedValue", () => {
   it("matches case-insensitively across the named fields and de-duplicates", async () => {
     const { service, findMany } = createService();
