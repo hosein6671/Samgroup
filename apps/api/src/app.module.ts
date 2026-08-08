@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { ResponseEnvelopeInterceptor } from "./common/interceptors/response-envelope.interceptor";
 import configuration from "./config/configuration";
 import { validateEnv } from "./config/env.validation";
+import { CatalogModule } from "./modules/catalog/catalog.module";
 import { LocalizationModule } from "./modules/localization/localization.module";
 import { SystemModule } from "./modules/system/system.module";
 import { PrismaModule } from "./prisma/prisma.module";
@@ -23,6 +24,7 @@ import { PrismaModule } from "./prisma/prisma.module";
     // needs the database imports it for itself.
     PrismaModule,
     LocalizationModule,
+    CatalogModule,
     SystemModule,
   ],
   // Registered as providers rather than app.useGlobal*() in main.ts: a filter constructed
