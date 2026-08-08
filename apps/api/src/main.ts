@@ -6,6 +6,7 @@ import { NestFactory } from "@nestjs/core";
 import helmet from "helmet";
 
 import { AppModule } from "./app.module";
+import { validationExceptionFactory } from "./common/validation/validation-exception.factory";
 
 async function bootstrap(): Promise<void> {
   // CORS stays off. web and api are served from one origin behind nginx (ADR-005) and no
@@ -25,6 +26,10 @@ async function bootstrap(): Promise<void> {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      // Nest's default factory reports failures as a flat string[] of sentences with the
+      // field name readable only inside the prose. API_CONTRACT_FINAL.md §8 requires
+      // details: [{field, issue}] the frontend can map back to a form input.
+      exceptionFactory: validationExceptionFactory,
     }),
   );
 
