@@ -8,6 +8,7 @@ import configuration from "./config/configuration";
 import { validateEnv } from "./config/env.validation";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { LocalizationModule } from "./modules/localization/localization.module";
+import { SeoModule } from "./modules/seo/seo.module";
 import { SystemModule } from "./modules/system/system.module";
 import { PrismaModule } from "./prisma/prisma.module";
 
@@ -25,6 +26,7 @@ import { PrismaModule } from "./prisma/prisma.module";
     PrismaModule,
     LocalizationModule,
     CatalogModule,
+    SeoModule,
     SystemModule,
   ],
   // Registered as providers rather than app.useGlobal*() in main.ts: a filter constructed

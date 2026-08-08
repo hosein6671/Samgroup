@@ -1,4 +1,4 @@
 // Shared request/response DTO types for apps/web and apps/api (see PROJECT_STRUCTURE.md).
-// Deliberately empty — real types get added once API_DESIGN.md contracts are implemented,
-// not invented ahead of the endpoints they describe.
-export {};
+// Types only — never a runtime value; ./seo.ts explains why that constraint is structural
+// rather than stylistic.
+export type { SeoAlternate, SeoFields, TwitterCardType } from "./seo";

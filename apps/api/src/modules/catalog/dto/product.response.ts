@@ -1,4 +1,5 @@
 import type { CategoryResponse } from "./category.response";
+import type { SeoFields } from "@sam-group/types";
 
 /**
  * The wire shapes of the product endpoints — API_CONTRACT_FINAL.md §2.3.
@@ -7,9 +8,8 @@ import type { CategoryResponse } from "./category.response";
  * `content_translations`; the row's own columns hold the default locale
  * (INTERNATIONALIZATION_STRATEGY.md §3).
  *
- * `SeoFields` is contracted for `GET /products/:slug` and is NOT here, for the same reason it
- * is absent from CategoryResponse: its canonical shape is specified to live in
- * `packages/types` (SEO_ARCHITECTURE.md §0/§2), which this step was scoped to leave untouched.
+ * `SeoFields` is contracted for `GET /products/:slug` only, so it appears on
+ * ProductDetailResponse and on neither the list row nor the nested category.
  */
 
 /** One row of `GET /products`. Deliberately without media: a list of 20 products would mean 20 more joins for imagery no list layout is specified to need. */
@@ -57,4 +57,6 @@ export type ProductDetailResponse = {
   category: CategoryResponse;
   specifications: ProductSpecificationResponse[];
   images: ProductImageResponse[];
+  /** The requested locale's SEO record, with `hreflang` alternates — SEO_ARCHITECTURE.md §0. */
+  seo: SeoFields;
 };

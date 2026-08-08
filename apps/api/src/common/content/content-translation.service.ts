@@ -127,6 +127,40 @@ export class ContentTranslationService {
   }
 
   /**
+   * Every ACTIVE locale that carries a real translated slug for one entity, ordered by code.
+   *
+   * The raw material for `hreflang` alternates (INTERNATIONALIZATION_STRATEGY.md §4). `slug`
+   * is the field that decides, not `name`: an alternate exists to name a distinct crawlable
+   * URL, and a locale with a translated name but no translated slug has no separate URL to
+   * point at — it resolves to the default-locale path, which is the same page.
+   *
+   * `localeRef: { isActive: true }` filters through the relation `content_translations`
+   * already has, so this stays one query and this service keeps reading nothing but its own
+   * table. Deactivating a language must not leave `hreflang` advertising paths the site no
+   * longer serves — and §4 would rather omit a locale than point a crawler at a dead one.
+   *
+   * The default locale is absent from the result by construction: its slug is the entity's
+   * own column, not a `content_translations` row. The caller supplies it, because only the
+   * module that owns the entity can read that column.
+   */
+  async findTranslatedSlugs(
+    entityType: ContentEntityType,
+    entityId: string,
+  ): Promise<{ locale: string; slug: string }[]> {
+    const rows = await this.prisma.contentTranslation.findMany({
+      // The scalar half matches @@index([entityType, entityId]); `localeRef` becomes a join
+      // against `locales`, which is a six-row table.
+      where: { entityType, entityId, field: "slug", localeRef: { isActive: true } },
+      // Ordered so two requests for the same entity emit alternates in the same order —
+      // `content_translations` has no natural ordering column.
+      orderBy: { locale: "asc" },
+      select: { locale: true, value: true },
+    });
+
+    return rows.map((row) => ({ locale: row.locale, slug: row.value }));
+  }
+
+  /**
    * Entities whose translated text contains `query` — the localized half of `GET /products?q=`
    * (§2.7). Without it, a Persian search term could only ever match the English base row.
    *

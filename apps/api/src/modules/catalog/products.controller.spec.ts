@@ -8,6 +8,7 @@ import { ProductsService } from "./products.service";
 import type { ProductListQuery } from "./dto/product-list.query";
 import type { ProductDetailResponse, ProductListItemResponse } from "./dto/product.response";
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
+import type { SeoFields } from "@sam-group/types";
 
 const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
 
@@ -22,6 +23,26 @@ const LIST_ITEM: ProductListItemResponse = {
 
 const SPECIFICATIONS = [{ id: "spec-1", key: "Viscosity Index", value: "95", unit: null }];
 
+/** Opaque here — SeoService's own spec covers how a record is composed. */
+const SEO: SeoFields = {
+  locale: "en",
+  metaTitle: "SN 500",
+  metaDescription: "A Group I base oil.",
+  canonicalUrl: null,
+  ogTitle: "SN 500",
+  ogDescription: "A Group I base oil.",
+  ogImageUrl: null,
+  twitterCardType: "summary_large_image",
+  twitterTitle: "SN 500",
+  twitterDescription: "A Group I base oil.",
+  twitterImageUrl: null,
+  robotsIndex: true,
+  robotsFollow: true,
+  keywords: [],
+  structuredDataOverride: null,
+  alternates: [{ locale: "en", slug: "sn-500" }],
+};
+
 const DETAIL: ProductDetailResponse = {
   id: LIST_ITEM.id,
   name: LIST_ITEM.name,
@@ -31,6 +52,7 @@ const DETAIL: ProductDetailResponse = {
   category: { id: LIST_ITEM.categoryId, name: "Base Oils", slug: "base-oils", parentId: null },
   specifications: SPECIFICATIONS,
   images: [],
+  seo: SEO,
 };
 
 type Harness = {

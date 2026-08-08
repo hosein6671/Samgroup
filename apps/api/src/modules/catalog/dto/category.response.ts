@@ -1,3 +1,5 @@
+import type { SeoFields } from "@sam-group/types";
+
 /**
  * The wire shape of one category — API_CONTRACT_FINAL.md §2.3.
  *
@@ -9,10 +11,10 @@
  * `content_translations`; the row's own columns hold the default locale
  * (INTERNATIONALIZATION_STRATEGY.md §3).
  *
- * `SeoFields` is contracted for `GET /categories/:slug` and is NOT here: its canonical shape
- * is specified to live in `packages/types` (SEO_ARCHITECTURE.md §0/§2), which this step was
- * scoped to leave untouched. Defining it locally would create the duplicate that decision
- * exists to prevent.
+ * `SeoFields` is NOT on this type. §2.3 contracts it for `GET /categories/:slug` alone, and
+ * this shape is also the list row AND the category nested inside a product detail response —
+ * neither of which is contracted to carry SEO, and a product page's metadata is the
+ * product's, never its category's.
  */
 export type CategoryResponse = {
   id: string;
@@ -20,4 +22,13 @@ export type CategoryResponse = {
   slug: string;
   /** Null for a top-level category — the six the site is built around. */
   parentId: string | null;
+};
+
+/**
+ * `GET /categories/:slug` — the same category, plus the SEO record for the requested locale
+ * (§2.3). `SeoFields` comes from `@sam-group/types` rather than being declared here because
+ * Payload-owned content must satisfy the identical shape (SEO_ARCHITECTURE.md §0).
+ */
+export type CategoryDetailResponse = CategoryResponse & {
+  seo: SeoFields;
 };

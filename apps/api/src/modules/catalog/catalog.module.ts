@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { SeoModule } from "../seo/seo.module";
 
 import { CategoriesController } from "./categories.controller";
 import { CategoriesService } from "./categories.service";
@@ -17,9 +18,13 @@ import { ProductsService } from "./products.service";
  * Neither service is exported: nothing outside this module reads the catalog today, and
  * exporting ahead of a consumer would invite the direct cross-module access ARCHITECTURE.md
  * rules out.
+ *
+ * SeoModule is imported for the reverse direction: §2.3 attaches `SeoFields` to the category
+ * and product detail responses, and this module reads it through SeoService rather than
+ * querying `seo_meta` — which SEO owns — for itself.
  */
 @Module({
-  imports: [PrismaModule, LocaleResolutionModule, ContentTranslationModule],
+  imports: [PrismaModule, LocaleResolutionModule, ContentTranslationModule, SeoModule],
   controllers: [CategoriesController, ProductsController],
   providers: [CategoriesService, ProductsService],
 })

@@ -7,7 +7,7 @@ import { withMeta } from "../../common/http/with-meta";
 import { CategoriesService } from "./categories.service";
 import { CategoryListQuery } from "./dto/category-list.query";
 
-import type { CategoryResponse } from "./dto/category.response";
+import type { CategoryDetailResponse, CategoryResponse } from "./dto/category.response";
 import type { ResponseWithMeta } from "../../common/http/with-meta";
 
 /**
@@ -40,12 +40,14 @@ export class CategoriesController {
    * `:slug` is the locale-specific slug, so the same category answers to a different path per
    * locale. A slug that exists in no locale is a 404 — the service throws it; there is no
    * "closest match" behavior.
+   *
+   * Unlike the list, this response carries `SeoFields` — hence CategoryDetailResponse (§2.3).
    */
   @Get(":slug")
   async findOne(
     @Param("slug") slug: string,
     @Query() query: LocaleQuery,
-  ): Promise<ResponseWithMeta<CategoryResponse>> {
+  ): Promise<ResponseWithMeta<CategoryDetailResponse>> {
     const locale = await this.localeResolution.resolve(query.locale);
     const { category, localeFallback } = await this.categoriesService.findBySlug(slug, locale);
 

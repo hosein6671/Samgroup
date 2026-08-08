@@ -6,6 +6,7 @@ import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { MediaType } from "../../prisma/generated/client";
 import { PrismaService } from "../../prisma/prisma.service";
+import { SeoService } from "../seo/seo.service";
 
 import { CATEGORY_SELECT, CATEGORY_TRANSLATED_FIELDS } from "./categories.service";
 import { DEFAULT_LIMIT, DEFAULT_PAGE, DEFAULT_SORT } from "./dto/product-list.query";
@@ -115,6 +116,7 @@ export class ProductsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly translations: ContentTranslationService,
+    private readonly seo: SeoService,
   ) {}
 
   /**
@@ -168,6 +170,9 @@ export class ProductsService {
    * `:slug` is the locale-specific slug: the translated slug is tried first and the row's own
    * slug second, so a product with no translated slug is still reachable in that locale at its
    * default-locale path (§3's fallback rule).
+   *
+   * This endpoint — and not the list — carries `SeoFields` (§2.3), read through SeoService so
+   * `seo_meta` is queried by the module that owns it.
    */
   async findBySlug(slug: string, locale: ResolvedLocale): Promise<LocalizedProduct> {
     const row = await this.findDetailBySlug(slug, locale);
@@ -200,6 +205,22 @@ export class ProductsService {
     // returns its input one-for-one, so these only satisfy noUncheckedIndexedAccess.
     const translated = localizedProduct.rows[0] ?? product;
 
+    // Sequential rather than folded into the Promise.all above, because §11 falls the meta
+    // title back to the entity's name and the meta description to its description — both of
+    // which must be the REQUESTED locale's values, so the overlay has to have happened first.
+    const seo = await this.seo.buildFor(
+      {
+        entityType: ContentEntityType.Product,
+        entityId: product.id,
+        // `product.slug`, not `translated.slug`: the default locale's alternate is the base
+        // column, and localization may already have overlaid a translated slug onto the copy.
+        defaultSlug: product.slug,
+        fallbackTitle: translated.name,
+        fallbackDescription: translated.description,
+      },
+      locale,
+    );
+
     return {
       product: {
         id: translated.id,
@@ -210,6 +231,7 @@ export class ProductsService {
         category: localizedCategory.rows[0] ?? category,
         specifications,
         images,
+        seo,
       },
       localeFallback: localizedProduct.localeFallback || localizedCategory.localeFallback,
     };

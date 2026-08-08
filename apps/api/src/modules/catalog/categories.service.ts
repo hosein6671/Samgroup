@@ -5,8 +5,9 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { SeoService } from "../seo/seo.service";
 
-import type { CategoryResponse } from "./dto/category.response";
+import type { CategoryDetailResponse, CategoryResponse } from "./dto/category.response";
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
 
 const NOT_FOUND_MESSAGE = "Category not found.";
@@ -35,7 +36,7 @@ type LocalizedCategories = {
 
 /** The single-resource counterpart, so `findBySlug` never hands back a one-element array. */
 type LocalizedCategory = {
-  category: CategoryResponse;
+  category: CategoryDetailResponse;
   localeFallback: boolean;
 };
 
@@ -52,6 +53,7 @@ export class CategoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly translations: ContentTranslationService,
+    private readonly seo: SeoService,
   ) {}
 
   /**
@@ -84,6 +86,10 @@ export class CategoriesService {
    * because §3 has untranslated fields fall back: a category with no `fa` slug is still
    * reachable in `fa`, at its default-locale path. A translated slug therefore wins over a
    * different category's default slug if the two ever collide — the more specific match.
+   *
+   * This endpoint — and only this one — carries `SeoFields` (§2.3). The record is built
+   * AFTER localization because §11 falls `metaTitle` back to the entity's name, and that
+   * fallback has to be the requested locale's name rather than the base row's.
    */
   async findBySlug(slug: string, locale: ResolvedLocale): Promise<LocalizedCategory> {
     const category = locale.isDefault
@@ -100,7 +106,24 @@ export class CategoriesService {
 
     // `?? category` is the untranslated row, not a placeholder: localize returns its input
     // one-for-one, so this only satisfies noUncheckedIndexedAccess without a cast.
-    return { category: categories[0] ?? category, localeFallback };
+    const localized = categories[0] ?? category;
+
+    const seo = await this.seo.buildFor(
+      {
+        entityType: ContentEntityType.Category,
+        entityId: category.id,
+        // `category.slug`, not `localized.slug`: the default locale's alternate is the base
+        // column, and localization may already have overlaid a translated slug onto the copy.
+        defaultSlug: category.slug,
+        fallbackTitle: localized.name,
+        // `Category` has no description column, so §11's derived-description step has no
+        // source here. Inventing one from the name would be a title repeated as a summary.
+        fallbackDescription: null,
+      },
+      locale,
+    );
+
+    return { category: { ...localized, seo }, localeFallback };
   }
 
   private findByDefaultSlug(slug: string): Promise<CategoryRow | null> {

@@ -2,10 +2,12 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { SeoService } from "../seo/seo.service";
 
 import { ProductsService } from "./products.service";
 
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
+import type { SeoFields } from "@sam-group/types";
 
 const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
 const FA: ResolvedLocale = { code: "fa", defaultCode: "en", isDefault: false };
@@ -41,6 +43,26 @@ const DETAIL_ROW = {
   ],
 };
 
+/** Whatever SeoService returns is opaque here — its own spec covers how it is composed. */
+const SEO: SeoFields = {
+  locale: "en",
+  metaTitle: "SN 500",
+  metaDescription: "A Group I base oil.",
+  canonicalUrl: null,
+  ogTitle: "SN 500",
+  ogDescription: "A Group I base oil.",
+  ogImageUrl: null,
+  twitterCardType: "summary_large_image",
+  twitterTitle: "SN 500",
+  twitterDescription: "A Group I base oil.",
+  twitterImageUrl: null,
+  robotsIndex: true,
+  robotsFollow: true,
+  keywords: [],
+  structuredDataOverride: null,
+  alternates: [{ locale: "en", slug: "sn-500" }],
+};
+
 type Stubs = {
   service: ProductsService;
   productCount: jest.Mock;
@@ -51,6 +73,7 @@ type Stubs = {
   mediaFindMany: jest.Mock;
   translationFindMany: jest.Mock;
   translationFindFirst: jest.Mock;
+  buildSeo: jest.Mock;
 };
 
 /** No database is reached — only the delegate methods this service calls are stubbed. */
@@ -63,6 +86,7 @@ function createService(): Stubs {
   const mediaFindMany = jest.fn().mockResolvedValue([]);
   const translationFindMany = jest.fn().mockResolvedValue([]);
   const translationFindFirst = jest.fn().mockResolvedValue(null);
+  const buildSeo = jest.fn().mockResolvedValue(SEO);
 
   const prisma = {
     product: { count: productCount, findMany: productFindMany, findUnique: productFindUnique },
@@ -72,10 +96,15 @@ function createService(): Stubs {
     contentTranslation: { findMany: translationFindMany, findFirst: translationFindFirst },
   } as unknown as PrismaService;
 
+  // SeoService IS stubbed, unlike the translation service: nothing here asserts on how a SEO
+  // record is composed, and the real one would issue queries against the same
+  // contentTranslation mock that this file's translation assertions depend on.
+  const seo = { buildFor: buildSeo } as unknown as SeoService;
+
   return {
     // The real translation service, not a stub: it owns the translation queries these tests
     // assert on, and stubbing it would leave those assertions checking nothing.
-    service: new ProductsService(prisma, new ContentTranslationService(prisma)),
+    service: new ProductsService(prisma, new ContentTranslationService(prisma), seo),
     productCount,
     productFindMany,
     productFindUnique,
@@ -84,6 +113,7 @@ function createService(): Stubs {
     mediaFindMany,
     translationFindMany,
     translationFindFirst,
+    buildSeo,
   };
 }
 
@@ -492,6 +522,104 @@ describe("ProductsService.findBySlug", () => {
 
     expect(result.product.description).toBeNull();
     expect(result.localeFallback).toBe(false);
+  });
+});
+
+describe("ProductsService.findBySlug — SEO", () => {
+  it("attaches the SEO record SeoService built", async () => {
+    const { service } = createService();
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(result.product.seo).toBe(SEO);
+  });
+
+  it("asks SEO for this product, in the requested locale", async () => {
+    const { service, buildSeo } = createService();
+
+    await service.findBySlug("sn-500", FA);
+
+    expect(buildSeo).toHaveBeenCalledWith(
+      expect.objectContaining({ entityType: "Product", entityId: PRODUCT_ROW.id }),
+      FA,
+    );
+  });
+
+  // §11 falls the meta title and description back to the entity's own content, and a Persian
+  // page whose title fell back to English would advertise the wrong language to a crawler.
+  it("passes the localized name and description as fallbacks", async () => {
+    const { service, buildSeo, translationFindMany } = createService();
+
+    translationFindMany.mockImplementation(
+      (args: { where: { entityType: string } }): Promise<unknown[]> =>
+        Promise.resolve(
+          args.where.entityType === "Product"
+            ? [
+                { entityId: PRODUCT_ROW.id, field: "name", value: "اس‌ان ۵۰۰" },
+                { entityId: PRODUCT_ROW.id, field: "description", value: "روغن پایه گروه یک." },
+              ]
+            : [],
+        ),
+    );
+
+    await service.findBySlug("sn-500", FA);
+
+    expect(buildSeo).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fallbackTitle: "اس‌ان ۵۰۰",
+        fallbackDescription: "روغن پایه گروه یک.",
+      }),
+      FA,
+    );
+  });
+
+  // The default locale's alternate is the base column. Handing over the localized copy would
+  // make hreflang="x-default" point at the Persian path.
+  it("passes the base row's slug, not the translated one, as the default slug", async () => {
+    const { service, buildSeo, translationFindFirst, translationFindMany } = createService();
+
+    translationFindFirst.mockResolvedValue({ entityId: PRODUCT_ROW.id });
+    translationFindMany.mockImplementation(
+      (args: { where: { entityType: string } }): Promise<unknown[]> =>
+        Promise.resolve(
+          args.where.entityType === "Product"
+            ? [{ entityId: PRODUCT_ROW.id, field: "slug", value: "اس‌ان-۵۰۰" }]
+            : [],
+        ),
+    );
+
+    const result = await service.findBySlug("اس‌ان-۵۰۰", FA);
+
+    expect(result.product.slug).toBe("اس‌ان-۵۰۰");
+    expect(buildSeo).toHaveBeenCalledWith(expect.objectContaining({ defaultSlug: "sn-500" }), FA);
+  });
+
+  // §2.3 attaches SeoFields to the detail endpoint only — a 20-row page would otherwise pay
+  // for 20 SEO lookups no list layout renders.
+  it("builds no SEO record for the list endpoint", async () => {
+    const { service, buildSeo } = createService();
+
+    await service.findAll(EN, {});
+
+    expect(buildSeo).not.toHaveBeenCalled();
+  });
+
+  it("builds no SEO record for the specifications endpoint", async () => {
+    const { service, buildSeo } = createService();
+
+    await service.findSpecificationsBySlug("sn-500", EN);
+
+    expect(buildSeo).not.toHaveBeenCalled();
+  });
+
+  it("builds no SEO record when the slug matches nothing", async () => {
+    const { service, productFindUnique, buildSeo } = createService();
+
+    productFindUnique.mockResolvedValue(null);
+
+    await captureError(service.findBySlug("missing", EN));
+
+    expect(buildSeo).not.toHaveBeenCalled();
   });
 });
 

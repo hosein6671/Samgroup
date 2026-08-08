@@ -158,6 +158,69 @@ describe("ContentTranslationService.findEntityIdBySlug", () => {
   });
 });
 
+describe("ContentTranslationService.findTranslatedSlugs", () => {
+  it("returns one entry per locale that carries a translated slug", async () => {
+    const { service, findMany } = createService();
+
+    findMany.mockResolvedValue([
+      { locale: "ar", value: "اس-ان-500" },
+      { locale: "fa", value: "اس‌ان-۵۰۰" },
+    ]);
+
+    await expect(
+      service.findTranslatedSlugs(ContentEntityType.Product, PRODUCT_ID),
+    ).resolves.toEqual([
+      { locale: "ar", slug: "اس-ان-500" },
+      { locale: "fa", slug: "اس‌ان-۵۰۰" },
+    ]);
+
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        entityType: "Product",
+        entityId: PRODUCT_ID,
+        field: "slug",
+        localeRef: { isActive: true },
+      },
+      orderBy: { locale: "asc" },
+      select: { locale: true, value: true },
+    });
+  });
+
+  // An alternate names a distinct crawlable URL. A locale with a translated name but no
+  // translated slug resolves to the default-locale path — the same page, not an alternate.
+  it("asks for the slug field only, ignoring every other translated field", async () => {
+    const { service, findMany } = createService();
+
+    await service.findTranslatedSlugs(ContentEntityType.Category, PRODUCT_ID);
+
+    const call = findMany.mock.calls[0]?.[0] as { where: { field: string } };
+
+    expect(call.where.field).toBe("slug");
+  });
+
+  // Deactivating a language must not leave hreflang advertising a path the site no longer
+  // serves. The filter rides the relation content_translations already has, so this stays one
+  // query rather than a second read of the locale list.
+  it("excludes inactive locales through the Locale relation, in the same query", async () => {
+    const { service, findMany } = createService();
+
+    await service.findTranslatedSlugs(ContentEntityType.Product, PRODUCT_ID);
+
+    const call = findMany.mock.calls[0]?.[0] as { where: { localeRef: unknown } };
+
+    expect(findMany).toHaveBeenCalledTimes(1);
+    expect(call.where.localeRef).toEqual({ isActive: true });
+  });
+
+  it("returns an empty list for an entity translated into no locale", async () => {
+    const { service } = createService();
+
+    await expect(
+      service.findTranslatedSlugs(ContentEntityType.Product, PRODUCT_ID),
+    ).resolves.toEqual([]);
+  });
+});
+
 describe("ContentTranslationService.findEntityIdsByTranslatedValue", () => {
   it("matches case-insensitively across the named fields and de-duplicates", async () => {
     const { service, findMany } = createService();

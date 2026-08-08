@@ -5,8 +5,9 @@ import { LocaleResolutionService } from "../../common/locale/locale-resolution.s
 import { CategoriesController } from "./categories.controller";
 import { CategoriesService } from "./categories.service";
 
-import type { CategoryResponse } from "./dto/category.response";
+import type { CategoryDetailResponse, CategoryResponse } from "./dto/category.response";
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
+import type { SeoFields } from "@sam-group/types";
 
 const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
 
@@ -17,6 +18,29 @@ const CATEGORY: CategoryResponse = {
   parentId: null,
 };
 
+/** Opaque here — SeoService's own spec covers how a record is composed. */
+const SEO: SeoFields = {
+  locale: "en",
+  metaTitle: "Base Oils",
+  metaDescription: null,
+  canonicalUrl: null,
+  ogTitle: "Base Oils",
+  ogDescription: null,
+  ogImageUrl: null,
+  twitterCardType: "summary_large_image",
+  twitterTitle: "Base Oils",
+  twitterDescription: null,
+  twitterImageUrl: null,
+  robotsIndex: true,
+  robotsFollow: true,
+  keywords: [],
+  structuredDataOverride: null,
+  alternates: [{ locale: "en", slug: "base-oils" }],
+};
+
+/** The slug endpoint's shape: the list row plus SEO (§2.3). */
+const CATEGORY_DETAIL: CategoryDetailResponse = { ...CATEGORY, seo: SEO };
+
 type Harness = {
   controller: CategoriesController;
   findAll: jest.Mock;
@@ -26,7 +50,9 @@ type Harness = {
 
 async function createHarness(): Promise<Harness> {
   const findAll = jest.fn().mockResolvedValue({ categories: [CATEGORY], localeFallback: false });
-  const findBySlug = jest.fn().mockResolvedValue({ category: CATEGORY, localeFallback: false });
+  const findBySlug = jest
+    .fn()
+    .mockResolvedValue({ category: CATEGORY_DETAIL, localeFallback: false });
   const resolve = jest.fn().mockResolvedValue(EN);
 
   const moduleRef = await Test.createTestingModule({
@@ -95,13 +121,25 @@ describe("CategoriesController", () => {
 
     expect(resolve).toHaveBeenCalledWith(undefined);
     expect(findBySlug).toHaveBeenCalledWith("base-oils", EN);
-    expect(response.data).toEqual(CATEGORY);
+    expect(response.data).toEqual(CATEGORY_DETAIL);
+  });
+
+  // §2.3 attaches SeoFields to this endpoint and not to the list, so the two responses are
+  // deliberately different shapes.
+  it("carries the SEO record on the slug endpoint but not on the list", async () => {
+    const { controller } = await createHarness();
+
+    const detail = await controller.findOne("base-oils", {});
+    const list = await controller.findAll({});
+
+    expect(detail.data.seo).toEqual(SEO);
+    expect(list.data[0]).not.toHaveProperty("seo");
   });
 
   it("carries meta.localeFallback on the slug endpoint too", async () => {
     const { controller, findBySlug } = await createHarness();
 
-    findBySlug.mockResolvedValue({ category: CATEGORY, localeFallback: true });
+    findBySlug.mockResolvedValue({ category: CATEGORY_DETAIL, localeFallback: true });
 
     const response = await controller.findOne("base-oils", { locale: "fa" });
 
