@@ -19,7 +19,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 // The generated directory has no index barrel, so the entry point is the
 // client.ts inside it — not the directory itself.
-import { LocaleDirection, PrismaClient } from "./generated/client/client";
+import { LocaleDirection, PrismaClient } from "../apps/api/src/prisma/generated/client";
 
 // Prisma 7 does not load .env automatically, and this file is also runnable
 // outside the Prisma CLI. Guarded because a fresh clone has no .env yet.

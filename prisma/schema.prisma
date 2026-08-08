@@ -38,10 +38,11 @@ datasource db {
 }
 
 generator client {
-  provider     = "prisma-client"
-  output       = "./generated/client"
-  moduleFormat = "cjs"
-  runtime      = "nodejs"
+  provider            = "prisma-client"
+  output              = "../apps/api/src/prisma/generated"
+  moduleFormat        = "cjs"
+  runtime             = "nodejs"
+  importFileExtension = "ts"
 }
 
 // --- Enums -------------------------------------------------------------------

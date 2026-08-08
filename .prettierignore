@@ -10,7 +10,7 @@ coverage/
 # Prisma 7 emits the client into the repository rather than node_modules,
 # because an explicit generator output path is now required. It is generated
 # code — Prettier neither reads .gitignore nor should reformat it.
-prisma/generated/
+apps/api/src/prisma/generated/
 
 # Lockfile is tool-owned; reformatting it produces noise and diff churn
 pnpm-lock.yaml

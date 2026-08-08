@@ -17,7 +17,7 @@ out/
 # Prisma
 # Prisma 7 requires an explicit generator output path, so the client is emitted
 # into the repository instead of node_modules. It is a build artifact.
-prisma/generated/
+apps/api/src/prisma/generated/
 
 # Payload CMS
 apps/cms/build/
