@@ -9,6 +9,9 @@ allowBuilds:
   "@prisma/engines": true
   esbuild: true
   prisma: true
+  # Denied: a transitive native dependency of jest-resolve. Verified that the full
+  # apps/api test suite passes without its build script ever running.
+  unrs-resolver: false
 # Added by pnpm: tsx 4.23.11 is newer than the configured minimum release age.
 minimumReleaseAgeExclude:
   - tsx@4.23.11
