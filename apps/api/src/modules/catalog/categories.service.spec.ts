@@ -1,3 +1,4 @@
+import { ContentTranslationService } from "../../common/content/content-translation.service";
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -36,8 +37,10 @@ function createService(): Stubs {
     contentTranslation: { findMany: translationFindMany, findFirst: translationFindFirst },
   } as unknown as PrismaService;
 
+  // The real ContentTranslationService, not a stub: it owns the translation queries these
+  // tests assert on, and stubbing it would leave those assertions checking nothing.
   return {
-    service: new CategoriesService(prisma),
+    service: new CategoriesService(prisma, new ContentTranslationService(prisma)),
     categoryFindMany,
     categoryFindUnique,
     translationFindMany,

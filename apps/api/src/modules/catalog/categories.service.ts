@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 
 import { ContentEntityType } from "../../common/content/content-entity-type";
+import { ContentTranslationService } from "../../common/content/content-translation.service";
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -13,8 +14,11 @@ const NOT_FOUND_MESSAGE = "Category not found.";
 /**
  * The `content_translations.field` values this module translates. `description` exists on
  * other entities but not on `Category`, so asking for it would return nothing.
+ *
+ * Exported because a product carries its category, and the product detail response has to
+ * localize it against the same field list rather than a second, drifting one.
  */
-const TRANSLATED_FIELDS = ["name", "slug"] as const;
+export const CATEGORY_TRANSLATED_FIELDS = ["name", "slug"] as const;
 
 /** A category row exactly as selected from the database — default-locale values. */
 type CategoryRow = CategoryResponse;
@@ -35,7 +39,8 @@ type LocalizedCategory = {
   localeFallback: boolean;
 };
 
-const CATEGORY_SELECT = {
+/** Exported alongside the field list, so a product's nested category selects the same columns. */
+export const CATEGORY_SELECT = {
   id: true,
   name: true,
   slug: true,
@@ -44,7 +49,10 @@ const CATEGORY_SELECT = {
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly translations: ContentTranslationService,
+  ) {}
 
   /**
    * With no `parentId`, this returns TOP-LEVEL categories only — §2.3 describes the endpoint
@@ -103,85 +111,39 @@ export class CategoriesService {
     slug: string,
     locale: ResolvedLocale,
   ): Promise<CategoryRow | null> {
-    const translation = await this.prisma.contentTranslation.findFirst({
-      where: {
-        entityType: ContentEntityType.Category,
-        locale: locale.code,
-        field: "slug",
-        value: slug,
-      },
-      select: { entityId: true },
-    });
+    const entityId = await this.translations.findEntityIdBySlug(
+      ContentEntityType.Category,
+      slug,
+      locale,
+    );
 
-    if (translation === null) {
+    if (entityId === null) {
       return this.findByDefaultSlug(slug);
     }
 
     return this.prisma.category.findUnique({
-      where: { id: translation.entityId },
+      where: { id: entityId },
       select: CATEGORY_SELECT,
     });
   }
 
   /**
-   * Overlays the requested locale's translations onto default-locale rows, reporting whether
-   * anything was left untranslated.
-   *
-   * One query for the whole page rather than one per category — the N+1 this replaces would
-   * be six queries for the category list today and considerably more for products later.
+   * Thin adapter over the shared overlay: the translation mechanics are identical for every
+   * localized entity and live in ContentTranslationService; what belongs to this module is
+   * only which entity type and which fields to ask for.
    */
   private async localize(
     categories: CategoryRow[],
     locale: ResolvedLocale,
   ): Promise<LocalizedCategories> {
-    // The default locale's values are the rows themselves, so there is nothing to look up
-    // and nothing that can fall back.
-    if (locale.isDefault || categories.length === 0) {
-      return { categories, localeFallback: false };
-    }
+    const { rows, localeFallback } = await this.translations.localize(
+      ContentEntityType.Category,
+      categories,
+      CATEGORY_TRANSLATED_FIELDS,
+      locale,
+    );
 
-    const translations = await this.prisma.contentTranslation.findMany({
-      where: {
-        entityType: ContentEntityType.Category,
-        entityId: { in: categories.map((category) => category.id) },
-        locale: locale.code,
-        field: { in: [...TRANSLATED_FIELDS] },
-      },
-      select: { entityId: true, field: true, value: true },
-    });
-
-    const byEntity = new Map<string, Map<string, string>>();
-
-    for (const translation of translations) {
-      const fields = byEntity.get(translation.entityId) ?? new Map<string, string>();
-
-      fields.set(translation.field, translation.value);
-      byEntity.set(translation.entityId, fields);
-    }
-
-    let localeFallback = false;
-
-    const localized = categories.map((category) => {
-      const fields = byEntity.get(category.id);
-      const translated = { ...category };
-
-      for (const field of TRANSLATED_FIELDS) {
-        const value = fields?.get(field);
-
-        if (value === undefined) {
-          // Missing row — the default-locale value already sitting in `translated` stands,
-          // and the response has to say so.
-          localeFallback = true;
-          continue;
-        }
-
-        translated[field] = value;
-      }
-
-      return translated;
-    });
-
-    return { categories: localized, localeFallback };
+    return { categories: rows, localeFallback };
   }
 }
 
