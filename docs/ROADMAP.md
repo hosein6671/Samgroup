@@ -6,7 +6,7 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 
 ## Current Status
 
-**M1 in progress — infrastructure and tooling bootstrap complete; the next implementation boundary is the Prisma/database phase.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized.
+**M1 largely complete; M2 partially started. The next implementation boundary is the frontend design proof — step A-3.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized.
 
 **Complete and verified:**
 
@@ -17,10 +17,15 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 - ✅ **CI Phase 1 (Validate)** — `.github/workflows/ci.yml`: install → lint → type-check → format check. Phases 2 and 3 are deliberately absent until app Dockerfiles exist ([DEVOPS.md](./DEVOPS.md)).
 - ✅ **Docker development infrastructure** — `docker-compose.yml` (`postgres`, `minio`, `minio-init`, `nginx`), `docker-compose.override.yml`, Nginx templates, and the Postgres init script creating `sam_platform` and `sam_cms` as independent databases.
 - ✅ **ADR-002 isolation proven, not assumed** — `scripts/verify-db-isolation.sh` passes 4/4, including both negative cases (neither application role can reach the other's database).
+- ✅ **Prisma schema and initial migration** — `prisma/schema.prisma` translated from [DATA_MODEL.md](./DATA_MODEL.md) §1, first migration applied against `sam_platform`, and an idempotent `Locale` seed for `en`/`fa`/`ar`.
+- ✅ **Backend API foundation** — `apps/api` scaffolded (NestJS), with the global `{ data, meta }` / `{ error }` response envelope, exception handling, environment validation, and locale resolution.
+- ✅ **Catalog APIs** — `GET /categories`, `/categories/:slug`, `/products`, `/products/:slug`, locale-aware via the shared `ContentTranslation` service. Plus `GET /health` and `GET /locales`.
+- ✅ **SEO foundation** — `GET /seo/redirects` and `GET /seo/sitemap-entries`, per [seo/SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md).
+- ✅ **Frontend design system foundation** (step A-2) — design tokens authored in TypeScript and generated into a Tailwind v4 theme layer, 13 Server-Component primitives, a twelve-column editorial grid, a specification primitive, and four scroll-driven CSS reveal patterns with no animation library. Palette contrast audited at 46 checks, 0 failures. Recorded in [design/DESIGN_SYSTEM.md](./design/DESIGN_SYSTEM.md).
 
-**Next: the Prisma/database phase** — `prisma init` at the repo root, `schema.prisma` translated from [DATA_MODEL.md](./DATA_MODEL.md) §1, first migration against `sam_platform`, and `Locale` seeded with `en`/`fa`/`ar`. See [PROJECT_HANDOFF.md §5](./PROJECT_HANDOFF.md) step 3.
+**Next: the frontend design proof (step A-3)** — scaffold `apps/web` (Next.js 15, App Router, Tailwind) and render the design system so it can be verified in a browser. It has never been rendered: everything about it is currently verified by compiled-CSS inspection and measurement, not by looking at it. See [PROJECT_HANDOFF.md §5](./PROJECT_HANDOFF.md) step 8.
 
-**Not yet started:** no Next.js/NestJS/Payload scaffolding, no Prisma schema or migrations, no application Dockerfiles, no CI Phases 2–3. `apps/web`, `apps/api`, `apps/cms` hold only `.gitkeep`; root `README.md` is still empty.
+**Not yet started:** `apps/web` and `apps/cms` hold only `.gitkeep` — no Next.js or Payload scaffolding. No authentication, no form submission endpoints, no Content module fronting Payload, no Admin Dashboard. No application Dockerfiles, no CI Phases 2–3. Root `README.md` is still empty.
 
 Update this section as each further step lands — this is the one fact in `docs/` most likely to go stale.
 

@@ -1,6 +1,6 @@
 # Project Handoff — SAM Group Platform
 
-**Prepared:** 7 August 2026 · **Updated:** 8 August 2026 · **Phase:** Architecture complete, infrastructure and tooling bootstrap complete, no application code written.
+**Prepared:** 7 August 2026 · **Updated:** 9 August 2026 · **Phase:** Architecture complete; backend API foundation and catalog/SEO read endpoints built; frontend design system foundation built; `apps/web` not yet scaffolded.
 
 This document exists so someone with **zero conversation history** can pick this project up and continue correctly. It is a map and a status report, not a substitute for the documents it points to.
 
@@ -20,7 +20,9 @@ Full detail: [PROJECT_VISION.md](./PROJECT_VISION.md).
 
 **Architecture is frozen and complete.** Every major area has been designed, reviewed, and approved: frontend, CMS content model, data model, i18n, SEO, security, RAG, and the full API contract. Six ADRs record the contested decisions.
 
-**Implementation has started at the infrastructure layer.** The monorepo, workspace install, tooling, CI Phase 1, and the Docker development stack all exist and run. No framework has been scaffolded and no application code exists; the next boundary is the Prisma/database phase.
+**Implementation is underway on two fronts.** The infrastructure layer (monorepo, workspace install, tooling, CI Phase 1, Docker development stack) exists and runs. On top of it: the Prisma schema and initial migration are applied to `sam_platform`, the NestJS application is scaffolded with its response envelope and exception handling, and the public read endpoints for locales, catalog, and SEO are implemented. Separately, the frontend **design system foundation** is built in `packages/ui`/`packages/config`.
+
+**`apps/web` and `apps/cms` are still `.gitkeep`-only.** The next boundary is the frontend design proof (step A-3) — scaffolding `apps/web` and rendering the design system so it can be verified in a browser for the first time.
 
 ### Main technology decisions
 
@@ -80,7 +82,7 @@ An independent module consuming **only** the public API — never a database con
 
 ## 3. Documentation Completed
 
-**32 markdown documents + 2 source spreadsheets.** Read in roughly this order.
+**33 markdown documents + 2 source spreadsheets.** Read in roughly this order.
 
 ### Start here
 
@@ -172,13 +174,21 @@ sam-group-platform/
 │   └── postgres/init/        first-boot script creating the two ADR-002 databases
 ├── scripts/verify-db-isolation.sh   asserts the ADR-002 boundary
 ├── CLAUDE.md, AI_CONTEXT.md
-├── docs/                     32 .md + 2 .xlsx — complete
+├── docs/                     33 .md + 2 .xlsx — complete
+├── prisma/
+│   ├── schema.prisma         21 models, translated from DATA_MODEL.md §1
+│   ├── migrations/0_init/    initial migration against sam_platform
+│   └── seed.ts               Locale seed (en/fa/ar), idempotent
+├── apps/
+│   ├── api/                  NestJS — scaffolded, see "Runs today"
+│   ├── web/                  .gitkeep only
+│   └── cms/                  .gitkeep only
 └── packages/
     ├── tsconfig/             package.json + base.json
     ├── eslint-config/        package.json + index.js (flat config)
-    ├── types/                package.json + tsconfig + empty barrel
-    ├── ui/                   package.json + tsconfig + empty barrel
-    └── config/               package.json + README (intentionally near-empty)
+    ├── types/                package.json + tsconfig + SEO field types
+    ├── ui/                   design system — tokens, generated theme, 13 primitives
+    └── config/               shared Tailwind v4 entry + PostCSS config
 ```
 
 ### Runs today
@@ -187,39 +197,64 @@ The infrastructure stack is functional, not just declared:
 
 - `docker compose up -d` brings up `postgres`, `minio` (+ `minio-init`), and `nginx`, all healthy.
 - `./scripts/verify-db-isolation.sh` passes **4/4** — both owners reach their own database, and **neither can reach the other's**. ADR-002 is enforced by PostgreSQL, not by convention.
-- `pnpm lint`, `pnpm type-check`, and `pnpm format:check` all run and pass.
+- `pnpm lint`, `pnpm type-check`, `pnpm format:check`, and `pnpm test` all run and pass.
+
+**The NestJS API serves these endpoints**, all public reads, all locale-aware, all returning the `{ data, meta }` / `{ error }` envelope:
+
+| Endpoint                   | Module       |
+| -------------------------- | ------------ |
+| `GET /health`              | system       |
+| `GET /locales`             | localization |
+| `GET /categories`          | catalog      |
+| `GET /categories/:slug`    | catalog      |
+| `GET /products`            | catalog      |
+| `GET /products/:slug`      | catalog      |
+| `GET /seo/redirects`       | seo          |
+| `GET /seo/sitemap-entries` | seo          |
+
+Supporting these: a global response-envelope interceptor and exception filter, locale resolution, a shared `ContentTranslation` service, and a `media` module that is an internal service boundary with no controller of its own.
+
+**The frontend design system exists** in `packages/ui` — design tokens authored in TypeScript and generated into a Tailwind v4 theme layer, plus 13 Server-Component primitives. Consumed through `packages/config`'s shared Tailwind entry. Full record: [design/DESIGN_SYSTEM.md](./design/DESIGN_SYSTEM.md).
 
 ### Does not exist
 
-- **No application code whatsoever.** `apps/web`, `apps/api`, `apps/cms` contain only `.gitkeep`.
-- **No Prisma schema and no migrations.** `prisma/` does not exist. `sam_platform` is an empty database.
-- No Payload config, no application Dockerfiles, no CI Phases 2–3, no `docker-compose.prod.yml`, no TLS configuration (only a `.example` template).
+- **`apps/web` and `apps/cms` contain only `.gitkeep`.** No Next.js scaffold, no Payload config. The design system has therefore **never been rendered in a browser** — it is verified by compiled-CSS inspection and a measured contrast audit, not by looking at it.
+- **No authentication.** No `auth` module, no JWT issuance, no RBAC guards. Every endpoint above is an unauthenticated public read.
+- **No form submission endpoints, no admin endpoints, and no Content module** fronting Payload.
+- No application Dockerfiles, no CI Phases 2–3, no `docker-compose.prod.yml`, no TLS configuration (only a `.example` template).
 - Root `README.md` is still a zero-byte placeholder.
 
 ### Git state
 
-|                 |                                                                                        |
-| --------------- | -------------------------------------------------------------------------------------- |
-| Baseline commit | `3fa6f8d` — `chore: initial architecture and documentation baseline`                   |
-| Branch          | `main` — matches the branch [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers |
-| Remote          | `origin` → `https://github.com/hosein6671/Samgroup`                                    |
-| Sync            | **2 commits ahead of `origin/main`, unpushed**                                         |
-| Working tree    | Clean                                                                                  |
+|                 |                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------- |
+| Baseline commit | `3fa6f8d` — `chore: initial architecture and documentation baseline`                                       |
+| Default branch  | `main` — matches the branch [DEVOPS.md](./DEVOPS.md) references for CI/deploy triggers                     |
+| Current branch  | `feature/design-system` — per the branching rule in [CODING_STANDARDS.md](./CODING_STANDARDS.md#branching) |
+| Remote          | `origin` → `https://github.com/hosein6671/Samgroup`                                                        |
+| Sync            | `main` is level with `origin/main` (`8fd74d7`); the feature branch is **2 commits ahead, unpushed**        |
+| Working tree    | Clean                                                                                                      |
 
-Unpushed: `bcee0c4` (development-only Postgres host access path) and `3f750bf` (repository line-ending policy).
+Unpushed on `feature/design-system`: `75d6d23` (design system foundation) and `dad7ccd` (design system documentation).
+
+**Note on branching.** Every commit before `75d6d23` was made directly on `main`, which contradicts [CODING_STANDARDS.md](./CODING_STANDARDS.md#branching)'s `feature/<short-name>` rule. The A-2 work is the first to follow the documented convention. If direct-to-main is actually the intent for a solo build, `CODING_STANDARDS.md` should say so rather than leaving the two to disagree.
 
 ### Bootstrap phase status
 
-**Infrastructure and tooling bootstrap is complete.** The original 15-step plan's numbering no longer maps cleanly onto what was actually executed — several later steps (tooling, CI, Docker) landed before the app scaffolds. Track by capability instead:
+**Infrastructure and tooling bootstrap is complete**, and implementation has moved past it. The original 15-step plan's numbering no longer maps cleanly onto what was actually executed — several later steps (tooling, CI, Docker) landed before the app scaffolds. Track by capability instead:
 
-| Capability                                                     | Status                  |
-| -------------------------------------------------------------- | ----------------------- |
-| Monorepo init, shared packages, workspace install              | ✅ Done                 |
-| Lint / format / pre-commit tooling                             | ✅ Done                 |
-| CI Phase 1 (validate)                                          | ✅ Done                 |
-| Docker infrastructure (postgres, minio, nginx) + ADR-002 check | ✅ Done, verified       |
-| **Prisma schema, migrations, `Locale` seed**                   | ⬜ **Next — §5 step 3** |
-| NestJS scaffold, auth, Payload, CMS integration, frontend      | ⬜ Not started          |
+| Capability                                                           | Status                    |
+| -------------------------------------------------------------------- | ------------------------- |
+| Monorepo init, shared packages, workspace install                    | ✅ Done                   |
+| Lint / format / pre-commit tooling                                   | ✅ Done                   |
+| CI Phase 1 (validate)                                                | ✅ Done                   |
+| Docker infrastructure (postgres, minio, nginx) + ADR-002 check       | ✅ Done, verified         |
+| Prisma schema, migrations, `Locale` seed                             | ✅ Done                   |
+| NestJS scaffold, response envelope, exception handling               | ✅ Done                   |
+| Public read APIs — locales, catalog, SEO                             | ✅ Done                   |
+| Frontend design system foundation (`packages/ui`, `packages/config`) | ✅ Done, not yet rendered |
+| **`apps/web` scaffold + design proof (A-3)**                         | ⬜ **Next**               |
+| Auth, form submissions, Payload, CMS integration, Admin Dashboard    | ⬜ Not started            |
 
 ---
 
@@ -241,13 +276,19 @@ Baseline committed as `3fa6f8d` on `main`, remote `origin` configured. Keep comm
 
 **Development note:** host-run applications reach PostgreSQL through `docker-compose.override.yml`, which publishes `127.0.0.1:5432` and attaches `postgres` to a development-only network. Publishing the port alone is not sufficient — the `data` network is `internal: true`, and Docker creates no host binding for a container whose networks are all internal.
 
-### 3. Prisma setup
+### 3. Prisma setup — ✅ done
 
-`prisma init` **at the repo root**, not inside `apps/api`. Translate [DATA_MODEL.md](./DATA_MODEL.md) §1 into `schema.prisma` — a literal translation, not a redesign. 20 entities. Seed the `Locale` table with `en`/`fa`/`ar`. First migration against `sam_platform` only.
+`prisma init` **at the repo root**, not inside `apps/api`. Translate [DATA_MODEL.md](./DATA_MODEL.md) §1 into `schema.prisma` — a literal translation, not a redesign. Seed the `Locale` table with `en`/`fa`/`ar`. First migration against `sam_platform` only.
 
-### 4. NestJS API
+Landed as `7f35929` (schema + initial migration) and `46a3667` (Prisma integration in the API). `prisma/seed.ts` is idempotent and upserts by `code`.
+
+### 4. NestJS API — partially done
 
 Scaffold `apps/api`, then build [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) outward-in: health/locales → catalog reads → form submissions → SEO endpoints. Modules follow the boundaries in [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+**Done:** scaffold, response envelope and exception handling, health, locales, category and product reads with locale resolution, SEO redirects and sitemap entries, and the `media` module boundary. See §4 for the endpoint list.
+
+**Remaining in this step:** the form submission endpoints. They depend on nothing above and could be built before or after the frontend design proof.
 
 ### 5. Authentication
 
@@ -261,9 +302,13 @@ Scaffold `apps/cms` against `sam_cms` using the **default `public` schema** — 
 
 NestJS Content module proxying Payload, plus caching and publish-triggered revalidation. This is where ADR-003 gets proven end-to-end.
 
-### 8. Frontend scaffolding
+### 8. Frontend scaffolding — design system done, app scaffold next
 
-Scaffold `apps/web` (Next.js 15, App Router, Tailwind), locale routing via next-intl, then build pages in the [ROADMAP.md](./ROADMAP.md) M3 order: Home → About Us → Products → Customized Solutions → Export & Logistics → Contact Us.
+**Done (step A-2):** the design system foundation in `packages/ui` and `packages/config` — tokens authored in TypeScript and generated into a Tailwind v4 theme, 13 Server-Component primitives, a twelve-column editorial grid, a specification primitive, and four scroll-driven CSS reveal patterns with no animation library. Recorded in [design/DESIGN_SYSTEM.md](./design/DESIGN_SYSTEM.md).
+
+**Next (step A-3):** scaffold `apps/web` (Next.js 15, App Router, Tailwind) and render a design-proof route. This is the first time the design system is seen in a browser — until then its rhythm, glass, gradients, midnight sections and reveals are verified only by compiled-CSS inspection.
+
+**Then:** locale routing via next-intl, and pages in the [ROADMAP.md](./ROADMAP.md) M3 order: Home → About Us → Products → Customized Solutions → Export & Logistics → Contact Us.
 
 ### 9. Forms and Admin Dashboard
 
@@ -346,9 +391,11 @@ This project has an unusually complete specification. Nearly every implementatio
 
 ### Continue from the current phase
 
-**Infrastructure and tooling bootstrap is complete** — monorepo, workspace install, lint/format/hooks, CI Phase 1, and the Docker stack (`postgres`, `minio`, `nginx`) all exist and run, with the ADR-002 database boundary verified. **The next implementation boundary is the Prisma/database phase** (§5 step 3): `prisma init` at the repo root, `schema.prisma` translated literally from [DATA_MODEL.md](./DATA_MODEL.md) §1, first migration against `sam_platform`, `Locale` seeded with `en`/`fa`/`ar`.
+**Infrastructure, database and the backend read layer are built** — monorepo, tooling, CI Phase 1, the Docker stack with the ADR-002 boundary verified, the Prisma schema and initial migration, and a NestJS application serving public reads for health, locales, catalog and SEO. The **frontend design system foundation** is built too, in `packages/ui`/`packages/config`.
 
-Then follow §5's order from step 4. Do not skip ahead to feature work — the database, API, and CMS layers are prerequisites, and building UI against endpoints that don't exist produces throwaway work. Verify §4 against the repository before trusting it; status in this project has gone stale before.
+**The next implementation boundary is the frontend design proof, step A-3** (§5 step 8): scaffold `apps/web` (Next.js 15, App Router, Tailwind) and render the design system. This matters more than it sounds — the design system has never been displayed in a browser, so its rhythm, glass, gradients, midnight sections and scroll reveals are verified only by inspecting compiled CSS.
+
+Two things remain available out of order and depend on nothing above: the **form submission endpoints** (§5 step 4's remainder) and **authentication** (§5 step 5). Otherwise follow §5's order. Do not skip ahead to page work — building UI against endpoints that don't exist produces throwaway work. Verify §4 against the repository before trusting it; status in this project has gone stale before.
 
 ### Working conventions established here
 
