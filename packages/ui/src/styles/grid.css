@@ -1,0 +1,107 @@
+/*
+ * The editorial grid.
+ *
+ * Twelve columns addressed by named position, not by counted spans. `col-md-6` describes
+ * arithmetic; `half-start` and `margin-end` describe a place on a page. The difference matters
+ * because an editorial layout is composed, not calculated — and because a named vocabulary
+ * stays legible when placements go asymmetric, which is exactly when a span-counting API stops
+ * being readable.
+ *
+ * Placement values are generated from src/tokens/layout.ts so the CSS and the TypeScript union
+ * cannot drift apart. Below the md breakpoint every placement collapses to full width: a
+ * twelve-column grid on a phone is arithmetic nobody can see.
+ */
+
+@layer components {
+  .editorial-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+    column-gap: var(--grid-gutter);
+    row-gap: var(--grid-gutter);
+  }
+
+  /*
+   * Mobile first: one column, source order. Every placement is inert here, which is why the
+   * placement rules below are nested inside the media query rather than being overridden by it.
+   */
+  .editorial-grid > * {
+    grid-column: 1 / -1;
+  }
+
+  @media (min-width: 768px) {
+    .grid-full {
+      grid-column: 1 / -1;
+    }
+    .grid-wide {
+      grid-column: 2 / -2;
+    }
+    .grid-main {
+      grid-column: 3 / 11;
+    }
+    .grid-half-start {
+      grid-column: 1 / 7;
+    }
+    .grid-half-end {
+      grid-column: 7 / -1;
+    }
+    .grid-third-start {
+      grid-column: 1 / 5;
+    }
+    .grid-third-mid {
+      grid-column: 5 / 9;
+    }
+    .grid-third-end {
+      grid-column: 9 / -1;
+    }
+    .grid-two-thirds-start {
+      grid-column: 1 / 9;
+    }
+    .grid-two-thirds-end {
+      grid-column: 5 / -1;
+    }
+
+    /*
+     * The annotation columns. A narrow track running alongside the main block for figure
+     * numbers, test methods and technical labels — the way a specification sheet or an
+     * engineering drawing is set. This is the industrial part of the grid, and the reason
+     * `main` is inset rather than starting at track 1.
+     */
+    .grid-margin-start {
+      grid-column: 1 / 3;
+    }
+    .grid-margin-end {
+      grid-column: 11 / -1;
+    }
+  }
+
+  /*
+   * Grid line numbers are resolved against the writing direction, so `1 / 7` is the leading
+   * half in both LTR and RTL without a mirrored stylesheet. Verified rather than assumed:
+   * CSS grid placement is flow-relative by specification.
+   *
+   * Development aid: overlays the twelve tracks so alignment can be checked against the grid
+   * rather than by eye. Opt-in per element, never shipped on a page by default.
+   */
+  .editorial-grid--debug {
+    position: relative;
+  }
+
+  .editorial-grid--debug::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* Literal, not a token: no z-index scale exists yet (raised in the A-2 audit, not in
+       scope here), and a reference to an undefined custom property would silently resolve
+       to auto rather than failing loudly. Scoped inside the positioned grid, so 1 is enough. */
+    z-index: 1;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-border-accent) 0,
+      var(--color-border-accent) 1px,
+      transparent 1px,
+      transparent calc((100% + var(--grid-gutter)) / var(--grid-columns))
+    );
+    opacity: 0.25;
+  }
+}

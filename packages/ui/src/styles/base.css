@@ -1,0 +1,124 @@
+/*
+ * Base layer — document defaults, accessibility floors, and the two RTL divergences that
+ * cannot be expressed as a token value.
+ */
+
+@layer base {
+  html {
+    /* Anchor links and programmatic focus land below sticky chrome rather than under it. */
+    scroll-behavior: smooth;
+    scroll-padding-block-start: --spacing(24);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface-canvas);
+    color: var(--color-text-primary);
+    font-family: var(--font-text);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Display type is set tight; the optical sizing axis keeps it from looking spindly. */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+  }
+
+  /*
+   * Focus. Never `outline: none` — a keyboard user losing the caret is a WCAG 2.4.7 failure,
+   * and focus-ring is the one token audited against a 3:1 floor in BOTH surface contexts
+   * precisely so a single ring colour is never asked to work on warm white and midnight at once.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Numerals in specification tables must align by column. */
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Body copy never runs wider than the reading measure, in either direction. */
+  .measure {
+    max-inline-size: var(--container-measure);
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * The engineering label. Authored rather than composed from utilities because its RTL form
+   * diverges in kind, not degree: Arabic script has no letter case, and positive tracking
+   * breaks cursive joining outright. Weight carries the emphasis instead.
+   */
+  .technical-label {
+    font-family: var(--font-technical);
+    font-size: var(--text-technical);
+    line-height: var(--text-technical--line-height);
+    letter-spacing: var(--text-technical--letter-spacing);
+    font-weight: var(--text-technical--font-weight);
+    font-variant-numeric: tabular-nums;
+    text-transform: uppercase;
+  }
+
+  [dir="rtl"] .technical-label {
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 600;
+  }
+
+  /*
+   * Skip link. Present in the DOM from first paint, visually out of the way until focused.
+   */
+  .skip-link {
+    position: absolute;
+    inset-block-start: --spacing(2);
+    inset-inline-start: --spacing(2);
+    z-index: 100;
+    padding: --spacing(2) --spacing(4);
+    background-color: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    transform: translateY(-200%);
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+/*
+ * Reduced motion, enforced at the token level. Collapsing --motion-scale to 0 zeroes every
+ * duration expressed as calc(var(--duration-*) * var(--motion-scale)) site-wide, including in
+ * components whose authors forgot to check. The blanket override underneath it catches
+ * animation that never consulted the token at all.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-scale: 0;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

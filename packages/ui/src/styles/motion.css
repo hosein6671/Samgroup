@@ -1,0 +1,140 @@
+/*
+ * The four reveal patterns, implemented.
+ *
+ * Scroll-driven CSS animation — `animation-timeline: view()`. No IntersectionObserver, no
+ * animation library, no JavaScript, and nothing added to the first-load JS budget.
+ *
+ * Everything sits behind @supports for a reason beyond progressive enhancement: without the
+ * guard, a browser that ignores `animation-timeline` would still honour `animation-name` and
+ * run every reveal once on page load, all at the same moment. Behind the guard, an unsupporting
+ * browser gets no animation at all and renders the final state — which is also what crawlers
+ * and screen readers need, since the content is in the DOM and fully visible either way.
+ *
+ * Durations multiply by --motion-scale, so prefers-reduced-motion collapses them at the token
+ * level; base.css then also forces animation-duration globally as a second floor.
+ */
+
+@layer utilities {
+  @supports (animation-timeline: view()) {
+    /* Content, entering. The default for text blocks and figures. */
+    .reveal-fade-rise {
+      animation: sam-fade-rise calc(var(--duration-reveal) * var(--motion-scale))
+        var(--ease-entrance) both;
+      animation-timeline: view();
+      animation-range: var(--reveal-start) var(--reveal-end);
+    }
+
+    /*
+     * Material, uncovering. For imagery and panels, where a fade reads as cheap and a wipe
+     * reads as deliberate. Wipes from the leading edge, so it follows the reading direction.
+     */
+    .reveal-mask-wipe {
+      animation: sam-mask-wipe calc(var(--duration-editorial) * var(--motion-scale))
+        var(--ease-editorial) both;
+      animation-timeline: view();
+      animation-range: var(--reveal-start) var(--reveal-end);
+    }
+
+    /*
+     * A rule, drawing itself. The smallest pattern and the most characteristic — precise lines
+     * arriving under their own power is most of what makes a layout read as engineered.
+     */
+    .reveal-hairline-draw {
+      animation: sam-hairline-draw calc(var(--duration-editorial) * var(--motion-scale))
+        var(--ease-standard) both;
+      animation-timeline: view();
+      animation-range: var(--reveal-start) var(--reveal-end);
+      transform-origin: left center;
+    }
+
+    [dir="rtl"] .reveal-hairline-draw {
+      transform-origin: right center;
+    }
+
+    /*
+     * A group, arriving in sequence. Children animate against the parent's timeline rather than
+     * their own, so the sequence is driven by one scroll position instead of each item
+     * triggering independently — which is what makes it read as a stagger and not as noise.
+     */
+    .reveal-stagger {
+      view-timeline-name: --sam-stagger;
+    }
+
+    .reveal-stagger > * {
+      --reveal-index: 0;
+      animation: sam-fade-rise calc(var(--duration-reveal) * var(--motion-scale))
+        var(--ease-entrance) both;
+      animation-timeline: --sam-stagger;
+      animation-range: entry calc(5% + (var(--reveal-index) * 6%)) entry
+        calc(60% + (var(--reveal-index) * 6%));
+    }
+
+    /*
+     * Index defaults for the first eight children. Beyond that every item shares the last
+     * offset, which is correct: a stagger that keeps growing across a long list turns into a
+     * wait. A feature rendering a longer run can set --reveal-index itself.
+     */
+    .reveal-stagger > *:nth-child(2) {
+      --reveal-index: 1;
+    }
+    .reveal-stagger > *:nth-child(3) {
+      --reveal-index: 2;
+    }
+    .reveal-stagger > *:nth-child(4) {
+      --reveal-index: 3;
+    }
+    .reveal-stagger > *:nth-child(5) {
+      --reveal-index: 4;
+    }
+    .reveal-stagger > *:nth-child(6) {
+      --reveal-index: 5;
+    }
+    .reveal-stagger > *:nth-child(n + 7) {
+      --reveal-index: 6;
+    }
+  }
+}
+
+@keyframes sam-fade-rise {
+  from {
+    opacity: 0;
+    /* translate rather than top/left: compositor-only, no layout, no CLS. */
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sam-mask-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* RTL wipes from the opposite edge; clip-path insets are physical, so this needs the mirror. */
+[dir="rtl"] .reveal-mask-wipe {
+  animation-name: sam-mask-wipe-rtl;
+}
+
+@keyframes sam-mask-wipe-rtl {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes sam-hairline-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

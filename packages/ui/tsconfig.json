@@ -1,7 +1,15 @@
 {
   "extends": "@sam-group/tsconfig/base.json",
   "compilerOptions": {
-    "jsx": "react-jsx"
+    // The shared base targets Node (lib: ES2022 only) because api and types are server-side.
+    // This is the one package that renders DOM, so browser globals are added here rather than
+    // in the shared base, which would hand browser types to packages that must not have them.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    // Named explicitly rather than left to @types auto-discovery: under pnpm's isolated
+    // node_modules the automatic scan does not reach this package's own @types directory, and
+    // the token build's node: imports resolve to nothing without it.
+    "types": ["node", "react"]
   },
-  "include": ["src"]
+  "include": ["src", "scripts"]
 }

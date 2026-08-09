@@ -1,0 +1,106 @@
+/*
+ * Specification presentation.
+ *
+ * Authored rather than composed from utilities because the two layouts and two scales
+ * cross-multiply, and because the hairline rhythm between rows is the detail that makes a
+ * specification block read as a designed artefact rather than a dumped table. Expressing that
+ * as conditional class strings in the component would put four permutations of layout logic
+ * into JSX.
+ */
+
+@layer components {
+  .spec-list {
+    display: grid;
+    width: 100%;
+  }
+
+  .spec-item__value {
+    /* Reset the UA's dd indent, which is physical and therefore wrong in RTL. */
+    margin-inline-start: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: --spacing(2);
+    color: var(--color-text-primary);
+  }
+
+  .spec-item__figure {
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .spec-item__unit {
+    color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+  }
+
+  .spec-item__standard {
+    color: var(--color-text-tertiary);
+    /* Pushed to the trailing edge on wide rows; falls back inline when the row wraps. */
+    margin-inline-start: auto;
+  }
+
+  /* Specification sheet: label leading, value trailing, hairline between rows. */
+  [data-spec-layout="rows"] .spec-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: --spacing(1);
+    padding-block: --spacing(3);
+    border-block-end: 1px solid var(--color-border-hairline);
+  }
+
+  [data-spec-layout="rows"] .spec-item:last-child {
+    border-block-end: 0;
+  }
+
+  @media (min-width: 768px) {
+    [data-spec-layout="rows"] .spec-item {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      align-items: baseline;
+      gap: --spacing(6);
+    }
+  }
+
+  /* Figure block: label above value. For hero statistics and storytelling moments. */
+  [data-spec-layout="stacked"] .spec-list,
+  [data-spec-layout="stacked"] {
+    gap: --spacing(8);
+  }
+
+  [data-spec-layout="stacked"] .spec-item {
+    display: grid;
+    gap: --spacing(2);
+  }
+
+  [data-spec-layout="stacked"] .spec-item__label {
+    order: -1;
+  }
+
+  /* Scale */
+  [data-spec-scale="default"] .spec-item__figure {
+    font-size: var(--text-title);
+    line-height: var(--text-title--line-height);
+    font-weight: 600;
+  }
+
+  [data-spec-scale="feature"] .spec-item__figure {
+    font-size: var(--text-display-2);
+    line-height: var(--text-display-2--line-height);
+    letter-spacing: var(--text-display-2--letter-spacing);
+    font-weight: var(--text-display-2--font-weight);
+  }
+
+  [data-spec-scale="feature"] .spec-item__unit {
+    font-size: var(--text-body);
+  }
+
+  /*
+   * On a feature-scale figure the standard reference sits under the value rather than being
+   * pushed to the trailing edge — at display size, an auto-margin strands it across the row.
+   */
+  [data-spec-scale="feature"] .spec-item__standard {
+    margin-inline-start: 0;
+    flex-basis: 100%;
+  }
+}

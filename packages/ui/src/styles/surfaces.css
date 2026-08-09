@@ -1,0 +1,96 @@
+/*
+ * Surface behaviour.
+ *
+ * The token *values* for each context are generated (see tokens/theme.generated.css); this
+ * file holds only what those values do. Splitting it this way keeps generated output free of
+ * hand-written rules, so regenerating never clobbers authored CSS.
+ *
+ * Midnight is a section treatment, not a dark mode. There is deliberately no
+ * prefers-color-scheme query and no theme toggle anywhere in this system.
+ */
+
+@layer base {
+  /*
+   * Any element that opens a surface context paints itself. This is what makes
+   * <Section surface="midnight"> sufficient on its own — descendants inherit the remapped
+   * semantic tokens and need no dark: variant, no context provider, and no client JavaScript.
+   */
+  [data-surface] {
+    background-color: var(--color-surface-canvas);
+    color: var(--color-text-primary);
+  }
+
+  /*
+   * Form controls and scrollbars inside a midnight section must not render with the browser's
+   * light chrome. color-scheme is the only thing that reaches them.
+   */
+  [data-surface="light"] {
+    color-scheme: light;
+  }
+
+  [data-surface="midnight"] {
+    color-scheme: dark;
+    /* Cinematic depth, not a flat fill — the falloff is what stops a large dark band reading
+       as an empty box on a wide monitor. */
+    background-image: var(--gradient-midnight-depth);
+  }
+}
+
+@layer components {
+  /*
+   * IndustrialGlassPanel. A treatment, not a context: it reads its glass tokens from whichever
+   * surface context it sits inside, so one component is correct on warm white and on midnight.
+   */
+  .industrial-glass-panel {
+    position: relative;
+    background-color: var(--color-glass-fill);
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-panel);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .industrial-glass-panel {
+      backdrop-filter: blur(var(--blur-glass)) saturate(140%);
+    }
+  }
+
+  /* The metallic top edge. Decorative, so it is hidden from assistive technology by virtue of
+     being a pseudo-element with no content. */
+  .industrial-glass-panel--sheen::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 1px;
+    background-image: var(--gradient-platinum-sheen);
+    border-start-start-radius: var(--radius-panel);
+    border-start-end-radius: var(--radius-panel);
+  }
+
+  /*
+   * Divider variants. The gradient forms fade at both ends, which is what makes a full-bleed
+   * rule read as a considered detail rather than a border.
+   */
+  .divider-platinum {
+    background-image: var(--gradient-platinum-sheen);
+  }
+
+  .divider-accent {
+    background-image: var(--gradient-accent-edge);
+  }
+
+  .divider-brass {
+    background-image: var(--gradient-brass-hairline);
+  }
+
+  /*
+   * Photography slot placeholder. Launch photography is an open content dependency
+   * (docs/ROADMAP.md M5), so an empty slot has to read as intentional rather than broken.
+   */
+  .media-slot-empty {
+    background-color: var(--color-surface-sunken);
+    background-image: var(--gradient-platinum-sheen);
+    background-blend-mode: soft-light;
+  }
+}

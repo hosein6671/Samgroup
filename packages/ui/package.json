@@ -5,16 +5,30 @@
   "types": "./src/index.ts",
   "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./tokens": "./src/tokens/index.ts",
+    "./theme.css": "./src/tokens/theme.generated.css",
+    "./styles/base.css": "./src/styles/base.css",
+    "./styles/surfaces.css": "./src/styles/surfaces.css",
+    "./styles/grid.css": "./src/styles/grid.css",
+    "./styles/spec.css": "./src/styles/spec.css",
+    "./styles/motion.css": "./src/styles/motion.css"
   },
   "scripts": {
+    "tokens:build": "tsx scripts/build-tokens.ts",
     "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "clsx": "2.1.1",
+    "tailwind-merge": "3.6.0"
   },
   "peerDependencies": {
     "react": "^19.0.0"
   },
   "devDependencies": {
     "@sam-group/tsconfig": "workspace:*",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
     "typescript": "6.0.3"
   }
 }

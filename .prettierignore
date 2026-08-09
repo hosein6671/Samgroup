@@ -7,6 +7,10 @@ out/
 .turbo/
 coverage/
 
+# Emitted by packages/ui's token build from src/tokens/*.ts. Generated code, and the
+# generator owns its formatting — reformatting it would produce a diff on every build.
+packages/ui/src/tokens/theme.generated.css
+
 # Prisma 7 emits the client into the repository rather than node_modules,
 # because an explicit generator output path is now required. It is generated
 # code — Prettier neither reads .gitignore nor should reformat it.

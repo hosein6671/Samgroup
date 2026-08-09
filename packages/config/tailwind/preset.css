@@ -1,0 +1,26 @@
+/*
+ * Shared Tailwind entry for the platform. An app's global stylesheet imports this one file:
+ *
+ *   @import "@sam-group/config/tailwind";
+ *
+ * Import order matters. Tailwind first, then the generated theme (so @theme can extend rather
+ * than be overwritten), then authored layers. base.css and surfaces.css both target @layer
+ * base/components/utilities, so their position relative to each other does not affect
+ * specificity — only their position after the theme does.
+ */
+
+@import "tailwindcss";
+
+@import "@sam-group/ui/theme.css";
+@import "@sam-group/ui/styles/base.css";
+@import "@sam-group/ui/styles/surfaces.css";
+@import "@sam-group/ui/styles/grid.css";
+@import "@sam-group/ui/styles/spec.css";
+@import "@sam-group/ui/styles/motion.css";
+
+/*
+ * Tailwind v4 scans the importing app automatically, but not this package's dependencies.
+ * Without this the primitives' classes are compiled out of the app's CSS, because no source
+ * file the scanner saw ever mentioned them.
+ */
+@source "../../ui/src";
