@@ -1,0 +1,568 @@
+/*
+ * SAM GROUP — CUSTOMIZED SOLUTIONS
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * It adds the constructions this page needs and nothing else. It declares no colour, no typeface,
+ * no radius and no easing of its own — every value below resolves to a token already declared by
+ * `flagship.css` inside `[data-brand="flagship"]`, or by the design system's generated theme. This
+ * page cannot drift from the homepage, the Products landing or the category template, because
+ * there is nothing here to drift with.
+ *
+ * Where a construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`,
+ * `.fs-eyebrow`, `.fs-d1`–`.fs-d4`, `.fs-lead`, `.fs-btn`, `.fs-field`, `.fs-blueprint` — it is
+ * used directly rather than restated under a `cs-` name. The Products landing's inert-form
+ * vocabulary (`.pr-inert`, `.pr-gate-fieldset`, `.pr-consent`) is imported and used as-is for the
+ * same reason, and is not copied here under a second name.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`, no
+ * JavaScript. The homepage's `RevealEngine` stays homepage-only.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * Four sections, so the rhythm is a single arc rather than the category page's three dark anchors:
+ * dark hero → two light sections → dark close. The page opens on the proposition and closes on the
+ * form, and the two light sections between them are told apart by construction — prose column
+ * against a numbered rail — rather than by a background change.
+ *
+ * The close being dark matters more here than elsewhere. It is the only section that asks the
+ * reader to do something, and `.fs-field` is authored for dark surfaces (white text on a
+ * translucent fill), so the form sits on `data-surface="midnight"` and inherits the field styling
+ * the platform already has rather than needing a light variant written for one page.
+ */
+
+/* ============================================================================
+   1 · HERO
+   ============================================================================ */
+
+.cs-hero {
+  position: relative;
+  padding-block: clamp(128px, 14vh, 190px) clamp(64px, 7vw, 104px);
+  background:
+    radial-gradient(ellipse 110% 75% at 12% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+/*
+ * Copy takes the fluid column, the process index a bounded one — the same split the category
+ * hero uses, and bounded by the same reasoning: the index holds six single words, and past about
+ * 380px it stops being a column and becomes a list with air in it. Allowed to shrink so the
+ * two-column composition survives down to 980px rather than collapsing at 1180.
+ */
+.cs-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(272px, 26vw, 380px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: center;
+}
+
+.cs-hero h1 {
+  margin-top: clamp(18px, 2vw, 28px);
+  max-width: 13ch;
+}
+
+.cs-hero .fs-lead {
+  margin-top: clamp(22px, 2.4vw, 32px);
+  max-width: 52ch;
+}
+
+.cs-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+/* ---------------------------------------------------- the process index
+ *
+ * A descent, not a stack of bands.
+ *
+ * The category hero's index draws strata because its content is bands with contents. This page's
+ * content is a sequence that only goes one way, so the index is drawn as a single connected
+ * descent: one continuous rule down the left, a marker per step sitting on it, and the numbering
+ * carrying the order. Borders and pseudo-elements on tokenised colours — no SVG to keep in sync
+ * with the data, no canvas, no JavaScript.
+ */
+.cs-index {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(18px, 2.2vw, 30px);
+}
+
+.cs-index-note {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.cs-index-list {
+  list-style: none;
+  margin: clamp(18px, 2vw, 24px) 0 0;
+  padding: 0;
+  position: relative;
+}
+
+/* The rule the markers sit on. Inset to the marker's centre, stopped short at both ends so the
+   sequence reads as bounded rather than as a line running off the panel. */
+.cs-index-list::before {
+  content: "";
+  position: absolute;
+  inset-block: 14px;
+  inset-inline-start: 13px;
+  width: 1px;
+  background: var(--color-border-hairline);
+}
+
+.cs-index-step a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-block: 9px;
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.cs-index-num {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-hairline);
+  background: var(--color-surface-canvas);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  transition:
+    border-color var(--t-micro) var(--e-micro),
+    color var(--t-micro) var(--e-micro);
+}
+
+.cs-index-name {
+  font-size: 15px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  color: var(--color-text-secondary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.cs-index-step a:hover .cs-index-num {
+  border-color: var(--color-border-accent);
+  color: var(--color-text-accent);
+}
+
+.cs-index-step a:hover .cs-index-name {
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   2 · INTRODUCTION
+   ============================================================================ */
+
+/*
+ * Heading left, prose right — the asymmetric editorial split the category page's section headers
+ * already use, held at a real measure rather than run full-bleed.
+ */
+.cs-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(32px, 5vw, 96px);
+  align-items: start;
+}
+
+.cs-intro-head h2 {
+  margin-top: 18px;
+  max-width: 14ch;
+}
+
+.cs-intro-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2vw, 26px);
+}
+
+.cs-intro-body .fs-lead {
+  max-width: 60ch;
+}
+
+/* ---------------------------------------------------- the pending aside
+ *
+ * Proof-state furniture, and styled to read as such: dashed rather than solid, quiet rather than
+ * accented, and deliberately not a panel — a panel would make it look like a feature of the page.
+ * It is deleted when the three sections it names have approved copy.
+ */
+.cs-pending {
+  margin-top: clamp(8px, 1vw, 14px);
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.cs-pending-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.cs-pending-head strong {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.cs-pending-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.cs-pending-list li {
+  display: grid;
+  gap: 3px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.cs-pending-list b {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.cs-pending-list span {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   3 · CUSTOMIZATION PROCESS
+   ============================================================================ */
+
+/*
+ * The section sits directly on the light surface with no ground of its own. Two adjacent light
+ * sections are told apart by construction, per the rhythm note at the top of this file — prose
+ * column, then a numbered rail.
+ */
+.cs-process-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 72px);
+  align-items: end;
+}
+
+.cs-process-head h2 {
+  margin-top: 18px;
+  max-width: 12ch;
+}
+
+/*
+ * The rail.
+ *
+ * Six steps on one horizontal line, because they are a sequence and a grid of six boxes would say
+ * they are alternatives. The connector is drawn once behind the row rather than per step, so the
+ * line is genuinely continuous and no seam appears between cells.
+ *
+ * `auto-fit` with a floor rather than `repeat(6, 1fr)`: at six columns each step gets about 150px
+ * at the page's max width, which is enough for one word and its numeral and nothing more. When the
+ * viewport cannot give each step its floor the row wraps to three and then to two, and the
+ * connector — inset to the marker row — stays correct because it is drawn per row.
+ */
+.cs-rail {
+  position: relative;
+  list-style: none;
+  margin: clamp(44px, 5vw, 72px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: clamp(24px, 3vw, 36px) 0;
+}
+
+.cs-step {
+  position: relative;
+  padding-inline: clamp(12px, 1.4vw, 20px);
+}
+
+/*
+ * The connector, drawn per step as a rule running from this marker to the next one.
+ *
+ * Per step rather than once behind the row so that a wrapped row does not trail a line into empty
+ * space: the last step of each visual row has no following sibling on that row, and `:last-child`
+ * plus the natural clip at the grid edge keeps the run bounded.
+ */
+.cs-step::before {
+  content: "";
+  position: absolute;
+  top: 17px;
+  inset-inline-start: calc(50% + 22px);
+  inset-inline-end: calc(-50% + 22px);
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+
+.cs-step:last-child::before {
+  display: none;
+}
+
+.cs-step-num {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  margin-inline: auto;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-accent);
+  background: var(--color-surface-raised);
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-accent);
+}
+
+.cs-step-name {
+  margin: 16px 0 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(17px, 1.5vw, 21px);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: var(--color-text-primary);
+}
+
+/* Optional and unset in every step today — the descriptions are pending editorial copy. */
+.cs-step-note {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Why the rail carries names and no timings. Same dashed-quiet treatment as the pending aside,
+ * because it is the same kind of statement: something the page is declining to publish, said out
+ * loud rather than left as an absence.
+ */
+.cs-process-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 78ch;
+  margin: clamp(40px, 4.5vw, 64px) auto 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   4 · CUSTOM PRODUCT REQUEST
+   ============================================================================ */
+
+.cs-request {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 100% 70% at 85% 100%, rgba(18, 41, 110, 0.45), transparent 62%),
+    var(--color-surface-canvas);
+}
+
+.cs-request-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.cs-request-head {
+  max-width: 62ch;
+}
+
+.cs-request-head h2 {
+  margin-top: 18px;
+}
+
+.cs-request-head .fs-lead {
+  margin-top: clamp(18px, 2vw, 26px);
+}
+
+/*
+ * The panel is the form.
+ *
+ * The Products landing's gate is a panel because it is one tier of two and needs an edge to be
+ * the gate. Here the form is the whole section, so the panel is doing a different job: it holds
+ * fourteen controls together against a section that would otherwise let them drift the full page
+ * width. Capped at a measure where a two-column field grid still reads as two columns.
+ */
+.cs-request-panel {
+  max-width: 880px;
+  margin-top: clamp(36px, 4vw, 56px);
+  padding: clamp(24px, 3vw, 44px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+}
+
+/* The inert notice is the first thing inside the panel, above the first group. */
+.cs-request-panel .pr-inert {
+  margin-top: 0;
+  margin-bottom: clamp(20px, 2.4vw, 30px);
+}
+
+.cs-group + .cs-group {
+  margin-top: clamp(28px, 3vw, 40px);
+  padding-top: clamp(24px, 2.6vw, 34px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.cs-group-head {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.cs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+}
+
+.cs-grid .fs-field {
+  min-width: 0;
+}
+
+.cs-field--wide {
+  grid-column: 1 / -1;
+}
+
+/*
+ * The file input.
+ *
+ * `.fs-field input` is authored for text entry — a fixed min-height and a text baseline — and a
+ * file input's button sits badly in it. This restores a natural height and gives the browser's own
+ * button a surface that belongs to the palette, without restyling the control itself (which would
+ * mean replacing it, and a replaced file input is a control that no longer announces its state).
+ */
+.cs-file {
+  min-height: 0;
+  padding: 11px 14px;
+  font-size: 13px;
+}
+
+.cs-file::file-selector-button {
+  margin-inline-end: 14px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-glass-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cs-request-actions {
+  margin-top: clamp(24px, 2.6vw, 32px);
+}
+
+/* ============================================================================
+   5 · RESPONSIVE
+   ============================================================================
+   The same three breakpoints the Products landing and the category template use, so the four
+   pages change shape at the same widths rather than each at its own.
+   ============================================================================ */
+
+@media (max-width: 1180px) {
+  /* The hero's two columns stop being a composition once the display type loses its measure. */
+  .cs-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 48px);
+  }
+
+  .cs-hero h1,
+  .cs-hero .fs-lead {
+    max-width: none;
+  }
+}
+
+/*
+ * The rail's column count, as two **bounded** bands rather than two overlapping max-widths.
+ *
+ * Bounded on purpose, and the reason is worth recording. The connector is hidden on whichever
+ * step ends a visual row, which is `:nth-child(3n)` at three columns and `:nth-child(2n)` at two.
+ * Written as overlapping `max-width` queries, the three-column rule still matches at 500px, and
+ * a plain `.cs-step::before { display: block }` reset cannot undo it — `.cs-step:nth-child(3n)`
+ * is the more specific selector and wins regardless of source order. The symptom was step 3
+ * losing its connector to step 4 at two columns, verified in the browser before this was changed.
+ *
+ * Non-overlapping ranges mean exactly one of these blocks applies at any width, so there is no
+ * reset to write and no specificity contest to lose.
+ */
+@media (min-width: 621px) and (max-width: 1180px) {
+  /* Six across no longer fits; the rail wraps to three and the connectors follow. */
+  .cs-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cs-step:nth-child(3n)::before {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .cs-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cs-step:nth-child(2n)::before {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .cs-intro-grid,
+  .cs-process-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cs-intro-head h2,
+  .cs-process-head h2 {
+    max-width: 18ch;
+  }
+}
+
+@media (max-width: 620px) {
+  /* The rail's own two-column band is declared above, with the three-column one it excludes. */
+  .cs-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
