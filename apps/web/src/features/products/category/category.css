@@ -1,0 +1,2249 @@
+/*
+ * SAM GROUP — PRODUCT CATEGORY TEMPLATE
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * It adds the constructions the category template needs and nothing else. It declares no colour,
+ * no typeface, no radius and no easing of its own — every value below resolves to a token already
+ * declared by `flagship.css` inside `[data-brand="flagship"]`, or by the design system's generated
+ * theme. This page cannot drift from the homepage or the Products landing, because there is
+ * nothing here to drift with.
+ *
+ * Where a construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`,
+ * `.fs-eyebrow`, `.fs-d1`–`.fs-d4`, `.fs-lead`, `.fs-btn`, `.fs-blueprint` — it is used directly
+ * rather than restated under a `pc-` name. The Products landing's `.pr-*` constructions are not
+ * copied either: the one block this page shares with it, the closing CTA, is the landing's own
+ * component rendered as-is.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`,
+ * no JavaScript. The homepage's `RevealEngine` stays homepage-only.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * Eleven sections is a long page, so surface switching does the structural work that a shorter
+ * page can leave to spacing. Three dark anchors, evenly spaced, each one a different kind of
+ * content: the hero, the specification table, the documentation register. Everything between
+ * them is light, and adjacent light sections are told apart by construction — register, stage
+ * rail, format chips — rather than by a background change that would not survive being read.
+ *
+ * The related-categories strip is the fourth dark band and the shortest, so the page closes on a
+ * dark index before the shared CTA returns to light, which is where the landing also ends.
+ */
+
+/* ============================================================================
+   1 · HERO
+   ============================================================================ */
+
+.pc-hero {
+  position: relative;
+  padding-block: clamp(128px, 14vh, 190px) clamp(64px, 7vw, 104px);
+  background:
+    radial-gradient(ellipse 110% 75% at 12% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+/*
+ * The copy takes the fluid column, the range index a bounded one.
+ *
+ * `clamp(272px, 26vw, 380px)` rather than a flat 380px. Capped at 380 for the same reason the
+ * landing's diagram is capped: the index holds seven short designations and a handful of grade
+ * marks, and past roughly 400px it stops being a column and becomes a list with air in it.
+ * Allowed to *shrink*, though, because a fixed 380px is what forced the composition to stack at
+ * 1180 — and a stacked hero at 1024, where 920px of measure is still available, threw away the
+ * two-column tension and left the panel sitting in a half-empty band. Narrowing keeps the
+ * composition down to 980px, which is where the display type genuinely runs out of room.
+ */
+.pc-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(272px, 26vw, 380px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: center;
+}
+
+/* A level-2 page says so. Mono, hairline-quiet, above the eyebrow. */
+.pc-trail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin-bottom: 22px;
+}
+
+.pc-trail a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pc-trail a:hover {
+  color: var(--color-text-accent);
+}
+
+.pc-trail [aria-current="page"] {
+  color: var(--color-text-secondary);
+}
+
+.pc-hero h1 {
+  margin-top: clamp(18px, 2vw, 28px);
+  max-width: 14ch;
+}
+
+.pc-hero .fs-lead {
+  margin-top: clamp(22px, 2.4vw, 32px);
+  max-width: 54ch;
+}
+
+.pc-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+/* ---------------------------------------------------- the range index
+ *
+ * A stratigraphic column, not a branch tree — the landing's hero already owns the tree, and this
+ * content is bands with contents rather than a chain that divides.
+ *
+ * Each band is a full-width row separated by a hairline, with a gold edge that only appears on
+ * hover. Drawn with borders and pseudo-elements on tokenised colours: no SVG to keep in sync with
+ * the data, no canvas, no JavaScript.
+ */
+.pc-index {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(18px, 2.2vw, 30px);
+}
+
+.pc-index-note {
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.pc-index-stack,
+.pc-index-bands {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pc-index-stack {
+  margin-top: clamp(18px, 2vw, 24px);
+}
+
+/*
+ * The dimension heading, for a category organised by more than one.
+ *
+ * This is the index's second level where the taxonomy names no grades — Antifreeze & Coolants
+ * names none at all, and faking chips to keep the panel two-level would be inventing products.
+ * A category that sets no axis renders one unlabelled group and this never appears, which is why
+ * Base Oils' panel is unchanged.
+ */
+.pc-index-group + .pc-index-group {
+  margin-top: 20px;
+}
+
+.pc-index-axis {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pc-index-axis::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+
+.pc-index-band {
+  position: relative;
+  border-top: 1px solid var(--color-border-hairline);
+  padding-block: 12px;
+}
+
+.pc-index-band:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* The band edge. Absent at rest, gold on hover — the accent is rare by design-system rule. */
+.pc-index-band::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--fs-gutter) * -0.14);
+  inset-block: 10px;
+  width: 2px;
+  background: var(--color-border-accent);
+  opacity: 0;
+  transition: opacity var(--t-micro) var(--e-micro);
+}
+
+.pc-index-band:hover::before {
+  opacity: 1;
+}
+
+.pc-index-band > a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.pc-index-num {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-tertiary);
+  flex: none;
+}
+
+.pc-index-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pc-index-band:hover .pc-index-name {
+  color: var(--color-text-accent);
+}
+
+.pc-index-grades {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding-inline-start: 30px;
+}
+
+.pc-index-grades li {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 5px;
+  padding: 3px 7px;
+}
+
+/* ============================================================================
+   2 · OVERVIEW
+   ============================================================================ */
+
+.pc-over-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: clamp(40px, 5vw, 90px);
+  align-items: start;
+}
+
+.pc-over-copy h2 {
+  margin-top: 22px;
+  max-width: 16ch;
+}
+
+.pc-over-para {
+  margin-top: clamp(20px, 2.2vw, 28px);
+  max-width: 58ch;
+}
+
+/*
+ * The marker rail — a definition list, hairline-ruled, not a statistics strip.
+ *
+ * Every entry states something about the page (how many sub-ranges, which classification, which
+ * documents, when a sample is available). The homepage puts telemetry in a slot like this; this
+ * page has no figure it is entitled to print, so the construction is deliberately quiet: no
+ * large numerals, no counters, no emphasis that would read as a claim.
+ */
+.pc-markers {
+  margin: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-marker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: baseline;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-marker dt {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pc-marker dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+  text-align: end;
+}
+
+/* ============================================================================
+   3 · PRODUCT RANGE
+   ============================================================================ */
+
+.pc-range {
+  overflow: hidden;
+}
+
+.pc-range-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: end;
+}
+
+.pc-range-head h2 {
+  margin-top: 22px;
+  max-width: 14ch;
+}
+
+/* ------------------------------------------------------- classification axes
+ *
+ * Names only. The boundary values belong to the standard and the per-grade values belong to the
+ * data sheet, so the strip carries three words and a note explaining why it carries three words.
+ */
+.pc-axes {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 16px 24px;
+  align-items: center;
+  margin-top: clamp(40px, 4.5vw, 66px);
+  padding: 18px 0;
+  border-block: 1px solid var(--color-border-hairline);
+}
+
+.pc-axes-label {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pc-axes-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.pc-axes-list li {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+.pc-axes-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-tertiary);
+  max-width: 46ch;
+  justify-self: end;
+  text-align: end;
+}
+
+/* ------------------------------------------------------------- the register
+ *
+ * One entry per sub-range: index, designation and its place in the classification, the summary,
+ * then the grade rail where the taxonomy names grades. Hairline-separated rather than boxed —
+ * seven boxes would give seven unequal things equal weight, which is the failure the frozen
+ * landing's register was built to avoid one level up.
+ */
+.pc-subranges {
+  margin-top: clamp(28px, 3vw, 44px);
+}
+
+/*
+ * The dimension heading in the register.
+ *
+ * Only renders where a category is organised by more than one dimension. It is set heavier than
+ * the row qualifiers beneath it — display type, a rule, and a count — so the register reads as
+ * three groups rather than as eight peers, which is what SITE_STRUCTURE §4 actually describes
+ * for this category.
+ */
+.pc-sub-group + .pc-sub-group {
+  margin-top: clamp(30px, 3.4vw, 48px);
+}
+
+.pc-sub-axis {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0 0 4px;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pc-sub-axis::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-accent);
+  opacity: 0.4;
+}
+
+.pc-sub-axis span:last-child {
+  order: 2;
+  color: var(--color-text-tertiary);
+}
+
+/*
+ * A group that has a heading already carries a rule above its first row, so that row drops its
+ * own. Scoped through the heading rather than to `.pc-sub-group`, so the ungrouped case — one
+ * group, no heading, which is every single-hierarchy category — keeps the top rule it had.
+ */
+.pc-sub-axis + div .pc-sub:first-child {
+  border-top: 0;
+}
+
+/*
+ * Index + body, at every width and for every category.
+ *
+ * The grade rail used to be a third column here. That made the row's structure depend on data
+ * most categories do not have — four of Base Oils' seven sub-ranges publish no individual
+ * grades, and the taxonomies for Industrial Oils and Antifreeze & Coolants name none at all, so
+ * on those pages every row would have carried an empty column. Two columns resolve identically
+ * whether a sub-range names zero grades, one, or eleven.
+ */
+.pc-sub {
+  position: relative;
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: clamp(20px, 2.6vw, 44px);
+  align-items: start;
+  padding-block: clamp(26px, 2.8vw, 38px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-sub:first-child {
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-sub-index {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-tertiary);
+  padding-top: 6px;
+}
+
+.pc-sub-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.1vw, 30px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.pc-sub-qualifier {
+  margin: 8px 0 0;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pc-sub-summary {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.62;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  max-width: 58ch;
+}
+
+/*
+ * The grade block — label plus rail, beneath the summary.
+ *
+ * The label is what makes a sub-range with no grades read as deliberate. A block that announces
+ * itself is either present or absent; a column that is sometimes empty looks like a column that
+ * failed to fill. Nothing renders here at all when the taxonomy names no grades.
+ */
+.pc-grade-block {
+  margin-top: clamp(18px, 2vw, 24px);
+}
+
+.pc-grade-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pc-grade-label::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--color-border-accent);
+  flex: none;
+}
+
+.pc-grade-label span {
+  color: var(--color-text-accent);
+}
+
+/* Cells are individually bordered rather than separated by a 1px gap over a ruled background.
+ * The gap technique draws every unfilled track in the rule colour, and a range with four grades
+ * across three columns has one — a grey block that reads as a fifth grade that failed to load.
+ * Bordered cells leave the unfilled track empty, which is what it is. The same reasoning applies
+ * to the property axis, the industry list and the related-category strip below.
+ */
+.pc-grades {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  max-width: 780px;
+}
+
+.pc-grade {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px 15px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 10px;
+  background: var(--color-surface-canvas);
+}
+
+.pc-grade b {
+  font-family: var(--font-technical);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+}
+
+.pc-grade small {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   4 · KEY SPECIFICATIONS
+   ============================================================================ */
+
+.pc-props {
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-props-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: end;
+}
+
+.pc-props-head h2 {
+  margin-top: 22px;
+  max-width: 12ch;
+}
+
+/* ------------------------------------------------------ specification families
+ *
+ * Rendered only where a category publishes more than one axis. Industrial Oils & Lubricants does
+ * — eight fluid sub-ranges and one grease sub-range, which share almost no properties — and the
+ * label is what stops the second table reading as a continuation of the first.
+ *
+ * A category with a single axis renders no label at all and the section is unchanged.
+ */
+.pc-props-group + .pc-props-group {
+  margin-top: clamp(44px, 5vw, 76px);
+}
+
+.pc-props-group-head {
+  display: grid;
+  gap: 8px;
+  margin-top: clamp(36px, 4vw, 58px);
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-props-group-label {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pc-props-group-label::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-accent);
+  opacity: 0.4;
+}
+
+.pc-props-group-label span {
+  order: 2;
+  color: var(--color-text-tertiary);
+}
+
+.pc-props-group-note {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* The axis list opens each group, so it needs no top margin of its own when one is labelled. */
+.pc-props-group-head + .pc-axis {
+  margin-top: clamp(20px, 2.2vw, 28px);
+}
+
+/*
+ * Stated once per axis, in place of a test-standard designation per column.
+ *
+ * The earlier revision printed an ASTM number under every property. No project document names a
+ * test standard anywhere, so those were unapproved technical content; this says the methods are
+ * pending review instead of naming one. Quiet by design — it is a provisional state, not a claim.
+ */
+.pc-method-note {
+  margin: 14px 0 0;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* ------------------------------------------------------------ the axis list
+ *
+ * The part of this section that has content today, so it leads. Six rows: index, property with
+ * its unit, and the standard it is measured by. The table beneath is the shape those values will
+ * occupy once lab data is approved.
+ */
+.pc-axis {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+  gap: 10px;
+  margin: clamp(40px, 4.5vw, 66px) 0 0;
+  padding: 0;
+}
+
+.pc-axis-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  padding: 17px 19px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  background: var(--color-surface-raised);
+}
+
+.pc-axis-num {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-tertiary);
+  padding-top: 4px;
+}
+
+.pc-axis-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.pc-axis-name em {
+  font-family: var(--font-technical);
+  font-style: normal;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-tertiary);
+}
+
+.pc-axis-method {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-accent);
+}
+
+.pc-axis-method small {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+}
+
+/* ------------------------------------------------------------------ the table
+ *
+ * A real `<table>`. Rows are grades, columns are properties, and the method travels in the header
+ * cell rather than in a footnote. Every value cell is empty by instruction — see the component's
+ * note — so the grid is drawn to read as a blank specification sheet rather than as a broken one:
+ * hairline rules throughout, em dashes at tertiary weight, and a caption that says where the
+ * numbers actually live before a reader reaches the first dash.
+ */
+/*
+ * The pending note. Outside the scroll container so it wraps to the page measure rather than to
+ * the table's 860px minimum — inside, at 390px, the sentence explaining the em dashes sat behind
+ * the same horizontal scroll as the dashes.
+ */
+.pc-table-note {
+  margin: clamp(28px, 3vw, 44px) 0 0;
+  max-width: 74ch;
+  font-size: 14.5px;
+  line-height: 1.62;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--color-border-accent);
+}
+
+/*
+ * The scroll frame — scroller, edge fade and cue.
+ *
+ * The fade and the cue sit on the frame rather than inside the scroller, so they hold their
+ * position instead of travelling away with the content at the moment they are needed.
+ */
+.pc-table-frame {
+  position: relative;
+  margin-top: clamp(20px, 2.2vw, 28px);
+}
+
+.pc-table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-raised);
+}
+
+/*
+ * The affordance. Both parts are hidden at widths where the table fits — an edge fade over a
+ * table that cannot scroll is a lie about the content, and the cue would be an instruction to do
+ * something that does nothing.
+ *
+ * They appear from 1180px down, not from 900px, because that is where the table actually starts
+ * to scroll: eight columns at a 940px minimum against a wrap that has narrowed past it. The
+ * brief asked for the cue at ≤900px and this is that plus the two widths between, where the
+ * scroll is real and was previously unsignalled.
+ */
+.pc-scroll-cue,
+.pc-table-fade {
+  display: none;
+}
+
+.pc-table {
+  width: 100%;
+  /* Eight columns: grade, classification, and the six properties. */
+  min-width: 940px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Names the table, and nothing more — the explanation is the note above it. */
+.pc-table caption {
+  text-align: start;
+  padding: 16px 18px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-table th,
+.pc-table td {
+  text-align: start;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  vertical-align: top;
+}
+
+.pc-table thead th {
+  background: var(--color-surface-sunken);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-th-name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--color-text-primary);
+}
+
+.pc-th-name em {
+  font-family: var(--font-technical);
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+}
+
+.pc-th-method {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+/*
+ * The grade column stays put while the properties scroll. Sticky needs an opaque background of
+ * its own or the scrolled cells show through, and it must match the row it sits in.
+ */
+.pc-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  /*
+   * `z-index` is not optional here. A sticky cell with `z-index: auto` still paints in DOM
+   * order, so every `<td>` after it paints on top — and once the table is scrolled those cells
+   * sit underneath the sticky column and their pending rules showed through the grade name.
+   */
+  z-index: 1;
+  background: var(--color-surface-raised);
+  min-width: 172px;
+}
+
+/* The header's grade cell travels with the column it labels, for the same reason. */
+.pc-table thead th:first-child {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  background: var(--color-surface-sunken);
+}
+
+/*
+ * The classification column — the table's second populated column.
+ *
+ * It is why the section no longer reads as failed data loading. A grade name beside six blanks
+ * is a broken row; a grade name and its classification beside six fields awaiting lab data is a
+ * usable index of the range. The value is `SubRange.qualifier`, already published in the range
+ * register and derived rather than authored.
+ */
+.pc-cell-class {
+  min-width: 196px;
+  max-width: 240px;
+  font-family: var(--font-technical) !important;
+  font-size: 11px !important;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  color: var(--color-text-accent) !important;
+}
+
+.pc-row-label {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+}
+
+.pc-row-scope {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.pc-table td {
+  font-family: var(--font-technical);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+/*
+ * The unpublished mark: a short rule, not an em dash.
+ *
+ * A dash reads as a value that is missing. A rule reads as a field waiting to be filled — the
+ * same mark a paper specification sheet carries before the lab writes on it, which is exactly
+ * this table's state. The cell's only text is the `VisuallyHidden` announcement, so a screen
+ * reader hears "Not published" rather than meeting an empty cell or sixty-odd dashes.
+ */
+.pc-table td[data-pending="true"] {
+  min-width: 94px;
+}
+
+.pc-table td[data-pending="true"]::before {
+  content: "";
+  display: block;
+  width: 22px;
+  height: 1px;
+  margin-top: 9px;
+  background: var(--color-text-tertiary);
+  opacity: 0.45;
+}
+
+.pc-table tbody tr:last-child th,
+.pc-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ============================================================================
+   5 · PROCESSING & QUALITY
+   ============================================================================ */
+
+.pc-quality-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: end;
+}
+
+.pc-quality-head h2 {
+  margin-top: 22px;
+  max-width: 13ch;
+}
+
+.pc-quality-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: clamp(32px, 4vw, 72px);
+  margin-top: clamp(40px, 4.5vw, 66px);
+  align-items: start;
+}
+
+/*
+ * Without the named-process callout the side column holds one panel instead of two, and the
+ * 1.25fr split leaves it visibly short against a three-stage rail.
+ *
+ * The fix is to rebalance rather than to pad: equal columns, and the test panel stretches to the
+ * rail's height so the two sides terminate together. Adding invented process copy to fill the
+ * gap is the one thing that must not happen here — the named block belongs to Base Oils alone
+ * (SITE_STRUCTURE §4 item 5) and a second category does not get one written for it.
+ */
+/*
+ * Guarded by min-width, not written flat.
+ *
+ * `.pc-quality-grid` folds to one column at 1180 with every other two-column block on the page,
+ * and this selector is more specific than that fold — written unguarded it re-imposed two columns
+ * below the fold and pushed the test panel past the viewport at 390.
+ */
+@media (min-width: 1181px) {
+  .pc-quality[data-named="false"] .pc-quality-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+.pc-quality[data-named="false"] .pc-tests {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The list takes the slack, so the footnote stays at the foot of the panel. */
+.pc-quality[data-named="false"] .pc-test-list {
+  flex: 1;
+}
+
+/* ------------------------------------------------------------- the stage rail
+ *
+ * Three stages, each stepping down from the last with a connector drawn between them. The
+ * connector is a pseudo-element on the list item rather than a border on a wrapper, so the
+ * sequence has no trailing rule under the final stage.
+ */
+.pc-stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pc-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 26px);
+  padding-block: clamp(20px, 2.2vw, 28px);
+}
+
+.pc-stage:first-child {
+  padding-top: 0;
+}
+
+/* The riser between one stage and the next. */
+.pc-stage:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 13px;
+  top: 34px;
+  bottom: -6px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--color-border-accent), var(--color-border-hairline));
+}
+
+.pc-stage-num {
+  position: relative;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-accent);
+  padding-inline-start: 26px;
+  padding-top: 4px;
+}
+
+/* The stage node, on the riser's line. */
+.pc-stage-num::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 9px;
+  top: 8px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--color-border-accent);
+  border-radius: 50%;
+  background: var(--color-surface-canvas);
+}
+
+.pc-stage-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 1.8vw, 25px);
+  font-weight: 400;
+  letter-spacing: -0.018em;
+  color: var(--color-text-primary);
+}
+
+.pc-stage-note {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.62;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  max-width: 44ch;
+}
+
+/* ------------------------------------------------------------- the side column */
+
+.pc-quality-side {
+  display: grid;
+  gap: clamp(20px, 2.2vw, 30px);
+}
+
+/*
+ * The named process. A name, and the one sentence saying which document owns its description —
+ * the source documents name Thin Film Polishing twice and describe it nowhere, so anything more
+ * here would be written for the first time on a product page.
+ */
+.pc-named {
+  border: 1px solid var(--color-border-accent);
+  border-radius: var(--radius-panel);
+  background: var(--color-accent-muted);
+  padding: clamp(20px, 2.2vw, 28px);
+}
+
+.pc-named-name {
+  margin: 14px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+  color: var(--color-text-primary);
+}
+
+.pc-named-note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.pc-tests {
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  padding: clamp(20px, 2.2vw, 28px);
+  background: var(--color-surface-sunken);
+}
+
+.pc-tests-head,
+.pc-incoterms-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0 0 4px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pc-test-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pc-test-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding-block: 11px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.pc-test-list li b {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--color-text-accent);
+  flex: none;
+}
+
+.pc-tests-foot {
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+}
+
+.pc-tests-foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pc-tests-foot a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ============================================================================
+   6 · APPLICATIONS
+   ============================================================================ */
+
+.pc-apps-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: end;
+}
+
+.pc-apps-head h2 {
+  margin-top: 22px;
+  max-width: 14ch;
+}
+
+/* ------------------------------------------------------ the distribution manifold
+ *
+ * One source, four destinations. This section was a numbered hairline register — the same
+ * construction the range register above uses — and two instances of one device inside three
+ * thousand pixels read as a reprise rather than as a new argument.
+ *
+ * It is now drawn as what the content is: a trunk with branches. A source block on the left, a
+ * trunk running down the branch column, an elbow off it into each destination, and no box around
+ * anything — content hangs off a hairline, so nothing here is a card.
+ *
+ * Distinct from the quality rail on the same page by construction, not by colour: that one runs a
+ * *sequence* through three stages, with nodes on one line and copy beside them. This one
+ * *divides* one input into four, so the trunk has a head, the branches hang from it, and the
+ * branch marks are family codes rather than ordinals — the order of the four carries no meaning
+ * and numbering them would imply it did.
+ *
+ * Borders and pseudo-elements on tokenised colours. No SVG, no canvas, no JavaScript.
+ */
+.pc-flow {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(28px, 3.5vw, 68px);
+  margin-top: clamp(36px, 4vw, 58px);
+  align-items: start;
+}
+
+.pc-flow-source {
+  position: relative;
+  padding-block: 6px 22px;
+}
+
+/*
+ * The feed — source into the trunk head.
+ *
+ * Without it the source block reads as a caption beside the diagram rather than as the thing the
+ * diagram starts from. It spans exactly the grid gap, so it meets the trunk's inline start; and
+ * it sits at 22px, which is where the trunk's gradient begins, so the join is gold-to-gold.
+ * Hidden once the layout stacks — the source then sits above the trunk and the geometry says it.
+ */
+.pc-flow-source::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  inset-inline-start: 100%;
+  width: clamp(28px, 3.5vw, 68px);
+  height: 1px;
+  background: var(--color-border-accent);
+}
+
+.pc-flow-code {
+  margin: 20px 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-accent);
+  border-radius: 10px;
+  font-family: var(--font-technical);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--color-text-accent);
+}
+
+.pc-flow-name {
+  margin: 16px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.1vw, 30px);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  color: var(--color-text-primary);
+}
+
+.pc-flow-note {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text-tertiary);
+}
+
+/*
+ * The trunk. It starts at the first branch's elbow and stops at the last one's — a line that ran
+ * the full height of the list would read as a border, and the point of the device is that the
+ * flow terminates rather than continuing past the final destination.
+ */
+.pc-flow-branches {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 clamp(26px, 3vw, 44px);
+}
+
+.pc-flow-branches::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 22px;
+  bottom: 22px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-border-accent),
+    var(--color-border-hairline) 92%
+  );
+}
+
+.pc-branch {
+  position: relative;
+  padding-block: clamp(20px, 2.4vw, 30px);
+  padding-inline-start: clamp(20px, 2.2vw, 32px);
+  border-inline-start: 1px solid var(--color-border-hairline);
+  transition: border-color var(--t-micro) var(--e-micro);
+}
+
+.pc-branch:hover {
+  border-inline-start-color: var(--color-border-accent);
+}
+
+/* The elbow — trunk to branch, at the title's line. */
+.pc-branch::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(clamp(26px, 3vw, 44px) * -1);
+  top: 34px;
+  width: clamp(26px, 3vw, 44px);
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+
+/* The node, on the trunk's line. */
+.pc-branch::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(clamp(26px, 3vw, 44px) * -1 - 3px);
+  top: 31px;
+  width: 7px;
+  height: 7px;
+  rotate: 45deg;
+  border: 1px solid var(--color-border-accent);
+  background: var(--color-surface-canvas);
+}
+
+.pc-branch-code {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-accent);
+}
+
+.pc-branch-title {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 1.9vw, 27px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+/*
+ * Inline, not inline-flex.
+ *
+ * As a flex container the anchor's text became one item that filled the line box, so on a title
+ * that wrapped to two lines the arrow was pushed to the far right of the first line and read as a
+ * stray glyph. Inline, it trails the last word wherever that word lands — which is the whole
+ * reason the arrow moved into the title in the first place.
+ */
+.pc-branch-title a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pc-branch-title a svg {
+  display: inline-block;
+  vertical-align: baseline;
+  margin-inline-start: 12px;
+}
+
+/* The whole branch is one target, and the arrow travels with the title rather than orphaning
+   at the far right of the row — which is exactly what it did in one column. */
+.pc-branch-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.pc-branch-title a svg {
+  color: var(--color-text-tertiary);
+  transition:
+    color var(--t-micro) var(--e-micro),
+    translate var(--t-micro) var(--e-micro);
+}
+
+.pc-branch:hover .pc-branch-title a {
+  color: var(--color-text-accent);
+}
+
+.pc-branch:hover .pc-branch-title a svg {
+  color: var(--color-text-accent);
+  translate: 5px 0;
+}
+
+[dir="rtl"] .pc-branch:hover .pc-branch-title a svg {
+  translate: -5px 0;
+}
+
+.pc-branch-note {
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  max-width: 52ch;
+}
+
+.pc-branch-fields {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.pc-branch-fields li {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 6px;
+  padding: 5px 9px;
+}
+
+/* ---------------------------------------------------------- the selection gates
+ *
+ * The manifold's counterpart, for a terminal category. Where that one *divides* — one trunk,
+ * several branches, no order between them — this one *narrows*: ordered decisions running across
+ * the measure, each gate separated from the last by a rule, with the options the taxonomy
+ * publishes listed beneath it.
+ *
+ * Numbered, deliberately. The manifold's branches are not, because their order carries no
+ * meaning; here it does, and the two devices say so in the same vocabulary.
+ *
+ * Options are links into the register, so the sequence is navigation as well as an argument.
+ */
+.pc-gates {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: clamp(20px, 2.4vw, 40px);
+  margin: clamp(36px, 4vw, 58px) 0 0;
+  padding: 0;
+}
+
+.pc-gate {
+  position: relative;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+/* The gate mark, straddling the rule it hangs from. */
+.pc-gate::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  inset-inline-start: 0;
+  width: 7px;
+  height: 7px;
+  rotate: 45deg;
+  border: 1px solid var(--color-border-accent);
+  background: var(--color-surface-canvas);
+}
+
+.pc-gate-num {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-accent);
+}
+
+.pc-gate-axis {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 1.8vw, 26px);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+.pc-gate-note {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.pc-gate-options {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-gate-options a {
+  display: block;
+  padding-block: 11px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  text-decoration: none;
+  transition: padding-inline-start var(--t-micro) var(--e-micro);
+}
+
+.pc-gate-options a:hover {
+  padding-inline-start: 8px;
+}
+
+.pc-gate-options b {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--color-text-primary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pc-gate-options a:hover b {
+  color: var(--color-text-accent);
+}
+
+.pc-gate-options small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-text-tertiary);
+}
+
+/* Industries served — renders only if a fixture ever supplies the list. */
+.pc-industries {
+  margin-top: clamp(36px, 4vw, 58px);
+}
+
+.pc-industry-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+}
+
+.pc-industry-list li {
+  display: grid;
+  gap: 6px;
+  padding: 17px 19px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  background: var(--color-surface-canvas);
+}
+
+.pc-industry-list b {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.pc-industry-list span {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   7 · PACKAGING & SUPPLY
+   ============================================================================ */
+
+.pc-supply {
+  overflow: hidden;
+}
+
+.pc-supply-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(36px, 4.5vw, 84px);
+  align-items: start;
+}
+
+.pc-supply-copy h2 {
+  margin-top: 22px;
+  max-width: 14ch;
+}
+
+.pc-supply-copy .fs-lead {
+  margin-top: clamp(18px, 2vw, 26px);
+}
+
+.pc-formats {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(24px, 2.6vw, 34px) 0 0;
+  padding: 0;
+}
+
+.pc-formats li {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 7px;
+  padding: 8px 13px;
+  background: var(--color-surface-sunken);
+}
+
+.pc-terms {
+  margin: clamp(22px, 2.4vw, 30px) 0 0;
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--color-text-tertiary);
+  max-width: 52ch;
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--color-border-accent);
+}
+
+.pc-supply-link {
+  margin: clamp(24px, 2.6vw, 34px) 0 0;
+}
+
+/* ------------------------------------------------------------ incoterm ladder
+ *
+ * A ladder, not a row of equal chips: EXW through CIF is a sequence of increasing seller
+ * responsibility, so each rung steps in from the one above by `--pc-rung`. Same reasoning as the
+ * frozen landing's closing staircase, and the offset is set from the index in the component so
+ * adding a term re-draws the device rather than breaking it.
+ */
+.pc-incoterms {
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  padding: clamp(22px, 2.4vw, 32px);
+  background: var(--color-surface-sunken);
+}
+
+.pc-incoterm-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.pc-incoterm {
+  --pc-step: 22px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 13px 0 13px calc(var(--pc-rung, 0) * var(--pc-step));
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-incoterm:first-child {
+  border-top: 0;
+}
+
+.pc-incoterm-num {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-tertiary);
+}
+
+.pc-incoterm b {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--color-text-primary);
+}
+
+.pc-incoterms-foot {
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   8 · DOCUMENTATION
+   ============================================================================ */
+
+.pc-docs {
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-docs-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(36px, 4.5vw, 84px);
+  align-items: start;
+}
+
+.pc-docs-copy h2 {
+  margin-top: 22px;
+  max-width: 13ch;
+}
+
+.pc-docs-copy .fs-lead {
+  margin-top: clamp(18px, 2vw, 26px);
+}
+
+.pc-docs-scope {
+  margin: clamp(22px, 2.4vw, 30px) 0 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pc-doc-register {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-doc {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  gap: clamp(14px, 1.8vw, 26px);
+  align-items: center;
+  padding-block: clamp(18px, 2vw, 24px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-doc-code {
+  font-family: var(--font-technical);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.pc-doc-body {
+  display: grid;
+  gap: 5px;
+}
+
+.pc-doc-body b {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -0.014em;
+  color: var(--color-text-primary);
+}
+
+.pc-doc-body small {
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* The access mark. "No form" is the point of the section, so it is the one that reads loudest. */
+.pc-doc-access {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 20px;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+
+.pc-doc[data-access="open"] .pc-doc-access {
+  color: var(--color-text-accent);
+  border-color: var(--color-border-accent);
+}
+
+.pc-doc--pointer .pc-doc-code {
+  color: var(--color-text-tertiary);
+}
+
+.pc-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: gap var(--t-micro) var(--e-micro);
+}
+
+.pc-doc-link:hover {
+  gap: 12px;
+}
+
+/* ============================================================================
+   9 · FAQ
+   ============================================================================ */
+
+.pc-faq-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: clamp(36px, 4.5vw, 84px);
+  align-items: start;
+}
+
+.pc-faq-head h2 {
+  margin-top: 22px;
+  max-width: 11ch;
+}
+
+.pc-faq-note {
+  margin-top: 20px;
+  max-width: 34ch;
+}
+
+/*
+ * Native `<details>`. Keyboard-operable and screen-reader-announced with no script, and the
+ * exclusive `name` group means opening one closes the last — an accordion, for free.
+ */
+.pc-faq-item {
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pc-faq-item:last-child {
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-faq-item summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding-block: clamp(18px, 2vw, 24px);
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-display);
+  font-size: clamp(17px, 1.5vw, 21px);
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.014em;
+  color: var(--color-text-primary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pc-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.pc-faq-item summary:hover {
+  color: var(--color-text-accent);
+}
+
+/* A plus that becomes a minus. Two bars, one rotated, rotation removed when open. */
+.pc-faq-mark {
+  position: relative;
+  flex: none;
+  width: 15px;
+  height: 15px;
+}
+
+.pc-faq-mark::before,
+.pc-faq-mark::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 7px;
+  height: 1px;
+  background: var(--color-border-accent);
+}
+
+.pc-faq-mark::after {
+  rotate: 90deg;
+  transition: rotate var(--t-mid) var(--e-micro);
+}
+
+.pc-faq-item[open] .pc-faq-mark::after {
+  rotate: 0deg;
+}
+
+.pc-faq-answer {
+  padding-bottom: clamp(20px, 2.2vw, 28px);
+  max-width: 62ch;
+}
+
+.pc-faq-answer p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.66;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.pc-faq-link {
+  margin-top: 16px !important;
+}
+
+.pc-faq-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  text-decoration: none;
+  transition: gap var(--t-micro) var(--e-micro);
+}
+
+.pc-faq-link a:hover {
+  gap: 13px;
+}
+
+/* ============================================================================
+   10 · RELATED CATEGORIES
+   ============================================================================ */
+
+.pc-related {
+  position: relative;
+  padding-block: clamp(48px, 5.5vw, 78px);
+  background: var(--color-surface-canvas);
+}
+
+.pc-related-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pc-related-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  text-decoration: none;
+  transition: gap var(--t-micro) var(--e-micro);
+}
+
+.pc-related-all:hover {
+  gap: 13px;
+}
+
+.pc-related-list {
+  list-style: none;
+  display: grid;
+  /*
+   * 168px, not 210px. Five siblings is what this strip always holds, and the track has to be
+   * narrow enough that all five still fit across 1024 — at 210px the fifth wraps alone onto a
+   * second row and the index reads as a list that ran out of space.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
+.pc-related-list a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  height: 100%;
+  padding: 17px 19px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition:
+    background var(--t-micro) var(--e-micro),
+    border-color var(--t-micro) var(--e-micro);
+}
+
+.pc-related-list a:hover {
+  background: var(--color-glass-fill);
+  border-color: var(--color-border-accent);
+}
+
+.pc-related-code {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-accent);
+}
+
+.pc-related-name {
+  font-size: 14.5px;
+  line-height: 1.35;
+  font-weight: 300;
+}
+
+.pc-related-list a .fs-ar,
+.pc-related-list a svg {
+  color: var(--color-text-tertiary);
+  transition:
+    color var(--t-micro) var(--e-micro),
+    translate var(--t-micro) var(--e-micro);
+}
+
+.pc-related-list a:hover svg {
+  color: var(--color-text-accent);
+  translate: 4px 0;
+}
+
+[dir="rtl"] .pc-related-list a:hover svg {
+  translate: -4px 0;
+}
+
+/* ============================================================================
+   11 · RESPONSIVE
+   The three widths this page is validated at are 1440, 1024 and 390. Each rule below is the
+   point at which a construction stops fitting, measured — not a device breakpoint.
+   ============================================================================ */
+
+@media (max-width: 1180px) {
+  /*
+   * The hero is deliberately **not** in this block.
+   *
+   * It used to be, and stacking it at 1180 meant a 1024 viewport — 920px of usable measure —
+   * rendered a single-column hero with the index panel sitting in a half-empty band. The panel
+   * now narrows instead, and the composition holds to 980px, which is where the display type
+   * actually runs out of room. See the 980px block below.
+   */
+
+  /* Every two-column head and grid folds at the same width, so the page keeps one rhythm. */
+  .pc-over-grid,
+  .pc-range-head,
+  .pc-props-head,
+  .pc-quality-head,
+  .pc-quality-grid,
+  .pc-apps-head,
+  .pc-supply-grid,
+  .pc-docs-grid,
+  .pc-faq-grid {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(24px, 4vw, 40px);
+  }
+
+  /* The classification note stops being a right-hand gloss and becomes a third row. */
+  .pc-axes {
+    grid-template-columns: auto minmax(0, 1fr);
+    /* The label aligns with the first row of chips once the chips can wrap to two rows. */
+    align-items: start;
+  }
+
+  .pc-axes-label {
+    padding-top: 8px;
+  }
+
+  .pc-axes-note {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: start;
+    max-width: 60ch;
+  }
+
+  /* The index column narrows; the row keeps its two-column structure at every width. */
+  .pc-sub {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  /* The source block stops being a column and becomes the trunk's head. */
+  .pc-flow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(24px, 3vw, 36px);
+  }
+
+  .pc-flow-source {
+    padding-bottom: 0;
+  }
+
+  .pc-flow-source::after {
+    display: none;
+  }
+}
+
+/*
+ * The hero's real limit. Below this the display column can no longer hold the headline beside a
+ * 272px panel without breaking it every two or three words, so the composition stacks — and the
+ * panel takes the full measure rather than sitting at a fixed width in a half-empty band.
+ */
+@media (max-width: 980px) {
+  .pc-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(36px, 5vw, 56px);
+  }
+
+  .pc-index {
+    max-width: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  /*
+   * The specification table starts to scroll here — eight columns at a 940px minimum against a
+   * wrap that has narrowed past it — so the affordance appears at the same point. Above this it
+   * stays hidden: an edge fade over a table that cannot scroll misrepresents the content.
+   */
+  .pc-scroll-cue {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-family: var(--font-technical);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+  }
+
+  .pc-scroll-cue span {
+    color: var(--color-text-accent);
+  }
+
+  .pc-table-fade {
+    display: block;
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 1px;
+    width: clamp(36px, 7vw, 64px);
+    border-start-end-radius: var(--radius-panel);
+    border-end-end-radius: var(--radius-panel);
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--color-surface-raised) 82%);
+  }
+
+  [dir="rtl"] .pc-table-fade {
+    background: linear-gradient(to left, transparent, var(--color-surface-raised) 82%);
+  }
+
+  /* The cue sits above the frame, so the fade must not cover it. */
+  .pc-table-fade {
+    top: 34px;
+  }
+}
+
+@media (max-width: 900px) {
+  /*
+   * The axis list drops to one column below this: two 238px tracks plus the gutter is wider than
+   * the measure, and a wrapped property name reads worse than a taller list.
+   */
+  .pc-axis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  /*
+   * The index column moves above the content. A 52px column beside 34ch of text is mostly gutter
+   * at this width, and the number is not worth the measure it costs.
+   */
+  .pc-sub {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .pc-sub-index {
+    padding-top: 0;
+  }
+
+  .pc-grades {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+
+  /* The trunk keeps its indent — 26px is affordable and the direction is the whole point. */
+  .pc-branch {
+    padding-inline-start: 16px;
+  }
+
+  .pc-branch::before {
+    top: 30px;
+  }
+
+  .pc-branch::after {
+    top: 27px;
+  }
+
+  /* The stage rail keeps its riser but loses the fixed number column. */
+  .pc-stage {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  /* A 22px rung costs 66px of a 306px measure by the fourth term. Halved, the ladder still reads. */
+  .pc-incoterm {
+    --pc-step: 11px;
+  }
+
+  /* Code, body and access mark cannot hold one line; the mark drops under the body. */
+  .pc-doc {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px 14px;
+  }
+
+  .pc-doc-access,
+  .pc-doc-link {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .pc-marker {
+    gap: 6px 16px;
+  }
+
+  .pc-table caption {
+    padding: 16px 18px;
+  }
+}
