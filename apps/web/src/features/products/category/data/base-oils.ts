@@ -28,9 +28,14 @@
  * `[ESTIMATE — CONFIRM]`. Its axis is real and its cells are empty by instruction.
  */
 
-import { FAMILIES } from "../../products-data";
 import type { ProductCategoryContent } from "../category-contract";
 
+/*
+ * The downstream-field guard, which used to be declared here. It moved to a module of its own
+ * when a second input category needed it — the rule it enforces is unchanged, and the reason it
+ * is not duplicated is in that file's own note.
+ */
+import { fields } from "./application-fields";
 import {
   INCOTERMS,
   METHOD_NOTE,
@@ -39,26 +44,6 @@ import {
   QUALITY_STAGES,
   SUPPLY_FORMATS,
 } from "./defaults";
-
-/**
- * Applications are named as the site's own downstream families, and the fields under each one
- * must be strings that family already publishes. This checks that at module load: a field that
- * is not in the family's frozen `ranges` throws rather than rendering.
- *
- * Same guard style as `products-data.ts`'s `href(index)` — drift fails loudly instead of
- * shipping a page that quietly disagrees with the range it links to.
- */
-function fields(familyId: string, picked: readonly string[]): readonly string[] {
-  const family = FAMILIES.find((entry) => entry.id === familyId);
-  if (!family) throw new Error(`No product family "${familyId}" in products-data.ts`);
-
-  for (const field of picked) {
-    if (!family.ranges.includes(field)) {
-      throw new Error(`"${field}" is not one of ${familyId}'s published ranges`);
-    }
-  }
-  return picked;
-}
 
 export const BASE_OILS: ProductCategoryContent = {
   familyId: "base-oils",

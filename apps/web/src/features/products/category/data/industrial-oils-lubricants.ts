@@ -105,6 +105,13 @@ export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
     heading: "The range, by duty.",
     intro:
       "Nine sub-ranges, each named for the plant system it is formulated for. The taxonomy names the duties; it names no individual product designations, so none are printed.",
+    /*
+     * The two axes below are specification families, not dimensions of the taxonomy — a fluid set
+     * and a grease set, split because they are not described by the same measurements. The hero
+     * index used to call them dimensions, which claimed more about the split than the split means.
+     * This is also the word the Overview marker above already uses, so the two now agree.
+     */
+    axisNoun: "specification families",
     /* No `classificationAxes` — see the module note. */
     subRanges: [
       {

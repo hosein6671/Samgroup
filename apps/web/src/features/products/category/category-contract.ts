@@ -165,6 +165,19 @@ export type CategoryRange = {
    */
   readonly classificationAxes?: readonly string[];
   readonly subRanges: readonly SubRange[];
+  /**
+   * What this category calls the things its `axis` values are, in the plural.
+   *
+   * The hero's index counts the groups the range divides into and has to name them in a sentence.
+   * It said "dimensions", which is right for the category the mechanism was built for — Antifreeze
+   * & Coolants really is organised by three independent dimensions — and wrong for the one built
+   * after it. Industrial Oils' two axes are not dimensions of a taxonomy; they are *specification
+   * families*, a fluid set and a grease set that happen to need different property tables.
+   *
+   * So the noun is data. Optional, defaulting to "dimensions", which is what every category
+   * published before this field existed — a category that omits it reads exactly as it did.
+   */
+  readonly axisNoun?: string;
 };
 
 /* --------------------------------------------------------------- properties */

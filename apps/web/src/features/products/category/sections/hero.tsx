@@ -107,9 +107,17 @@ function GradeIndex({ content }: SectionProps): ReactNode {
         Range index
       </p>
 
+      {/*
+        The noun comes from the range, not from here.
+
+        "Dimensions" was hardcoded, and it is only true of a category whose axes really are
+        independent dimensions. Industrial Oils' two axes are specification families — a fluid set
+        and a grease set — and calling them dimensions overstated what the split means. `axisNoun`
+        defaults to the old word, so a category that says nothing reads as it always did.
+      */}
       <p className="pc-index-note">
         {grouped
-          ? `${range.subRanges.length} sub-ranges across ${groups.length} dimensions.`
+          ? `${range.subRanges.length} sub-ranges across ${groups.length} ${range.axisNoun ?? "dimensions"}.`
           : `${range.subRanges.length} sub-ranges.`}
       </p>
 

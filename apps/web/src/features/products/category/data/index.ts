@@ -15,11 +15,15 @@ import type { ProductCategoryContent } from "../category-contract";
 import { ANTIFREEZE_COOLANTS } from "./antifreeze-coolants";
 import { BASE_OILS } from "./base-oils";
 import { INDUSTRIAL_OILS_LUBRICANTS } from "./industrial-oils-lubricants";
+import { LUBRICANT_ADDITIVES } from "./lubricant-additives";
+import { MARINE_OILS_LUBRICANTS } from "./marine-oils-lubricants";
 
 /* Keys are the slugs in `PRODUCT_CATEGORIES`, and the order is that table's order. */
 const REGISTRY: Readonly<Record<string, ProductCategoryContent>> = {
   "base-oils": BASE_OILS,
+  "lubricant-additives": LUBRICANT_ADDITIVES,
   "industrial-oils-lubricants": INDUSTRIAL_OILS_LUBRICANTS,
+  "marine-oils-lubricants": MARINE_OILS_LUBRICANTS,
   "antifreeze-coolants": ANTIFREEZE_COOLANTS,
 };
 
