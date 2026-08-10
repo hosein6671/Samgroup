@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 
 import "./flagship.css";
 
+import { SiteFooter } from "@/features/site/site-footer";
+import { SiteNav } from "@/features/site/site-nav";
+
 import { BootCurtain, PointerRing, ScrollProgress } from "./chrome/site-chrome";
-import { SiteFooter } from "./chrome/site-footer";
-import { SiteNav } from "./chrome/site-nav";
 import { RevealEngine } from "./motion/reveal-engine";
 import { Certifications } from "./sections/certifications";
 import { Ecosystem } from "./sections/ecosystem";

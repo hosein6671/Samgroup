@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { LogoMark } from "./logo-mark";
+import { LogoMark } from "@/features/site/logo-mark";
 
 /**
  * Root-level chrome: the scroll progress bar, the pointer ring, and the boot curtain.

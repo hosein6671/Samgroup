@@ -1,0 +1,1053 @@
+/*
+ * SAM GROUP — PRODUCTS LANDING
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * It adds the constructions this page needs and **nothing else**. It defines no colour, no
+ * typeface, no radius and no easing of its own — every value below resolves to a token already
+ * declared by `flagship.css` inside `[data-brand="flagship"]`, or by the design system's
+ * generated theme. So this page cannot drift from the homepage's palette: there is nothing here
+ * to drift with.
+ *
+ * The homepage's own section CSS is not touched, not extended, and not copied. Where a
+ * construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`, `.fs-eyebrow`,
+ * `.fs-d1`–`.fs-d4`, `.fs-lead`, `.fs-btn`, `.fs-panel`, `.fs-field`, `.fs-blueprint` — this page
+ * uses it directly rather than restating it under a `pr-` name.
+ *
+ * **Reveals come from the design system, not from the homepage engine.** `packages/ui`'s
+ * `motion.css` ships four scroll-driven patterns built on `animation-timeline: view()` — no
+ * JavaScript, no IntersectionObserver, nothing added to the first-load budget. The homepage's
+ * `RevealEngine` stays where it is, homepage-only; this page reaches for the platform's own
+ * patterns instead, which is the reuse the design system was built for.
+ */
+
+/* ============================================================================
+   1 · HERO
+   ============================================================================ */
+
+.pr-hero {
+  position: relative;
+  padding-block: clamp(132px, 15vh, 200px) clamp(72px, 8vw, 112px);
+  background:
+    radial-gradient(ellipse 120% 80% at 15% 0%, rgba(18, 41, 110, 0.55), transparent 60%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+/*
+ * Two columns: the argument on the left, the product architecture on the right.
+ *
+ * The right column is a fixed 360px rather than a fraction. A fractional right column grows with
+ * the viewport, and this one holds six short labels — past about 380px it stops being a diagram
+ * and becomes a list with a lot of air in it. Fixed, the left column takes every extra pixel,
+ * which is where the display type wants them.
+ */
+.pr-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: clamp(36px, 4vw, 72px);
+  align-items: center;
+}
+
+.pr-hero h1 {
+  margin-top: clamp(20px, 2.2vw, 30px);
+  max-width: 15ch;
+}
+
+.pr-hero .fs-lead {
+  margin-top: clamp(22px, 2.4vw, 32px);
+  max-width: 52ch;
+}
+
+.pr-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+/* --------------------------------------------------- product architecture
+ *
+ * A riser diagram: one stem, six branches. Drawn entirely with borders and pseudo-elements on
+ * tokenised colours — no SVG to keep in sync with the data, no canvas, no JavaScript.
+ *
+ * The geometry is one chain of offsets, so it is worth stating once. The list carries 26px of
+ * inline-start padding, which puts each branch's own origin at x = 26 relative to the list. The
+ * stem sits at x = 3. Every offset below is therefore measured from the branch back towards the
+ * stem: 3 - 26 = -23 is the stem's line, and the tick and node hang off that. Change the list
+ * padding and all three move together.
+ */
+.pr-arch {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(24px, 2.4vw, 34px);
+}
+
+.pr-arch-note {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.pr-arch-stem {
+  list-style: none;
+  position: relative;
+  margin: clamp(20px, 2.2vw, 28px) 0 0;
+  padding: 0 0 0 26px;
+}
+
+/* The stem. Gold at the head where the chain starts, fading as it branches away. */
+.pr-arch-stem::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 3px;
+  inset-block: 14px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-border-accent),
+    var(--color-border-hairline) 85%
+  );
+}
+
+[dir="rtl"] .pr-arch-stem {
+  padding: 0 26px 0 0;
+}
+
+.pr-arch-branch {
+  position: relative;
+}
+
+/* Connector tick, stem to branch. */
+.pr-arch-branch::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -22px;
+  top: 1.35em;
+  width: 18px;
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+
+/* Branch node, centred on the stem. */
+.pr-arch-branch::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: -26px;
+  top: calc(1.35em - 3px);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-accent);
+  background: var(--color-surface-canvas);
+  transition: background var(--t-micro) var(--e-micro);
+}
+
+.pr-arch-branch:hover::after,
+.pr-arch-branch:focus-within::after {
+  background: var(--color-accent-default);
+}
+
+.pr-arch-branch a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-hairline);
+  color: var(--color-text-secondary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pr-arch-branch:last-child a {
+  border-bottom: 0;
+}
+
+.pr-arch-branch a:hover,
+.pr-arch-branch a:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.pr-arch-code {
+  flex: none;
+  width: 58px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-accent);
+}
+
+.pr-arch-name {
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+/* ============================================================================
+   2 · REGISTER — the six families
+   ============================================================================ */
+
+.pr-reg {
+  position: relative;
+  background: var(--color-surface-canvas);
+}
+
+.pr-reg-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: clamp(24px, 4vw, 72px);
+  align-items: end;
+  margin-bottom: clamp(48px, 6vw, 88px);
+}
+
+.pr-reg-layout {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr);
+  gap: clamp(32px, 4vw, 72px);
+  align-items: start;
+}
+
+/*
+ * The index rail. Sticky rather than fixed, so it belongs to the section instead of the viewport
+ * and cannot outlive it. `align-self: start` is what makes sticky work inside a grid item.
+ */
+.pr-rail {
+  position: sticky;
+  top: 108px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid var(--color-border-hairline);
+}
+
+.pr-rail a {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0 9px 16px;
+  margin-left: -1px;
+  border-left: 1px solid transparent;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-tertiary);
+  transition:
+    color var(--t-micro) var(--e-micro),
+    border-color var(--t-micro) var(--e-micro);
+}
+
+.pr-rail a:hover,
+.pr-rail a:focus-visible {
+  color: var(--color-text-primary);
+  border-left-color: var(--color-accent-default);
+}
+
+.pr-entries {
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+/*
+ * One entry. A full-width ledger row, not a card: the hairline above it is the only edge it has,
+ * and it runs the whole measure. Hover lifts the ground rather than the box.
+ */
+.pr-entry {
+  /*
+   * The family name's size lives here rather than on the title, because two things need it: the
+   * title itself, and the arrow, which is centred on the title's first line rather than on the
+   * row. Declaring it once means the two cannot drift apart when the scale is retuned.
+   */
+  --pr-title-size: clamp(23px, 2.05vw, 33px);
+  --pr-title-leading: 1.12;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 44px;
+  gap: clamp(16px, 2.2vw, 34px);
+  padding: clamp(30px, 3.4vw, 48px) 0;
+  border-bottom: 1px solid var(--color-border-hairline);
+  isolation: isolate;
+}
+
+/* The tint sits behind the content and bleeds past the measure, so the row reads as a band. */
+.pr-entry::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline: calc(var(--fs-gutter) * -0.5);
+  z-index: -1;
+  border-radius: var(--radius-panel);
+  background: var(--color-glass-fill);
+  opacity: 0;
+  transition: opacity var(--t-mid) var(--e-micro);
+}
+
+.pr-entry:hover::before,
+.pr-entry:focus-within::before {
+  opacity: 1;
+}
+
+/* The gold rule that draws across the top edge on approach. */
+.pr-entry::after {
+  content: "";
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline: 0;
+  height: 1px;
+  background: var(--color-accent-default);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--t-mid) var(--e-micro);
+}
+
+[dir="rtl"] .pr-entry::after {
+  transform-origin: right center;
+}
+
+.pr-entry:hover::after,
+.pr-entry:focus-within::after {
+  transform: scaleX(1);
+}
+
+.pr-entry-index {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-accent);
+  padding-top: 0.55em;
+}
+
+.pr-entry-index span {
+  display: block;
+  color: var(--color-text-tertiary);
+  margin-top: 6px;
+}
+
+/*
+ * The family name is the register's primary scannable element, so it owns its own step rather
+ * than borrowing `.fs-d4`.
+ *
+ * `.fs-d4` bottoms out at 19px, which put the six names at the same size as the lead paragraph
+ * above them — the one thing a reader scans for was competing with running copy. This sits
+ * between `.fs-d4` and `.fs-d3`: clearly the loudest voice inside an entry, and still clearly
+ * quieter than the section head at `.fs-d2`, so the register does not read as six sections.
+ * Weight stays at 400; at this size the display face gets heavy fast.
+ */
+.pr-entry-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--pr-title-size);
+  line-height: var(--pr-title-leading);
+  letter-spacing: -0.021em;
+  margin: 0;
+}
+
+/*
+ * The whole row is the target, and the title's link carries the accessible name.
+ *
+ * The overlay is on the anchor rather than the heading: an `<h3>` is not a control, so stretching
+ * it would produce a clickable band with nothing focusable behind it. Stretched from the anchor,
+ * the row has exactly one target, one name and one tab stop.
+ */
+.pr-entry-title a {
+  color: inherit;
+}
+
+.pr-entry-title a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.pr-entry-title a:hover {
+  color: var(--color-text-accent);
+}
+
+.pr-entry-desc {
+  margin: clamp(12px, 1.3vw, 18px) 0 0;
+  max-width: 62ch;
+  color: var(--color-text-secondary);
+  font-weight: 300;
+  font-size: clamp(15px, 1.05vw, 16.5px);
+  line-height: 1.62;
+}
+
+/*
+ * Range markers — a columned spec run, deliberately not chips and not a bullet list.
+ *
+ * ── Why this is a grid and not wrapping flex ────────────────────────────────
+ *
+ * Every inline-separator approach fails on wrap, and it fails in both directions. Trailing
+ * separators leave a divider at the end of each line with nothing after it; leading separators
+ * move the same artifact to the start of each line, which at 390px — where nearly every item
+ * wraps — put a stray rule in front of most rows and read as a broken bullet.
+ *
+ * The fault is that a wrapped flex line has no selector: CSS cannot address "first item on this
+ * line", so no `nth-child` rule can be right for every width. A grid with an explicit column
+ * count removes the guesswork — position in the row is now `nth-child` arithmetic, so the rule
+ * before columns two and three is always correct and column one never carries one. The column
+ * count is restated at each breakpoint below, and at 390px it drops to one, where the run becomes
+ * a plain stacked list with no separators at all and nothing left to dangle.
+ */
+.pr-ranges {
+  list-style: none;
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pr-ranges li {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  padding: 6px 16px 6px 0;
+}
+
+.pr-ranges li:not(:nth-child(3n + 1)) {
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+/* The one named block the source document supplies, called out rather than buried in the run. */
+.pr-named {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 20px;
+  padding: 7px 14px;
+  border: 1px solid var(--color-border-accent);
+  border-radius: 999px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+/*
+ * The arrow is centred on the title's first line, not on the row.
+ *
+ * Centred on the row it drifted with the row's height — and rows vary a lot, because one family
+ * lists six ranges and another lists eleven. At 390px that put the arrow level with a range
+ * marker three lines down, where it read as pointing at that one marker instead of at the family.
+ *
+ * The offset is derived, not guessed: the title's first line box is `size × leading`, and the
+ * glyph is 18px, so half the difference lands the arrow's centre on the title's centre at every
+ * width the clamp resolves to.
+ */
+.pr-entry-go {
+  align-self: start;
+  justify-self: end;
+  padding-top: calc((var(--pr-title-size) * var(--pr-title-leading) - 18px) / 2);
+  color: var(--color-text-tertiary);
+  transition:
+    color var(--t-micro) var(--e-micro),
+    translate var(--t-mid) var(--e-micro);
+}
+
+.pr-entry:hover .pr-entry-go {
+  color: var(--color-accent-default);
+  translate: 5px 0;
+}
+
+[dir="rtl"] .pr-entry:hover .pr-entry-go {
+  translate: -5px 0;
+}
+
+/* ============================================================================
+   3 · FINDER TEASER
+   ============================================================================ */
+
+/*
+ * The seam into the finder.
+ *
+ * White to `#f3f4f6` is a real surface change on paper and an invisible one on screen, so the
+ * register and the finder used to merge into one very long light block. Rather than cut them
+ * apart with a heavy rule, the boundary is stated three times over, quietly:
+ *
+ *   1. a hairline across the full bleed — the section's own top border;
+ *   2. a short gold segment sitting on it at the gutter, the same 34px-ish tick `.fs-eyebrow`
+ *      draws before its label, so the seam reads as flagship punctuation rather than a divider;
+ *   3. a tonal wash deepening the first 260px below the line, so the eye registers the step
+ *      before it can measure it.
+ *
+ * The blueprint field the component adds is the fourth cue: the finder has texture the register
+ * does not, which separates them even where the tones are closest.
+ */
+.pr-finder {
+  background: var(--color-surface-sunken);
+  border-top: 1px solid var(--color-border-hairline);
+  position: relative;
+  overflow: hidden;
+}
+
+.pr-finder::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 260px;
+  background: linear-gradient(to bottom, rgba(6, 19, 70, 0.055), transparent);
+  pointer-events: none;
+}
+
+.pr-finder::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: var(--fs-gutter);
+  width: 56px;
+  height: 1px;
+  background: var(--color-accent-default);
+}
+
+/* Above the wash and the blueprint field, both of which are positioned. */
+.pr-finder-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 96px);
+  align-items: center;
+}
+
+.pr-finder-copy h2 {
+  margin-top: 22px;
+  max-width: 14ch;
+}
+
+.pr-finder-copy .fs-lead {
+  margin-top: 22px;
+}
+
+.pr-finder-actions {
+  margin-top: 32px;
+}
+
+/*
+ * The selection matrix — a parameter table, not a filter panel.
+ *
+ * ── What was wrong with pills ───────────────────────────────────────────────
+ *
+ * Rounded chips under a search box is the house style of every online shop, and it made this
+ * page's one technical claim — that the range is selected by engineering parameters — look like
+ * a size picker. The information is identical; only its presentation implied the wrong thing.
+ *
+ * ── What this is instead ────────────────────────────────────────────────────
+ *
+ * A ruled datasheet: a numbered parameter per row, three tonal registers across it — gold index,
+ * navy parameter name, grey example values — and a closing row for the direct route by grade
+ * name. It reads as the selection logic of a product-engineering system because it is laid out
+ * like one, and it stays a still: no control, no border-radius on a value, nothing that offers
+ * to be clicked.
+ *
+ * Values are separated by column gap alone. Every glyph separator on this page has had to be
+ * withdrawn once already for dangling on wrapped lines; there is no reason to relearn that here.
+ */
+.pr-matrix {
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  overflow: hidden;
+}
+
+.pr-matrix-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px clamp(18px, 1.9vw, 24px);
+  border-bottom: 1px solid var(--color-border-hairline);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pr-matrix-row {
+  display: grid;
+  grid-template-columns: 30px 104px minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 15px clamp(18px, 1.9vw, 24px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pr-matrix-row:last-child {
+  border-bottom: 0;
+}
+
+/* The alternate route, marked as such by ground rather than by another label. */
+.pr-matrix-row--direct {
+  background: var(--color-surface-sunken);
+}
+
+.pr-matrix-index {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.pr-matrix-name {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+}
+
+.pr-matrix-vals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   4 · DOCUMENTATION
+   ============================================================================ */
+
+.pr-docs {
+  position: relative;
+  background: var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.pr-docs-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.pr-docs-head {
+  max-width: 62ch;
+  margin-bottom: clamp(40px, 5vw, 72px);
+}
+
+.pr-docs-head h2 {
+  margin-top: 22px;
+}
+
+/*
+ * Asymmetric on purpose, and asymmetric in two ways at once.
+ *
+ * The tiers hold different amounts — three documents on the left, two plus a qualifying form on
+ * the right — so an even split guaranteed one short column. The columns are now weighted to the
+ * content, and the containers differ too: only the gated tier is boxed.
+ *
+ * That is the whole idea. The panel *is* the gate — it is the only enclosure on the page — and
+ * the open tier sits directly on the section with nothing around it, because that is what "no
+ * form, no gate" looks like when you draw it rather than write it. An unboxed list also has no
+ * edge to look short against, so the height difference stops reading as a defect and starts
+ * reading as the point.
+ */
+.pr-tiers {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(32px, 4.5vw, 84px);
+  align-items: start;
+}
+
+.pr-tier--gated {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(24px, 2.6vw, 38px);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+}
+
+/* Nudged down so the two eyebrows sit on one line despite the panel's padding. */
+.pr-tier--open {
+  padding-top: clamp(24px, 2.6vw, 38px);
+}
+
+.pr-tier h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(19px, 1.6vw, 24px);
+  letter-spacing: -0.014em;
+  margin: 14px 0 0;
+}
+
+.pr-tier-note {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  font-weight: 300;
+}
+
+.pr-doclist {
+  list-style: none;
+  margin: clamp(22px, 2.4vw, 30px) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pr-doclist li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-size: 14.5px;
+  color: var(--color-text-primary);
+}
+
+.pr-doclist span {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+/* The gate. Two fields per row down to the point where one column stops fitting. */
+.pr-gate {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+.pr-gate .fs-field {
+  min-width: 0;
+}
+
+/*
+ * The inert notice.
+ *
+ * Load-bearing, not decorative: there is no submission endpoint until M4, so the form must never
+ * look like it will do something. The fieldset is genuinely `disabled` — which removes every
+ * control from the tab order and from form submission at the platform level rather than by
+ * styling — and this banner says why, in the reader's language, above the fields.
+ */
+.pr-inert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 14px 16px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.pr-inert strong {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.pr-gate-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.pr-gate-fieldset[disabled] {
+  opacity: 0.55;
+}
+
+.pr-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.pr-consent input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  accent-color: var(--color-accent-default);
+}
+
+/* ============================================================================
+   5 · CLOSING CTA
+   ============================================================================ */
+
+.pr-close {
+  position: relative;
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.pr-close-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 88px);
+  align-items: center;
+}
+
+.pr-close h2 {
+  margin-top: 22px;
+  max-width: 16ch;
+}
+
+.pr-close .fs-lead {
+  margin-top: 24px;
+}
+
+/* SITE_STRUCTURE §3's own answer to the heading, given the weight of an answer. */
+.pr-close-primary {
+  margin: clamp(28px, 3vw, 38px) 0 0;
+}
+
+.pr-steps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 6px;
+  padding-bottom: 14px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* -------------------------------------------------------------- the staircase
+ *
+ * Three routes in ascending order of commitment — look, sample, price — drawn as a stair rather
+ * than listed as three equal rows, because the order is the content.
+ *
+ * The whole device is two borders per step. `border-inline-start` is the riser, `border-top` is
+ * the tread, and each step is indented one `--pr-step` further than the one above, so the two
+ * borders meet at each corner and the run reads as a single descending figure. No extra element,
+ * no pseudo-element, no image.
+ *
+ * Gold is held back to one thing: the riser lights on hover, one step at a time. The index stays
+ * gold at rest because it is the only place the sequence is stated in words.
+ */
+.pr-steps {
+  --pr-step: 34px;
+
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pr-step:nth-child(2) {
+  margin-inline-start: var(--pr-step);
+}
+
+.pr-step:nth-child(3) {
+  margin-inline-start: calc(var(--pr-step) * 2);
+}
+
+.pr-step a {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 1.4vw, 20px);
+  padding: clamp(18px, 1.9vw, 24px) 4px clamp(18px, 1.9vw, 24px) clamp(16px, 1.5vw, 22px);
+  border-top: 1px solid var(--color-border-hairline);
+  border-inline-start: 1px solid var(--color-border-hairline);
+  transition: border-color var(--t-mid) var(--e-micro);
+}
+
+.pr-step a:hover,
+.pr-step a:focus-visible {
+  border-inline-start-color: var(--color-accent-default);
+}
+
+.pr-step-index {
+  flex: none;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-accent);
+}
+
+.pr-step-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pr-step b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(17px, 1.35vw, 21px);
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.pr-step a:hover b {
+  color: var(--color-text-accent);
+}
+
+.pr-step small {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.pr-step .fs-ar {
+  flex: none;
+  align-self: center;
+  color: var(--color-text-tertiary);
+  transition:
+    color var(--t-micro) var(--e-micro),
+    translate var(--t-mid) var(--e-micro);
+}
+
+.pr-step a:hover .fs-ar {
+  color: var(--color-accent-default);
+  translate: 5px 0;
+}
+
+[dir="rtl"] .pr-step a:hover .fs-ar {
+  translate: -5px 0;
+}
+
+/* ============================================================================
+   6 · RESPONSIVE
+   The three widths this page is validated at are 1440, 1024 and 390. Each rule below is the
+   point at which a construction stops fitting, measured — not a device breakpoint.
+   ============================================================================ */
+
+@media (max-width: 1180px) {
+  /*
+   * The hero stacks: below this the left column cannot hold the display type beside a 360px
+   * panel without the headline breaking every two or three words.
+   */
+  .pr-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(40px, 6vw, 64px);
+  }
+
+  .pr-arch {
+    max-width: 560px;
+  }
+
+  /* The rail costs more width than it returns once the entries drop below ~640px of measure. */
+  .pr-reg-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pr-rail {
+    display: none;
+  }
+
+  .pr-finder-grid,
+  .pr-close-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pr-reg-head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+  }
+
+  /* Two columns of ranges. The rule moves to every even child, and column one stays clean. */
+  .pr-ranges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pr-ranges li:not(:nth-child(3n + 1)) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .pr-ranges li:not(:nth-child(2n + 1)) {
+    padding-inline-start: 16px;
+    border-inline-start: 1px solid var(--color-border-hairline);
+  }
+}
+
+@media (max-width: 900px) {
+  .pr-tiers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Stacked, the open tier's top padding only adds a gap the grid already provides. */
+  .pr-tier--open {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  /*
+   * One column, and therefore no separators at all — there is no "between" left to mark. This
+   * is the width where the old inline separators failed, and the failure is now impossible
+   * rather than mitigated.
+   */
+  .pr-ranges {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The values drop under the parameter name; three columns across 300px is not a table. */
+  .pr-matrix-row {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+
+  .pr-matrix-vals {
+    grid-column: 2;
+  }
+
+  /* A 34px stair costs 68px of a 306px measure by the third step. Halved, it still reads. */
+  .pr-steps {
+    --pr-step: 16px;
+  }
+
+  .pr-ranges li:not(:nth-child(3n + 1)),
+  .pr-ranges li:not(:nth-child(2n + 1)) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  /* The index moves above the title; a 76px column beside 40ch of text is mostly gutter. */
+  .pr-entry {
+    grid-template-columns: minmax(0, 1fr) 32px;
+    gap: 12px;
+  }
+
+  .pr-entry-index {
+    grid-column: 1 / -1;
+    padding-top: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .pr-entry-index span {
+    margin-top: 0;
+  }
+
+  .pr-gate {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

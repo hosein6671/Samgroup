@@ -2,7 +2,8 @@
 
 import { useRef, type ReactNode } from "react";
 
-import { Arrow } from "../chrome/logo-mark";
+import { Arrow } from "@/features/site/logo-mark";
+
 import { LAB_CARDS, LAB_TAGS } from "../home-data";
 import { Counter } from "../motion/counter";
 import { useCanvas } from "../motion/use-canvas";

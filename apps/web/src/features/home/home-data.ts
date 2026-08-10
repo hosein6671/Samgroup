@@ -621,27 +621,5 @@ export const NAV_LINKS: readonly { readonly href: string; readonly label: string
   { href: "#insights", label: "Insights" },
 ];
 
-export const FOOTER_COLUMNS: readonly {
-  readonly heading: string;
-  readonly links: readonly { readonly href: string; readonly label: string }[];
-}[] = [
-  {
-    heading: "Products",
-    links: [
-      { href: "#products", label: "Base oils" },
-      { href: "#products", label: "Lubricants" },
-      { href: "#products", label: "Industrial fluids" },
-      { href: "#products", label: "Automotive" },
-      { href: "#products", label: "Specialty" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { href: "#story", label: "Manufacturing" },
-      { href: "#lab", label: "Research" },
-      { href: "#network", label: "Export network" },
-      { href: "#insights", label: "Insights" },
-    ],
-  },
-];
+/* `FOOTER_COLUMNS` now lives in `features/site/site-routes.ts` — the footer is site-level chrome,
+   and its columns are navigation data rather than homepage content. Values are unchanged. */

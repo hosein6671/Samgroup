@@ -99,3 +99,40 @@ export const LOCALES: readonly Locale[] = [
   { code: "fa", label: "Persian", native: "فارسی", direction: "rtl", isDefault: false },
   { code: "ar", label: "Arabic", native: "العربية", direction: "rtl", isDefault: false },
 ] as const;
+
+/**
+ * Footer navigation columns.
+ *
+ * Moved here verbatim from `features/home/home-data.ts` when the footer became site-level: it is
+ * navigation data, the same category as `PRIMARY_NAV` above, not homepage editorial content.
+ *
+ * **The hrefs are unchanged, and they are homepage in-page anchors.** That is deliberate — the
+ * frozen homepage renders byte-identically after the move. The consequence is that on any page
+ * other than the homepage these anchors resolve to nothing, which is the same proof-stage state
+ * the header is already in (every `ROUTES` entry above 404s today). Both are fixed by the same
+ * later work: real routes. Do not paper over it by hardcoding a proof path here.
+ */
+export const FOOTER_COLUMNS: readonly {
+  readonly heading: string;
+  readonly links: readonly { readonly href: string; readonly label: string }[];
+}[] = [
+  {
+    heading: "Products",
+    links: [
+      { href: "#products", label: "Base oils" },
+      { href: "#products", label: "Lubricants" },
+      { href: "#products", label: "Industrial fluids" },
+      { href: "#products", label: "Automotive" },
+      { href: "#products", label: "Specialty" },
+    ],
+  },
+  {
+    heading: "Company",
+    links: [
+      { href: "#story", label: "Manufacturing" },
+      { href: "#lab", label: "Research" },
+      { href: "#network", label: "Export network" },
+      { href: "#insights", label: "Insights" },
+    ],
+  },
+];

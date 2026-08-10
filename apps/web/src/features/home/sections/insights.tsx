@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 
-import { Arrow } from "../chrome/logo-mark";
+import { Arrow } from "@/features/site/logo-mark";
+
 import { INSIGHTS, LEAD_ARTICLE } from "../home-data";
 import { useCanvas } from "../motion/use-canvas";
 

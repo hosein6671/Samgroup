@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-import { LOCALES, PRIMARY_NAV, PRODUCT_CATEGORIES, ROUTES } from "../site-routes";
 import { Arrow, LogoMark } from "./logo-mark";
+import { LOCALES, PRIMARY_NAV, PRODUCT_CATEGORIES, ROUTES } from "./site-routes";
 
 /**
  * The flagship header.

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { FOOTER_COLUMNS } from "../home-data";
 import { LogoMark } from "./logo-mark";
+import { FOOTER_COLUMNS } from "./site-routes";
 
 /** The footer. A Server Component — there is nothing here that needs the client. */
 export function SiteFooter(): ReactNode {

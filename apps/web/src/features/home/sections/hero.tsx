@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Arrow } from "../chrome/logo-mark";
+import { Arrow } from "@/features/site/logo-mark";
+
 import { HERO_SPEC, HERO_STATS } from "../home-data";
 import { Counter } from "../motion/counter";
 import { OilField } from "../visuals/oil-field";

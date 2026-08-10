@@ -2,7 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 
-import { Arrow } from "../chrome/logo-mark";
+import { Arrow } from "@/features/site/logo-mark";
+
 import { FAMILIES } from "../home-data";
 import { OrbitVisual } from "../visuals/orbit-visual";
 
