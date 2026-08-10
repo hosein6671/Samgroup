@@ -20,6 +20,7 @@ import {
   breakpoints,
   colorPrimitives,
   containers,
+  gradientContexts,
   durations,
   easings,
   editorialGrid,
@@ -77,6 +78,14 @@ function primitiveColorLines(): Line[] {
 
 function semanticColorLines(context: Readonly<Record<string, string>>): Line[] {
   return Object.entries(context).map(([token, value]) => decl(`--color-${token}`, value));
+}
+
+/**
+ * Gradients are re-declared per surface context alongside the semantic colours, so a rule or
+ * a sheen drawn inside a midnight section steps up the ramp exactly as its colour token does.
+ */
+function gradientLines(context: Readonly<Record<string, string>>): Line[] {
+  return Object.entries(context).map(([token, value]) => decl(`--gradient-${token}`, value));
 }
 
 function typographyLines(): Line[] {
@@ -186,7 +195,13 @@ function buildCss(): string {
   ]);
 
   const surfaceBlocks = Object.entries(surfaceContexts)
-    .map(([name, context]) => block(`[data-surface="${name}"]`, semanticColorLines(context)))
+    .map(([name, context]) =>
+      block(`[data-surface="${name}"]`, [
+        ...semanticColorLines(context),
+        section("industrial gradients · stepped per context, see tokens/color.ts"),
+        ...gradientLines(gradientContexts[name as keyof typeof gradientContexts]),
+      ]),
+    )
     .join("\n");
 
   return [

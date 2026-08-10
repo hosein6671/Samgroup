@@ -9,6 +9,12 @@ allowBuilds:
   "@prisma/engines": true
   esbuild: true
   prisma: true
+  # sharp — Next.js's image optimiser. Its postinstall places the platform's libvips binary.
+  # Blocked, it takes the whole workspace down with it: pnpm exits 1 on every command, the
+  # same failure mode documented above for prisma. Allowed rather than denied because
+  # next/image optimisation has no pure-JS fallback in Next 15 and would fail at build time
+  # once real imagery lands, not here in the design proof, which ships no images.
+  sharp: true
   # Denied: a transitive native dependency of jest-resolve. Verified that the full
   # apps/api test suite passes without its build script ever running.
   unrs-resolver: false

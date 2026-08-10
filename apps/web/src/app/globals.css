@@ -1,0 +1,9 @@
+/*
+ * The app's only stylesheet.
+ *
+ * One import, by design: Tailwind, the generated token theme and every authored layer arrive
+ * through the shared preset (packages/config/tailwind/preset.css). Nothing is declared here —
+ * a colour, size, duration or spacing value written in this file would be a value that exists
+ * outside the token system (docs/design/DESIGN_SYSTEM.md §12).
+ */
+@import "@sam-group/config/tailwind";

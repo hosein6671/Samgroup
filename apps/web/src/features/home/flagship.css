@@ -1,0 +1,2659 @@
+/*
+ * SAM GROUP — FLAGSHIP HOMEPAGE
+ *
+ * ============================================================================
+ * WHY THIS FILE EXISTS, AND WHAT IT DELIBERATELY DOES NOT DO
+ * ============================================================================
+ *
+ * The approved flagship prototype is not a new layout over the existing palette — it is a
+ * different brand system. Gold is its interactive colour; the platform's design system records
+ * the opposite as frozen ("Gold is never a call to action… at most once per viewport",
+ * DESIGN_SYSTEM §3.4). It is dark-first; the system is light-first (§2). Cool greys against
+ * warm platinum, 18/26px radii against 12px, Inter Tight 300 against Inter 600.
+ *
+ * So this file **re-maps the semantic tokens inside a `[data-brand="flagship"]` scope** rather
+ * than editing `packages/ui`. Three things follow, all of them the point:
+ *
+ *   1. `packages/ui` is untouched. No other surface on the platform — Admin Dashboard, future
+ *      pages — changes colour because the homepage did.
+ *   2. Every primitive keeps working unmodified. `Button`, `Text`, `Divider` and the rest read
+ *      `--color-accent-default`, `--color-text-primary` and so on; they neither know nor care
+ *      that the values behind those names differ here. That indirection is exactly what
+ *      DESIGN_SYSTEM §3.5 built it for.
+ *   3. It is reversible. Removing one attribute returns the page to the platform palette.
+ *
+ * If the flagship palette becomes the platform brand, that is an ADR and a token migration in
+ * `packages/ui/src/tokens/color.ts` — not this file quietly winning by being loaded last.
+ */
+
+/* ============================================================================
+   1 · FLAGSHIP TOKENS
+   ============================================================================ */
+
+[data-brand="flagship"] {
+  /* --- Raw palette, from the approved prototype --- */
+  --fs-ink: #030b1f;
+  --fs-navy: #061346;
+  --fs-navy-2: #0a1c57;
+  --fs-navy-3: #12296e;
+  --fs-steel: #6e7a90;
+  --fs-steel-2: #98a3b4;
+  --fs-silver: #c7cdd6;
+  --fs-silver-2: #e4e8ed;
+  --fs-paper: #f3f4f6;
+  --fs-gold: #c39a4e;
+  --fs-gold-2: #e3c689;
+
+  /* --- Type. Families come from next/font, self-hosted; see app/layout.tsx. --- */
+  --font-display:
+    var(--font-display-src), "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --font-text: var(--font-body-src), "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --font-technical: var(--font-mono-src), ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* --- Geometry. The prototype's soft 18/26px corners replace the system's 12px. --- */
+  --radius-panel: 18px;
+  --radius-lg: 26px;
+  --fs-gutter: clamp(20px, 5vw, 88px);
+  --fs-maxw: 1560px;
+
+  /* --- Motion. Expo-out for entrances, a short curve for micro-interaction. --- */
+  --e-entrance: cubic-bezier(0.19, 1, 0.22, 1);
+  --e-micro: cubic-bezier(0.33, 1, 0.68, 1);
+  --e-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-micro: 200ms;
+  --t-mid: 320ms;
+  --t-reveal-sm: 620ms;
+  --t-reveal-lg: 1150ms;
+}
+
+/*
+ * Light context. The prototype's light sections are pure white with navy text — colder and
+ * higher-contrast than the platform's warm platinum, which is the intended character change.
+ */
+[data-brand="flagship"],
+[data-brand="flagship"] [data-surface="light"] {
+  --color-surface-canvas: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: var(--fs-paper);
+  --color-surface-inset: var(--fs-silver-2);
+  --color-surface-inverse: var(--fs-ink);
+  --color-text-primary: var(--fs-navy);
+  --color-text-secondary: #5a667c; /* 4.9:1 on white */
+  --color-text-tertiary: #6b7689;
+  --color-text-accent: #8a6a2a; /* gold darkened to clear 4.5:1 as text on white */
+  --color-text-inverse: #ffffff;
+  --color-text-on-accent: #1a1204;
+  --color-border-hairline: rgba(6, 19, 70, 0.13);
+  --color-border-strong: rgba(6, 19, 70, 0.42);
+  --color-border-accent: var(--fs-gold);
+  --color-accent-default: var(--fs-gold);
+  --color-accent-hover: var(--fs-gold-2);
+  --color-accent-muted: rgba(195, 154, 78, 0.12);
+  --color-highlight-rare: #8a6a2a;
+  --color-focus-ring: #8a6a2a;
+  --color-glass-fill: rgba(6, 19, 70, 0.035);
+  --color-glass-border: rgba(6, 19, 70, 0.13);
+}
+
+/*
+ * Dark context. In the flagship this is the *dominant* surface, not the exception — the hero,
+ * ecosystem, network, laboratory and partnership sections all sit on it.
+ */
+[data-brand="flagship"] [data-surface="midnight"] {
+  --color-surface-canvas: var(--fs-ink);
+  --color-surface-raised: #08163a;
+  --color-surface-sunken: #020817;
+  --color-surface-inset: var(--fs-navy);
+  --color-surface-inverse: #ffffff;
+  --color-text-primary: #eef1f6;
+  --color-text-secondary: #a6b0c2; /* 6.6:1 on ink */
+  --color-text-tertiary: #8d99ad;
+  --color-text-accent: var(--fs-gold-2);
+  --color-text-inverse: var(--fs-navy);
+  --color-text-on-accent: #1a1204;
+  --color-border-hairline: rgba(199, 205, 214, 0.16);
+  --color-border-strong: rgba(255, 255, 255, 0.4);
+  --color-border-accent: var(--fs-gold);
+  --color-accent-default: var(--fs-gold);
+  --color-accent-hover: var(--fs-gold-2);
+  --color-accent-muted: rgba(195, 154, 78, 0.16);
+  --color-highlight-rare: var(--fs-gold-2);
+  --color-focus-ring: var(--fs-gold-2);
+  --color-glass-fill: rgba(255, 255, 255, 0.045);
+  --color-glass-border: rgba(255, 255, 255, 0.14);
+}
+
+[data-brand="flagship"] {
+  background: #ffffff;
+  color: var(--fs-navy);
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.6;
+  /*
+   * `clip`, never `hidden`.
+   *
+   * The prototype uses `overflow-x: hidden` here. In CSS, a non-visible value on one axis
+   * forces the other axis to compute as `auto` — which turns this element into a scroll
+   * container, and `position: sticky` inside a scroll container resolves against *that* box
+   * instead of the viewport. Measured with `hidden`: the manufacturing journey's sticky shell
+   * sat at top: -1400px and scrolled away instead of pinning, so the horizontal sequence never
+   * ran. The manufacturing story's sticky column had the same fault, silently.
+   *
+   * `clip` cuts the horizontal overflow without establishing a scroll container, so both
+   * sticky behaviours work and nothing else changes.
+   */
+  overflow-x: clip;
+}
+
+[data-brand="flagship"] ::selection {
+  background: var(--fs-gold);
+  color: var(--fs-ink);
+}
+
+/* ============================================================================
+   2 · TYPOGRAPHY
+   ============================================================================ */
+
+.fs-eyebrow {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fs-eyebrow::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+  flex: none;
+}
+
+/*
+ * Display weights are 300–500, not the platform's 600. Light display type at very large sizes
+ * is the single strongest signal of this register — it is what separates Porsche and Apple's
+ * editorial voice from a corporate site setting everything semibold.
+ */
+.fs-d1 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(46px, 7.6vw, 124px);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+.fs-d2 {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(36px, 5.2vw, 84px);
+  line-height: 1;
+  letter-spacing: -0.032em;
+  margin: 0;
+}
+.fs-d3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(26px, 3.1vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -0.024em;
+  margin: 0;
+}
+.fs-d4 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(19px, 1.6vw, 25px);
+  line-height: 1.25;
+  letter-spacing: -0.014em;
+  margin: 0;
+}
+.fs-lead {
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.62;
+  color: var(--color-text-secondary);
+  max-width: 56ch;
+  font-weight: 300;
+  margin: 0;
+}
+.fs-small {
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.fs-mono {
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.fs-tnum {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ============================================================================
+   3 · LAYOUT
+   ============================================================================ */
+
+.fs-wrap {
+  width: 100%;
+  max-width: var(--fs-maxw);
+  margin-inline: auto;
+  padding-inline: var(--fs-gutter);
+}
+
+.fs-sec {
+  position: relative;
+  padding-block: clamp(88px, 11vw, 168px);
+}
+
+/* The twelve-column editorial grid, kept from the platform's layout philosophy. */
+.fs-grid12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(16px, 2.1vw, 32px);
+}
+
+/*
+ * The blueprint ground — an engineering-paper hairline field. Masked to an ellipse so it
+ * fades rather than ending at the section edge, which would read as a table.
+ */
+.fs-blueprint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, rgba(199, 205, 214, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(199, 205, 214, 0.055) 1px, transparent 1px);
+  background-size: 92px 92px;
+  mask-image: radial-gradient(ellipse 85% 70% at 50% 40%, #000 20%, transparent 100%);
+}
+
+.fs-blueprint--light {
+  background-image:
+    linear-gradient(to right, rgba(6, 19, 70, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(6, 19, 70, 0.05) 1px, transparent 1px);
+}
+
+/* ============================================================================
+   4 · REVEAL SYSTEM
+   Authored so the finished state is the *default* and JavaScript only removes the offset —
+   the reverse would leave the page blank for crawlers and for anyone without JS.
+   ============================================================================ */
+
+.fs-rv,
+.fs-rv-l {
+  opacity: 1;
+  transform: none;
+}
+
+/* Only once the client observer has claimed the page do elements start hidden. */
+[data-reveal-armed="true"] .fs-rv {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity var(--t-reveal-lg) var(--e-entrance),
+    transform var(--t-reveal-lg) var(--e-entrance);
+}
+[data-reveal-armed="true"] .fs-rv-l {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity var(--t-reveal-sm) var(--e-entrance),
+    transform var(--t-reveal-sm) var(--e-entrance);
+}
+[data-reveal-armed="true"] .fs-rv.in,
+[data-reveal-armed="true"] .fs-rv-l.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Line-by-line display type. The mask is the overflow box; the span is what travels. */
+.fs-line-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.05em 0 0.16em;
+  margin: -0.05em 0 -0.16em;
+}
+.fs-line-mask > span {
+  display: block;
+}
+[data-reveal-armed="true"] .fs-line-mask > span {
+  transform: translateY(105%);
+  transition: transform var(--t-reveal-lg) var(--e-entrance);
+}
+[data-reveal-armed="true"] .in .fs-line-mask > span,
+[data-reveal-armed="true"] .fs-line-mask.in > span {
+  transform: none;
+}
+
+/* Schematic line-drawing. Length is measured on the client and set as --len. */
+[data-reveal-armed="true"] .fs-draw :is(path, circle, line, rect) {
+  stroke-dasharray: var(--len, 600);
+  stroke-dashoffset: var(--len, 600);
+  transition: stroke-dashoffset 1800ms var(--e-io);
+}
+[data-reveal-armed="true"] .fs-draw.in :is(path, circle, line, rect) {
+  stroke-dashoffset: 0;
+}
+
+/* ============================================================================
+   5 · CHROME — progress, nav, boot curtain, pointer ring
+   ============================================================================ */
+
+.fs-progress {
+  position: fixed;
+  top: 0;
+  inset-inline-start: 0;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, var(--fs-gold), var(--fs-gold-2));
+  z-index: 120;
+  transition: width 90ms linear;
+}
+
+.fs-nav {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: 110;
+  border-bottom: 1px solid transparent;
+  transition:
+    background var(--t-mid),
+    backdrop-filter var(--t-mid),
+    border-color var(--t-mid),
+    transform 420ms var(--e-entrance);
+}
+.fs-nav[data-solid="true"] {
+  background: rgba(3, 11, 31, 0.72);
+  backdrop-filter: blur(22px) saturate(1.3);
+  border-bottom-color: rgba(199, 205, 214, 0.16);
+}
+/* Retracts on the way down so it never sits between the reader and an oversized headline. */
+.fs-nav[data-hidden="true"] {
+  transform: translateY(-100%);
+}
+.fs-nav-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 78px;
+}
+.fs-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+}
+
+/*
+ * The official mark's crop frame. See chrome/logo-mark.tsx for the measured geometry — the
+ * supplied PNG is a square canvas whose artwork occupies only the middle band, so the frame is
+ * sized to the artwork and the oversized canvas is centred and clipped inside it. Only
+ * transparency is cut.
+ */
+.fs-mark {
+  --mark-aspect: 1.5806; /* measured width ÷ height of the artwork */
+  --mark-canvas: 1.8416; /* square canvas ÷ artwork height */
+  /*
+   * Two inputs, deliberately. The component writes `--mark-h-base` inline, and an inline
+   * custom property cannot be beaten by a stylesheet rule — a media query setting the same
+   * name is silently ignored. So responsive overrides use a *different* property that only
+   * stylesheets ever set, and this line picks the override when one exists.
+   */
+  --mark-h: var(--mark-h-override, var(--mark-h-base, 28px));
+  position: relative;
+  display: block;
+  flex: none;
+  block-size: var(--mark-h, 28px);
+  inline-size: calc(var(--mark-h, 28px) * var(--mark-aspect));
+  overflow: hidden;
+}
+
+.fs-mark__img {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  /* Sized here rather than by the intrinsic attributes so the crop follows --mark-h. */
+  block-size: calc(var(--mark-h, 28px) * var(--mark-canvas));
+  inline-size: auto;
+  /* The canvas is deliberately larger than its frame; the app's `max-width: 100%` image
+     default would shrink it back and undo the crop. */
+  max-width: none;
+}
+
+[dir="rtl"] .fs-mark__img {
+  transform: translate(50%, -50%);
+}
+.fs-logo-txt {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  display: block;
+}
+.fs-logo-sub {
+  font-family: var(--font-technical);
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  color: var(--fs-gold);
+  text-transform: uppercase;
+  margin-top: 3px;
+  display: block;
+}
+.fs-nav-links {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: clamp(16px, 2vw, 34px);
+}
+.fs-nav-links a {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.74);
+  padding: 10px 2px;
+  position: relative;
+  transition: color var(--t-micro);
+  /* Multi-word destinations — "Customized Solutions", "Quality & Certifications" — are single
+     labels, not sentences. Without this, flex shrinks them and each breaks onto three lines,
+     which triples the bar's height. Measured: the full row needs 1249px of 1425px available,
+     so there is room; it only had to be told not to wrap. */
+  white-space: nowrap;
+  flex: none;
+}
+.fs-nav-links a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 4px;
+  height: 1px;
+  background: var(--fs-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 240ms var(--e-micro);
+}
+.fs-nav-links a:hover {
+  color: #fff;
+}
+.fs-nav-links a:hover::after {
+  transform: scaleX(1);
+}
+
+/* ---------------------------------------------------------------- mega menu
+ *
+ * Products is a disclosure button, not a hover-only panel: a hover mega menu cannot be reached
+ * from a keyboard and does not exist on touch. It shares the flat links' type and gold underline
+ * so the row still reads as one set.
+ */
+.fs-nav-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex: none;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.74);
+  padding: 10px 2px;
+  position: relative;
+  cursor: pointer;
+  transition: color var(--t-micro);
+}
+.fs-nav-trigger::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 4px;
+  height: 1px;
+  background: var(--fs-gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 240ms var(--e-micro);
+}
+.fs-nav-trigger:hover,
+.fs-nav-trigger[aria-expanded="true"] {
+  color: #fff;
+}
+.fs-nav-trigger:hover::after,
+.fs-nav-trigger[aria-expanded="true"]::after {
+  transform: scaleX(1);
+}
+.fs-nav-caret {
+  transition: transform var(--t-micro) var(--e-micro);
+  flex: none;
+}
+[aria-expanded="true"] > .fs-nav-caret {
+  transform: rotate(180deg);
+}
+
+/*
+ * The panel is anchored to the nav group, not centred on the Products trigger.
+ *
+ * Centring is the obvious choice and it breaks: Products sits second from the left, so an
+ * 880px panel centred on it hangs off the viewport. Measured at 1200px it overflowed the left
+ * edge by 6px. Anchoring to the start of the link row keeps the panel inside the container at
+ * every supported desktop width, and reads correctly anyway — a mega menu is a panel belonging
+ * to the bar, not a tooltip belonging to one word.
+ */
+.fs-mega {
+  position: static;
+}
+.fs-mega-panel {
+  position: absolute;
+  inset-block-start: calc(100% + 18px);
+  inset-inline-start: 0;
+  transform: translateY(-8px);
+  /* `100%` would resolve to the link row (≈587px) and squeeze the three columns. The panel
+     wants its own width, guarded against the viewport rather than against its anchor. */
+  inline-size: min(880px, calc(100vw - 2 * var(--fs-gutter)));
+  padding: 26px 28px;
+  background: rgba(8, 17, 40, 0.94);
+  backdrop-filter: blur(22px) saturate(1.3);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 260ms var(--e-entrance);
+  z-index: 5;
+}
+.fs-mega-panel[data-open] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.fs-mega-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.85fr;
+  gap: 28px;
+}
+.fs-mega-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fs-mega-col a {
+  display: block;
+  padding: 9px 10px;
+  margin-inline: -10px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  color: rgba(238, 241, 246, 0.78);
+  transition:
+    background var(--t-micro),
+    color var(--t-micro);
+}
+.fs-mega-col a::after {
+  content: none; /* the underline belongs to the top row, not to panel items */
+}
+.fs-mega-col a:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+.fs-mega-head {
+  margin: 0 0 12px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fs-gold);
+}
+.fs-mega-col--promo {
+  border-inline-start: 1px solid var(--color-glass-border);
+  padding-inline-start: 28px;
+}
+.fs-mega-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fs-gold-2);
+}
+
+/* ------------------------------------------------------------ right cluster */
+.fs-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fs-lang {
+  position: relative;
+}
+.fs-lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--color-glass-border);
+  border-radius: 999px;
+  color: #fff;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+  transition: border-color var(--t-micro);
+}
+.fs-lang-btn:hover {
+  border-color: rgba(227, 198, 137, 0.6);
+}
+.fs-lang-menu {
+  position: absolute;
+  inset-block-start: calc(100% + 10px);
+  inset-inline-end: 0;
+  min-inline-size: 190px;
+  padding: 7px;
+  background: rgba(8, 17, 40, 0.94);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 14px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 260ms var(--e-entrance);
+  z-index: 5;
+}
+.fs-lang-menu[data-open] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.fs-lang-menu button {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  min-height: 40px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+  transition:
+    background var(--t-micro),
+    color var(--t-micro);
+}
+.fs-lang-menu button:hover,
+.fs-lang-menu button[aria-current="true"] {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+.fs-lang-menu button span {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--fs-gold);
+}
+
+/* Compounded with .fs-btn deliberately: the button block is defined later in this file, so a
+   single-class rule here would lose the min-height on source order and the bar button would
+   grow from its previous 44px to 52px. */
+.fs-btn.fs-nav-cta {
+  min-height: 44px;
+  padding: 0 20px;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ burger */
+.fs-burger {
+  display: none;
+  inline-size: 44px;
+  block-size: 44px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.fs-burger span,
+.fs-burger span::before,
+.fs-burger span::after {
+  display: block;
+  inline-size: 20px;
+  block-size: 1.5px;
+  background: #fff;
+  transition: transform 260ms var(--e-entrance);
+}
+.fs-burger span {
+  position: relative;
+}
+.fs-burger span::before,
+.fs-burger span::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+}
+.fs-burger span::before {
+  transform: translateY(-6px);
+}
+.fs-burger span::after {
+  transform: translateY(6px);
+}
+.fs-burger span[data-open] {
+  background: transparent;
+}
+.fs-burger span[data-open]::before {
+  transform: rotate(45deg);
+}
+.fs-burger span[data-open]::after {
+  transform: rotate(-45deg);
+}
+
+/* ------------------------------------------------------------------ drawer */
+.fs-drawer {
+  display: none;
+  position: fixed;
+  inset: 78px 0 0;
+  background: rgba(3, 11, 31, 0.98);
+  backdrop-filter: blur(22px);
+  border-top: 1px solid var(--color-glass-border);
+  padding: 18px var(--fs-gutter) calc(18px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 240ms var(--e-entrance);
+}
+.fs-drawer[data-open] {
+  opacity: 1;
+  visibility: visible;
+}
+.fs-drawer-nav {
+  display: flex;
+  flex-direction: column;
+}
+.fs-drawer-link,
+.fs-drawer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 0;
+  min-height: 56px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: rgba(238, 241, 246, 0.88);
+  border-bottom: 1px solid var(--color-glass-border);
+  cursor: pointer;
+}
+/* Accordion: interpolates to intrinsic height, no JS measurement, no clipped copy. */
+.fs-drawer-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 380ms var(--e-entrance);
+}
+.fs-drawer-panel[data-open] {
+  grid-template-rows: 1fr;
+}
+.fs-drawer-panel > div {
+  overflow: hidden;
+}
+.fs-drawer-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 12px;
+}
+.fs-drawer-panel a {
+  display: block;
+  padding: 12px 0 12px 16px;
+  min-height: 44px;
+  font-size: 14.5px;
+  color: rgba(238, 241, 246, 0.68);
+  border-inline-start: 1px solid var(--color-glass-border);
+}
+.fs-drawer-foot {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.fs-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--fs-ink);
+  display: grid;
+  place-items: center;
+  transition:
+    transform 900ms var(--e-entrance),
+    opacity 400ms 500ms linear;
+}
+.fs-curtain[data-lift="true"] {
+  transform: translateY(-101%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+.fs-curtain-in {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.fs-curtain-txt {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.42em;
+  color: rgba(255, 255, 255, 0.72);
+  padding-inline-start: 0.42em;
+}
+.fs-curtain-bar {
+  display: block;
+  width: 132px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+.fs-curtain-bar b {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--fs-gold);
+  transition: width 220ms linear;
+}
+
+.fs-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(195, 154, 78, 0.75);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 190;
+  transform: translate(-50%, -50%);
+  transition:
+    width 260ms var(--e-entrance),
+    height 260ms var(--e-entrance),
+    background 260ms;
+  mix-blend-mode: difference;
+}
+.fs-ring[data-big="true"] {
+  width: 62px;
+  height: 62px;
+  background: rgba(195, 154, 78, 0.16);
+}
+@media (hover: none), (pointer: coarse) {
+  .fs-ring {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   6 · BUTTONS
+   The flagship's pill buttons. Not the platform's Button primitive — its variants encode
+   the frozen "gold is never interactive" rule, which this brand deliberately inverts.
+   ============================================================================ */
+
+.fs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  min-height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform var(--t-micro) var(--e-micro),
+    background var(--t-micro) linear,
+    color var(--t-micro) linear,
+    border-color var(--t-micro) linear,
+    box-shadow 280ms var(--e-micro);
+}
+.fs-btn:hover {
+  transform: translateY(-2px);
+}
+.fs-btn:active {
+  transform: translateY(0);
+}
+.fs-btn--gold {
+  background: linear-gradient(120deg, var(--fs-gold-2), var(--fs-gold));
+  color: #1a1204;
+}
+.fs-btn--gold:hover {
+  box-shadow: 0 14px 40px -12px rgba(195, 154, 78, 0.65);
+}
+.fs-btn--glass {
+  background: rgba(255, 255, 255, 0.045);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px);
+}
+.fs-btn--glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.fs-btn--outline {
+  border: 1px solid rgba(6, 19, 70, 0.13);
+  color: var(--fs-navy);
+}
+.fs-btn--outline:hover {
+  border-color: var(--fs-navy);
+  background: var(--fs-navy);
+  color: #fff;
+}
+.fs-btn .fs-ar {
+  transition: transform 220ms var(--e-micro);
+  flex: none;
+}
+.fs-btn:hover .fs-ar {
+  transform: translateX(4px);
+}
+[dir="rtl"] .fs-btn .fs-ar {
+  transform: scaleX(-1);
+}
+[dir="rtl"] .fs-btn:hover .fs-ar {
+  transform: scaleX(-1) translateX(4px);
+}
+
+.fs-tag {
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fs-navy);
+  border: 1px solid rgba(6, 19, 70, 0.13);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.fs-tag--dark {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(238, 241, 246, 0.8);
+}
+.fs-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* ============================================================================
+   7 · HERO
+   ============================================================================ */
+
+.fs-hero {
+  position: relative;
+  min-height: 100svh;
+  background: var(--fs-ink);
+  color: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.fs-hero canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.fs-hero-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 78% 18%, rgba(18, 41, 110, 0.55), transparent 62%),
+    radial-gradient(90% 70% at 10% 90%, rgba(195, 154, 78, 0.13), transparent 60%),
+    linear-gradient(
+      to bottom,
+      rgba(3, 11, 31, 0.72) 0%,
+      rgba(3, 11, 31, 0.28) 38%,
+      rgba(3, 11, 31, 0.86) 92%
+    );
+}
+.fs-hero-body {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  padding-block: 118px 0;
+}
+.fs-hero-grid {
+  width: 100%;
+  align-items: end;
+}
+.fs-hero-copy {
+  grid-column: 1 / span 7;
+}
+.fs-hero-side {
+  grid-column: 9 / span 4;
+  padding-bottom: 12px;
+}
+.fs-hero h1 {
+  margin: 22px 0 0;
+  max-width: 15ch;
+}
+.fs-hero h1 em {
+  font-style: normal;
+  color: var(--fs-gold-2);
+}
+.fs-hero-lead {
+  margin: 26px 0 0;
+  color: rgba(238, 241, 246, 0.72);
+  max-width: 48ch;
+  font-size: clamp(15.5px, 1.2vw, 18.5px);
+  font-weight: 300;
+  line-height: 1.62;
+}
+.fs-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 38px;
+}
+.fs-hero-spec {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(20px);
+  padding: 22px 24px;
+}
+.fs-hero-spec h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fs-gold);
+  font-weight: 500;
+}
+.fs-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.fs-spec-row:first-of-type {
+  border-top: 0;
+}
+.fs-spec-row dt {
+  font-size: 12.5px;
+  color: rgba(238, 241, 246, 0.6);
+}
+.fs-spec-row dd {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 12.5px;
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+.fs-hero-stats {
+  position: relative;
+  z-index: 3;
+  border-top: 1px solid rgba(255, 255, 255, 0.11);
+  margin-top: 56px;
+}
+.fs-hero-stats .fs-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.fs-stat {
+  padding: 26px 0 30px;
+  position: relative;
+}
+.fs-stat + .fs-stat {
+  padding-inline-start: clamp(16px, 2.4vw, 40px);
+}
+.fs-stat + .fs-stat::before {
+  content: "";
+  position: absolute;
+  inset-block: 26px 30px;
+  inset-inline-start: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.11);
+}
+.fs-stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(30px, 3.5vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.fs-stat span {
+  display: block;
+  margin-top: 9px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.5);
+}
+.fs-scroll-hint {
+  position: absolute;
+  inset-inline-start: var(--fs-gutter);
+  bottom: 118px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+.fs-scroll-hint i {
+  display: block;
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--fs-gold));
+  animation: fs-drip 2.6s var(--e-io) infinite;
+}
+@keyframes fs-drip {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+/* ============================================================================
+   8 · CERTIFICATION MARQUEE
+   ============================================================================ */
+
+.fs-certs {
+  background: var(--fs-ink);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  overflow: hidden;
+  padding: 20px 0;
+}
+.fs-certs-track {
+  display: flex;
+  gap: 64px;
+  width: max-content;
+  animation: fs-march 42s linear infinite;
+}
+.fs-certs:hover .fs-certs-track {
+  animation-play-state: paused;
+}
+@keyframes fs-march {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.fs-cert {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.42);
+  white-space: nowrap;
+}
+.fs-cert svg {
+  color: var(--fs-gold);
+  opacity: 0.85;
+  flex: none;
+}
+
+/* ============================================================================
+   9 · MANUFACTURING STORY
+   ============================================================================ */
+
+.fs-story {
+  background: #fff;
+}
+.fs-story-left {
+  grid-column: 1 / span 5;
+  position: sticky;
+  top: 130px;
+  align-self: start;
+}
+.fs-story-right {
+  grid-column: 7 / span 6;
+}
+.fs-story h2 {
+  margin: 24px 0 0;
+}
+/*
+ * The emphasised line uses the darkened accent, not raw gold.
+ *
+ * Measured: `--fs-gold` (#C39A4E) on white is 2.61:1 — under the 3:1 floor large text has to
+ * clear, so the prototype's own value fails here. `--color-text-accent` is the same hue taken
+ * to #8A6A2A, which reads identically as "gold" beside the navy and passes. Gold on the *dark*
+ * sections is untouched: it measures 6.7:1 there and never needed adjusting.
+ */
+.fs-story h2 i {
+  font-style: normal;
+  color: var(--color-text-accent);
+}
+.fs-story-meta {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  border-top: 1px solid rgba(6, 19, 70, 0.13);
+  padding-top: 24px;
+  max-width: 420px;
+}
+.fs-story-meta b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  color: var(--fs-navy);
+}
+.fs-story-meta span {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.fs-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.fs-gpanel {
+  position: relative;
+  border: 1px solid rgba(6, 19, 70, 0.13);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(140deg, #fbfcfd, #eff1f5);
+  padding: 26px 28px;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition:
+    transform 500ms var(--e-entrance),
+    box-shadow 500ms var(--e-entrance),
+    border-color 400ms;
+}
+.fs-gpanel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.9), transparent 42%);
+  opacity: 0.6;
+}
+.fs-gpanel:hover {
+  box-shadow: 0 32px 70px -34px rgba(6, 19, 70, 0.42);
+  border-color: rgba(195, 154, 78, 0.55);
+}
+.fs-gpanel-idx {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-accent);
+  position: relative;
+  z-index: 2;
+}
+.fs-gpanel h3 {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 1.7vw, 26px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--fs-navy);
+  position: relative;
+  z-index: 2;
+}
+/* Disclosure by grid-row interpolation — animates to intrinsic height without a JS measure. */
+.fs-gpanel-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 520ms var(--e-entrance);
+  position: relative;
+  z-index: 2;
+}
+.fs-gpanel:hover .fs-gpanel-body,
+.fs-gpanel:focus-within .fs-gpanel-body,
+.fs-gpanel[data-open="true"] .fs-gpanel-body {
+  grid-template-rows: 1fr;
+}
+.fs-gpanel-body > div {
+  overflow: hidden;
+}
+.fs-gpanel-body p {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 52ch;
+}
+.fs-gpanel-body .fs-tags {
+  margin-top: 16px;
+}
+.fs-gpanel-dia {
+  position: absolute;
+  inset-inline-end: -30px;
+  top: -30px;
+  width: 190px;
+  height: 190px;
+  opacity: 0.13;
+  color: var(--fs-navy);
+  pointer-events: none;
+  transition:
+    opacity 500ms,
+    transform 700ms var(--e-entrance);
+}
+.fs-gpanel:hover .fs-gpanel-dia {
+  opacity: 0.3;
+  transform: rotate(24deg) scale(1.06);
+}
+
+/* ============================================================================
+   10 · PRODUCT ECOSYSTEM
+   ============================================================================ */
+
+.fs-eco {
+  background: var(--fs-ink);
+  color: #fff;
+  overflow: hidden;
+}
+.fs-eco-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+  flex-wrap: wrap;
+  margin-bottom: clamp(40px, 5vw, 74px);
+}
+.fs-eco-stage {
+  display: grid;
+  grid-template-columns: 1fr minmax(340px, 420px);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+.fs-eco-canvas {
+  position: relative;
+  aspect-ratio: 1/1;
+  max-width: 760px;
+  width: 100%;
+  margin-inline: auto;
+}
+.fs-eco-canvas svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+/* ------------------------------------------------------- orbit ecosystem
+ *
+ * Rebuilt from the approved `sam-group.html` reference. Geometry, sizing and the interaction
+ * states are the reference's; the accent colours are mapped onto the flagship palette so the
+ * section does not introduce a second brand blue into type (DESIGN_SYSTEM §3.1). The cool
+ * rgba lighting values are kept verbatim — they are illumination, not brand colour.
+ */
+.fs-orbit {
+  position: relative;
+  aspect-ratio: 1/1;
+  max-block-size: 620px;
+  max-inline-size: 620px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+.fs-orbit-svg {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+.fs-core {
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  transform: translate(-50%, -50%);
+  inline-size: 27%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  background: radial-gradient(
+    circle at 34% 28%,
+    rgba(125, 169, 255, 0.36),
+    rgba(47, 107, 255, 0.1) 46%,
+    rgba(8, 12, 22, 0.9) 74%
+  );
+  border: 1px solid rgba(125, 169, 255, 0.34);
+  box-shadow:
+    0 0 90px -14px rgba(47, 107, 255, 0.62),
+    inset 0 0 60px -18px rgba(125, 169, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+.fs-core .k {
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  color: var(--fs-gold-2);
+  text-transform: uppercase;
+}
+.fs-core .t {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin-top: 7px;
+  color: #fff;
+}
+.fs-core .s {
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  color: rgba(238, 241, 246, 0.55);
+  margin-top: 6px;
+  letter-spacing: 0.12em;
+}
+/* The slow outer ring. Purely decorative, so reduced motion stops it entirely. */
+.fs-core::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  border: 1px solid rgba(125, 169, 255, 0.13);
+  animation: fs-spin 26s linear infinite;
+}
+@keyframes fs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fs-orbit-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 12px 17px;
+  border-radius: 99px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: rgba(11, 19, 34, 0.72);
+  border: 1px solid var(--color-glass-border);
+  backdrop-filter: blur(14px);
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: rgba(238, 241, 246, 0.86);
+  transition:
+    color 0.35s,
+    border-color 0.35s,
+    box-shadow 0.45s,
+    background 0.35s;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-block-size: 40px;
+}
+.fs-orbit-node i {
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 99px;
+  background: #2f6bff;
+  flex: none;
+  transition: 0.35s;
+}
+.fs-orbit-node:hover,
+.fs-orbit-node[data-on] {
+  color: #fff;
+  border-color: rgba(125, 169, 255, 0.6);
+  background: rgba(24, 44, 88, 0.82);
+  box-shadow: 0 0 40px -8px rgba(47, 107, 255, 0.8);
+}
+.fs-orbit-node[data-on] i {
+  background: var(--fs-gold);
+  box-shadow: 0 0 12px var(--fs-gold);
+}
+
+/*
+ * Compact stage (< 520px wide, set by the visual itself rather than by a media query, because
+ * the stage width — not the viewport — is what the geometry actually depends on).
+ *
+ * The pill is capped and allowed to wrap. At 104px the half-width is 52px, which clears the
+ * core (0.135 × min) on the inside and the stage edge on the outside at every width in range;
+ * the uncapped 178px "Petroleum Products" pill cleared neither. Two lines make the pill about
+ * 46px tall, so the touch target grows past the 44px AAA floor rather than shrinking.
+ */
+.fs-orbit[data-compact="true"] .fs-orbit-node {
+  max-inline-size: 104px;
+  white-space: normal;
+  text-wrap: balance;
+  font-size: 11px;
+  line-height: 1.24;
+  padding: 9px 11px;
+  gap: 7px;
+  min-block-size: 44px;
+}
+
+.fs-eco-detail {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(20px);
+  padding: 30px 32px;
+  min-height: 400px;
+  transition:
+    opacity 200ms linear,
+    transform 320ms var(--e-entrance);
+}
+.fs-eco-detail .k {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fs-gold);
+}
+.fs-eco-detail h3 {
+  margin: 14px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 400;
+  letter-spacing: -0.026em;
+}
+.fs-eco-detail p {
+  margin: 14px 0 0;
+  font-size: 14.5px;
+  line-height: 1.66;
+  color: rgba(238, 241, 246, 0.68);
+}
+.fs-eco-specs {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.fs-eco-specs li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 13px;
+}
+.fs-eco-specs li span:first-child {
+  color: rgba(238, 241, 246, 0.55);
+}
+.fs-eco-specs li span:last-child {
+  font-family: var(--font-technical);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.fs-eco-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 26px;
+}
+.fs-eco-tab {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: rgba(238, 241, 246, 0.66);
+  cursor: pointer;
+  transition: all var(--t-micro);
+}
+.fs-eco-tab:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+.fs-eco-tab[aria-selected="true"] {
+  background: var(--fs-gold);
+  border-color: var(--fs-gold);
+  color: #1a1204;
+}
+
+/* ============================================================================
+   11 · WHY SAM GROUP
+   ============================================================================ */
+
+.fs-why {
+  background: var(--fs-paper);
+}
+.fs-why-block {
+  padding-block: clamp(56px, 7vw, 104px);
+  border-top: 1px solid rgba(6, 19, 70, 0.13);
+}
+.fs-why-block:first-of-type {
+  border-top: 0;
+}
+.fs-wb-num {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  color: var(--color-text-accent);
+}
+.fs-cap-copy {
+  grid-column: 1 / span 5;
+}
+.fs-cap-viz {
+  grid-column: 7 / span 6;
+}
+.fs-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(8px, 1.2vw, 18px);
+  height: 230px;
+  margin-top: 10px;
+}
+.fs-bar {
+  flex: 1;
+  border-radius: 7px 7px 3px 3px;
+  background: linear-gradient(to top, var(--fs-navy), var(--fs-navy-3));
+  height: 0;
+  transition: height 1200ms var(--e-entrance);
+}
+.fs-bar:nth-child(4) {
+  background: linear-gradient(to top, var(--fs-gold), var(--fs-gold-2));
+}
+.fs-bar-lab {
+  display: flex;
+  gap: clamp(8px, 1.2vw, 18px);
+  margin-top: 12px;
+}
+.fs-bar-lab span {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.13em;
+  color: var(--color-text-secondary);
+}
+.fs-qual {
+  background: var(--fs-navy);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  padding: clamp(28px, 3.4vw, 54px);
+  overflow: hidden;
+  position: relative;
+}
+.fs-qual-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(24px, 3.6vw, 56px);
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+.fs-gauge {
+  width: 100%;
+  max-width: 330px;
+  margin-inline: auto;
+}
+.fs-qual table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 22px;
+  font-size: 13.5px;
+}
+.fs-qual caption {
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  text-align: start;
+  color: var(--fs-gold);
+  padding-bottom: 12px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+.fs-qual td {
+  padding: 11px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(238, 241, 246, 0.82);
+}
+.fs-qual td:last-child {
+  text-align: end;
+  font-family: var(--font-technical);
+  font-size: 12.5px;
+}
+.fs-tech-viz {
+  grid-column: 1 / span 7;
+}
+.fs-tech-copy {
+  grid-column: 9 / span 4;
+}
+.fs-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: rgba(6, 19, 70, 0.13);
+  border: 1px solid rgba(6, 19, 70, 0.13);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  margin-top: 34px;
+}
+.fs-trust-cell {
+  background: var(--fs-paper);
+  padding: 26px 22px;
+  transition: background var(--t-micro);
+}
+.fs-trust-cell:hover {
+  background: #fff;
+}
+.fs-trust-cell b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--fs-navy);
+}
+.fs-trust-cell span {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   12 · GLOBAL EXPORT NETWORK
+   ============================================================================ */
+
+.fs-globe {
+  background: var(--fs-ink);
+  color: #fff;
+  overflow: hidden;
+}
+.fs-globe-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+.fs-map-shell {
+  position: relative;
+  margin-top: clamp(34px, 4vw, 60px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg, #050f2a, #030b1f 60%);
+  overflow: hidden;
+}
+.fs-map-shell canvas {
+  width: 100%;
+  display: block;
+}
+.fs-map-hud {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-start: 18px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  z-index: 3;
+}
+.fs-hud-chip {
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(3, 11, 31, 0.6);
+  backdrop-filter: blur(10px);
+  color: rgba(238, 241, 246, 0.7);
+}
+.fs-hud-chip b {
+  color: var(--fs-gold);
+  font-weight: 500;
+}
+.fs-map-legend {
+  position: absolute;
+  inset-block-end: 16px;
+  inset-inline-end: 18px;
+  display: flex;
+  gap: 16px;
+  z-index: 3;
+  flex-wrap: wrap;
+}
+.fs-lg {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-technical);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.55);
+}
+.fs-lg i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: block;
+}
+.fs-globe-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+  margin-top: 20px;
+}
+.fs-gs {
+  background: var(--fs-ink);
+  padding: 22px 20px;
+}
+.fs-gs b {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(26px, 2.6vw, 38px);
+  letter-spacing: -0.03em;
+}
+.fs-gs span {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.5);
+}
+
+/* ============================================================================
+   13 · RESEARCH LABORATORY
+   ============================================================================ */
+
+.fs-lab {
+  position: relative;
+  background: linear-gradient(180deg, #030b1f, #061346 55%, #030b1f);
+  color: #fff;
+  overflow: hidden;
+}
+.fs-lab canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.62;
+}
+.fs-lab .fs-wrap {
+  position: relative;
+  z-index: 2;
+}
+.fs-lab-copy {
+  grid-column: 1 / span 6;
+}
+.fs-lab-cards {
+  grid-column: 8 / span 5;
+  display: grid;
+  gap: 14px;
+}
+.fs-lcard {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-panel);
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(18px);
+  padding: 22px 24px;
+  transition:
+    transform 320ms var(--e-micro),
+    border-color var(--t-micro) linear;
+}
+.fs-lcard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(227, 198, 137, 0.5);
+}
+.fs-lcard b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+.fs-lcard span {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.55);
+}
+.fs-lcard p {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(238, 241, 246, 0.66);
+}
+
+/* ============================================================================
+   14 · MANUFACTURING JOURNEY
+   Rebuilt from the approved `sam-group.html` reference. Full-viewport steps on a horizontal
+   track, ghost numerals, schematic artwork, a bottom progress rail and a step counter.
+   ============================================================================ */
+
+.fs-journey {
+  position: relative;
+  background: #fff;
+}
+/*
+ * The section heading, above the sticky track. It scrolls away normally; its height is added to
+ * the section's total in JS so the six steps still get exactly (n − 1) viewports of travel once
+ * the track pins.
+ */
+.fs-jrny-head {
+  padding-block: clamp(72px, 10vw, 130px) clamp(28px, 4vw, 52px);
+}
+.fs-jrny-head h2 {
+  margin-top: 22px;
+  max-inline-size: 16ch;
+  color: var(--fs-navy);
+}
+
+.fs-jrny-sticky {
+  position: sticky;
+  top: 0;
+  block-size: 100svh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.fs-jrny-track {
+  display: flex;
+  block-size: 100%;
+  will-change: transform;
+}
+
+/* One step per viewport: copy left, schematic right. */
+.fs-jstep {
+  inline-size: 100vw;
+  block-size: 100%;
+  flex: none;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 80px);
+  padding: 96px var(--fs-gutter);
+}
+.fs-jstep-no {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--color-text-accent);
+}
+.fs-jstep h3 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5.6vw, 5.4rem);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 0.94;
+  margin: 20px 0 22px;
+  color: var(--fs-navy);
+}
+.fs-jstep p {
+  color: var(--color-text-secondary);
+  font-weight: 300;
+  line-height: 1.7;
+  font-size: clamp(0.95rem, 1.1vw, 1.08rem);
+  max-inline-size: 46ch;
+  margin: 0;
+}
+/* The oversized numeral behind the copy. Depth without another voice competing. */
+.fs-jstep-ghost {
+  position: absolute;
+  inset-inline-start: calc(var(--fs-gutter) - 0.05em);
+  inset-block-start: 7%;
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 15vw, 13rem);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  line-height: 0.8;
+  color: rgba(6, 19, 70, 0.045);
+  pointer-events: none;
+  user-select: none;
+}
+.fs-jstep-art {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(6, 19, 70, 0.13);
+  background: linear-gradient(150deg, rgba(16, 26, 44, 0.9), rgba(4, 6, 11, 0.94));
+}
+.fs-jstep-art svg {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.fs-jstep-list {
+  margin-block-start: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.fs-jstep-list span {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  color: var(--color-text-secondary);
+  display: flex;
+  gap: 11px;
+  align-items: baseline;
+}
+.fs-jstep-list span::before {
+  content: "";
+  inline-size: 14px;
+  block-size: 1px;
+  background: var(--fs-gold);
+  flex: none;
+  transform: translateY(-3px);
+}
+
+.fs-jrny-progress {
+  position: absolute;
+  inset-inline: var(--fs-gutter);
+  inset-block-end: 38px;
+  block-size: 1px;
+  background: rgba(6, 19, 70, 0.13);
+  z-index: 5;
+}
+.fs-jrny-progress i {
+  display: block;
+  block-size: 100%;
+  inline-size: 0;
+  background: linear-gradient(90deg, var(--fs-gold), var(--fs-gold-2));
+}
+.fs-jrny-count {
+  position: absolute;
+  inset-inline-end: var(--fs-gutter);
+  inset-block-end: 52px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--color-text-secondary);
+  z-index: 5;
+}
+
+/*
+ * Swipe mode — narrow screens and reduced motion.
+ *
+ * The pin is released and the track becomes a native horizontal scroller with snap points.
+ * Pinning on a phone fights the address-bar resize and removes the only scrolling gesture the
+ * visitor has; under reduced motion, nothing should travel under the reader unprompted.
+ */
+.fs-journey[data-mode="swipe"] .fs-jrny-sticky {
+  position: static;
+  block-size: auto;
+  overflow: visible;
+}
+.fs-journey[data-mode="swipe"] .fs-jrny-track {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  block-size: auto;
+}
+.fs-journey[data-mode="swipe"] .fs-jstep {
+  inline-size: 88vw;
+  block-size: auto;
+  scroll-snap-align: start;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 64px var(--fs-gutter) 72px;
+  gap: 28px;
+}
+.fs-journey[data-mode="swipe"] .fs-jstep-ghost {
+  font-size: clamp(5rem, 22vw, 8rem);
+  inset-block-start: 2%;
+}
+.fs-journey[data-mode="swipe"] .fs-jrny-progress,
+.fs-journey[data-mode="swipe"] .fs-jrny-count {
+  display: none;
+}
+
+/* ============================================================================
+   15 · EDITORIAL INSIGHTS
+   ============================================================================ */
+
+.fs-insights {
+  background: #fff;
+}
+.fs-ins-lead {
+  grid-column: 1 / span 7;
+}
+.fs-ins-side {
+  grid-column: 9 / span 4;
+}
+.fs-ins-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 16/10;
+  background: var(--fs-navy);
+}
+.fs-ins-hero canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.fs-ins-hero-tag {
+  position: absolute;
+  top: 18px;
+  inset-inline-start: 18px;
+  z-index: 2;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(3, 11, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--fs-gold-2);
+  backdrop-filter: blur(8px);
+}
+.fs-ins-lead h3 {
+  margin: 22px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 44px);
+  font-weight: 400;
+  letter-spacing: -0.028em;
+  color: var(--fs-navy);
+  max-width: 20ch;
+}
+.fs-ins-meta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-top: 16px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.fs-ins-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 20px;
+  padding: 24px 0;
+  border-top: 1px solid rgba(6, 19, 70, 0.13);
+  align-items: start;
+}
+.fs-ins-item .n {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-accent);
+  padding-top: 4px;
+}
+.fs-ins-item h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(17px, 1.4vw, 21px);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--fs-navy);
+  transition: color var(--t-micro);
+}
+.fs-ins-item:hover h4 {
+  color: var(--color-text-accent);
+}
+.fs-ins-item p {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ============================================================================
+   16 · PARTNERSHIP + FOOTER
+   ============================================================================ */
+
+.fs-cta {
+  position: relative;
+  background: var(--fs-ink);
+  color: #fff;
+  overflow: hidden;
+}
+.fs-cta canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.fs-cta .fs-wrap {
+  position: relative;
+  z-index: 2;
+}
+.fs-cta-copy {
+  grid-column: 1 / span 6;
+}
+.fs-cta-panel {
+  grid-column: 8 / span 5;
+}
+.fs-panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  padding: clamp(24px, 2.6vw, 38px);
+}
+.fs-field {
+  margin-top: 18px;
+}
+.fs-field label {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.6);
+  margin-bottom: 8px;
+}
+.fs-field input,
+.fs-field select,
+.fs-field textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font: 400 14.5px/1.5 var(--font-text);
+  transition:
+    border-color var(--t-micro),
+    background var(--t-micro);
+}
+.fs-field textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.fs-field input::placeholder,
+.fs-field textarea::placeholder {
+  color: rgba(238, 241, 246, 0.34);
+}
+.fs-field input:focus,
+.fs-field select:focus,
+.fs-field textarea:focus {
+  border-color: var(--fs-gold);
+  background: rgba(255, 255, 255, 0.08);
+}
+.fs-field select option {
+  background: #0a1633;
+  color: #fff;
+}
+.fs-field input[aria-invalid="true"] {
+  border-color: #ffb4a2;
+}
+.fs-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: rgba(238, 241, 246, 0.5);
+}
+.fs-err {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #ffb4a2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.fs-cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+.fs-formnote {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(238, 241, 246, 0.45);
+  line-height: 1.55;
+}
+.fs-cta-links {
+  margin-top: 36px;
+  display: grid;
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+}
+.fs-cta-link {
+  background: var(--fs-ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  min-height: 64px;
+  transition: background var(--t-micro);
+}
+.fs-cta-link:hover {
+  background: #08163a;
+}
+.fs-cta-link b {
+  font-weight: 500;
+  font-size: 15px;
+}
+.fs-cta-link span {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.5);
+}
+
+.fs-footer {
+  background: var(--fs-ink);
+  color: #fff;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-block: 64px 34px;
+}
+.fs-fgrid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: clamp(24px, 3vw, 48px);
+}
+.fs-fcol h2 {
+  margin: 0 0 16px;
+  font-family: var(--font-technical);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fs-gold);
+  font-weight: 500;
+}
+.fs-fcol a,
+.fs-fcol p {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  color: rgba(238, 241, 246, 0.6);
+  transition: color var(--t-micro);
+}
+
+/*
+ * Footer links carry their own hit area rather than relying on the line box. Measured at the
+ * prototype's spacing they were 22px tall — under WCAG 2.5.8's 24px target minimum, and the
+ * densest tap target on the page. Padding rather than margin, so the growth is clickable.
+ */
+.fs-fcol a {
+  padding-block: 5px;
+  min-height: 24px;
+}
+.fs-fcol a:hover {
+  color: #fff;
+}
+.fs-fbot {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.4);
+}
+
+.fs-toast {
+  position: fixed;
+  inset-block-end: 28px;
+  inset-inline-start: 50%;
+  transform: translate(-50%, 20px);
+  z-index: 200;
+  background: #fff;
+  color: var(--fs-navy);
+  border-radius: 14px;
+  padding: 15px 22px;
+  font-size: 14px;
+  box-shadow: 0 24px 60px -20px rgba(3, 11, 31, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 340ms var(--e-entrance);
+  max-width: min(90vw, 460px);
+}
+.fs-toast[data-show="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+.fs-toast svg {
+  color: var(--fs-gold);
+  flex: none;
+}
+
+/* ============================================================================
+   17 · RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 1180px) {
+  .fs-hero-copy {
+    grid-column: 1 / span 12;
+  }
+  .fs-hero-side {
+    grid-column: 1 / span 12;
+    padding-bottom: 0;
+    margin-top: 34px;
+  }
+  .fs-story-left {
+    grid-column: 1 / span 12;
+    position: static;
+  }
+  .fs-story-right {
+    grid-column: 1 / span 12;
+    margin-top: 40px;
+  }
+  .fs-eco-stage {
+    grid-template-columns: 1fr;
+  }
+  .fs-eco-detail {
+    min-height: 0;
+  }
+  .fs-cap-copy,
+  .fs-cap-viz,
+  .fs-tech-viz,
+  .fs-tech-copy,
+  .fs-lab-copy,
+  .fs-lab-cards,
+  .fs-cta-copy,
+  .fs-cta-panel,
+  .fs-ins-lead,
+  .fs-ins-side {
+    grid-column: 1 / span 12;
+  }
+  .fs-cap-viz,
+  .fs-tech-copy,
+  .fs-lab-cards,
+  .fs-cta-panel,
+  .fs-ins-side {
+    margin-top: 40px;
+  }
+  .fs-qual-grid {
+    grid-template-columns: 1fr;
+  }
+  .fs-fgrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1180px) {
+  /*
+   * Seven primary destinations plus a language selector and the quote button do not fit a
+   * single row below roughly 1180px — measured, the flat links begin colliding with the right
+   * cluster. The drawer takes over from here rather than letting the row wrap or shrink the
+   * type below its legible floor.
+   */
+  .fs-nav-links {
+    display: none;
+  }
+  .fs-burger {
+    display: inline-flex;
+  }
+  .fs-drawer {
+    display: flex;
+  }
+  /* The quote button stays in the bar as long as there is room for it, because it is the
+     header's primary conversion. Below 520px it moves into the drawer, which pins it. */
+  .fs-nav-cta {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 700px) {
+  /*
+   * Global Export Network — the map's overlays come out of the map.
+   *
+   * The HUD and legend are absolutely positioned over the plate. On a 390px viewport the plate
+   * is ~250px tall while the HUD wraps to three lines (72px) and the legend takes another 45px,
+   * so together they covered well over half the map and sat on top of the corridors they
+   * describe. In normal flow they read as a caption and the map keeps its whole area.
+   */
+  .fs-map-hud,
+  .fs-map-legend {
+    position: static;
+    inset: auto;
+  }
+  .fs-map-hud {
+    padding: 12px 12px 0;
+  }
+  .fs-map-legend {
+    padding: 0 12px 12px;
+    gap: 10px 16px;
+  }
+  /* The chip is the only place a touch user reads a lane, so it gets a full row. */
+  .fs-hud-chip {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .fs-hud-chip:first-child,
+  .fs-hud-chip:nth-child(2) {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 820px) {
+  .fs-nav-links {
+    display: none;
+  }
+  .fs-hero-stats .fs-wrap {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fs-stat {
+    padding-inline-start: 0;
+  }
+  .fs-stat::before {
+    display: none;
+  }
+  .fs-stat:nth-child(even) {
+    padding-inline-start: clamp(16px, 4vw, 28px);
+  }
+  .fs-stat:nth-child(even)::before {
+    display: block;
+    inset-block: 26px 30px;
+  }
+  .fs-stat:nth-child(n + 3) {
+    border-top: 1px solid rgba(255, 255, 255, 0.11);
+  }
+  .fs-fgrid {
+    grid-template-columns: 1fr;
+  }
+  .fs-scroll-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  /*
+   * The official mark is 1.58:1 where the placeholder was square, so it is ~10px wider at the
+   * same height. Measured at 390px, that left exactly 0px between the nav lockup and the
+   * partnership button. Trimming the mark here — and only here — restores the breathing room
+   * without touching desktop or altering the lockup's proportions.
+   */
+  .fs-nav .fs-mark {
+    --mark-h-override: 22px;
+  }
+  /* Below this width the bar cannot hold the lockup, the language selector and the button.
+     The button is not dropped — it is pinned to the drawer foot, where it stays prominent. */
+  .fs-nav-cta {
+    display: none;
+  }
+
+  .fs-hero-cta .fs-btn {
+    width: 100%;
+  }
+  .fs-trust-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-curtain {
+    display: none;
+  }
+  .fs-certs-track {
+    animation: none;
+  }
+  .fs-nav[data-hidden="true"] {
+    transform: none;
+  }
+  [data-reveal-armed="true"] .fs-rv,
+  [data-reveal-armed="true"] .fs-rv-l {
+    opacity: 1;
+    transform: none;
+  }
+  [data-reveal-armed="true"] .fs-line-mask > span {
+    transform: none;
+  }
+  [data-reveal-armed="true"] .fs-draw :is(path, circle, line, rect) {
+    stroke-dashoffset: 0;
+  }
+}

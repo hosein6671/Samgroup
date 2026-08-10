@@ -89,8 +89,13 @@
    * (docs/ROADMAP.md M5), so an empty slot has to read as intentional rather than broken.
    */
   .media-slot-empty {
-    background-color: var(--color-surface-sunken);
+    /* surface-inset, not surface-sunken: sunken is *darker* than the canvas in both contexts,
+       which on midnight put the slot at 1.04:1 against its own section — an empty slot nobody
+       could see does not read as intentional, it reads as nothing. Inset sits above the canvas
+       in both contexts, so the placeholder is a raised plate on warm white and on midnight. */
+    background-color: var(--color-surface-inset);
     background-image: var(--gradient-platinum-sheen);
     background-blend-mode: soft-light;
+    border: 1px solid var(--color-border-hairline);
   }
 }

@@ -1,0 +1,20 @@
+{
+  "extends": "@sam-group/tsconfig/base.json",
+  "compilerOptions": {
+    // The shared base targets Node. This app renders DOM, so browser libs are added here
+    // rather than in the base, which must not hand browser types to the server packages.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // Next.js compiles JSX itself; the base's "react-jsx" would fight its SWC pipeline.
+    "jsx": "preserve",
+    "types": ["node", "react"],
+    "allowJs": true,
+    "incremental": true,
+    "moduleDetection": "force",
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "next.config.ts", "src", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}

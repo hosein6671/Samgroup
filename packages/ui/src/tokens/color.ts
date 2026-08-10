@@ -207,12 +207,44 @@ export type SurfaceContextName = keyof typeof surfaceContexts;
  * Industrial gradients. Surface treatments and hairlines only — never behind body text.
  * These are the non-photographic texture the design leans on, since launch photography is
  * an open content dependency (docs/ROADMAP.md M5).
+ *
+ * They are **surface-scoped, exactly like the semantic colours above**, and for the same
+ * reason. Emitted only into :root they were not: `accent-edge` kept the light brand blue
+ * inside a midnight section and measured 2.05:1 against the canvas, so
+ * `<Divider variant="accent">` — the rule the system documents for cinematic sections —
+ * drew itself invisibly in the one place it was meant to be used. The colour tokens beside
+ * it stepped correctly to sam-blue-300; the gradients had no tier 3 to step into.
  */
-export const gradients = {
-  "platinum-sheen": `linear-gradient(135deg, ${platinum[300]} 0%, ${platinum[50]} 42%, ${platinum[400]} 100%)`,
-  "midnight-depth": `radial-gradient(120% 100% at 50% 0%, ${midnight[600]} 0%, ${midnight[800]} 55%, ${midnight[900]} 100%)`,
+export type GradientToken = "platinum-sheen" | "midnight-depth" | "accent-edge" | "brass-hairline";
+
+export type GradientContextTokens = Readonly<Record<GradientToken, string>>;
+
+const platinumSheen = `linear-gradient(135deg, ${platinum[300]} 0%, ${platinum[50]} 42%, ${platinum[400]} 100%)`;
+const midnightDepth = `radial-gradient(120% 100% at 50% 0%, ${midnight[600]} 0%, ${midnight[800]} 55%, ${midnight[900]} 100%)`;
+
+export const lightGradients = {
   // Named for its role, not its colour, so a future brand revision is a value change here and
   // nothing else — no class rename propagating through every feature that drew a rule.
   "accent-edge": `linear-gradient(90deg, transparent 0%, ${samBlue[500]} 50%, transparent 100%)`,
   "brass-hairline": `linear-gradient(90deg, transparent 0%, ${brass[400]} 50%, transparent 100%)`,
+  // A metallic highlight reads as metal on both canvases, so these two do not diverge.
+  "platinum-sheen": platinumSheen,
+  "midnight-depth": midnightDepth,
+} as const satisfies GradientContextTokens;
+
+export const midnightGradients = {
+  // Stepped up the same ramp as `accent-default`/`border-accent`, not swapped for a different
+  // colour: the brand hue is preserved and legibility is restored.
+  "accent-edge": `linear-gradient(90deg, transparent 0%, ${samBlue[300]} 50%, transparent 100%)`,
+  "brass-hairline": `linear-gradient(90deg, transparent 0%, ${brass[300]} 50%, transparent 100%)`,
+  "platinum-sheen": platinumSheen,
+  "midnight-depth": midnightDepth,
+} as const satisfies GradientContextTokens;
+
+export const gradientContexts = {
+  light: lightGradients,
+  midnight: midnightGradients,
 } as const;
+
+/** The :root defaults, for anything rendered outside a surface context. */
+export const gradients = lightGradients;
