@@ -1,0 +1,986 @@
+/*
+ * SAM GROUP — QUALITY & CERTIFICATIONS
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * It adds the constructions this page needs and nothing else. It declares no colour, no typeface,
+ * no radius and no easing of its own — every value below resolves to a token already declared by
+ * `flagship.css` inside `[data-brand="flagship"]`, or by the design system's generated theme. This
+ * page cannot drift from the homepage, the Products landing, the category template, Customized
+ * Solutions or About Us, because there is nothing here to drift with.
+ *
+ * Where a construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`,
+ * `.fs-eyebrow`, `.fs-d1`–`.fs-d4`, `.fs-lead`, `.fs-btn`, `.fs-tnum`, `.fs-blueprint` — it is
+ * used directly rather than restated under a `qc-` name.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`, no
+ * JavaScript. The homepage's `RevealEngine` stays homepage-only.
+ *
+ * ── Two knowing near-duplicates ─────────────────────────────────────────────
+ *
+ * `.qc-slot*` is the media-frame construction `about.css` declares as `.ab-slot*`, and `.qc-pending`
+ * is the dashed proof-state aside that exists as `.ab-pending` and `.cs-pending`. Importing either
+ * page's stylesheet would pull several hundred lines of another page's layout for one frame and one
+ * box, and this task's scope rules out a shared CSS refactor outright.
+ *
+ * **At three copies of the pending aside and two of the media slot, this is no longer a cheap
+ * duplicate.** Promoting both to the design system is now worth its own task. It is recorded here,
+ * as `about.css` recorded it before, rather than done quietly inside a page build.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * Dark hero → light Approach → dark Laboratory → light Certifications → dark Documentation →
+ * light Sampling → dark close. Strict alternation across seven bands: each dark band holds a
+ * register of things the page publishes, each light band holds a statement about them.
+ *
+ * The page's structural idea is that composition follows evidence. The register sections are dense
+ * because they carry confirmed lists; Certifications is the emptiest band on the page because it
+ * carries nothing; Sampling is set in the largest type on the page because its single sentence is
+ * the best-attested content here. A reader should be able to tell how well-supported a section is
+ * without reading it.
+ */
+
+/* ============================================================================
+   1 · MEDIA SLOT
+   Declared before the section that uses it, as `about.css` does with the same construction.
+   ============================================================================ */
+
+.qc-slot {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+/*
+ * The frame. A hairline border and a soft fill, both tokenised, so the same element would read
+ * correctly on a dark or a light section without a variant being written.
+ */
+.qc-slot-frame {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(20px, 2.4vw, 32px);
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+}
+
+/*
+ * The blueprint field, at drafting scale rather than section scale.
+ *
+ * `.fs-blueprint` is the section-level ground at 92px cells. Inside a frame this size that yields
+ * three or four lines, which reads as a rendering fault rather than as drawn paper. So the field is
+ * restated once here at 26px, and `.fs-blueprint` keeps its job on the section behind it.
+ */
+.qc-slot-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  background-image:
+    linear-gradient(to right, var(--color-border-hairline) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-hairline) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 25%, transparent 100%);
+}
+
+/*
+ * Registration marks — the gold accent, at two opposite corners.
+ *
+ * Corner brackets rather than a badge: gold is the flagship's interactive colour, and a filled gold
+ * shape inside an empty frame would read as a control. Two thin corners read as a crop mark, which
+ * is what an uncommissioned asset actually needs.
+ */
+.qc-slot-frame::before,
+.qc-slot-frame::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--color-border-accent);
+  opacity: 0.85;
+}
+
+.qc-slot-frame::before {
+  top: 16px;
+  inset-inline-start: 16px;
+  border-inline-end: 0;
+  border-block-end: 0;
+}
+
+.qc-slot-frame::after {
+  bottom: 16px;
+  inset-inline-end: 16px;
+  border-inline-start: 0;
+  border-block-start: 0;
+}
+
+.qc-slot-intent {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-text-accent);
+}
+
+.qc-slot-state {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--color-text-tertiary);
+}
+
+.qc-slot-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-border-accent);
+  flex: none;
+}
+
+.qc-slot-caption {
+  display: grid;
+  gap: 6px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.qc-slot-cap {
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* The queued alt text. Proof-state information — it is the commission, and it is the audience this
+   page has today. It leaves with the caption when a real asset lands. */
+.qc-slot-alt {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
+.qc-slot-alt b {
+  flex: none;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ============================================================================
+   2 · HERO
+   ============================================================================ */
+
+.qc-hero {
+  position: relative;
+  padding-block: clamp(128px, 14vh, 190px) clamp(64px, 7vw, 104px);
+  background:
+    radial-gradient(ellipse 110% 75% at 12% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.qc-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 400px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: center;
+}
+
+.qc-hero h1 {
+  margin-top: clamp(18px, 2vw, 28px);
+  max-width: 13ch;
+}
+
+.qc-hero .fs-lead {
+  margin-top: clamp(22px, 2.4vw, 32px);
+  max-width: 52ch;
+}
+
+.qc-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+/* ---------------------------------------------------------- the chain
+ *
+ * The hero's index, in the position every hero on this platform puts one. A glass panel with the
+ * three stages in order — the same construction as the closing routes panel below, because both
+ * are compact indexes and the page should not invent a second treatment for the same job.
+ */
+.qc-chain {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(16px, 2vw, 26px);
+}
+
+.qc-chain-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.qc-chain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.qc-chain-step {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.qc-chain-step:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.qc-chain-num {
+  flex: none;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.qc-chain-body {
+  display: grid;
+  gap: 3px;
+}
+
+.qc-chain-body b {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+}
+
+.qc-chain-body small {
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   3 · OUR QUALITY APPROACH
+   ============================================================================ */
+
+.qc-approach-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 15ch;
+}
+
+.qc-approach-head .fs-lead {
+  margin-top: clamp(16px, 1.8vw, 24px);
+}
+
+/*
+ * Three positions along one line, not three cards.
+ *
+ * Cards would present the stages as parallel options; they are consecutive, and the sequence is
+ * the section's whole claim. So a single rule runs across all three, each stage marks its start on
+ * that rule with a gold segment, and a hairline divides one from the next. No arrows — the page is
+ * stating an order, not animating a process.
+ */
+.qc-stages {
+  list-style: none;
+  margin: clamp(40px, 5vw, 76px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.qc-stage {
+  position: relative;
+  padding-block: clamp(24px, 2.6vw, 36px) 0;
+  padding-inline: clamp(20px, 2.4vw, 40px) clamp(16px, 2vw, 32px);
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.qc-stage:first-child {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+
+/* The position marker: a short gold segment sitting on the rule above each stage. */
+.qc-stage::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  inset-inline-start: 0;
+  width: 34px;
+  height: 2px;
+  background: var(--color-border-accent);
+}
+
+.qc-stage-num {
+  display: block;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-accent);
+}
+
+.qc-stage-name {
+  margin: clamp(12px, 1.4vw, 18px) 0 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(24px, 2.8vw, 40px);
+  line-height: 1.1;
+  letter-spacing: -0.024em;
+  color: var(--color-text-primary);
+}
+
+.qc-stage-when {
+  margin: clamp(10px, 1.2vw, 14px) 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* Prose, not a register field — it wraps and it is not set in caps. */
+.qc-approach-foot {
+  margin: clamp(32px, 3.6vw, 52px) 0 0;
+  padding-top: clamp(20px, 2.2vw, 28px);
+  border-top: 1px solid var(--color-border-hairline);
+  max-width: 68ch;
+  font-size: 13.5px;
+  line-height: 1.65;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   4 · LABORATORY CAPABILITY
+   ============================================================================ */
+
+.qc-lab {
+  position: relative;
+  background:
+    radial-gradient(ellipse 90% 70% at 82% 8%, rgba(18, 41, 110, 0.42), transparent 64%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.qc-lab-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.qc-lab-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 30vw, 420px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: start;
+}
+
+.qc-lab-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 14ch;
+}
+
+.qc-lab-head .fs-lead {
+  margin-top: clamp(16px, 1.8vw, 24px);
+}
+
+/* ------------------------------------------------------- property register
+ *
+ * A matrix of names. Not a specification table: on a category page an empty value cell means "lab
+ * data pending" and the axis is itself the content, but this section has no product to hold values
+ * for — fourteen columns of dashes here would manufacture the appearance of withheld results
+ * rather than state a capability. What is withheld is named below instead, in words.
+ */
+.qc-register {
+  margin-top: clamp(44px, 5vw, 80px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.qc-register-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding-block: 14px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.qc-register-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.qc-property {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-block: clamp(14px, 1.5vw, 18px);
+  padding-inline-end: clamp(16px, 2vw, 28px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.qc-property-num {
+  flex: none;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.qc-property-name {
+  font-size: clamp(14.5px, 1.15vw, 16.5px);
+  line-height: 1.35;
+  font-weight: 300;
+  letter-spacing: -0.008em;
+  color: var(--color-text-primary);
+}
+
+/* --------------------------------------------------------------- pending
+ *
+ * See the note at the top of this file: the same construction as `.ab-pending` and `.cs-pending`,
+ * knowingly, and all three are deleted when the content lands.
+ */
+.qc-pending {
+  margin-top: clamp(32px, 3.6vw, 52px);
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.qc-pending-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0;
+  color: var(--color-text-primary);
+}
+
+.qc-pending-list {
+  list-style: none;
+  margin: clamp(16px, 1.8vw, 22px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px;
+}
+
+.qc-pending-list li {
+  display: grid;
+  gap: 4px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.qc-pending-list b {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.qc-pending-list span {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   5 · CERTIFICATIONS
+   The emptiest band on the page, deliberately. Extra vertical room and a narrow measure, so the
+   absence reads as a decision rather than as an unfinished layout.
+   ============================================================================ */
+
+.qc-certs {
+  padding-block: clamp(104px, 13vw, 200px);
+}
+
+.qc-certs-inner {
+  max-width: 780px;
+}
+
+.qc-certs-body {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: clamp(20px, 3vw, 48px);
+  margin-top: clamp(16px, 1.8vw, 24px);
+  padding-bottom: clamp(18px, 2vw, 26px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.qc-certs-body h2 {
+  max-width: 18ch;
+}
+
+.qc-certs-status {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* Hollow, not filled. A solid gold dot is this palette's "present" marker — the whole point of the
+   section is that nothing is present. */
+.qc-certs-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-accent);
+}
+
+.qc-certs-statement {
+  margin: clamp(22px, 2.4vw, 32px) 0 0;
+  max-width: 64ch;
+  font-size: clamp(15px, 1.2vw, 17.5px);
+  line-height: 1.68;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.qc-certs-note {
+  margin: clamp(16px, 1.8vw, 22px) 0 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   6 · DOCUMENTATION WE PROVIDE
+   ============================================================================ */
+
+.qc-docs-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(320px, 33vw, 470px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: start;
+}
+
+.qc-docs-copy h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 13ch;
+}
+
+.qc-docs-copy .fs-lead {
+  margin-top: clamp(16px, 1.8vw, 24px);
+}
+
+/* The line that stops six document names being read as six files. Set as an aside against a rule
+   rather than as body copy, so it is not skimmed past as part of the lead. */
+.qc-docs-note {
+  margin: clamp(24px, 2.6vw, 34px) 0 0;
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--color-border-accent);
+  max-width: 54ch;
+  font-size: 13px;
+  line-height: 1.65;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.qc-docs-register {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(16px, 2vw, 26px);
+}
+
+.qc-docs-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.qc-doclist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.qc-doc {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding-block: clamp(13px, 1.4vw, 16px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.qc-doc:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.qc-doc-num {
+  flex: none;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.qc-doc-body {
+  display: grid;
+  gap: 3px;
+}
+
+.qc-doc-body b {
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+}
+
+.qc-doc-body small {
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   7 · SAMPLING POLICY
+   The page's best-attested sentence, and the only place it uses type this large for prose.
+   The heading is deliberately the smaller of the two — the statement is the content.
+   ============================================================================ */
+
+.qc-sampling-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 27vw, 380px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: start;
+}
+
+/* The statement is the section's `<h2>` — see `sections/sampling.tsx`. It carries display type
+   rather than a `.fs-d*` class because it is prose at heading scale, not a heading: the measure is
+   set for a sentence, and the leading is tighter than `.fs-d2`'s for the same reason. */
+.qc-sampling-statement {
+  margin: clamp(16px, 1.8vw, 24px) 0 0;
+  max-width: 22ch;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(28px, 4vw, 60px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+}
+
+.qc-sampling-scope {
+  padding: clamp(16px, 1.8vw, 24px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+}
+
+.qc-sampling-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.qc-sampling-families {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.qc-sampling-families a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  /* 24px minimum target, the same floor the footer links were corrected to. */
+  min-height: 24px;
+  padding-block: 11px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-size: 14.5px;
+  line-height: 1.35;
+  font-weight: 300;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.qc-sampling-families a:hover {
+  color: var(--color-text-primary);
+}
+
+.qc-sampling-families .fs-ar {
+  flex: none;
+  opacity: 0;
+  transition: opacity var(--t-micro) var(--e-micro);
+}
+
+.qc-sampling-families a:hover .fs-ar {
+  opacity: 1;
+}
+
+.qc-sampling-limit {
+  margin: clamp(14px, 1.6vw, 20px) 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   8 · CLOSING
+   ============================================================================ */
+
+.qc-close {
+  position: relative;
+  background:
+    radial-gradient(ellipse 100% 80% at 18% 100%, rgba(18, 41, 110, 0.46), transparent 66%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.qc-close-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 30vw, 440px);
+  gap: clamp(32px, 4vw, 80px);
+  align-items: center;
+}
+
+.qc-close-copy h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 13ch;
+}
+
+.qc-close-copy .fs-lead {
+  margin-top: clamp(18px, 2vw, 26px);
+}
+
+.qc-close-primary {
+  margin: clamp(26px, 3vw, 38px) 0 0;
+}
+
+.qc-close-routes {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(16px, 2vw, 26px);
+}
+
+.qc-close-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.qc-close-routes ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.qc-close-routes a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 24px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-size: 15px;
+  font-weight: 300;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.qc-close-routes li:last-child a {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.qc-close-routes a:hover {
+  color: var(--color-text-primary);
+}
+
+.qc-close-routes .fs-ar {
+  flex: none;
+  opacity: 0.4;
+  transition: opacity var(--t-micro) var(--e-micro);
+}
+
+.qc-close-routes a:hover .fs-ar {
+  opacity: 1;
+}
+
+/* ============================================================================
+   9 · RESPONSIVE
+   The same breakpoints the five pages before this use: 1180, 980, 900, 620.
+   ============================================================================ */
+
+@media (max-width: 1180px) {
+  /* The documentation register moves under the copy before it is squeezed to a strip. */
+  .qc-docs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qc-docs-register {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 980px) {
+  .qc-hero-inner,
+  .qc-lab-top,
+  .qc-close-grid {
+    grid-template-columns: 1fr;
+    gap: clamp(32px, 5vw, 48px);
+  }
+
+  .qc-lab-media {
+    max-width: 520px;
+  }
+
+  .qc-sampling-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .qc-sampling-scope {
+    max-width: 520px;
+  }
+
+  /* The statement's measure is set for a two-column layout; across the full width it would run to
+     three or four words a line. */
+  .qc-sampling-statement {
+    max-width: 26ch;
+  }
+}
+
+@media (max-width: 900px) {
+  /*
+   * The stage rule turns vertical. Three stages across 900px leave the names two words to the
+   * line, and the sequence reads just as clearly stacked — each stage keeps its gold position
+   * marker, which moves to the leading edge.
+   */
+  .qc-stages {
+    grid-template-columns: 1fr;
+    border-top: 0;
+  }
+
+  .qc-stage {
+    padding-block: clamp(22px, 3vw, 30px);
+    padding-inline: 0;
+    border-inline-start: 0;
+    border-top: 1px solid var(--color-border-hairline);
+  }
+
+  .qc-stage:first-child {
+    padding-block-start: clamp(22px, 3vw, 30px);
+  }
+
+  .qc-certs-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 620px) {
+  /* One property per line below this width — two 230px columns inside a 390px viewport is not a
+     matrix, it is two truncated lists. */
+  .qc-register-list,
+  .qc-pending-list {
+    grid-template-columns: 1fr;
+  }
+
+  .qc-slot-frame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .qc-sampling-statement {
+    max-width: none;
+  }
+}
