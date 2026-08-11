@@ -1,0 +1,831 @@
+/*
+ * SAM GROUP — ABOUT US
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * It adds the constructions this page needs and nothing else. It declares no colour, no typeface,
+ * no radius and no easing of its own — every value below resolves to a token already declared by
+ * `flagship.css` inside `[data-brand="flagship"]`, or by the design system's generated theme. This
+ * page cannot drift from the homepage, the Products landing, the category template or Customized
+ * Solutions, because there is nothing here to drift with.
+ *
+ * Where a construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`,
+ * `.fs-eyebrow`, `.fs-d1`–`.fs-d4`, `.fs-lead`, `.fs-btn`, `.fs-tnum`, `.fs-blueprint` — it is
+ * used directly rather than restated under an `ab-` name.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`, no
+ * JavaScript. The homepage's `RevealEngine` stays homepage-only.
+ *
+ * ── One knowing near-duplicate ──────────────────────────────────────────────
+ *
+ * `.ab-pending` is the same construction as `.cs-pending` in `solutions.css`. Importing that
+ * stylesheet would pull ~570 lines of another page's layout for one dashed box, and both copies
+ * are **proof-state furniture that is deleted when the content arrives** — neither is a permanent
+ * design element. Promoting the pending-aside vocabulary to shared CSS is a task of its own, the
+ * same deferral `flagship.css`'s location already carries, and it is recorded here rather than
+ * done quietly inside a page build.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * Dark hero → light Who We Are → dark Expertise → light Quality → dark close. Alternating, so no
+ * two light sections ever sit adjacent needing construction alone to tell them apart.
+ *
+ * The three media slots are the page's recurring device. Each one is a frame for a photograph the
+ * project does not have, and the page is composed so that removing the frames would leave three
+ * compositions visibly short — which is the honest state, because they are.
+ */
+
+/* ============================================================================
+   1 · MEDIA SLOT
+   The page's recurring device, so it is declared before the sections that use it.
+   ============================================================================ */
+
+.ab-slot {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+/*
+ * The frame. A hairline border and a soft fill, both tokenised, so the same element reads
+ * correctly on the dark hero and on the two light sections without a variant being written.
+ */
+.ab-slot-frame {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: clamp(20px, 2.4vw, 32px);
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+}
+
+.ab-slot[data-ratio="portrait"] .ab-slot-frame {
+  aspect-ratio: 4 / 5;
+}
+
+/*
+ * The blueprint field, at drafting scale rather than section scale.
+ *
+ * `.fs-blueprint` is the section-level ground: 92px cells, masked to an ellipse. Inside a frame
+ * this size that yields three or four lines, which reads as a rendering fault rather than as
+ * drawn paper. So the field is restated once here at 26px with the same hairline treatment, and
+ * `.fs-blueprint` keeps its job on the section behind it.
+ */
+.ab-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.7;
+  background-image:
+    linear-gradient(to right, var(--color-border-hairline) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-hairline) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 25%, transparent 100%);
+}
+
+/*
+ * Registration marks — the gold accent, at two opposite corners.
+ *
+ * Corner brackets rather than a badge: gold is the flagship's interactive colour and a filled gold
+ * shape inside an empty frame would read as a control. Two thin corners read as a crop mark, which
+ * is what an uncommissioned asset actually needs.
+ */
+.ab-slot-frame::before,
+.ab-slot-frame::after {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--color-border-accent);
+  opacity: 0.85;
+}
+
+.ab-slot-frame::before {
+  top: 16px;
+  inset-inline-start: 16px;
+  border-inline-end: 0;
+  border-block-end: 0;
+}
+
+.ab-slot-frame::after {
+  bottom: 16px;
+  inset-inline-end: 16px;
+  border-inline-start: 0;
+  border-block-start: 0;
+}
+
+.ab-slot-intent {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-text-accent);
+}
+
+.ab-slot-state {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--color-text-tertiary);
+}
+
+.ab-slot-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-border-accent);
+  flex: none;
+}
+
+.ab-slot-caption {
+  display: grid;
+  gap: 6px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ab-slot-cap {
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* The queued alt text. Proof-state information — it is the commission, and it is the audience this
+   page has today. It leaves with the caption when a real asset lands. */
+.ab-slot-alt {
+  display: flex;
+  gap: 8px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  color: var(--color-text-tertiary);
+}
+
+.ab-slot-alt b {
+  flex: none;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ============================================================================
+   2 · HERO
+   ============================================================================ */
+
+.ab-hero {
+  position: relative;
+  padding-block: clamp(128px, 14vh, 190px) clamp(64px, 7vw, 104px);
+  background:
+    radial-gradient(ellipse 110% 75% at 12% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+/*
+ * Copy takes the fluid column, the media slot a bounded one — the same split the three heroes
+ * before this use. Bounded a little wider than theirs because this column holds a portrait frame
+ * rather than a list: below roughly 300px the frame stops being a composition and becomes a strip.
+ */
+.ab-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 27vw, 400px);
+  gap: clamp(28px, 4vw, 72px);
+  align-items: center;
+}
+
+.ab-hero h1 {
+  margin-top: clamp(18px, 2vw, 28px);
+  max-width: 14ch;
+}
+
+.ab-hero .fs-lead {
+  margin-top: clamp(22px, 2.4vw, 32px);
+  max-width: 50ch;
+}
+
+.ab-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 40px);
+}
+
+/* ============================================================================
+   3 · WHO WE ARE
+   ============================================================================ */
+
+/*
+ * Three columns of unequal weight: a heading rail, the prose measure, and an aside carrying the
+ * media slot with the six families under it. The pending notice spans the full width beneath them
+ * — it is about the page rather than about this section, and indenting it into the prose column
+ * would file it as part of the argument.
+ */
+.ab-who-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr) clamp(280px, 25vw, 360px);
+  gap: clamp(28px, 3.4vw, 64px) clamp(28px, 4vw, 72px);
+  align-items: start;
+}
+
+.ab-who-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 12ch;
+}
+
+.ab-who-body {
+  display: grid;
+  gap: clamp(16px, 1.8vw, 22px);
+}
+
+.ab-who-aside {
+  display: grid;
+  gap: clamp(20px, 2.2vw, 28px);
+}
+
+/* ---------------------------------------------------------- positions
+ *
+ * A definition list, because that is what three terms with one line each are. Each entry sits
+ * against a hairline rule rather than in a card: three boxes would give three approved facts the
+ * visual weight of a feature grid, and the facts are deliberately plainer than that.
+ */
+.ab-positions {
+  margin: clamp(8px, 1vw, 14px) 0 0;
+  display: grid;
+  gap: 18px;
+}
+
+.ab-position {
+  display: grid;
+  gap: 5px;
+  padding-inline-start: 16px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ab-position dt {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.ab-position dd {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ------------------------------------------------------------ families */
+
+.ab-families {
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  padding: clamp(16px, 1.8vw, 22px);
+}
+
+.ab-families-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.ab-families ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ab-families a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* 24px minimum target, the same floor the footer links were corrected to. */
+  min-height: 24px;
+  padding-block: 7px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  font-weight: 300;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.ab-families a:hover {
+  color: var(--color-text-primary);
+}
+
+.ab-families .fs-ar {
+  flex: none;
+  opacity: 0;
+  transition: opacity var(--t-micro) var(--e-micro);
+}
+
+.ab-families a:hover .fs-ar {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------- pending
+ *
+ * See the note at the top of this file: the same construction as `.cs-pending`, knowingly, and
+ * both are deleted when the content lands.
+ */
+.ab-pending {
+  grid-column: 1 / -1;
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.ab-pending-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.ab-pending-head strong {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.ab-pending-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.ab-pending-list li {
+  display: grid;
+  gap: 3px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ab-pending-list b {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.ab-pending-list span {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   4 · EXPERTISE
+   ============================================================================ */
+
+.ab-expertise {
+  position: relative;
+  background:
+    radial-gradient(ellipse 90% 70% at 82% 8%, rgba(18, 41, 110, 0.42), transparent 64%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.ab-expertise-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.ab-expertise-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: clamp(24px, 4vw, 72px);
+  align-items: end;
+}
+
+.ab-expertise-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 14ch;
+}
+
+/* ---------------------------------------------------------- the register
+ *
+ * Rows spanning the measure, not cards. Two cards in a space specified for six would read as a
+ * rendering fault; two ruled rows under a header that says "02 of 06" read as a stated gap.
+ */
+.ab-register {
+  margin-top: clamp(36px, 4vw, 64px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.ab-register-head,
+.ab-register-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding-block: 14px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.ab-register-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ab-register-row {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 2.4vw, 36px);
+  padding-block: clamp(20px, 2.4vw, 32px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.ab-register-num {
+  flex: none;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.ab-register-name {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(22px, 2.6vw, 38px);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  color: var(--color-text-primary);
+}
+
+/* The footnote is prose, not a register field — it wraps, and it is not set in caps. */
+.ab-register-foot {
+  display: block;
+  border-top: 1px solid var(--color-border-hairline);
+  padding-block: 20px 0;
+  font-family: var(--font-text);
+  font-size: 13px;
+  line-height: 1.6;
+  letter-spacing: 0;
+  text-transform: none;
+  max-width: 62ch;
+}
+
+/* ============================================================================
+   5 · QUALITY & STANDARDS
+   ============================================================================ */
+
+.ab-quality-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 420px);
+  gap: clamp(28px, 3.4vw, 64px) clamp(28px, 4vw, 72px);
+  align-items: start;
+}
+
+.ab-quality-head {
+  grid-column: 1;
+}
+
+.ab-quality-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 15ch;
+}
+
+.ab-quality-head .fs-lead {
+  margin-top: clamp(16px, 1.8vw, 24px);
+}
+
+.ab-quality-body {
+  grid-column: 1;
+}
+
+/* The media slot spans both rows of the left column so the section reads as two columns rather
+   than as a stack with a picture parked beside the heading. */
+.ab-quality-media {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+/*
+ * ── Why this slot alone stretches ───────────────────────────────────────────
+ *
+ * Spanning two rows reserved the full height of the left column; the frame's fixed 4/3 ratio then
+ * declined to fill it. Measured, that left 287px of empty column at 1440 and 243px at 1024 — the
+ * one place on the page where emptiness read as an unfinished layout rather than as a stated gap,
+ * which is the opposite of what these frames are for.
+ *
+ * So here, and only here, the frame takes its height from the column instead of from a ratio: the
+ * figure fills the row, the caption keeps its intrinsic height, and the frame takes the rest. The
+ * slot's concept is untouched — same border, same blueprint field, same registration marks, same
+ * centred intent and pending state, same captioned alt text. What changes is one proportion.
+ *
+ * The hero and Who We Are slots keep their ratios, because neither sits beside a column whose
+ * height it has to answer to.
+ *
+ * Scoped to the two-column layout. Below 980px this section is a single stack and the slot returns
+ * to the shared 4/3, so the rule is written as the min-width counterpart of that breakpoint rather
+ * than as a default that later has to be undone.
+ */
+@media (min-width: 981px) {
+  .ab-quality-media {
+    align-self: stretch;
+  }
+
+  .ab-quality-media.ab-slot {
+    height: 100%;
+    align-content: stretch;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .ab-quality-media .ab-slot-frame {
+    aspect-ratio: auto;
+    /* A floor, so a short left column can never collapse the frame to its padding. */
+    min-height: 300px;
+  }
+}
+
+.ab-commitments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.ab-commitment {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(14px, 2vw, 26px);
+  padding-block: clamp(16px, 1.8vw, 22px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.ab-commitment-num {
+  flex: none;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.ab-commitment-body {
+  display: grid;
+  gap: 4px;
+}
+
+.ab-commitment-body b {
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+}
+
+.ab-commitment-body small {
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.ab-quality-foot {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  max-width: 58ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.ab-quality-foot a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ab-quality-foot a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ============================================================================
+   6 · CLOSING
+   ============================================================================ */
+
+.ab-close {
+  position: relative;
+  background:
+    radial-gradient(ellipse 100% 80% at 18% 100%, rgba(18, 41, 110, 0.46), transparent 66%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.ab-close-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 30vw, 440px);
+  gap: clamp(32px, 4vw, 80px);
+  align-items: center;
+}
+
+.ab-close-copy h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 13ch;
+}
+
+.ab-close-copy .fs-lead {
+  margin-top: clamp(18px, 2vw, 26px);
+}
+
+.ab-close-primary {
+  margin: clamp(26px, 3vw, 38px) 0 0;
+}
+
+.ab-close-routes {
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(16px, 2vw, 26px);
+}
+
+.ab-close-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.ab-close-routes ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ab-close-routes a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 24px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-size: 15px;
+  font-weight: 300;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.ab-close-routes li:last-child a {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.ab-close-routes a:hover {
+  color: var(--color-text-primary);
+}
+
+.ab-close-routes .fs-ar {
+  flex: none;
+  opacity: 0.4;
+  transition: opacity var(--t-micro) var(--e-micro);
+}
+
+.ab-close-routes a:hover .fs-ar {
+  opacity: 1;
+}
+
+/* ============================================================================
+   7 · RESPONSIVE
+   The same breakpoints the four pages before this use: 1180, 980, 900, 620.
+   ============================================================================ */
+
+@media (max-width: 1180px) {
+  /* Who We Are drops its third column first — the media slot and the family list move under the
+     prose rather than being squeezed to a strip. */
+  .ab-who-grid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  }
+
+  .ab-who-aside {
+    grid-column: 1 / -1;
+    grid-template-columns: clamp(280px, 40vw, 380px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ab-expertise-head {
+    grid-template-columns: 1fr;
+    gap: clamp(18px, 2.4vw, 28px);
+    align-items: start;
+  }
+}
+
+@media (max-width: 980px) {
+  .ab-hero-inner {
+    grid-template-columns: 1fr;
+    gap: clamp(32px, 5vw, 48px);
+  }
+
+  /* The hero frame stops being a portrait once it is full width — a 4/5 box across the measure is
+     a hole in the page rather than a composition. */
+  .ab-hero .ab-slot[data-ratio="portrait"] .ab-slot-frame {
+    aspect-ratio: 16 / 9;
+  }
+
+  .ab-quality-grid,
+  .ab-close-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-quality-head,
+  .ab-quality-body,
+  .ab-quality-media {
+    grid-column: 1;
+  }
+
+  .ab-quality-media {
+    grid-row: auto;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ab-who-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-who-aside {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 620px) {
+  .ab-register-row {
+    /* Number above name rather than beside it: at this width the two-column row leaves the name
+       four or five words to the line. */
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ab-commitment {
+    gap: 12px;
+  }
+
+  .ab-slot-frame {
+    aspect-ratio: 3 / 2;
+  }
+
+  .ab-hero .ab-slot[data-ratio="portrait"] .ab-slot-frame {
+    aspect-ratio: 3 / 2;
+  }
+}

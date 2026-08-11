@@ -71,6 +71,9 @@ export const PRIMARY_NAV: readonly NavItem[] = [
  *
  * Kept as an explicit export so the omission reads as intent rather than as something dropped,
  * and so the footer can consume the same list when secondary navigation is built.
+ *
+ * **The footer now consumes it** — see `FOOTER_COLUMNS` below. That is what activates this list:
+ * until the About Us page was built, nothing on the platform linked to any of these three.
  */
 export const SECONDARY_NAV: readonly NavItem[] = [
   { label: "Quality & Certifications", href: ROUTES.qualityCertifications },
@@ -106,11 +109,24 @@ export const LOCALES: readonly Locale[] = [
  * Moved here verbatim from `features/home/home-data.ts` when the footer became site-level: it is
  * navigation data, the same category as `PRIMARY_NAV` above, not homepage editorial content.
  *
- * **The hrefs are unchanged, and they are homepage in-page anchors.** That is deliberate — the
- * frozen homepage renders byte-identically after the move. The consequence is that on any page
- * other than the homepage these anchors resolve to nothing, which is the same proof-stage state
- * the header is already in (every `ROUTES` entry above 404s today). Both are fixed by the same
- * later work: real routes. Do not paper over it by hardcoding a proof path here.
+ * **The Products column's hrefs are homepage in-page anchors, and are unchanged.** On any page
+ * other than the homepage they resolve to nothing, which is the same proof-stage state the header
+ * is already in (every `ROUTES` entry above 404s today). Both are fixed by the same later work:
+ * real routes. Do not paper over it by hardcoding a proof path here.
+ *
+ * ── The Company column now consumes `SECONDARY_NAV` ─────────────────────────
+ *
+ * It previously held four homepage anchors — Manufacturing, Research, Export network, Insights —
+ * which worked on the homepage and resolved to nothing on all four other pages. It now holds the
+ * three corporate destinations `SECONDARY_NAV` already declared: Quality & Certifications, About
+ * Us, Insights.
+ *
+ * This is what puts About Us on the platform at all; nothing linked to it before. The trade is
+ * stated rather than hidden: the homepage loses one working anchor (`#insights`), and in exchange
+ * four dead links become three canonical routes that resolve when the pages lift out of
+ * `/design-proof`. Approved as a data-only change — the column count is fixed by
+ * `.fs-fgrid` in CSS and `site-footer.tsx` already maps over this constant generically, so neither
+ * file changes.
  */
 export const FOOTER_COLUMNS: readonly {
   readonly heading: string;
@@ -128,11 +144,6 @@ export const FOOTER_COLUMNS: readonly {
   },
   {
     heading: "Company",
-    links: [
-      { href: "#story", label: "Manufacturing" },
-      { href: "#lab", label: "Research" },
-      { href: "#network", label: "Export network" },
-      { href: "#insights", label: "Insights" },
-    ],
+    links: SECONDARY_NAV,
   },
 ];
