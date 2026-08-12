@@ -12,13 +12,13 @@ The `CustomFormulationRequest` and `Inquiry` entities below were further reconci
 
 `LOCALE` and `CONTENT_TRANSLATION` were added during the Internationalization Strategy pass — see [docs/i18n/INTERNATIONALIZATION_STRATEGY.md](./i18n/INTERNATIONALIZATION_STRATEGY.md) for the full rationale (including why Prisma-owned content, unlike Payload-owned content, needed a new mechanism rather than reusing a framework feature).
 
-`SEGMENT`, `PRODUCT_TYPE` and `SEGMENT_PRODUCT_TYPE` were added during the Product Taxonomy v2 pass, following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) — see that decision for the full rationale (including why Segment and Product Type are orthogonal classification axes over `PRODUCT`, rather than further levels of the existing `CATEGORY` hierarchy). They are **implemented in `prisma/schema.prisma`**, by migration `20260812160853_add_product_taxonomy_v2`; **catalog reference-data population has not yet been implemented through the approved reference-data gate.** Section 1's status block states exactly what that means, and section 3 records the pass.
+`SEGMENT`, `PRODUCT_TYPE` and `SEGMENT_PRODUCT_TYPE` were added during the Product Taxonomy v2 pass, following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) — see that decision for the full rationale (including why Segment and Product Type are orthogonal classification axes over `PRODUCT`, rather than further levels of the existing `CATEGORY` hierarchy). They are **implemented in `prisma/schema.prisma`**, by migration `20260812160853_add_product_taxonomy_v2`; the approved Segment reference data is applied by the dedicated catalog seed, `prisma/seed-catalog.ts`. Section 1's status block states exactly what is populated and what is not, and section 3 records the pass.
 
 ---
 
 ## 1. Core Entities (Phase 1)
 
-**Implemented; reference data pending.** Five elements of the diagram below arrived from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md):
+**Implemented; Segment reference data applied in local DEV.** Five elements of the diagram below arrived from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md):
 
 - `SEGMENT`
 - `PRODUCT_TYPE`
@@ -26,7 +26,7 @@ The `CustomFormulationRequest` and `Inquiry` entities below were further reconci
 - the `PRODUCT` ↔ `SEGMENT` many-to-many membership
 - `PRODUCT.productTypeId`
 
-For all five: **the Prisma model and the migration exist** — `20260812160853_add_product_taxonomy_v2`. What does not exist yet is the reference data: **catalog reference-data population has not yet been implemented through the approved reference-data gate**, and the approved mechanism for it (a dedicated, idempotent, explicitly-invoked catalog seed script) has not been written. This document remains the reference shape, as its opening paragraph states — not a description of the database. Every other entity in the diagram is likewise implemented in `prisma/schema.prisma`.
+For all five: **the Prisma model and the migration exist** — `20260812160853_add_product_taxonomy_v2`. The approved reference-data mechanism exists too: **`prisma/seed-catalog.ts`**, a dedicated, idempotent, explicitly-invoked catalog seed run as `pnpm seed:catalog` — never wired into `prisma db seed`. It upserts the eight approved Segments by `slug`, preserving `SEGMENT.id` so memberships and translations survive a rerun, and it deletes nothing. The eight rows were applied to the local DEV `sam_platform` during that gate, with an idempotent rerun verified. **`PRODUCT_TYPE` carries no approved vocabulary and no rows, and neither `PRODUCT_SEGMENT` nor `SEGMENT_PRODUCT_TYPE` membership has been populated.** This document remains the reference shape, as its opening paragraph states — not a description of the database. Every other entity in the diagram is likewise implemented in `prisma/schema.prisma`.
 
 ```mermaid
 erDiagram
@@ -334,7 +334,7 @@ erDiagram
 
   Six of the eight slugs are the identifiers `apps/web` already publishes as Engine Oils sub-range anchors, adopted unchanged so that one vocabulary serves both — including where a slug drops a conjunction its name carries (`trucks-buses`, `construction-mining`).
 
-  **These are approved slugs, not data. This documentation decision creates no Segment rows or seed data** — catalog reference-data population is deferred to a separately approved Database/reference-data gate. **No `SEGMENT` ↔ `PRODUCT_TYPE` membership is approved** — all nine per-Segment Product Type lists are pending, and none may be inferred from the family sub-ranges. **No `PRODUCT_TYPE` name or slug is approved at all.**
+  **These were approved slugs, not data: that documentation decision created no Segment rows or seed data** — population happened afterwards, in its own approved Database gate, through the dedicated catalog seed `prisma/seed-catalog.ts`, which applied these eight rows to the local DEV `sam_platform`. **No `SEGMENT` ↔ `PRODUCT_TYPE` membership is approved** — all nine per-Segment Product Type lists are pending, and none may be inferred from the family sub-ranges. **No `PRODUCT_TYPE` name or slug is approved at all.**
 
 - **Join-table convention for this diagram.** A join table appears as its own entity block **only when it carries attributes of its own**. `SEGMENT_PRODUCT_TYPE` is drawn because it carries `sortOrder`; the `PRODUCT` ↔ `SEGMENT` membership and the existing `BLOG_POST` ↔ `BLOG_TAG` join are drawn as direct many-to-many lines, because neither carries anything beyond its two keys.
 - **`SAMPLE_REQUEST` no longer exists — merged into `INQUIRY`** (approved decision, see the changelog below). "Request Sample" CTAs submit an `INQUIRY` with `inquiryType: 'Sample Request'` and `relatedProductId` set to the product the CTA appeared on. One lead queue, one entity, no duplicated submission/assignment/status machinery.
@@ -416,7 +416,7 @@ Following Architecture approval of the i18n strategy: `LOCALE`'s seed data is no
 
 ### Product Taxonomy v2 (ADR-007) review
 
-Following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) and the approved Phase 1 sign-offs, this document was aligned with the accepted taxonomy. **That pass recorded accepted architecture only and implemented nothing.** The schema change landed later, as a separately approved task, in migration `20260812160853_add_product_taxonomy_v2`, which creates all four taxonomy tables and `PRODUCT.productTypeId`. **Reference-data population remains behind its separately approved Database gate.**
+Following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) and the approved Phase 1 sign-offs, this document was aligned with the accepted taxonomy. **That pass recorded accepted architecture only and implemented nothing.** The schema change landed later, as a separately approved task, in migration `20260812160853_add_product_taxonomy_v2`, which creates all four taxonomy tables and `PRODUCT.productTypeId`. Segment reference-data population followed it, in its own approved Database gate, as the dedicated catalog seed `prisma/seed-catalog.ts`.
 
 - **A Segment could not be shared, and existed only inside one Family** — the six vehicle-type sub-ranges published under Engine Oils are six of the nine approved Segments, trapped one level down under a single `parentId` and unusable as an entry point to any other Family. Added `SEGMENT` as a first-class entity, many-to-many with `PRODUCT`.
 - **Product Type had no entity at all** — types were strings inside per-family content, so they could not be filtered, translated, addressed or counted, and the same type recurred once per family. Added `PRODUCT_TYPE` as a globally shared entity, plus `SEGMENT_PRODUCT_TYPE` to carry each Segment's own ordered subset of it.
