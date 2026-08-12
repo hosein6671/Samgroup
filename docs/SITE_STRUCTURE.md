@@ -85,6 +85,8 @@ Hero ("A Complete Range of Petroleum Products") → six category cards (below) �
 
 **Structural clarification, not in the previous version of this document:** each of the six product lines is **one rich category-level page**, not a category-listing-page-plus-per-SKU-detail-pages. All grades/SKUs within a category (e.g. SN 150, SN 350, SN 500, SN 650, BS 150 under Base Oils) are sections _within_ that one page (accordion or filterable table), not separately routed. See the [Data Model Gaps](#data-model-gaps-surfaced-by-this-structure) section below for what this implies for `Product`/`Category`.
 
+**"Not separately routed" is superseded by [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) (accepted 12 August 2026); the rest of the paragraph above stands.** The **six Product Family pages remain** exactly as specified here, and grades continue to be presented as sections within them. What changed is that per-product detail pages are **additionally approved**, canonically at `/{locale}/products/{product-slug}`. **Decided — not implemented**: no product detail page exists, and the sitemap in §0, the page count, and the SEO Master table in §14 are deliberately left unchanged until that implementation is approved.
+
 **Shared template** (every one of the six follows this exact structure):
 
 1. Hero — product family name + scope + primary/secondary CTA (Request a Quote / Request Sample)
@@ -251,6 +253,6 @@ Long tracked as an open gap: no source sheet ever defined a "Sample Request form
 4. **No entity exists for Job Applications / speculative CVs** (§11).
 5. **No entity exists for FAQ content** — needed to drive the consolidated FAQ page and per-page `FAQPage` schema; likely a Payload collection (content, not transactional data) rather than Prisma.
 6. **No entity exists for Certifications** (§7) — name, issuing body, certificate number, valid-until, PDF; likely Payload content.
-7. **Product/Category routing structure**: confirmed in [§4](#4-product-category-pages-p1p6) above that each category is one page with grades listed as sections, not individually routed. This doesn't require a `Product`/`Category`/`Specification` schema change — Products can still be individual rows grouped by category and rendered together — but it does change how `apps/web` queries and renders them, addressed in [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md).
+7. **Product/Category routing structure**: confirmed in [§4](#4-product-category-pages-p1p6) above that each category is one page with grades listed as sections, not individually routed. This doesn't require a `Product`/`Category`/`Specification` schema change — Products can still be individual rows grouped by category and rendered together — but it does change how `apps/web` queries and renders them, addressed in [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md). _Annotation: the "not individually routed" conclusion is superseded by [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) — decided, not implemented. The rest of the item is unchanged._
 
 None of these are fixed here. Recommend a dedicated `DATA_MODEL.md`/`DATABASE.md` update pass before these features are built.

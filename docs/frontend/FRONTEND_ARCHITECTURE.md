@@ -74,6 +74,8 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
 **Admin UI language is a user preference, not a route.** The distinction is worth stating plainly: on the public site, locale is _routing_ (it's in the URL, it's an SEO surface, each locale is independently indexable); in the admin area, locale is _preference_ (which language the tool's chrome renders in). `next-intl`'s non-routing API covers the latter without a URL segment. Content being edited still carries its own locale — an editor works on `fa` product translations through an English-chrome admin UI, and the two are unrelated concerns.
 
+**[SUPERSEDED BY ADR-007]** — the paragraph below is kept as the record of the decision that stood before [ADR-007](../ADR/ADR-007-product-taxonomy-v2.md) (accepted 12 August 2026) reversed its no-detail-route half. What now applies: the **six Product Family pages remain valid** and are not replaced; **Product Detail routes are approved architecturally**, canonically at `/{locale}/products/{product-slug}`; and **the Product Detail implementation does not yet exist** — no route, no template, no component. The route tree and route tables in this document are therefore unchanged, and describe the frontend as it is planned today rather than as ADR-007 will eventually require.
+
 **[CONFIRMED by SITE_STRUCTURE.md]** Product category pages are **single-level** — `/products/[categorySlug]/page.tsx` only, no `[productSlug]` detail route. The site structure source of truth settles this directly: its Sitemap sheet lists exactly six Level-2 product URLs (`base-oils`, `lubricant-additives`, ..., `antifreeze-coolants`) with no Level-3 per-SKU pages, and each `P1`–`P6` sheet confirms individual grades/SKUs (SN 150, SN 350, Bright Stock, etc.) are sections _within_ one category page, not separately routed. This replaces the two-level `[categorySlug]/[productSlug]` structure in the original draft of this document — that was a reasonable guess at the time, made before the full structure existed; it's now superseded, not just revised.
 
 ---
@@ -280,7 +282,7 @@ Concrete, not aspirational — extends the Core Web Vitals budget already set in
 Confirmed after this document's initial draft:
 
 1. **Structural brand pages keep fixed English URL segments across all locales** (`/en/about-us`, `/fa/about-us`, `/ar/about-us`); **localized slugs are reserved for SEO-driven content only — Products, Categories, and Blog articles.** See §2.
-2. **Product category pages are single-level, no per-SKU detail route** — confirmed directly by the site structure source of truth's Sitemap sheet, not an inference. See §1.
+2. **Product category pages are single-level, no per-SKU detail route** — confirmed directly by the site structure source of truth's Sitemap sheet, not an inference. See §1. **[SUPERSEDED BY ADR-007]** — the six category pages stand; the no-per-SKU-detail-route half is reversed, and a canonical Product Detail route at `/{locale}/products/{product-slug}` is approved. **Decided — not implemented.**
 3. **Mapbox's placement (`GlobalExportMap`, Export & Logistics) is now confirmed**, not just proposed — the site structure source of truth explicitly calls for "interactive or illustrated map plus regional cards" on that page's Global Reach section.
 
 ## Open Items (not resolved by this document)

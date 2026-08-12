@@ -10,8 +10,9 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-004](./ADR-004-freeze-decisions.md)             | Password hashing algorithm (argon2id) and version-pinning strategy at Architecture Freeze        | Accepted |
 | [ADR-005](./ADR-005-vps-docker-deployment.md)        | VPS-only deployment with Docker; `apps/web` is not deployed to Vercel                            | Accepted |
 | [ADR-006](./ADR-006-payload-admin-authentication.md) | Payload Admin uses separate authentication; no SSO bridge, no synced accounts, no shared cookies | Accepted |
+| [ADR-007](./ADR-007-product-taxonomy-v2.md)          | Product Taxonomy v2; canonical Product Detail routes supersede the no-`[productSlug]` rule       | Accepted |
 
-These six, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+These seven, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 
