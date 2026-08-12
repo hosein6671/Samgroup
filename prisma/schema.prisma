@@ -1,8 +1,16 @@
 // =============================================================================
 // SAM Group Platform — sam_platform
 //
-// A literal translation of docs/DATA_MODEL.md §1: 20 entities plus one join
-// table for the BlogPost/BlogTag many-to-many. Not a redesign.
+// A literal translation of docs/DATA_MODEL.md §1: 22 entities plus three join
+// tables — BlogPost/BlogTag, Product/Segment, and the ordered
+// Segment/ProductType. Not a redesign.
+//
+// Segment, ProductType and the two catalog joins arrive from ADR-007 (Product
+// Taxonomy v2) and are additive by decision: Category remains the Product
+// Family axis, Product.categoryId is untouched, and no column is dropped or
+// rewritten. The per-Segment Product Type lists, the Segment slugs and the
+// Segment rows themselves are NOT approved — this file creates the tables and
+// nothing else puts a row in them.
 //
 // Boundaries this file must never cross:
 //   - It models sam_platform only. Payload owns sam_cms and is never modelled
@@ -158,21 +166,32 @@ model Category {
 }
 
 model Product {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  slug        String   @unique
-  categoryId  String   @map("category_id") @db.Uuid
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String   @unique
+  categoryId    String   @map("category_id") @db.Uuid
+  /// The PRIMARY Product Type, single-valued in v2 (ADR-007 §4). Nullable in
+  /// Phase 1 because no ProductType row is approved yet, and a required
+  /// reference to an empty table would make Product un-insertable. Product ↔
+  /// ProductType many-to-many is deferred, not omitted.
+  productTypeId String?  @map("product_type_id") @db.Uuid
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  category       Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category       Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  // Restrict rather than SetNull even though the column is nullable: silently
+  // unclassifying every product of a deleted type is data loss, and `category`
+  // — the other classification axis — restricts for the same reason.
+  productType    ProductType?     @relation(fields: [productTypeId], references: [id], onDelete: Restrict)
   specifications Specification[]
-  inquiries      Inquiry[]       @relation("InquiryRelatedProduct")
+  segments       ProductSegment[]
+  inquiries      Inquiry[]        @relation("InquiryRelatedProduct")
 
   // No Media relation: product imagery and documents attach through Media's
   // polymorphic ownerType/ownerId, not a foreign key.
 
   @@index([categoryId])
+  @@index([productTypeId])
   @@map("products")
 }
 
@@ -190,6 +209,93 @@ model Specification {
 
   @@index([productId])
   @@map("specifications")
+}
+
+/// A buyer-facing application/use axis — ADR-007 §4. ORTHOGONAL to Product
+/// Family (`Category`), not a level inside it: one Segment spans several
+/// Families, which is precisely what a child `Category` cannot do.
+///
+/// Deliberately minimal. No description, no isActive, no familyId and no
+/// timestamps — `Category`, the axis this one sits beside, carries none of them
+/// either. `sortOrder` exists because the approved set is a navigation list
+/// whose order is editorial rather than alphabetical, the same reason `Locale`
+/// carries one.
+///
+/// The nine approved Segment NAMES are vocabulary, not data: no slug is
+/// approved for any of them, and nothing in this repository creates a row here.
+model Segment {
+  id        String @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String @unique
+  sortOrder Int    @map("sort_order")
+
+  products     ProductSegment[]
+  productTypes SegmentProductType[]
+
+  @@map("segments")
+}
+
+/// A reusable product classification, shared globally and NEVER duplicated per
+/// Segment (ADR-007 §4): one row is visible from every Segment that uses it, so
+/// a type can be renamed once and "which Segments use this type" stays
+/// answerable.
+///
+/// No `sortOrder` here by decision — ordering is per-Segment and lives on
+/// SegmentProductType, because a Segment publishes its own ordered subset.
+model ProductType {
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+  slug String @unique
+
+  products Product[]
+  segments SegmentProductType[]
+
+  @@map("product_types")
+}
+
+/// Product ↔ Segment membership. Explicit rather than an implicit Prisma
+/// many-to-many, for the same reason BlogPostTag is: the physical table has to
+/// be named in snake_case like every other one.
+///
+/// Carries no payload — a product's segments have no defined order — which is
+/// why DATA_MODEL.md §1 draws this as a direct many-to-many line rather than an
+/// entity of its own. Cascade on both sides: a membership row is meaningless
+/// without either of its ends.
+model ProductSegment {
+  productId String @map("product_id") @db.Uuid
+  segmentId String @map("segment_id") @db.Uuid
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  segment Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@id([productId, segmentId])
+  @@index([segmentId])
+  @@map("product_segments")
+}
+
+/// Which Product Types a Segment publishes, and in what order — ADR-007 §4.
+///
+/// `sortOrder` lives here and not on ProductType because a Segment publishes
+/// its OWN ordered subset of the shared type set: the same type may sit at a
+/// different position in two Segments, which one global column cannot express.
+///
+/// Deliberately NOT unique on (segmentId, sortOrder): such a constraint turns
+/// every reorder into a multi-step update through a temporary offset. A stable
+/// sequence is `sortOrder` then `productTypeId`.
+///
+/// No membership is approved — all nine per-Segment lists are pending, and none
+/// may be inferred from the family sub-ranges.
+model SegmentProductType {
+  segmentId     String @map("segment_id") @db.Uuid
+  productTypeId String @map("product_type_id") @db.Uuid
+  sortOrder     Int    @map("sort_order")
+
+  segment     Segment     @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  productType ProductType @relation(fields: [productTypeId], references: [id], onDelete: Cascade)
+
+  @@id([segmentId, productTypeId])
+  @@index([productTypeId])
+  @@map("segment_product_types")
 }
 
 // --- Media -------------------------------------------------------------------
