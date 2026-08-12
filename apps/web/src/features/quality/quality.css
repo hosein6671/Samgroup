@@ -322,6 +322,18 @@
  * the section's whole claim. So a single rule runs across all three, each stage marks its start on
  * that rule with a gold segment, and a hairline divides one from the next. No arrows — the page is
  * stating an order, not animating a process.
+ *
+ * ── The band is closed on both edges ────────────────────────────────────────
+ *
+ * It was open at the bottom, and measured that was a defect rather than a preference: at 1440 the
+ * band came out 1281 × 152px — an 8.4 : 1 strip sitting under a 374px heading block — because
+ * `.qc-stage` carried no bottom padding, so the column rules stopped flush with the last line of
+ * text and read as tick marks rather than as divisions of a whole.
+ *
+ * Two rules close it: bottom padding on the stage, and a bottom border here. The dividers now run
+ * the full height of a band that has a defined height, which is what makes them read as column
+ * rules. The padding is deliberately smaller than the top padding — the text hangs from the rule
+ * it belongs to, and a symmetrical block would float between two lines instead.
  */
 .qc-stages {
   list-style: none;
@@ -330,11 +342,12 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
 }
 
 .qc-stage {
   position: relative;
-  padding-block: clamp(24px, 2.6vw, 36px) 0;
+  padding-block: clamp(24px, 2.6vw, 36px) clamp(22px, 2.3vw, 32px);
   padding-inline: clamp(20px, 2.4vw, 40px) clamp(16px, 2vw, 32px);
   border-inline-start: 1px solid var(--color-border-hairline);
 }
@@ -381,11 +394,16 @@
   color: var(--color-text-secondary);
 }
 
-/* Prose, not a register field — it wraps and it is not set in caps. */
+/*
+ * Prose, not a register field — it wraps and it is not set in caps.
+ *
+ * It carried a rule of its own, which was correct while the band above it was open at the bottom
+ * and is not now: the band's new bottom border already closes the stages, so a second hairline
+ * roughly 80px below it was two rules doing one job. The rule is gone and the gap is tightened,
+ * which also keeps the closed band from adding net height to the section.
+ */
 .qc-approach-foot {
-  margin: clamp(32px, 3.6vw, 52px) 0 0;
-  padding-top: clamp(20px, 2.2vw, 28px);
-  border-top: 1px solid var(--color-border-hairline);
+  margin: clamp(24px, 2.6vw, 36px) 0 0;
   max-width: 68ch;
   font-size: 13.5px;
   line-height: 1.65;
@@ -451,13 +469,29 @@
   color: var(--color-text-tertiary);
 }
 
+/*
+ * ── Why the row rule hangs above each property rather than below it ─────────
+ *
+ * Fourteen properties across an `auto-fit` grid never fill the last row: five columns leave one
+ * cell empty, three leave one, one leaves none. With the rule on each row's *bottom*, the register
+ * closed at four-fifths width and the missing fifth read as a ragged edge.
+ *
+ * The fix is to move the rule to the *top* of every property and close the grid with one border on
+ * the container. Every row still gets its separator — row one's top borders now draw the rule under
+ * the head, which is why the container no longer carries `border-top` — and the bottom edge is a
+ * single full-width hairline that does not care how many cells the last row holds.
+ *
+ * **No filler cell is rendered to square the grid.** The empty cell is real: there are fourteen
+ * properties because the documentation names fourteen, and a fifteenth drawn to tidy the corner
+ * would be a property that does not exist. The edge is closed around the gap, not over it.
+ */
 .qc-register-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  border-top: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
 }
 
 .qc-property {
@@ -466,7 +500,7 @@
   gap: 14px;
   padding-block: clamp(14px, 1.5vw, 18px);
   padding-inline-end: clamp(16px, 2vw, 28px);
-  border-bottom: 1px solid var(--color-border-hairline);
+  border-top: 1px solid var(--color-border-hairline);
 }
 
 .qc-property-num {
@@ -639,12 +673,29 @@
   color: var(--color-text-secondary);
 }
 
+/*
+ * A hairline panel, not a glass one — and the distinction is the point.
+ *
+ * Three glass panels were built on this page: the hero's chain, this register, and the closing
+ * routes. Same border, same fill, same blur, same radius, same head row. Consistent, and also a
+ * template — the object appeared three times in one scroll while About Us and Customized Solutions
+ * carry one each.
+ *
+ * So the page now has two panel kinds, split on what the panel is for rather than on where it sits:
+ *
+ *   **Glass** — an index you act on. The hero chain and the closing routes both list destinations
+ *   or steps, both are lifted off the surface, both keep `--color-glass-*` and the blur.
+ *   **Hairline** — a register of facts you read. This block and `.qc-sampling-scope` both state
+ *   what is true, both sit flat on the section with a single hairline and `--radius-panel`.
+ *
+ * That is why the values below are `.qc-sampling-scope`'s exactly rather than a third set: two
+ * registers that state facts should not be two different objects. Markup is untouched — this is a
+ * change of four declarations, and the head row, ordinals and rows all render as before.
+ */
 .qc-docs-register {
-  border: 1px solid var(--color-glass-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-glass-fill);
-  backdrop-filter: blur(20px);
-  padding: clamp(16px, 2vw, 26px);
+  padding: clamp(16px, 1.8vw, 24px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
 }
 
 .qc-docs-head {
@@ -944,10 +995,16 @@
    * The stage rule turns vertical. Three stages across 900px leave the names two words to the
    * line, and the sequence reads just as clearly stacked — each stage keeps its gold position
    * marker, which moves to the leading edge.
+   *
+   * **Unchanged by the desktop band being closed.** Stacked, each stage already carries its own
+   * rule and its own symmetrical padding, so both of the rules added above are switched off here:
+   * the band's bottom border would draw a second hairline under the last stage, and the stage's
+   * asymmetric desktop padding is overridden as it always was. Mobile renders exactly as before.
    */
   .qc-stages {
     grid-template-columns: 1fr;
     border-top: 0;
+    border-bottom: 0;
   }
 
   .qc-stage {
@@ -959,6 +1016,21 @@
 
   .qc-stage:first-child {
     padding-block-start: clamp(22px, 3vw, 30px);
+  }
+
+  /*
+   * The footnote keeps the rule the desktop layout drops.
+   *
+   * Removing it above was specifically about not drawing two hairlines where the band's own bottom
+   * border already closes the stages. Stacked, that border is switched off and each stage carries
+   * only a `border-top`, so the last stage has nothing under it — here the footnote's rule is the
+   * closing edge, not a duplicate of one. Restored with its original spacing, so mobile renders
+   * exactly as it did before this pass.
+   */
+  .qc-approach-foot {
+    margin-top: clamp(32px, 3.6vw, 52px);
+    padding-top: clamp(20px, 2.2vw, 28px);
+    border-top: 1px solid var(--color-border-hairline);
   }
 
   .qc-certs-body {
