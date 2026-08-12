@@ -8,9 +8,11 @@
 // Segment, ProductType and the two catalog joins arrive from ADR-007 (Product
 // Taxonomy v2) and are additive by decision: Category remains the Product
 // Family axis, Product.categoryId is untouched, and no column is dropped or
-// rewritten. The per-Segment Product Type lists, the Segment slugs and the
-// Segment rows themselves are NOT approved — this file creates the tables and
-// nothing else puts a row in them.
+// rewritten. Eight Segment slugs are approved by ADR-008. Their INITIAL approved
+// reference-data population mechanism is the dedicated, explicitly invoked
+// catalog seed (prisma/seed-catalog.ts) — not a migration, and not
+// `prisma db seed`, which remains locale-only. The per-Segment Product Type
+// lists remain unapproved, as does every ProductType name and slug.
 //
 // Boundaries this file must never cross:
 //   - It models sam_platform only. Payload owns sam_cms and is never modelled
@@ -221,8 +223,12 @@ model Specification {
 /// whose order is editorial rather than alphabetical, the same reason `Locale`
 /// carries one.
 ///
-/// The nine approved Segment NAMES are vocabulary, not data: no slug is
-/// approved for any of them, and nothing in this repository creates a row here.
+/// Nine approved Segment NAMES, eight persisted Segments: ADR-008 approves a
+/// slug for eight of them and resolves `Other` as vocabulary rather than a row,
+/// so a Product in no real Segment is represented by the ABSENCE of a
+/// ProductSegment membership. Initial population is performed by the dedicated
+/// catalog seed (prisma/seed-catalog.ts), which upserts by `slug` and never
+/// deletes. Any future write mechanism requires its own approval.
 model Segment {
   id        String @id @default(uuid()) @db.Uuid
   name      String
