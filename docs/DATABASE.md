@@ -52,7 +52,7 @@ Role → permission mapping lives in [SECURITY.md](./SECURITY.md).
 - Images
 - Documents
 
-`Segment` and `Product Type` are **Decided — not implemented**: accepted architecture from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md), with no Prisma model, no migration and no rows. `Category` is the Product Family axis and is unchanged. Field-level shapes, cardinalities and delete behaviour are in [DATA_MODEL.md](./DATA_MODEL.md). No Segment slug, no Product Type row and no Segment-to-Product-Type membership is approved.
+`Segment` and `Product Type` are **implemented in `prisma/schema.prisma`**: accepted architecture from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md), translated into the models `Segment`, `ProductType`, `ProductSegment` and `SegmentProductType` plus nullable `Product.productTypeId`, by migration `20260812160853_add_product_taxonomy_v2`. **Catalog reference-data population has not yet been implemented through the approved reference-data gate** — the schema exists; the approved population mechanism (a dedicated, idempotent, explicitly-invoked catalog seed script) has not been written. `Category` is the Product Family axis and is unchanged. Field-level shapes, cardinalities and delete behaviour are in [DATA_MODEL.md](./DATA_MODEL.md). No Segment slug, no Product Type row and no Segment-to-Product-Type membership is approved.
 
 Phase 1 category seed list (source: [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#3-products)):
 
