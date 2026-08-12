@@ -39,6 +39,17 @@ const PRODUCT_TRANSLATED_FIELDS = ["name", "slug", "description"] as const;
  */
 const PRODUCT_SEARCHABLE_FIELDS = ["name", "slug"] as const;
 
+/**
+ * The translated fields of the two taxonomy axes the detail response carries. Both are
+ * `name`/`slug` and both are listed separately rather than shared, because they name columns on
+ * two different tables and one gaining a translatable column must not silently widen the other.
+ *
+ * `Segment.sortOrder` is not here and could not be: `content_translations.value` is text, and
+ * an ordering that differed per locale would reorder the same page in two languages.
+ */
+const SEGMENT_TRANSLATED_FIELDS = ["name", "slug"] as const;
+const PRODUCT_TYPE_TRANSLATED_FIELDS = ["name", "slug"] as const;
+
 const PRODUCT_SELECT = {
   id: true,
   name: true,
@@ -55,6 +66,17 @@ const PRODUCT_DETAIL_SELECT = {
   description: true,
   createdAt: true,
   category: { select: CATEGORY_SELECT },
+  // The PRIMARY Product Type, single-valued in v2 (ADR-007 §4) and nullable while no
+  // ProductType row is approved. `id` is selected for localization only and is stripped before
+  // the response — see toTaxonomyRef.
+  productType: { select: { id: true, name: true, slug: true } },
+  segments: {
+    // `Segment.sortOrder` is the publishing order, and `Segment.id` behind it is what makes two
+    // requests for the same product emit the same array: `sortOrder` carries no uniqueness
+    // constraint, so two Segments may legitimately share one.
+    orderBy: [{ segment: { sortOrder: "asc" } }, { segment: { id: "asc" } }],
+    select: { segment: { select: { id: true, name: true, slug: true } } },
+  },
   specifications: {
     // `specifications` has no ordering column and no unique on (product_id, key) — a product
     // may legitimately repeat a key, one row per grade. Ordering by key then value is what
@@ -97,6 +119,22 @@ type LocalizedProductList = {
 
 type LocalizedProduct = {
   product: ProductDetailResponse;
+  localeFallback: boolean;
+};
+
+/**
+ * A Segment or a ProductType as selected for the detail response. `id` is carried because
+ * `content_translations` keys on it; it never reaches the wire.
+ */
+type TaxonomyRow = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+/** LocalizedRows' single-row counterpart, for a relation that is at most one row. */
+type LocalizedTaxonomyRow = {
+  row: TaxonomyRow | null;
   localeFallback: boolean;
 };
 
@@ -184,27 +222,40 @@ export class ProductsService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NotFound, NOT_FOUND_MESSAGE);
     }
 
-    const { category, specifications, ...product } = row;
+    // `segments` and `productType` are pulled out of the rest spread deliberately: what follows
+    // hands `product` to localize as a Product row, and a nested relation riding along in it
+    // would be a shape the translation overlay never asked for.
+    const { category, specifications, segments, productType, ...product } = row;
 
-    const [localizedProduct, localizedCategory, images] = await Promise.all([
-      this.translations.localize(
-        ContentEntityType.Product,
-        [product],
-        PRODUCT_TRANSLATED_FIELDS,
-        locale,
-      ),
-      this.translations.localize(
-        ContentEntityType.Category,
-        [category],
-        CATEGORY_TRANSLATED_FIELDS,
-        locale,
-      ),
-      // Product imagery is read through MediaService, not `prisma.media`: `media` belongs to
-      // the Media module and ARCHITECTURE.md §Modules routes cross-module access through the
-      // owning module's service. The `type = image` filter that keeps COA/SDS/TDS out of a
-      // public gallery lives there too, where no caller can widen it.
-      this.media.findImagesForOwner(ContentEntityType.Product, product.id),
-    ]);
+    const [localizedProduct, localizedCategory, localizedSegments, localizedProductType, images] =
+      await Promise.all([
+        this.translations.localize(
+          ContentEntityType.Product,
+          [product],
+          PRODUCT_TRANSLATED_FIELDS,
+          locale,
+        ),
+        this.translations.localize(
+          ContentEntityType.Category,
+          [category],
+          CATEGORY_TRANSLATED_FIELDS,
+          locale,
+        ),
+        // Flattened off the join rows first: `content_translations` keys on the SEGMENT's id,
+        // and ProductSegment carries no id of its own to key on.
+        this.translations.localize(
+          ContentEntityType.Segment,
+          segments.map((membership) => membership.segment),
+          SEGMENT_TRANSLATED_FIELDS,
+          locale,
+        ),
+        this.localizeProductType(productType, locale),
+        // Product imagery is read through MediaService, not `prisma.media`: `media` belongs to
+        // the Media module and ARCHITECTURE.md §Modules routes cross-module access through the
+        // owning module's service. The `type = image` filter that keeps COA/SDS/TDS out of a
+        // public gallery lives there too, where no caller can widen it.
+        this.media.findImagesForOwner(ContentEntityType.Product, product.id),
+      ]);
 
     // `?? product` / `?? category` are the untranslated rows, not placeholders: localize
     // returns its input one-for-one, so these only satisfy noUncheckedIndexedAccess.
@@ -234,11 +285,23 @@ export class ProductsService {
         description: translated.description,
         createdAt: translated.createdAt.toISOString(),
         category: localizedCategory.rows[0] ?? category,
+        // `id` is dropped here and not earlier: it is what localize keys on, and what nothing
+        // downstream of the response has any use for.
+        segments: localizedSegments.rows.map(toTaxonomyRef),
+        productType:
+          localizedProductType.row === null ? null : toTaxonomyRef(localizedProductType.row),
         specifications,
         images,
         seo,
       },
-      localeFallback: localizedProduct.localeFallback || localizedCategory.localeFallback,
+      // Every localized part of the response feeds the flag, taxonomy included: §3 has it
+      // describe what was served, and a Segment name served in English inside a Persian
+      // response is exactly the case the frontend's "not yet translated" notice exists for.
+      localeFallback:
+        localizedProduct.localeFallback ||
+        localizedCategory.localeFallback ||
+        localizedSegments.localeFallback ||
+        localizedProductType.localeFallback,
     };
   }
 
@@ -262,6 +325,33 @@ export class ProductsService {
       orderBy: [{ key: "asc" }, { value: "asc" }],
       select: { id: true, key: true, value: true, unit: true },
     });
+  }
+
+  /**
+   * The at-most-one primary Product Type, through the same overlay as everything else.
+   *
+   * `localize` takes and returns arrays, so the wrapping and unwrapping happens here rather
+   * than at the call site. A null type — the state of every product while no ProductType row
+   * is approved — queries nothing and has nothing it could fall back from.
+   */
+  private async localizeProductType(
+    productType: TaxonomyRow | null,
+    locale: ResolvedLocale,
+  ): Promise<LocalizedTaxonomyRow> {
+    if (productType === null) {
+      return { row: null, localeFallback: false };
+    }
+
+    const { rows, localeFallback } = await this.translations.localize(
+      ContentEntityType.ProductType,
+      [productType],
+      PRODUCT_TYPE_TRANSLATED_FIELDS,
+      locale,
+    );
+
+    // `?? productType` is the untranslated row, not a placeholder: localize returns its input
+    // one-for-one, so this only satisfies noUncheckedIndexedAccess.
+    return { row: rows[0] ?? productType, localeFallback };
   }
 
   private async buildWhere(
@@ -401,6 +491,17 @@ export class ProductsService {
 
     return translatedId === null ? { slug } : { id: translatedId };
   }
+}
+
+/**
+ * Strips the internal id — `name` and `slug` are the whole of a taxonomy reference on the wire.
+ *
+ * One function for both axes because ProductSegmentResponse and ProductTypeResponse are the
+ * same two fields; the return type is written structurally rather than as one of them, since
+ * neither is more the caller than the other.
+ */
+function toTaxonomyRef(row: TaxonomyRow): { name: string; slug: string } {
+  return { name: row.name, slug: row.slug };
 }
 
 function toListItem(row: ProductRow): ProductListItemResponse {

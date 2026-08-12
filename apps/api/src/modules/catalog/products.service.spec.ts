@@ -31,6 +31,28 @@ const PRODUCT_ROW = {
   createdAt: CREATED_AT,
 };
 
+/**
+ * Two Segments and one Product Type — ADR-007 §4's two navigation axes. The database is mocked,
+ * so these rows stand in for taxonomy tables that currently hold no rows at all.
+ */
+const INDUSTRIAL = {
+  id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  name: "Industrial",
+  slug: "industrial",
+};
+
+const MARINE = {
+  id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+  name: "Marine",
+  slug: "marine",
+};
+
+const PRODUCT_TYPE = {
+  id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+  name: "Base Oil",
+  slug: "base-oil",
+};
+
 const DETAIL_ROW = {
   id: PRODUCT_ROW.id,
   name: PRODUCT_ROW.name,
@@ -38,6 +60,9 @@ const DETAIL_ROW = {
   description: PRODUCT_ROW.description,
   createdAt: CREATED_AT,
   category: CATEGORY,
+  productType: PRODUCT_TYPE,
+  // Prisma returns the join rows already ordered; the mock hands back what that read would.
+  segments: [{ segment: INDUSTRIAL }, { segment: MARINE }],
   specifications: [
     { id: "spec-1", key: "Viscosity Index", value: "95", unit: null },
     { id: "spec-2", key: "Flash Point", value: "230", unit: "°C" },
@@ -120,6 +145,20 @@ function createService(): Stubs {
     translationFindFirst,
     buildSeo,
   };
+}
+
+/**
+ * Routes `contentTranslation.findMany` by the entity type it asks for.
+ *
+ * The detail endpoint localizes four entity types in one request, so a mock that answers every
+ * call with the same rows would hand a Segment the Product's translations. An entity type
+ * absent from the map has no translations, which is what makes a fallback assertion mean
+ * something.
+ */
+function translationsByEntityType(
+  byType: Partial<Record<string, { entityId: string; field: string; value: string }[]>>,
+): (args: { where: { entityType: string } }) => Promise<unknown[]> {
+  return (args) => Promise.resolve(byType[args.where.entityType] ?? []);
 }
 
 async function captureError(promise: Promise<unknown>): Promise<ApiException> {
@@ -505,24 +544,289 @@ describe("ProductsService.findBySlug", () => {
 
     productFindUnique.mockResolvedValue({ ...DETAIL_ROW, description: null });
     translationFindMany.mockImplementation(
-      (args: { where: { entityType: string } }): Promise<unknown[]> =>
-        Promise.resolve(
-          args.where.entityType === "Category"
-            ? [
-                { entityId: CATEGORY.id, field: "name", value: "روغن پایه" },
-                { entityId: CATEGORY.id, field: "slug", value: "روغن-پایه" },
-              ]
-            : [
-                { entityId: PRODUCT_ROW.id, field: "name", value: "اس‌ان ۵۰۰" },
-                { entityId: PRODUCT_ROW.id, field: "slug", value: "اس‌ان-۵۰۰" },
-              ],
-        ),
+      translationsByEntityType({
+        Product: [
+          { entityId: PRODUCT_ROW.id, field: "name", value: "اس‌ان ۵۰۰" },
+          { entityId: PRODUCT_ROW.id, field: "slug", value: "اس‌ان-۵۰۰" },
+        ],
+        Category: [
+          { entityId: CATEGORY.id, field: "name", value: "روغن پایه" },
+          { entityId: CATEGORY.id, field: "slug", value: "روغن-پایه" },
+        ],
+        Segment: [
+          { entityId: INDUSTRIAL.id, field: "name", value: "صنعتی" },
+          { entityId: INDUSTRIAL.id, field: "slug", value: "صنعتی" },
+          { entityId: MARINE.id, field: "name", value: "دریایی" },
+          { entityId: MARINE.id, field: "slug", value: "دریایی" },
+        ],
+        ProductType: [
+          { entityId: PRODUCT_TYPE.id, field: "name", value: "روغن پایه" },
+          { entityId: PRODUCT_TYPE.id, field: "slug", value: "روغن-پایه" },
+        ],
+      }),
     );
 
     const result = await service.findBySlug("sn-500", FA);
 
     expect(result.product.description).toBeNull();
     expect(result.localeFallback).toBe(false);
+  });
+});
+
+describe("ProductsService.findBySlug — taxonomy", () => {
+  it("returns every Segment the product belongs to", async () => {
+    const { service } = createService();
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(result.product.segments).toEqual([
+      { name: "Industrial", slug: "industrial" },
+      { name: "Marine", slug: "marine" },
+    ]);
+  });
+
+  // `sortOrder` carries no uniqueness constraint, so two Segments may share one — without the
+  // second term the same product could emit its Segments in two different orders.
+  it("orders Segments by sortOrder, with Segment id as the tiebreaker", async () => {
+    const { service, productFindUnique } = createService();
+
+    await service.findBySlug("sn-500", EN);
+
+    const call = productFindUnique.mock.calls[0]?.[0] as {
+      select: { segments: { orderBy: unknown } };
+    };
+
+    expect(call.select.segments.orderBy).toEqual([
+      { segment: { sortOrder: "asc" } },
+      { segment: { id: "asc" } },
+    ]);
+  });
+
+  // Segment is a navigation/facet axis, not URL ancestry: nothing addresses one by id, and the
+  // id is selected only because content_translations keys on it.
+  it("exposes name and slug only, leaking no Segment id", async () => {
+    const { service } = createService();
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    for (const segment of result.product.segments) {
+      expect(Object.keys(segment).sort()).toEqual(["name", "slug"]);
+    }
+
+    expect(JSON.stringify(result.product.segments)).not.toContain(INDUSTRIAL.id);
+  });
+
+  it("returns an empty array for a product in no Segment", async () => {
+    const { service, productFindUnique } = createService();
+
+    productFindUnique.mockResolvedValue({ ...DETAIL_ROW, segments: [] });
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(result.product.segments).toEqual([]);
+  });
+
+  it("returns the primary Product Type as name and slug", async () => {
+    const { service } = createService();
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(result.product.productType).toEqual({ name: "Base Oil", slug: "base-oil" });
+  });
+
+  it("leaks no ProductType id", async () => {
+    const { service } = createService();
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(Object.keys(result.product.productType ?? {}).sort()).toEqual(["name", "slug"]);
+    expect(JSON.stringify(result.product.productType)).not.toContain(PRODUCT_TYPE.id);
+  });
+
+  // The state of every product until a ProductType row is approved.
+  it("returns null for a product with no Product Type", async () => {
+    const { service, productFindUnique } = createService();
+
+    productFindUnique.mockResolvedValue({ ...DETAIL_ROW, productType: null });
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(result.product.productType).toBeNull();
+  });
+
+  it("localizes Segment names and slugs", async () => {
+    const { service, translationFindMany } = createService();
+
+    translationFindMany.mockImplementation(
+      translationsByEntityType({
+        Segment: [
+          { entityId: INDUSTRIAL.id, field: "name", value: "صنعتی" },
+          { entityId: INDUSTRIAL.id, field: "slug", value: "صنعتی" },
+          { entityId: MARINE.id, field: "name", value: "دریایی" },
+        ],
+      }),
+    );
+
+    const result = await service.findBySlug("sn-500", FA);
+
+    expect(result.product.segments).toEqual([
+      { name: "صنعتی", slug: "صنعتی" },
+      // Marine's slug has no translation and falls back to the base column — §3.
+      { name: "دریایی", slug: "marine" },
+    ]);
+  });
+
+  it("localizes the Product Type name and slug", async () => {
+    const { service, translationFindMany } = createService();
+
+    translationFindMany.mockImplementation(
+      translationsByEntityType({
+        ProductType: [
+          { entityId: PRODUCT_TYPE.id, field: "name", value: "روغن پایه" },
+          { entityId: PRODUCT_TYPE.id, field: "slug", value: "روغن-پایه" },
+        ],
+      }),
+    );
+
+    const result = await service.findBySlug("sn-500", FA);
+
+    expect(result.product.productType).toEqual({ name: "روغن پایه", slug: "روغن-پایه" });
+  });
+
+  it("queries no translations for the default locale", async () => {
+    const { service, translationFindMany } = createService();
+
+    await service.findBySlug("sn-500", EN);
+
+    expect(translationFindMany).not.toHaveBeenCalled();
+  });
+
+  // §3 has the flag describe what was served: a Segment name served in English inside a Persian
+  // response is exactly what the frontend's "not yet translated" notice exists for.
+  it("raises localeFallback when only the taxonomy failed to translate", async () => {
+    const { service, productFindUnique, translationFindMany } = createService();
+
+    productFindUnique.mockResolvedValue({ ...DETAIL_ROW, description: null, productType: null });
+    translationFindMany.mockImplementation(
+      translationsByEntityType({
+        Product: [
+          { entityId: PRODUCT_ROW.id, field: "name", value: "اس‌ان ۵۰۰" },
+          { entityId: PRODUCT_ROW.id, field: "slug", value: "اس‌ان-۵۰۰" },
+        ],
+        Category: [
+          { entityId: CATEGORY.id, field: "name", value: "روغن پایه" },
+          { entityId: CATEGORY.id, field: "slug", value: "روغن-پایه" },
+        ],
+      }),
+    );
+
+    const result = await service.findBySlug("sn-500", FA);
+
+    expect(result.localeFallback).toBe(true);
+  });
+
+  // An absent relation has nothing it could have fallen back FROM.
+  it("reports no fallback for an empty taxonomy when everything else translated", async () => {
+    const { service, productFindUnique, translationFindMany } = createService();
+
+    productFindUnique.mockResolvedValue({
+      ...DETAIL_ROW,
+      description: null,
+      segments: [],
+      productType: null,
+    });
+    translationFindMany.mockImplementation(
+      translationsByEntityType({
+        Product: [
+          { entityId: PRODUCT_ROW.id, field: "name", value: "اس‌ان ۵۰۰" },
+          { entityId: PRODUCT_ROW.id, field: "slug", value: "اس‌ان-۵۰۰" },
+        ],
+        Category: [
+          { entityId: CATEGORY.id, field: "name", value: "روغن پایه" },
+          { entityId: CATEGORY.id, field: "slug", value: "روغن-پایه" },
+        ],
+      }),
+    );
+
+    const result = await service.findBySlug("sn-500", FA);
+
+    expect(result.localeFallback).toBe(false);
+  });
+
+  it("asks content_translations for Segment and ProductType by their own entity types", async () => {
+    const { service, translationFindMany } = createService();
+
+    await service.findBySlug("sn-500", FA);
+
+    const entityTypes = translationFindMany.mock.calls.map(
+      (call) => (call[0] as { where: { entityType: string } }).where.entityType,
+    );
+
+    expect(entityTypes).toContain("Segment");
+    expect(entityTypes).toContain("ProductType");
+  });
+
+  it("leaves every pre-existing detail field untouched", async () => {
+    const { service, findImagesForOwner } = createService();
+
+    findImagesForOwner.mockResolvedValue([
+      { id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" },
+    ]);
+
+    const result = await service.findBySlug("sn-500", EN);
+
+    expect(result.product).toEqual({
+      id: PRODUCT_ROW.id,
+      name: "SN 500",
+      slug: "sn-500",
+      description: "A Group I base oil.",
+      createdAt: "2026-01-15T09:30:00.000Z",
+      category: CATEGORY,
+      segments: [
+        { name: "Industrial", slug: "industrial" },
+        { name: "Marine", slug: "marine" },
+      ],
+      productType: { name: "Base Oil", slug: "base-oil" },
+      specifications: DETAIL_ROW.specifications,
+      images: [{ id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" }],
+      seo: SEO,
+    });
+  });
+});
+
+describe("ProductsService.findAll — taxonomy is absent from the list", () => {
+  // §2.7's list is a Product Finder page, not a detail page: a 20-row page would otherwise pay
+  // for two more joins per row that no list layout renders.
+  it("selects no taxonomy relation for the list", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, {});
+
+    const call = productFindMany.mock.calls[0]?.[0] as { select: Record<string, unknown> };
+
+    expect(Object.keys(call.select).sort()).toEqual([
+      "categoryId",
+      "createdAt",
+      "description",
+      "id",
+      "name",
+      "slug",
+    ]);
+  });
+
+  it("exposes no segments or productType on a list row", async () => {
+    const { service } = createService();
+
+    const result = await service.findAll(EN, {});
+
+    expect(Object.keys(result.products[0] ?? {}).sort()).toEqual([
+      "categoryId",
+      "createdAt",
+      "description",
+      "id",
+      "name",
+      "slug",
+    ]);
   });
 });
 

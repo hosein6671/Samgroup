@@ -50,6 +50,8 @@ const DETAIL: ProductDetailResponse = {
   description: LIST_ITEM.description,
   createdAt: LIST_ITEM.createdAt,
   category: { id: LIST_ITEM.categoryId, name: "Base Oils", slug: "base-oils", parentId: null },
+  segments: [{ name: "Industrial", slug: "industrial" }],
+  productType: { name: "Base Oil", slug: "base-oil" },
   specifications: SPECIFICATIONS,
   images: [],
   seo: SEO,

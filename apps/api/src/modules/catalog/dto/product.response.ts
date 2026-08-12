@@ -47,6 +47,29 @@ export type ProductImageResponse = {
   altText: string | null;
 };
 
+/**
+ * One Segment a product belongs to — ADR-007 §4, where Segment is first-class and Product ↔
+ * Segment is many-to-many.
+ *
+ * `name` and `slug` only. The id is deliberately absent: Segment is a navigation/facet axis,
+ * not canonical URL ancestry, and nothing on a product page addresses a Segment by id. So is
+ * `sortOrder` — it decides the order of this array and has no meaning once the array is
+ * ordered. Both are selected internally, because localization keys on the id.
+ */
+export type ProductSegmentResponse = {
+  name: string;
+  slug: string;
+};
+
+/**
+ * A product's PRIMARY Product Type — single-valued in v2 (ADR-007 §4), and null while no
+ * ProductType row is approved. The same two fields, withheld for the same reasons.
+ */
+export type ProductTypeResponse = {
+  name: string;
+  slug: string;
+};
+
 export type ProductDetailResponse = {
   id: string;
   name: string;
@@ -55,6 +78,10 @@ export type ProductDetailResponse = {
   createdAt: string;
   /** Localized alongside the product, in the same request — not a second round trip for the client. */
   category: CategoryResponse;
+  /** Ordered by `Segment.sortOrder`. Empty when the product belongs to no Segment. */
+  segments: ProductSegmentResponse[];
+  /** Null when the product has no primary Product Type — the Phase 1 state of every row. */
+  productType: ProductTypeResponse | null;
   specifications: ProductSpecificationResponse[];
   images: ProductImageResponse[];
   /** The requested locale's SEO record, with `hreflang` alternates — SEO_ARCHITECTURE.md §0. */
