@@ -80,7 +80,7 @@ Media files are stored separately from the application database, using an S3-com
 ## Internationalization
 
 - URL-based locale routing (`/en`, `/fa`, `/ar`, ...) via `next-intl`; the active locale list is data (a `Locale` table in `sam_platform`), not code — adding a language never requires changing `apps/web`, `apps/api`, or `apps/cms` source.
-- Payload-owned content (Pages, Settings) uses Payload's native field-level localization. Prisma-owned content (Product, Category, BlogPost) uses a new generic `ContentTranslation` table, consistent with the polymorphic pattern `Specification`/`SeoMeta`/`StatusHistory` already use — two implementations of the same capability, split for the same reason CMS integration is split (ADR-002).
+- Payload-owned content (Pages, Settings) uses Payload's native field-level localization. Prisma-owned content (Product, Category, BlogPost, Segment, ProductType) uses a new generic `ContentTranslation` table, consistent with the polymorphic pattern `Specification`/`SeoMeta`/`StatusHistory` already use — two implementations of the same capability, split for the same reason CMS integration is split (ADR-002). Segment and ProductType join that list for the approved API increment, which serves their localized names and slugs inside the Product Detail response — and that is the whole of it: they have no endpoints, no pages, no SEO records, no sitemap entries, no Payload collection and no rows.
 - Full strategy: [i18n/INTERNATIONALIZATION_STRATEGY.md](./i18n/INTERNATIONALIZATION_STRATEGY.md).
 
 ---
