@@ -125,11 +125,27 @@ Three pages need data from 3+ sources. Fetching each separately means 3 sequenti
 **[NEW DECISION] No dedicated `/search` endpoint in Phase 1.** The only search surface in the approved site structure is the Product Finder; the 404 page's search field points at the same thing. A global cross-content search isn't specified anywhere, and building one speculatively is exactly the future-phase infrastructure `AI_CONTEXT.md`'s constraints rule out. `GET /products` carries it:
 
 ```
-GET /products?category=base-oils&industry=automotive&application=&packaging=drum
+GET /products?category=base-oils&segment=marine&productType={product-type-slug}
              &q=SN%20500&locale=en&page=1&limit=20&sort=-createdAt
 ```
 
 `q` matches product name, slug, and specification values — **specification matching matters most**, because real buyer queries are grade strings ("SN 500", "ISO VG 46", "15W-40") that live in `Specification.value`, not in prose. Canonical URL rules for filtered lists per [SEO_ARCHITECTURE.md §7](./seo/SEO_ARCHITECTURE.md#7-canonical-strategy-for-filtered--paginated-views).
+
+`{product-type-slug}` is a placeholder, not a value: **no Product Type name or slug is approved** ([ADR-008](./ADR/ADR-008-b2-filter-contract-and-segment-vocabulary.md)), and printing a plausible one here would read as approved vocabulary.
+
+**Filter parameters.** `category`, `q`, `locale`, `page`, `limit` and `sort` are the live contract and are unchanged. The table below records what the Product Taxonomy v2 pass decided about the rest — the status column says what each one is, and two of them are decided contract that no code implements yet.
+
+| Parameter     | Status                         | Contract                                                                                                                                                                                                              |
+| ------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `segment`     | **Approved — not implemented** | A `Segment` slug. Locale-aware and matched exactly; no subtree, because Segment has no hierarchy. The eight approved slugs are in [DATA_MODEL.md](./DATA_MODEL.md) §2 Notes                                           |
+| `productType` | **Approved — not implemented** | A `ProductType` slug. Locale-aware, matched exactly. Named `productType` and not `type`, which `Media.type` and `Inquiry.inquiryType` already spend and which no later type-shaped facet could then reuse             |
+| `industry`    | **Retired**                    | Superseded by `segment`. **Not a rename**: the `industry=automotive` this example URL previously carried maps to no approved Segment, and no automatic mapping from any `industry` value to any Segment is authorized |
+| `application` | **Unresolved**                 | Mapped to **neither** `segment` nor `productType`. Blocked on the open sub-range ↔ Product Type decision in [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md), which no implementation may close                        |
+| `packaging`   | **Pending**                    | An independent future facet, **not superseded** by either taxonomy axis. No entity backs it yet (ADR-007 §10)                                                                                                         |
+
+**Combination semantics.** Every filter present is combined with **AND** — `category` + `segment`, `category` + `productType`, `segment` + `productType`, and all three together. `q` keeps its internal OR across name, slug and specification values, and joins the rest as a single AND term. `locale` is orthogonal: it selects which slug vocabulary is accepted and which language is returned, never which rows match. Filtering is applied **before** pagination, so `meta.total` counts the filtered set. `sort` is unaffected. **Multi-value taxonomy filters (`?segment=a,b`) are unsupported and deferred.**
+
+**Slug resolution and unknown slugs.** `segment` and `productType` resolve exactly as `category` already does: the requested locale's translated slug first, the entity's own slug second. A value matching neither is **400 `VALIDATION_ERROR`**, with `details[].field` set to `segment` or `productType`; the rejected slug is never echoed into `message` (§8). An empty 200 is deliberately not the answer — it is indistinguishable from a genuinely empty Segment. A blank or whitespace-only value is treated as **omitted**, and a valid slug matching no products is **200 with an empty list**.
 
 ### 2.8 SEO
 
