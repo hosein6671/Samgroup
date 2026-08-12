@@ -23,6 +23,12 @@ import type { Prisma } from "../../prisma/generated/client";
 const NOT_FOUND_MESSAGE = "Product not found.";
 const UNKNOWN_CATEGORY_MESSAGE = "The requested category filter does not match a category.";
 const UNKNOWN_CATEGORY_ISSUE = "must be the slug of an existing category in the requested locale";
+const UNKNOWN_SEGMENT_MESSAGE = "The requested segment filter does not match a segment.";
+const UNKNOWN_SEGMENT_ISSUE = "must be the slug of an existing segment in the requested locale";
+const UNKNOWN_PRODUCT_TYPE_MESSAGE =
+  "The requested productType filter does not match a product type.";
+const UNKNOWN_PRODUCT_TYPE_ISSUE =
+  "must be the slug of an existing product type in the requested locale";
 
 /**
  * The `content_translations.field` values this module translates for a product. All three are
@@ -360,12 +366,31 @@ export class ProductsService {
   ): Promise<Prisma.ProductWhereInput> {
     const where: Prisma.ProductWhereInput = {};
     const categorySlug = normalizeFilter(query.category);
+    const segmentSlug = normalizeFilter(query.segment);
+    const productTypeSlug = normalizeFilter(query.productType);
     const search = normalizeFilter(query.q);
 
     if (categorySlug !== undefined) {
       where.categoryId = await this.resolveCategoryId(categorySlug, locale);
     }
 
+    // Sibling keys on one `where` object, which Prisma ANDs — ADR-008's conjunctive semantics
+    // for every combination of the three axes. Family, Segment and Product Type narrow
+    // together rather than competing, because they classify a product along axes that are
+    // orthogonal by decision (ADR-007 §4).
+    if (segmentSlug !== undefined) {
+      where.segments = { some: { segmentId: await this.resolveSegmentId(segmentSlug, locale) } };
+    }
+
+    // Single-valued on the product, so this is equality on the column rather than a relation
+    // predicate — `Product ↔ ProductType` many-to-many stays deferred in ADR-007.
+    if (productTypeSlug !== undefined) {
+      where.productTypeId = await this.resolveProductTypeId(productTypeSlug, locale);
+    }
+
+    // `OR` is assigned last and stays a sibling of the taxonomy keys, not a wrapper around
+    // them: Prisma ANDs the top-level keys, so the search's internal OR branches keep their own
+    // meaning while the whole search term narrows the taxonomy-filtered set.
     if (search !== undefined) {
       where.OR = await this.buildSearchFilter(search, locale);
     }
@@ -407,6 +432,75 @@ export class ProductsService {
     }
 
     return category.id;
+  }
+
+  /**
+   * `?segment=` is a Segment slug, resolved exactly as `?category=` is: translated slug first
+   * for a non-default locale, base column second, 400 if neither matches.
+   *
+   * Written out rather than folded together with the other two resolvers. The three differ in
+   * their Prisma delegate, their ContentEntityType and their error text, which is most of what
+   * each one is — a shared helper would take all three as parameters and leave nothing behind
+   * but the control flow, at the cost of hiding a pattern the category filter already sets.
+   */
+  private async resolveSegmentId(slug: string, locale: ResolvedLocale): Promise<string> {
+    const translatedId = locale.isDefault
+      ? null
+      : await this.translations.findEntityIdBySlug(ContentEntityType.Segment, slug, locale);
+
+    if (translatedId !== null) {
+      return translatedId;
+    }
+
+    const segment = await this.prisma.segment.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (segment === null) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.ValidationError,
+        UNKNOWN_SEGMENT_MESSAGE,
+        [{ field: "segment", issue: UNKNOWN_SEGMENT_ISSUE }],
+      );
+    }
+
+    return segment.id;
+  }
+
+  /**
+   * `?productType=` is a Product Type slug, resolved on the same rules as the other two axes.
+   *
+   * Every non-blank value answers 400 until a Product Type vocabulary is approved and its rows
+   * are populated — no ProductType name or slug is approved yet (ADR-008). That is the contract
+   * working, not a defect: an unknown slug is a 400 whether the table is empty or the caller
+   * simply mistyped, and the two are indistinguishable from outside.
+   */
+  private async resolveProductTypeId(slug: string, locale: ResolvedLocale): Promise<string> {
+    const translatedId = locale.isDefault
+      ? null
+      : await this.translations.findEntityIdBySlug(ContentEntityType.ProductType, slug, locale);
+
+    if (translatedId !== null) {
+      return translatedId;
+    }
+
+    const productType = await this.prisma.productType.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (productType === null) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.ValidationError,
+        UNKNOWN_PRODUCT_TYPE_MESSAGE,
+        [{ field: "productType", issue: UNKNOWN_PRODUCT_TYPE_ISSUE }],
+      );
+    }
+
+    return productType.id;
   }
 
   /**

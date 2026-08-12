@@ -95,6 +95,8 @@ type Stubs = {
   productFindMany: jest.Mock;
   productFindUnique: jest.Mock;
   categoryFindUnique: jest.Mock;
+  segmentFindUnique: jest.Mock;
+  productTypeFindUnique: jest.Mock;
   specificationFindMany: jest.Mock;
   findImagesForOwner: jest.Mock;
   translationFindMany: jest.Mock;
@@ -108,6 +110,8 @@ function createService(): Stubs {
   const productFindMany = jest.fn().mockResolvedValue([PRODUCT_ROW]);
   const productFindUnique = jest.fn().mockResolvedValue(DETAIL_ROW);
   const categoryFindUnique = jest.fn().mockResolvedValue({ id: CATEGORY.id });
+  const segmentFindUnique = jest.fn().mockResolvedValue({ id: INDUSTRIAL.id });
+  const productTypeFindUnique = jest.fn().mockResolvedValue({ id: PRODUCT_TYPE.id });
   const specificationFindMany = jest.fn().mockResolvedValue(DETAIL_ROW.specifications);
   const findImagesForOwner = jest.fn().mockResolvedValue([]);
   const translationFindMany = jest.fn().mockResolvedValue([]);
@@ -117,6 +121,8 @@ function createService(): Stubs {
   const prisma = {
     product: { count: productCount, findMany: productFindMany, findUnique: productFindUnique },
     category: { findUnique: categoryFindUnique },
+    segment: { findUnique: segmentFindUnique },
+    productType: { findUnique: productTypeFindUnique },
     specification: { findMany: specificationFindMany },
     contentTranslation: { findMany: translationFindMany, findFirst: translationFindFirst },
   } as unknown as PrismaService;
@@ -139,6 +145,8 @@ function createService(): Stubs {
     productFindMany,
     productFindUnique,
     categoryFindUnique,
+    segmentFindUnique,
+    productTypeFindUnique,
     specificationFindMany,
     findImagesForOwner,
     translationFindMany,
@@ -324,6 +332,327 @@ describe("ProductsService.findAll — filtering", () => {
     );
 
     expect(error.message).not.toContain("script");
+  });
+});
+
+/**
+ * ADR-008's B2 filter contract. Both axes resolve a SLUG on the same rules `?category=` already
+ * uses, and both narrow conjunctively — the point of the combination tests below is that adding
+ * a second filter never replaces the first.
+ */
+describe("ProductsService.findAll — taxonomy filters", () => {
+  it("resolves ?segment= as a slug and filters on membership", async () => {
+    const { service, productFindMany, segmentFindUnique } = createService();
+
+    await service.findAll(EN, { segment: "passenger-cars" });
+
+    expect(segmentFindUnique).toHaveBeenCalledWith({
+      where: { slug: "passenger-cars" },
+      select: { id: true },
+    });
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { segments: { some: { segmentId: INDUSTRIAL.id } } } }),
+    );
+  });
+
+  it("resolves ?productType= as a slug and filters on the single-valued column", async () => {
+    const { service, productFindMany, productTypeFindUnique } = createService();
+
+    await service.findAll(EN, { productType: "base-oil" });
+
+    expect(productTypeFindUnique).toHaveBeenCalledWith({
+      where: { slug: "base-oil" },
+      select: { id: true },
+    });
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { productTypeId: PRODUCT_TYPE.id } }),
+    );
+  });
+
+  it("resolves a locale-specific segment slug through content_translations", async () => {
+    const { service, productFindMany, translationFindFirst, segmentFindUnique } = createService();
+
+    translationFindFirst.mockResolvedValue({ entityId: INDUSTRIAL.id });
+
+    await service.findAll(FA, { segment: "خودروی-سواری" });
+
+    expect(translationFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ entityType: "Segment", field: "slug" }),
+      }),
+    );
+    expect(segmentFindUnique).not.toHaveBeenCalled();
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { segments: { some: { segmentId: INDUSTRIAL.id } } } }),
+    );
+  });
+
+  it("resolves a locale-specific productType slug through content_translations", async () => {
+    const { service, productFindMany, translationFindFirst, productTypeFindUnique } =
+      createService();
+
+    translationFindFirst.mockResolvedValue({ entityId: PRODUCT_TYPE.id });
+
+    await service.findAll(FA, { productType: "روغن-پایه" });
+
+    expect(translationFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ entityType: "ProductType", field: "slug" }),
+      }),
+    );
+    expect(productTypeFindUnique).not.toHaveBeenCalled();
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { productTypeId: PRODUCT_TYPE.id } }),
+    );
+  });
+
+  it("falls back to the base segment slug when the locale has no translated one", async () => {
+    const { service, segmentFindUnique } = createService();
+
+    await service.findAll(FA, { segment: "passenger-cars" });
+
+    expect(segmentFindUnique).toHaveBeenCalledWith({
+      where: { slug: "passenger-cars" },
+      select: { id: true },
+    });
+  });
+
+  it("falls back to the base productType slug when the locale has no translated one", async () => {
+    const { service, productTypeFindUnique } = createService();
+
+    await service.findAll(FA, { productType: "base-oil" });
+
+    expect(productTypeFindUnique).toHaveBeenCalledWith({
+      where: { slug: "base-oil" },
+      select: { id: true },
+    });
+  });
+
+  it("queries no segment translation at all for the default locale", async () => {
+    const { service, translationFindFirst } = createService();
+
+    await service.findAll(EN, { segment: "passenger-cars" });
+
+    expect(translationFindFirst).not.toHaveBeenCalled();
+  });
+
+  it("queries no productType translation at all for the default locale", async () => {
+    const { service, translationFindFirst } = createService();
+
+    await service.findAll(EN, { productType: "base-oil" });
+
+    expect(translationFindFirst).not.toHaveBeenCalled();
+  });
+
+  // Same reasoning as the category filter: an empty 200 would be indistinguishable from a
+  // Segment that genuinely has no products.
+  it("rejects a segment slug that matches nothing with VALIDATION_ERROR on the field", async () => {
+    const { service, segmentFindUnique, productFindMany } = createService();
+
+    segmentFindUnique.mockResolvedValue(null);
+
+    const error = await captureError(service.findAll(EN, { segment: "no-such-segment" }));
+
+    expect(error.code).toBe(ErrorCode.ValidationError);
+    expect(error.getStatus()).toBe(400);
+    expect(error.details).toEqual([{ field: "segment", issue: expect.any(String) }]);
+    expect(productFindMany).not.toHaveBeenCalled();
+  });
+
+  // The state of every productType request until a Product Type vocabulary is approved.
+  it("rejects a productType slug that matches nothing with VALIDATION_ERROR on the field", async () => {
+    const { service, productTypeFindUnique, productFindMany } = createService();
+
+    productTypeFindUnique.mockResolvedValue(null);
+
+    const error = await captureError(service.findAll(EN, { productType: "no-such-type" }));
+
+    expect(error.code).toBe(ErrorCode.ValidationError);
+    expect(error.getStatus()).toBe(400);
+    expect(error.details).toEqual([{ field: "productType", issue: expect.any(String) }]);
+    expect(productFindMany).not.toHaveBeenCalled();
+  });
+
+  it("does not echo the rejected segment slug back in the message", async () => {
+    const { service, segmentFindUnique } = createService();
+
+    segmentFindUnique.mockResolvedValue(null);
+
+    const error = await captureError(service.findAll(EN, { segment: "<script>alert(1)</script>" }));
+
+    expect(error.message).not.toContain("script");
+  });
+
+  it("does not echo the rejected productType slug back in the message", async () => {
+    const { service, productTypeFindUnique } = createService();
+
+    productTypeFindUnique.mockResolvedValue(null);
+
+    const error = await captureError(
+      service.findAll(EN, { productType: "<script>alert(1)</script>" }),
+    );
+
+    expect(error.message).not.toContain("script");
+  });
+
+  it("treats blank segment and productType as omitted", async () => {
+    const { service, productFindMany, segmentFindUnique, productTypeFindUnique } = createService();
+
+    await service.findAll(EN, { segment: "   ", productType: "" });
+
+    expect(segmentFindUnique).not.toHaveBeenCalled();
+    expect(productTypeFindUnique).not.toHaveBeenCalled();
+    expect(productFindMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
+  });
+
+  it("trims a segment slug before resolving it", async () => {
+    const { service, segmentFindUnique } = createService();
+
+    await service.findAll(EN, { segment: "  passenger-cars  " });
+
+    expect(segmentFindUnique).toHaveBeenCalledWith({
+      where: { slug: "passenger-cars" },
+      select: { id: true },
+    });
+  });
+
+  it("ANDs category and segment", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, { category: "base-oils", segment: "passenger-cars" });
+
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          categoryId: CATEGORY.id,
+          segments: { some: { segmentId: INDUSTRIAL.id } },
+        },
+      }),
+    );
+  });
+
+  it("ANDs category and productType", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, { category: "base-oils", productType: "base-oil" });
+
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { categoryId: CATEGORY.id, productTypeId: PRODUCT_TYPE.id },
+      }),
+    );
+  });
+
+  it("ANDs segment and productType", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, { segment: "passenger-cars", productType: "base-oil" });
+
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          segments: { some: { segmentId: INDUSTRIAL.id } },
+          productTypeId: PRODUCT_TYPE.id,
+        },
+      }),
+    );
+  });
+
+  it("ANDs all three of category, segment and productType", async () => {
+    const { service, productFindMany, productCount } = createService();
+
+    await service.findAll(EN, {
+      category: "base-oils",
+      segment: "passenger-cars",
+      productType: "base-oil",
+    });
+
+    const expected = {
+      categoryId: CATEGORY.id,
+      segments: { some: { segmentId: INDUSTRIAL.id } },
+      productTypeId: PRODUCT_TYPE.id,
+    };
+
+    expect(productFindMany).toHaveBeenCalledWith(expect.objectContaining({ where: expected }));
+    // The count must see the same predicate, or `total` would describe a different set than
+    // the page it paginates.
+    expect(productCount).toHaveBeenCalledWith({ where: expected });
+  });
+
+  it("combines a search with a segment filter rather than letting one replace the other", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, { q: "SN", segment: "passenger-cars" });
+
+    const call = productFindMany.mock.calls[0]?.[0] as {
+      where: { segments?: unknown; OR?: unknown[] };
+    };
+
+    expect(call.where.segments).toEqual({ some: { segmentId: INDUSTRIAL.id } });
+    // The search's own OR branches are untouched by the taxonomy filter beside them.
+    expect(call.where.OR).toHaveLength(3);
+  });
+
+  it("combines a search with a productType filter", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, { q: "SN", productType: "base-oil" });
+
+    const call = productFindMany.mock.calls[0]?.[0] as {
+      where: { productTypeId?: string; OR?: unknown[] };
+    };
+
+    expect(call.where.productTypeId).toBe(PRODUCT_TYPE.id);
+    expect(call.where.OR).toHaveLength(3);
+  });
+
+  it("combines a search with all three taxonomy filters", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, {
+      q: "SN",
+      category: "base-oils",
+      segment: "passenger-cars",
+      productType: "base-oil",
+    });
+
+    const call = productFindMany.mock.calls[0]?.[0] as {
+      where: {
+        categoryId?: string;
+        segments?: unknown;
+        productTypeId?: string;
+        OR?: unknown[];
+      };
+    };
+
+    expect(call.where.categoryId).toBe(CATEGORY.id);
+    expect(call.where.segments).toEqual({ some: { segmentId: INDUSTRIAL.id } });
+    expect(call.where.productTypeId).toBe(PRODUCT_TYPE.id);
+    expect(call.where.OR).toHaveLength(3);
+  });
+
+  // B2 adds filters, not response fields: the list stays the shape §2.7 contracts.
+  it("exposes no taxonomy fields in the list response", async () => {
+    const { service } = createService();
+
+    const result = await service.findAll(EN, { segment: "passenger-cars" });
+
+    expect(result.products[0]).not.toHaveProperty("segments");
+    expect(result.products[0]).not.toHaveProperty("productType");
+  });
+
+  it("leaves pagination and sorting untouched when a taxonomy filter is applied", async () => {
+    const { service, productFindMany } = createService();
+
+    await service.findAll(EN, { segment: "passenger-cars", page: 2, limit: 5, sort: "-createdAt" });
+
+    expect(productFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 5,
+        take: 5,
+        orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+      }),
+    );
   });
 });
 

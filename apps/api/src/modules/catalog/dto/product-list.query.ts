@@ -39,15 +39,32 @@ export const DEFAULT_SORT: ProductSort = "name";
  * VALIDATION_ERROR naming the property, which is the honest response until the data model
  * gains the fields.
  *
- * `category` and `q` carry no `@IsNotEmpty`. A filter UI submits every control it owns, so
- * `?q=&category=` is an unfiltered list rather than a malformed request; the service trims
- * both and treats an empty value as an omitted one.
+ * `category`, `q`, `segment` and `productType` carry no `@IsNotEmpty`. A filter UI submits every
+ * control it owns, so `?q=&category=` is an unfiltered list rather than a malformed request; the
+ * service trims them all and treats an empty value as an omitted one.
  */
 export class ProductListQuery extends LocaleQuery {
   /** A category SLUG, not an id — locale-specific, and matched exactly (no subtree). */
   @IsOptional()
   @IsString()
   category?: string;
+
+  /**
+   * A Segment SLUG, not an id — the application/use axis (ADR-007 §4), locale-aware like
+   * `category`. Named `segment`, and single-valued: ADR-008 fixes the parameter name and defers
+   * multi-value taxonomy filtering, so `?segment=a&segment=b` is not a supported request.
+   */
+  @IsOptional()
+  @IsString()
+  segment?: string;
+
+  /**
+   * A Product Type SLUG, not an id. Spelled `productType` and never `type` — ADR-008 rejects the
+   * short form, which would collide with every other "type" this API already carries.
+   */
+  @IsOptional()
+  @IsString()
+  productType?: string;
 
   /** Free-text search across product name, slug and specification values. */
   @IsOptional()
