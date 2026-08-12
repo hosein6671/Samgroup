@@ -45,10 +45,14 @@ Role → permission mapping lives in [SECURITY.md](./SECURITY.md).
 ### Products
 
 - Product
-- Category
+- Category / Product Family
+- Segment
+- Product Type
 - Specifications
 - Images
 - Documents
+
+`Segment` and `Product Type` are **Decided — not implemented**: accepted architecture from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md), with no Prisma model, no migration and no rows. `Category` is the Product Family axis and is unchanged. Field-level shapes, cardinalities and delete behaviour are in [DATA_MODEL.md](./DATA_MODEL.md). No Segment slug, no Product Type row and no Segment-to-Product-Type membership is approved.
 
 Phase 1 category seed list (source: [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#3-products)):
 

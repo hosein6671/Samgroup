@@ -43,7 +43,7 @@ Route structure, authentication boundary, and RBAC integration: [FRONTEND_ARCHIT
 Each module below is a self-contained NestJS module with its own service/controller/repository layer, so it can be extracted into its own microservice later without a rewrite:
 
 - **Identity & Access** — users, roles, JWT, RBAC
-- **Catalog** — products, categories, specifications
+- **Catalog** — products, categories (the Product Family axis), segments, product types, specifications. Segments and product types are accepted architecture per [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) and are **Decided — not implemented**; the module boundary itself is unchanged
 - **Content** — proxies/aggregates Payload CMS data (pages, menus, footer, settings)
 - **Blog** — posts, categories, tags
 - **Forms** — sample requests, custom formulation requests, contact form

@@ -12,9 +12,21 @@ The `CustomFormulationRequest` and `Inquiry` entities below were further reconci
 
 `LOCALE` and `CONTENT_TRANSLATION` were added during the Internationalization Strategy pass — see [docs/i18n/INTERNATIONALIZATION_STRATEGY.md](./i18n/INTERNATIONALIZATION_STRATEGY.md) for the full rationale (including why Prisma-owned content, unlike Payload-owned content, needed a new mechanism rather than reusing a framework feature).
 
+`SEGMENT`, `PRODUCT_TYPE` and `SEGMENT_PRODUCT_TYPE` were added during the Product Taxonomy v2 pass, following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) — see that decision for the full rationale (including why Segment and Product Type are orthogonal classification axes over `PRODUCT`, rather than further levels of the existing `CATEGORY` hierarchy). They are **Decided — not implemented**: the shapes below are accepted architecture and nothing has built them. Section 1's status block states exactly what that means, and section 3 records the pass.
+
 ---
 
 ## 1. Core Entities (Phase 1)
+
+**Decided — not implemented.** Five elements of the diagram below are accepted architecture from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) that nothing has built yet:
+
+- `SEGMENT`
+- `PRODUCT_TYPE`
+- `SEGMENT_PRODUCT_TYPE`
+- the `PRODUCT` ↔ `SEGMENT` many-to-many membership
+- `PRODUCT.productTypeId`
+
+For all five: **no Prisma model exists, no migration exists, and no rows exist.** They are drawn here because this document is the reference shape, as its opening paragraph states — not a description of the database. Every other entity in the diagram is implemented in `prisma/schema.prisma`.
 
 ```mermaid
 erDiagram
@@ -42,11 +54,16 @@ erDiagram
   CATEGORY ||--o{ PRODUCT : contains
   PRODUCT ||--o{ SPECIFICATION : has
   PRODUCT ||--o{ MEDIA : has
+  PRODUCT }o--o{ SEGMENT : serves
+  PRODUCT_TYPE |o--o{ PRODUCT : classifies
+  SEGMENT ||--o{ SEGMENT_PRODUCT_TYPE : publishes
+  PRODUCT_TYPE ||--o{ SEGMENT_PRODUCT_TYPE : listed_in
   PRODUCT {
     string id
     string name
     string slug
     string categoryId
+    string productTypeId
     text description
     datetime createdAt
   }
@@ -55,6 +72,22 @@ erDiagram
     string name
     string slug
     string parentId
+  }
+  SEGMENT {
+    string id
+    string name
+    string slug
+    int sortOrder
+  }
+  PRODUCT_TYPE {
+    string id
+    string name
+    string slug
+  }
+  SEGMENT_PRODUCT_TYPE {
+    string segmentId
+    string productTypeId
+    int sortOrder
   }
   SPECIFICATION {
     string id
@@ -274,9 +307,17 @@ erDiagram
 - `REDIRECT` is a flat, non-polymorphic table (`fromPath` → `toPath`) consumed by Next.js middleware — see [docs/seo/SEO_ARCHITECTURE.md §2](./seo/SEO_ARCHITECTURE.md#redirect-management). Not linked to other entities by foreign key; it operates on paths, not records, so a redirect survives even if the entity that originally lived at that path is later deleted.
 - `MEDIA.altText` was added during the SEO Architecture review — every rendered image needs descriptive alt text for Image SEO and accessibility; previously this field didn't exist.
 - `LOCALE` is the single source of truth for which languages are active — see [docs/i18n/INTERNATIONALIZATION_STRATEGY.md §1](./i18n/INTERNATIONALIZATION_STRATEGY.md#1-url-strategy). Seeded at bootstrap with three rows: `en` (`isDefault: true`, `ltr`), `fa` (`rtl`), `ar` (`rtl`) — the confirmed Phase 1 locale set. Adding any further language is a new row here plus translated content, not a schema or code change.
-- `CONTENT_TRANSLATION` is a generic, polymorphic key/value translation table for Prisma-owned content (`Product`, `Category`, `BlogPost`) — the same `entityType`/`entityId` shape `SEO_META` and `STATUS_HISTORY` already use, applied to field-level translation. The base entity's own field (e.g. `Product.name`) holds the default locale's value directly; every other locale is a row here, keyed by `field` (`name`, `slug`, `description`, etc.). `translationStatus` (`machine_draft`/`human_reviewed`) tracks the hybrid translation workflow decided in [docs/i18n/INTERNATIONALIZATION_STRATEGY.md §3](./i18n/INTERNATIONALIZATION_STRATEGY.md#translation-workflow); status changes are logged via `STATUS_HISTORY` rather than a bespoke audit mechanism. Payload-owned content (Pages, Settings) doesn't need this table — Payload has native field-level localization and its own draft/publish versioning covers the same review workflow.
+- `CONTENT_TRANSLATION` is a generic, polymorphic key/value translation table for Prisma-owned content (`Product`, `Category`, `BlogPost`) — the same `entityType`/`entityId` shape `SEO_META` and `STATUS_HISTORY` already use, applied to field-level translation. The base entity's own field (e.g. `Product.name`) holds the default locale's value directly; every other locale is a row here, keyed by `field` (`name`, `slug`, `description`, etc.). `translationStatus` (`machine_draft`/`human_reviewed`) tracks the hybrid translation workflow decided in [docs/i18n/INTERNATIONALIZATION_STRATEGY.md §3](./i18n/INTERNATIONALIZATION_STRATEGY.md#translation-workflow); status changes are logged via `STATUS_HISTORY` rather than a bespoke audit mechanism. Payload-owned content (Pages, Settings) doesn't need this table — Payload has native field-level localization and its own draft/publish versioning covers the same review workflow. The same polymorphic mechanism can support localized `SEGMENT`/`PRODUCT_TYPE` `name`/`slug` once the API phase adds the corresponding `ContentEntityType` members; **no change to this table is required for that future capability**, and neither member exists today.
 - `MEDIA` is polymorphic via `ownerType`/`ownerId`, and `type` distinguishes image/file/video/document — this single table backs both Product Images and Product Documents from [DATABASE.md](./DATABASE.md#products), so no separate `Document` table is needed.
 - `Category` is self-referencing (`parentId`) to support nested product categories.
+- **`CATEGORY` is the Product Family axis.** [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) §4 confirms that the existing `CATEGORY` entity _is_ Product Family: it is not replaced by `SEGMENT`, not deprecated, and `PRODUCT.categoryId` stays required and single-valued. `CATEGORY.parentId` is likewise unchanged and still carries the family sub-ranges. **Whether today's sub-ranges become `PRODUCT_TYPE` rows is an open decision in ADR-007 and is not settled here** — all three outcomes (a sub-range maps onto a Product Type; a sub-range stays family-local presentation structure; some map and others do not) remain available, and the six existing Product Family pages are valid under any of them.
+- **Decided — not implemented.** `SEGMENT` is a first-class application/use axis, **orthogonal to Product Family rather than a child of it** — one Segment spans several Families (ADR-007 §4). Many-to-many with `PRODUCT`; that membership join carries no attributes of its own and so is not drawn (see the join-table convention below). `sortOrder` exists because the approved set is a navigation list whose order is editorial rather than alphabetical. Deliberately minimal: no `description`, no `isActive`, no `familyId`, and no `createdAt`/`updatedAt` — matching `CATEGORY`, which carries none.
+- **Decided — not implemented.** `PRODUCT_TYPE` is a first-class entity **shared globally and never duplicated per Segment** (ADR-007 §4): one row is visible from every Segment that uses it, so a type can be renamed once and "which Segments use this type" stays answerable. It carries no `sortOrder` of its own — ordering is per-Segment, and lives on the join.
+- **Decided — not implemented.** `SEGMENT_PRODUCT_TYPE` owns per-Segment ordering: a Segment publishes its own ordered subset of the shared type set, so one Product Type may sit at a different position in two Segments. `sortOrder` is **not** unique within a Segment — a uniqueness constraint there would turn every reorder into a multi-step update — so a stable sequence is `sortOrder` then `id`.
+- **Decided — not implemented.** `PRODUCT.productTypeId` is **nullable and single-valued**: exactly one _primary_ Product Type per Product. Nullable because no `PRODUCT_TYPE` rows are approved yet, and a required reference to an empty table would make `PRODUCT` un-insertable. **`Product ↔ ProductType` many-to-many remains deferred** in ADR-007, to be revisited only if real catalog data proves dual-type Products exist.
+- **Planned delete behaviour for the taxonomy.** `PRODUCT → PRODUCT_TYPE` is planned as `Restrict`, deliberately unlike this document's other optional references: silently unclassifying every Product of a deleted type is data loss, and Product Family — also `Restrict` — is the closer analogue. Both membership joins cascade from either parent, since a membership row is meaningless without both of its ends; the same reasoning `BLOG_POST`/`BLOG_TAG` already uses.
+- **Approved Segment vocabulary — names only, not seed data.** ADR-007 §4 approves nine Segment names: Passenger Cars, Trucks and Buses, Construction and Mining, Agriculture, Gardening, Motorcycle & ATV, Industry, Marine, Other. **No slug is approved for any of them**, and none exists as a row anywhere — this is vocabulary, not data. **`Other` is explicitly unresolved**: whether it becomes a real persisted and published Segment or an administrative/UI fallback bucket for unassigned products is deferred in ADR-007, and the two answers differ in whether it gets a row at all. **No `SEGMENT` ↔ `PRODUCT_TYPE` membership is approved either** — all nine per-Segment Product Type lists are pending, and none may be inferred from the family sub-ranges.
+- **Join-table convention for this diagram.** A join table appears as its own entity block **only when it carries attributes of its own**. `SEGMENT_PRODUCT_TYPE` is drawn because it carries `sortOrder`; the `PRODUCT` ↔ `SEGMENT` membership and the existing `BLOG_POST` ↔ `BLOG_TAG` join are drawn as direct many-to-many lines, because neither carries anything beyond its two keys.
 - **`SAMPLE_REQUEST` no longer exists — merged into `INQUIRY`** (approved decision, see the changelog below). "Request Sample" CTAs submit an `INQUIRY` with `inquiryType: 'Sample Request'` and `relatedProductId` set to the product the CTA appeared on. One lead queue, one entity, no duplicated submission/assignment/status machinery.
 - `INQUIRY` and `CUSTOM_FORMULATION_REQUEST` are intentionally not linked to `USER` via a required foreign key — both forms (per [SITE_STRUCTURE.md](./SITE_STRUCTURE.md)) are public and unauthenticated, so `companyName`/`country`/`industry` are stored as plain text on the submission itself rather than a foreign key to `ORGANIZATION`, which requires an existing account. `userId` stays optional on both for the case where a logged-in customer submits one.
 - `INQUIRY.inquiryType` covers the six Contact Us form options (Product Inquiry, Request a Quote, Customized Solution, Export & Logistics, Distribution Partnership, General Inquiry) — see [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#10-contact-us) — **plus `Sample Request`**, added by the merge above. "Request a Quote" is likewise a value here, not a separate `Quote` entity; a structured `Quote` stays a Customer Portal future module (section 2).
@@ -353,3 +394,14 @@ Following the review in [DATA_MODEL_GAP_REVIEW.md](./DATA_MODEL_GAP_REVIEW.md) a
 ### i18n decisions applied
 
 Following Architecture approval of the i18n strategy: `LOCALE`'s seed data is now fixed (`en` default, `fa`, `ar`) rather than an example, and `CONTENT_TRANSLATION` gained `translationStatus` to track the approved hybrid (machine-draft + human-review) translation workflow. See [docs/i18n/INTERNATIONALIZATION_STRATEGY.md](./i18n/INTERNATIONALIZATION_STRATEGY.md#decisions-log).
+
+### Product Taxonomy v2 (ADR-007) review
+
+Following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) and the approved Phase 1 sign-offs, this document was aligned with the accepted taxonomy. **This pass records accepted architecture only — it implements nothing.** No Prisma model, no migration and no row exists for any element it adds; the schema change is a separate task behind its own approval gate.
+
+- **A Segment could not be shared, and existed only inside one Family** — the six vehicle-type sub-ranges published under Engine Oils are six of the nine approved Segments, trapped one level down under a single `parentId` and unusable as an entry point to any other Family. Added `SEGMENT` as a first-class entity, many-to-many with `PRODUCT`.
+- **Product Type had no entity at all** — types were strings inside per-family content, so they could not be filtered, translated, addressed or counted, and the same type recurred once per family. Added `PRODUCT_TYPE` as a globally shared entity, plus `SEGMENT_PRODUCT_TYPE` to carry each Segment's own ordered subset of it.
+- **`PRODUCT` could not be classified by type** — added `productTypeId`, nullable and single-valued, for one primary Product Type per Product.
+- **The change is additive by decision** (ADR-007 §7): `CATEGORY`, `CATEGORY.parentId` and `PRODUCT.categoryId` are untouched, no field is dropped, no existing relation is rewritten, and the six existing Product Family pages remain valid.
+- **Deliberately not added**: `productCode` (whether it exists, and whether it is unique, is a product-owner decision), a Grade / Variant entity (blocked on real catalog data), `createdAt`/`updatedAt` on the new entities (matching `CATEGORY`, which has none), and `Product ↔ ProductType` many-to-many (deferred until real data proves dual-type Products exist).
+- **Deliberately not settled here**: Segment slugs, the nine per-Segment Product Type lists, whether `Other` is a real Segment or an administrative fallback, and whether the existing family sub-ranges map onto `PRODUCT_TYPE`. Each is open in ADR-007, and none may be closed by an implementation choice.
