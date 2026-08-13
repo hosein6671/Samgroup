@@ -58,8 +58,8 @@ apps/web/
 │   ├── lib/
 │   │   ├── api-client.ts                    # §11
 │   │   └── seo.ts                           # SeoFields → Next.js Metadata mapping (§12)
-│   └── messages/                            # next-intl catalogs: en.json, fa.json, ar.json
-├── middleware.ts                            # locale detection + Redirect lookup (§2)
+│   ├── messages/                            # next-intl catalogs: en.json, fa.json, ar.json
+│   └── middleware.ts                        # locale detection + Redirect lookup (§2)
 ├── next.config.ts
 └── package.json
 ```
@@ -96,11 +96,13 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
 **[CONFIRMED]** URL segments for the structural brand pages (`about-us`, `products`, `customized-solutions`, `export-logistics`, `quality-certifications`, `insights`, `contact-us`, `become-a-distributor`, `faq`, `careers`, `privacy-policy`, `terms-of-use`, `cookie-notice`, `general-sales-conditions`, `sitemap`, `thank-you` — the full structural page set per [SITE_STRUCTURE.md §0](../SITE_STRUCTURE.md#0-full-sitemap), not just the original six) are **fixed English strings, identical across every locale** — e.g. `/en/about-us`, `/fa/about-us`, `/ar/about-us` all share the same `about-us` segment, never a translated one. **Localized slugs are reserved for SEO-driven content only — Products, Categories, and Blog articles** — resolved server-side against `ContentTranslation` (per [i18n strategy §3](../i18n/INTERNATIONALIZATION_STRATEGY.md#3-content-localization)). This was flagged as a new, revisit-if-wrong call in the original draft of this document; it's now a confirmed decision, not an open one — the reasoning stands as written: the structural pages are few, fixed, and primarily navigational, so keeping their URLs identical across locales keeps the site's IA legible and avoids three parallel route trees for pages that are otherwise structurally identical, while the actual localized-slug SEO value is concentrated exactly where it's kept — Products, Categories, and Blog articles.
 
-### [P1 PLANNING — approved 13 August 2026, not implemented]
+### [P1 — SHIPPED 13 August 2026]
 
-Current state, so nothing below reads as a description of code: `apps/web` has **one** layout, `src/app/layout.tsx`, which hardcodes `lang="en" dir="ltr"` and carries `robots: { index: false, follow: false }`; there is **no `[locale]` segment, no `middleware.ts`, and no `next-intl`**. The eleven pages that exist all live under `/design-proof`.
+Everything in this subsection describes code that exists. `apps/web` now has a `[locale]` segment, a middleware at `src/middleware.ts`, two root layouts, and a canonical homepage at `/en`, `/fa` and `/ar`. `src/app/layout.tsx` is **deleted**. The eleven `/design-proof` pages are unchanged and still reachable. `next-intl` is still not installed.
 
-**Root-layout topology during the transition.** `app/layout.tsx` is **removed** and replaced by **two true root layouts**:
+**What P1 did not do**, so this is not read as more than it is: no Product Family route, no `products/[slug]`, no Product Detail, no message catalogs, no navigation or switcher rewrite, no sitemap or `robots.ts`, and no indexing — see "Not indexed" below.
+
+**Root-layout topology during the transition.** `app/layout.tsx` was **deleted** and replaced by **two true root layouts**:
 
 ```
 app/
@@ -108,7 +110,7 @@ app/
 └── design-proof/layout.tsx    # root layout — <html lang="en" dir="ltr">, robots noindex/nofollow
 ```
 
-The correction this records: in the App Router the root layout is **positional** — the first `layout` file found walking down from `app/` owns `<html>`/`<body>` for every page beneath it, and that layout is the one Next validates the `<html>`/`<body>` tags on. So while `app/layout.tsx` exists it is unavoidably the root, a nested `app/[locale]/layout.tsx` cannot own `<html>`, and there is **no supported way** to set a per-locale `lang`/`dir` from beneath it. (Reading the pathname via `headers()` in the root layout would work but makes every route dynamic; setting `document.documentElement.lang` from a client effect ships the wrong `lang` in the server HTML, which is exactly what crawlers and assistive technology read. Both rejected.)
+The correction this records: in the App Router the root layout is **positional** — the first `layout` file found walking down from `app/` owns `<html>`/`<body>` for every page beneath it, and that layout is the one Next validates the `<html>`/`<body>` tags on. So while `app/layout.tsx` existed it was unavoidably the root, a nested `app/[locale]/layout.tsx` could not own `<html>`, and there was **no supported way** to set a per-locale `lang`/`dir` from beneath it. (Reading the pathname via `headers()` in the root layout would work but makes every route dynamic; setting `document.documentElement.lang` from a client effect ships the wrong `lang` in the server HTML, which is exactly what crawlers and assistive technology read. Both rejected.)
 
 Consequences of two root layouts, both accepted:
 
@@ -120,18 +122,30 @@ The second root layout disappears when the proof routes are removed (ADR-010 §9
 
 **`next-intl` is deferred, and is not installed.** P1 uses **native App Router locale routing plus a hand-written middleware**; nothing in P1 needs message catalogs, and there are none — every visible string in `features/**` is still hardcoded English. `next-intl` gets its own dependency approval at the gate that first introduces translated UI message catalogs. The three-concern middleware list above still describes the eventual shape; concern 1 (admin) has no surface yet and concern 3 (`Redirect` table) has no rows yet, so both stay deferred to their own gates.
 
-**P1 middleware policy.** Six rules, in this order:
+**Middleware policy, as shipped.** Four ordered rules — and the middleware **does not recognise locales at all**:
 
-1. **`/design-proof/**`** — bypass locale middleware logic completely.
-2. **`/`** — detect the locale (`NEXT_LOCALE` cookie → `Accept-Language` → default `en`) and redirect to `/{locale}`.
-3. **First segment is an active locale** — pass through unchanged.
-4. **First segment looks like a locale code but is not an active one** (e.g. `/xx/...`) — **do not prefix and do not redirect**; let route handling produce a 404.
-5. **Known locale-less canonical structural routes** — `/products/**`, `/about-us`, `/quality-certifications`, `/customized-solutions`, `/insights/**`, `/contact-us`, and other explicitly registered canonical paths — detect the locale and redirect to `/{locale}/...`.
-6. **Arbitrary unknown paths** — do not "repair" them by blindly prefixing a locale; allow normal 404 behaviour.
+1. **`/design-proof/**`** — bypass locale logic completely.
+2. **`/`** — a redirect candidate.
+3. **A known locale-less canonical structural first segment** — a redirect candidate. The set is derived from `ROUTES` in `site-routes.ts` (fragment values excluded, reduced to first path segments), never retyped, so `/products/**` and `/contact-us/request-a-quote` are covered without enumerating them.
+4. **Everything else** — pass through unchanged.
 
-The invariant behind rules 4 and 6: **the middleware must never turn an unsupported locale or a typo into an English 200.** A wrong URL that silently succeeds is worse than one that 404s, because nothing ever reports it.
+Rule 4 is what makes the other cases work without any notion of what a locale code looks like. `/en/…`, `/xx/…` and `/foo` all take it: `/en` matches `[locale]` and renders, while `/xx` and `/foo` match nothing and 404 because `dynamicParams = false` closes the segment to the generated set. There is deliberately **no two-letter regex, no BCP-47 parsing, and no lookup of the active list to classify a path** — a shape test would buy nothing (both branches 404 identically) and would misfire the day a structural page is added whose first segment happens to be two letters.
 
-**P1 scope.** The root-layout swap cannot be usefully separated from the first page under `[locale]` — a locale branch with no page generates no route and can be validated against nothing. P1 therefore promotes **only the homepage**, `/{locale}`, rendering the existing `HomeExperience` **without redesign**, as the verification route. **No Product Family page is promoted in P1**, and the shared `products/[slug]` route is not created.
+Only a redirect candidate queries `GET /api/v1/locales`; general traffic taking rule 4 issues no request. Negotiation on a candidate is `NEXT_LOCALE` cookie → `Accept-Language` → the API-declared default, and it can only ever produce a locale from the fetched active set. **If the locale source fails, the middleware does not guess and does not redirect** — it logs and passes the request through, and normal routing answers it.
+
+The invariant behind all of it: **the middleware must never turn an unsupported locale or a typo into an English 200.** A wrong URL that silently succeeds is worse than one that 404s, because nothing ever reports it.
+
+**P1 scope, as shipped.** The root-layout swap could not be usefully separated from the first page under `[locale]` — a locale branch with no page generates no route and can be validated against nothing. P1 therefore promoted **only the homepage**, `/{locale}`, rendering the existing `HomeExperience` **without redesign**, as the verification route. **No Product Family page was promoted**, and the shared `products/[slug]` route was not created.
+
+**The locale source is `GET /api/v1/locales`, and the build depends on it.** This is the one operational consequence of P1 that is not visible in the route tree, and it changed how `apps/web` builds.
+
+- `generateStaticParams` for `[locale]` reads the active locale list through `src/lib/locales.ts`, and `<html lang dir>` comes from the same record. The locale list is data in a `Locale` table and adding a language must not require a code change (PROJECT_HANDOFF §6.9), so nothing in the routing layer holds a locale literal.
+- **There is no fallback, by decision.** Not to `['en','fa','ar']`, not to an empty array, and not to the `LOCALES` fixture in `site-routes.ts` — which is a presentational switcher constant whose fields (`label`/`native`) are not even the endpoint's (`name`/`nativeName`). A fallback here would not degrade a page; it would generate a different site.
+- **The build therefore fails, loudly, when the locale source is unavailable or unusable** — a missing or invalid `API_INTERNAL_URL`, an unreachable API, a non-2xx, a payload that is not the envelope, an empty active set, a malformed row, a duplicate code, or zero-or-many defaults. That is a deliberate, permanent property after P1, not a temporary strictness.
+- **`apps/web` no longer builds without configuration.** It did before P1; `apps/web/.env.example` documents the change.
+- This is the opposite policy from the Category fetch, and the two must not be confused. A Product Family page **fails open** to its fixture because the fixture holds the approved content, so a failed fetch costs it nothing observable. The locale list has no fixture that could stand in for it, because it does not describe a page's content — it determines which pages exist.
+
+**Not indexed.** `/en`, `/fa` and `/ar` carry `robots: { index: false, follow: false }`, inherited from the `[locale]` layout, and the proof tree carries its own. P1 is a routing and topology milestone, not the SEO launch: most canonical pages do not exist, the header and footer link to routes that 404, the switcher is still presentational, and `fa`/`ar` render in a browser fallback font because the three self-hosted families carry no Arabic or Persian coverage. Indexing is enabled by a later, explicit launch gate.
 
 ---
 
