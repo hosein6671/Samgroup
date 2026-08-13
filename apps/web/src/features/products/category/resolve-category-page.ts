@@ -123,16 +123,16 @@ function report(slug: string, reason: CategoryFallbackReason, status?: number): 
  * @param locale the active locale code from the `[locale]` segment. Sent to the API, which resolves
  *   `name` in it; also what decides whether the slug guard below applies.
  *
- *   **Optional, for exactly one caller and only while it exists.** The six `/design-proof` routes
- *   are held live and unmodified for side-by-side validation against the canonical route, and they
- *   have no locale to send — the proof tree is not locale-routed and never will be. Omitting the
- *   argument reproduces their shipped behaviour precisely: the API resolves an absent `?locale=` to
- *   the platform default, which is the locale the slug guard applies in. It is not a convenience
- *   for the canonical route, which always passes one, and it leaves with the proof tree.
+ *   **Required.** It was briefly optional, for exactly one caller: the six `/design-proof` Product
+ *   Family routes, which were held live for side-by-side validation and had no locale to send — the
+ *   proof tree is not locale-routed and never will be. Those six now redirect to the canonical URL
+ *   (`8d5ad89`) and call nothing here, so the canonical route is the only caller and it always has a
+ *   locale.
  *
- *   Omitting it also keeps the proof tree's dependencies as they shipped: it reaches the Locale API
- *   not at all, so those six pages still render from their fixtures when only the Category API is
- *   down, and cannot be taken down by a locale source that is unrelated to them.
+ *   The compatibility branch is therefore removed rather than left dormant. A parameter that cannot
+ *   be omitted cannot quietly re-acquire the assumption it used to encode — that an absent locale
+ *   means the platform default — which is an assumption no future caller should inherit by
+ *   accident.
  *
  * The missing-family throw below is the invariant that used to live in `ProductCategoryTemplate`.
  * It has moved, not softened: a fixture naming a `familyId` that is not one of the canonical six
@@ -140,7 +140,7 @@ function report(slug: string, reason: CategoryFallbackReason, status?: number): 
  */
 export async function resolveCategoryPage(
   slug: string,
-  locale?: string,
+  locale: string,
 ): Promise<ResolvedCategoryPage | null> {
   const content = getCategoryContent(slug);
   if (!content) return null;
@@ -164,13 +164,8 @@ export async function resolveCategoryPage(
    * An unrecognised code is treated as non-default, so the guard declines rather than firing on a
    * locale it cannot classify. Unreachable while `dynamicParams = false` holds on the `[locale]`
    * segment.
-   *
-   * With no locale at all — the proof routes — nothing is read: the API resolves an omitted
-   * `?locale=` to the platform default, so the answer is known without asking, and asking would
-   * hand those six pages a dependency they have never had.
    */
-  const isDefaultLocale =
-    locale === undefined ? true : ((await getLocaleByCode(locale))?.isDefault ?? false);
+  const isDefaultLocale = (await getLocaleByCode(locale))?.isDefault ?? false;
 
   const result = await getCategoryBySlug(slug, locale);
 
