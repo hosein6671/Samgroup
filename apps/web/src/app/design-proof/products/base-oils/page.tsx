@@ -1,45 +1,40 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
-
-import { ProductCategoryTemplate } from "@/features/products/category/category-template";
-import { resolveCategoryPage } from "@/features/products/category/resolve-category-page";
+import { redirect } from "next/navigation";
 
 /**
- * Base Oils — the first Product Category page, on the proof route.
+ * Base Oils — a retired proof route. It renders nothing and redirects to the canonical Product
+ * Family URL.
  *
- * It sits under `/design-proof` because locale routing does not exist and the Product catalogue
- * this page describes is served by endpoints that are not wired up. Its real home is
- * `app/[locale]/products/[categorySlug]/page.tsx`, one dynamic route for all six categories, and
- * the header already links there — `PRODUCT_CATEGORIES[0].href` is `/products/base-oils`, not
- * this path, and is deliberately left that way. The nav's links resolving is the lift, not
- * something to fake by pointing the canonical route table at a proof URL.
+ * ── Where this sits in the sequence ─────────────────────────────────────────
  *
- * **The Category identity call IS wired up.** `resolveCategoryPage` fetches
- * `GET /api/v1/categories/:slug` server-side and merges the API-owned fields over the fixture; the
- * editorial content is still the fixture's. Every failure renders the fixture, so this page has
- * the same output whether or not the API is running.
+ * ADR-010's proof transition runs canonical implementation → canonical validation → **proof
+ * redirects** → proof removal. The canonical route at `app/[locale]/products/[slug]/page.tsx` is
+ * implemented and validated, so this file's duplicate implementation has no reason to render. It
+ * still exists because removal is a separate gate: the URL keeps answering, it just stops being a
+ * second copy of the page.
  *
- * **The slug is resolved, not hardcoded.** It goes through the same resolver the dynamic route
- * will use, so the lift is a rename of this file plus `params` — not a rewrite. `notFound()` on a
- * miss is the behaviour the dynamic route needs and it is worth having correct from the first
- * instance; it answers a missing fixture only, never a failed fetch.
+ * ── Why the target carries a locale ─────────────────────────────────────────
+ *
+ * The target is the **default-locale canonical URL**, not the locale-less `/products/base-oils`
+ * the middleware would negotiate into one. These are internal proof URLs, not locale-negotiation
+ * entry points, so a single deterministic hop is worth more than a negotiated one — and it avoids
+ * a second middleware redirect on top of this one.
+ *
+ * The literal `en` is the one thing here that states a locale in code rather than reading it from
+ * the Locale table. That is deliberate and confined to this tree: the default locale is only known
+ * asynchronously (`defaultLocale()` in `lib/locale-contract`), and a proof route about to be
+ * deleted is not the place to spend a network call to discover it.
+ *
+ * ── Why the redirect is the route's own ─────────────────────────────────────
+ *
+ * `/design-proof/**` is bypassed by the middleware before any other rule (`middleware.ts` rule 1)
+ * and stays that way. Nothing but this file is involved in serving the redirect.
+ *
+ * ── What is gone, on purpose ────────────────────────────────────────────────
+ *
+ * The `metadata` export: a route that renders no document has nothing to describe. Its `robots:
+ * { index: false, follow: false }` is not restated at the target either — `app/[locale]/layout.tsx`
+ * declares that for the whole canonical tree and every page inherits it.
  */
-const SLUG = "base-oils";
-
-export const metadata: Metadata = {
-  title: "Base Oils — Sam Group",
-  description:
-    "Paraffinic and naphthenic base stocks across API Groups I to III, with bright stock and synthetic base fluids — organised by group and by grade.",
-  // A proof route, as with the homepage and the Products landing. Indexing is enabled when this
-  // lifts to app/[locale]. `Product` + `FAQPage` structured data lands with the shared <JsonLd>
-  // component (FRONTEND_ARCHITECTURE §4), which does not exist yet.
-  robots: { index: false, follow: false },
-};
-
-export default async function BaseOilsProofPage(): Promise<ReactNode> {
-  const page = await resolveCategoryPage(SLUG);
-  if (!page) notFound();
-
-  return <ProductCategoryTemplate content={page.content} family={page.family} />;
+export default function BaseOilsProofPage(): never {
+  redirect("/en/products/base-oils");
 }
