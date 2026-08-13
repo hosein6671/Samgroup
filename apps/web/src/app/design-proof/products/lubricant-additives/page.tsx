@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { ProductCategoryTemplate } from "@/features/products/category/category-template";
-import { getCategoryContent } from "@/features/products/category/data";
+import { resolveCategoryPage } from "@/features/products/category/resolve-category-page";
 
 /**
  * Lubricant Additives & Components — the fifth instance of the shared category template, on the
@@ -15,8 +15,9 @@ import { getCategoryContent } from "@/features/products/category/data";
  * changed.
  *
  * It sits under `/design-proof` for the same reasons as the rest: locale routing does not exist
- * and the catalogue endpoints are not wired up. The header still links to
- * `/products/lubricant-additives`, not here.
+ * and the Product catalogue endpoints are not wired up. The Category identity call is —
+ * `resolveCategoryPage` merges `GET /api/v1/categories/:slug` over the fixture and falls back to
+ * it on any failure. The header still links to `/products/lubricant-additives`, not here.
  */
 const SLUG = "lubricant-additives";
 
@@ -28,9 +29,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function LubricantAdditivesProofPage(): ReactNode {
-  const content = getCategoryContent(SLUG);
-  if (!content) notFound();
+export default async function LubricantAdditivesProofPage(): Promise<ReactNode> {
+  const page = await resolveCategoryPage(SLUG);
+  if (!page) notFound();
 
-  return <ProductCategoryTemplate content={content} />;
+  return <ProductCategoryTemplate content={page.content} family={page.family} />;
 }

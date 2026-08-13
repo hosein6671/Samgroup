@@ -118,6 +118,9 @@ importers:
       '@sam-group/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@sam-group/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@sam-group/ui':
         specifier: workspace:*
         version: link:../../packages/ui

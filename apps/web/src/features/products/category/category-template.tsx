@@ -20,7 +20,6 @@ import "./category.css";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav } from "@/features/site/site-nav";
 
-import { FAMILIES } from "../products-data";
 /*
  * §4 item 12, the "Product Page CTA (shared, per §3)", is genuinely shared — SITE_STRUCTURE
  * specifies one closing block for the landing and all six category pages. It is imported from
@@ -32,6 +31,8 @@ import { FAMILIES } from "../products-data";
  * Solutions" — the block's primary action *is* Request a Custom Solution.
  */
 import { ClosingCta } from "../sections/closing-cta";
+
+import type { ProductFamily } from "../products-data";
 
 import type { ProductCategoryContent } from "./category-contract";
 import { CategoryApplications } from "./sections/applications";
@@ -85,25 +86,32 @@ import { CategorySupply } from "./sections/supply";
  * ── Lift path ───────────────────────────────────────────────────────────────
  *
  * Same shape as the landing's. `app/[locale]/products/[categorySlug]/page.tsx` resolves the slug
- * through `data/index.ts` and renders this component unchanged; swapping the fixture registry for
- * `GET /api/v1/categories/:slug` is a change to that one module, since every section takes the
- * API's shapes already.
+ * through `resolve-category-page.ts` and renders this component unchanged.
+ *
+ * ── Why `family` is a prop ──────────────────────────────────────────────────
+ *
+ * It used to be looked up here, from `FAMILIES`, by `content.familyId`. It is now resolved by
+ * `resolve-category-page.ts` and passed in, because the family record is no longer purely local:
+ * its `name` is merged from `GET /api/v1/categories/:slug` when that call succeeds. A component
+ * that fetched its own would be a Server Component doing data access below the page — the one
+ * thing FRONTEND_ARCHITECTURE.md §7 asks routes not to do — and one that kept looking the record
+ * up locally would silently discard the merge.
+ *
+ * The lookup's invariant did not soften in the move: a fixture naming a `familyId` outside the
+ * canonical six still throws, in the resolver.
  */
 export function ProductCategoryTemplate({
   content,
+  family,
 }: {
   readonly content: ProductCategoryContent;
-}): ReactNode {
   /*
-   * Name, code, href and descriptor come from the canonical family record, resolved once here
-   * rather than restated in the fixture. A category page and the header's mega menu therefore
-   * cannot disagree about what this category is called.
+   * Name, code, href and descriptor come from the canonical family record, resolved once by the
+   * caller rather than restated in the fixture or re-looked-up per section. A category page and
+   * the header's mega menu therefore cannot disagree about what this category is called.
    */
-  const family = FAMILIES.find((entry) => entry.id === content.familyId);
-  if (!family) {
-    throw new Error(`No product family "${content.familyId}" in products-data.ts`);
-  }
-
+  readonly family: ProductFamily;
+}): ReactNode {
   const props = { content, family } as const;
 
   return (
