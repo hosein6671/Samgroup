@@ -308,7 +308,9 @@ NestJS Content module proxying Payload, plus caching and publish-triggered reval
 
 **Next (step A-3):** scaffold `apps/web` (Next.js 15, App Router, Tailwind) and render a design-proof route. This is the first time the design system is seen in a browser — until then its rhythm, glass, gradients, midnight sections and reveals are verified only by compiled-CSS inspection.
 
-**Then:** locale routing via next-intl, and pages in the [ROADMAP.md](./ROADMAP.md) M3 order: Home → About Us → Products → Customized Solutions → Export & Logistics → Contact Us.
+**Then:** locale routing, and pages in the [ROADMAP.md](./ROADMAP.md) M3 order: Home → About Us → Products → Customized Solutions → Export & Logistics → Contact Us.
+
+**Locale routing (P1) — approved 13 August 2026, not implemented.** `next-intl` is **deferred and not installed**; P1 uses native App Router locale routing plus a hand-written middleware, and `next-intl` gets its own dependency approval at the gate that first introduces translated UI message catalogs. `app/layout.tsx` is removed in favour of **two true root layouts** during the transition — `app/[locale]/layout.tsx` owning the locale-correct `<html lang dir>`, and `app/design-proof/layout.tsx` preserving `lang="en" dir="ltr"` and `noindex`/`nofollow` — because the App Router's root layout is positional, so a nested `[locale]` layout cannot own `<html>` while `app/layout.tsx` exists. P1 promotes **only the homepage**, `/{locale}`, as the verification route; no Product Family page is promoted and the shared `products/[slug]` route is not created. Full detail, including the six-rule middleware policy: [frontend/FRONTEND_ARCHITECTURE.md §2](./frontend/FRONTEND_ARCHITECTURE.md).
 
 ### 9. Forms and Admin Dashboard
 
@@ -336,6 +338,7 @@ Only after real content exists. Add `GET /api/v1/rag/export`, then the isolated 
 10. **RAG indexes on an allow-list, never a deny-list**, and never touches a database directly. `JobApplication`/CVs/personal submissions are never indexed at any tier.
 11. **Job Applications are Admin-only**; **Certifications require Admin to publish.**
 12. **Structural page URLs stay fixed English across locales**; localized slugs only for products, categories, and blog articles.
+13. **Product Family and Product Detail share one `products/` slug namespace** _(ADR-010)_. `/{locale}/products/{slug}` serves both, through one route with one discriminator; no `/products/categories/` and no `/products/p/`. **Product Family wins**, and colliding data is **invalid** — the namespace is the symmetric union of base and translated `Category` and `Product` slugs, `finder`/`segments`/`types` are reserved in it, and durable enforcement is required before the first Product write, Product reference data, or Category/Product translated-slug row (mechanism deliberately undecided). **Infrastructure failure must never be converted into a canonical-content 404.** None of it is implemented.
 
 ---
 

@@ -17,7 +17,7 @@ apps/web/
 │   │   │   ├── products/
 │   │   │   │   ├── page.tsx                 # landing: 6 category cards + Product Finder + Documentation
 │   │   │   │   ├── finder/page.tsx
-│   │   │   │   └── [categorySlug]/page.tsx  # ONE of the 6 category pages — see §3 note
+│   │   │   │   └── [slug]/page.tsx          # SHARED: Product Family or Product Detail — ADR-010, see §3 note
 │   │   │   ├── customized-solutions/page.tsx
 │   │   │   ├── export-logistics/page.tsx
 │   │   │   ├── quality-certifications/page.tsx
@@ -78,6 +78,8 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
 **[CONFIRMED by SITE_STRUCTURE.md]** Product category pages are **single-level** — `/products/[categorySlug]/page.tsx` only, no `[productSlug]` detail route. The site structure source of truth settles this directly: its Sitemap sheet lists exactly six Level-2 product URLs (`base-oils`, `lubricant-additives`, ..., `antifreeze-coolants`) with no Level-3 per-SKU pages, and each `P1`–`P6` sheet confirms individual grades/SKUs (SN 150, SN 350, Bright Stock, etc.) are sections _within_ one category page, not separately routed. This replaces the two-level `[categorySlug]/[productSlug]` structure in the original draft of this document — that was a reasonable guess at the time, made before the full structure existed; it's now superseded, not just revised.
 
+**[UPDATED BY ADR-010]** — the dynamic segment under `products/` is **`[slug]`, not `[categorySlug]`**, and it is **shared**. [ADR-010](../ADR/ADR-010-products-slug-namespace-and-collision-policy.md) freezes Product Family (`/{locale}/products/{category-slug}`, ADR-009 §1) and Product Detail (`/{locale}/products/{product-slug}`, ADR-007 §2) as one namespace served by one route, `app/[locale]/products/[slug]/page.tsx`, with **one** discriminator resolving which entity a slug names. Sibling `[categorySlug]` and `[productSlug]` routes are not authorized and are not expressible — the App Router rejects two differently-named dynamic segments at one path position, which is why the shared route is a constraint rather than a preference. **Product Family wins** where a slug could be both, and colliding data is invalid rather than merely deprioritised; `finder`, `segments` and `types` are reserved slugs. **Nothing here is implemented**: there is no `[locale]` segment, no products route of any kind, and **no Product Detail route, template, component or fetching** — the six Product Family pages still live on the `/design-proof` routes. ADR-010 authorizes no implementation.
+
 ---
 
 ## 2. Locale Routing Structure
@@ -94,6 +96,43 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
 **[CONFIRMED]** URL segments for the structural brand pages (`about-us`, `products`, `customized-solutions`, `export-logistics`, `quality-certifications`, `insights`, `contact-us`, `become-a-distributor`, `faq`, `careers`, `privacy-policy`, `terms-of-use`, `cookie-notice`, `general-sales-conditions`, `sitemap`, `thank-you` — the full structural page set per [SITE_STRUCTURE.md §0](../SITE_STRUCTURE.md#0-full-sitemap), not just the original six) are **fixed English strings, identical across every locale** — e.g. `/en/about-us`, `/fa/about-us`, `/ar/about-us` all share the same `about-us` segment, never a translated one. **Localized slugs are reserved for SEO-driven content only — Products, Categories, and Blog articles** — resolved server-side against `ContentTranslation` (per [i18n strategy §3](../i18n/INTERNATIONALIZATION_STRATEGY.md#3-content-localization)). This was flagged as a new, revisit-if-wrong call in the original draft of this document; it's now a confirmed decision, not an open one — the reasoning stands as written: the structural pages are few, fixed, and primarily navigational, so keeping their URLs identical across locales keeps the site's IA legible and avoids three parallel route trees for pages that are otherwise structurally identical, while the actual localized-slug SEO value is concentrated exactly where it's kept — Products, Categories, and Blog articles.
 
+### [P1 PLANNING — approved 13 August 2026, not implemented]
+
+Current state, so nothing below reads as a description of code: `apps/web` has **one** layout, `src/app/layout.tsx`, which hardcodes `lang="en" dir="ltr"` and carries `robots: { index: false, follow: false }`; there is **no `[locale]` segment, no `middleware.ts`, and no `next-intl`**. The eleven pages that exist all live under `/design-proof`.
+
+**Root-layout topology during the transition.** `app/layout.tsx` is **removed** and replaced by **two true root layouts**:
+
+```
+app/
+├── [locale]/layout.tsx        # root layout — <html lang={locale} dir={direction}> from the Locale record
+└── design-proof/layout.tsx    # root layout — <html lang="en" dir="ltr">, robots noindex/nofollow
+```
+
+The correction this records: in the App Router the root layout is **positional** — the first `layout` file found walking down from `app/` owns `<html>`/`<body>` for every page beneath it, and that layout is the one Next validates the `<html>`/`<body>` tags on. So while `app/layout.tsx` exists it is unavoidably the root, a nested `app/[locale]/layout.tsx` cannot own `<html>`, and there is **no supported way** to set a per-locale `lang`/`dir` from beneath it. (Reading the pathname via `headers()` in the root layout would work but makes every route dynamic; setting `document.documentElement.lang` from a client effect ships the wrong `lang` in the server HTML, which is exactly what crawlers and assistive technology read. Both rejected.)
+
+Consequences of two root layouts, both accepted:
+
+- **Navigation between the proof tree and the canonical tree performs a full page navigation**, because the two branches resolve different root layouts. Accepted: no normal site navigation links into `/design-proof` — `site-routes.ts` contains no proof path, and the proof pages link only to canonical `ROUTES` values.
+- **Changing locale does not cross a root layout.** The root-layout comparison ignores a dynamic segment's _value_ and compares only its name and type, so `/en/…` → `/fa/…` stays a client-side transition under one `[locale]` root.
+- The proof tree's `noindex` becomes **scoped by construction** rather than inherited from a shared root that the canonical tree would then have to override.
+
+The second root layout disappears when the proof routes are removed (ADR-010 §9 step 4), leaving `app/[locale]/layout.tsx` as the single root layout. That is why the step-3 redirects belong in `next.config.ts` or middleware rather than in page files — those are not routes, so they need no layout.
+
+**`next-intl` is deferred, and is not installed.** P1 uses **native App Router locale routing plus a hand-written middleware**; nothing in P1 needs message catalogs, and there are none — every visible string in `features/**` is still hardcoded English. `next-intl` gets its own dependency approval at the gate that first introduces translated UI message catalogs. The three-concern middleware list above still describes the eventual shape; concern 1 (admin) has no surface yet and concern 3 (`Redirect` table) has no rows yet, so both stay deferred to their own gates.
+
+**P1 middleware policy.** Six rules, in this order:
+
+1. **`/design-proof/**`** — bypass locale middleware logic completely.
+2. **`/`** — detect the locale (`NEXT_LOCALE` cookie → `Accept-Language` → default `en`) and redirect to `/{locale}`.
+3. **First segment is an active locale** — pass through unchanged.
+4. **First segment looks like a locale code but is not an active one** (e.g. `/xx/...`) — **do not prefix and do not redirect**; let route handling produce a 404.
+5. **Known locale-less canonical structural routes** — `/products/**`, `/about-us`, `/quality-certifications`, `/customized-solutions`, `/insights/**`, `/contact-us`, and other explicitly registered canonical paths — detect the locale and redirect to `/{locale}/...`.
+6. **Arbitrary unknown paths** — do not "repair" them by blindly prefixing a locale; allow normal 404 behaviour.
+
+The invariant behind rules 4 and 6: **the middleware must never turn an unsupported locale or a typo into an English 200.** A wrong URL that silently succeeds is worse than one that 404s, because nothing ever reports it.
+
+**P1 scope.** The root-layout swap cannot be usefully separated from the first page under `[locale]` — a locale branch with no page generates no route and can be validated against nothing. P1 therefore promotes **only the homepage**, `/{locale}`, rendering the existing `HomeExperience` **without redesign**, as the verification route. **No Product Family page is promoted in P1**, and the shared `products/[slug]` route is not created.
+
 ---
 
 ## 3. Page Architecture
@@ -106,7 +145,7 @@ Per-page composition, cross-referencing [SITE_STRUCTURE.md](../SITE_STRUCTURE.md
 | About Us                        | `/[locale]/about-us`                                                                       | `LuxuryHero` (shared), `CompanyMilestones`, `OurExpertise`, `QualitySnapshot`, `OurTeam`, `PartnershipCTA` — `CompanyMilestones`/`OurTeam` are repeater-driven, zero hardcoded items (§10) | Payload (Pages)                                                                                                                                                |
 | Products (landing)              | `/[locale]/products`                                                                       | `ProductEcosystem` (category cards), `ProductFinderTeaser`                                                                                                                                 | Prisma (Category)                                                                                                                                              |
 | Product Finder                  | `/[locale]/products/finder`                                                                | `ProductFinder` (filter/search UI)                                                                                                                                                         | Prisma (Product, Category) — client-side filtering over a server-fetched list                                                                                  |
-| Product category page (×6)      | `/[locale]/products/[categorySlug]`                                                        | `ProductEcosystem` (category mode: range accordion, `SpecificationTable`, applications, industries, packaging)                                                                             | Prisma (Product, Specification, Media) — **one page renders every product/grade in its category; see §1's routing note**                                       |
+| Product category page (×6)      | `/[locale]/products/[slug]` — shared route, Family branch (ADR-010)                        | `ProductEcosystem` (category mode: range accordion, `SpecificationTable`, applications, industries, packaging)                                                                             | Prisma (Product, Specification, Media) — **one page renders every product/grade in its category; see §1's routing note**                                       |
 | Customized Solutions            | `/[locale]/customized-solutions`                                                           | `CustomizationProcess` (GSAP, §8), `PrivateLabelProgramme`, `CaseExamples`, `CustomFormulationRequestForm`                                                                                 | Payload (Pages) + Prisma (`CustomFormulationRequest` on submit)                                                                                                |
 | Export & Logistics              | `/[locale]/export-logistics`                                                               | `GlobalExportMap`, `ManufacturingJourney` (GSAP, §8), `IncotermsBlock`                                                                                                                     | Payload (Pages) + Mapbox (client)                                                                                                                              |
 | Quality & Certifications        | `/[locale]/quality-certifications`                                                         | `ResearchLaboratory` (proposed home — see below), `CertificationsGrid`, `SamplingPolicy`                                                                                                   | Payload (Pages)                                                                                                                                                |
@@ -282,7 +321,7 @@ Concrete, not aspirational — extends the Core Web Vitals budget already set in
 Confirmed after this document's initial draft:
 
 1. **Structural brand pages keep fixed English URL segments across all locales** (`/en/about-us`, `/fa/about-us`, `/ar/about-us`); **localized slugs are reserved for SEO-driven content only — Products, Categories, and Blog articles.** See §2.
-2. **Product category pages are single-level, no per-SKU detail route** — confirmed directly by the site structure source of truth's Sitemap sheet, not an inference. See §1. **[SUPERSEDED BY ADR-007]** — the six category pages stand; the no-per-SKU-detail-route half is reversed, and a canonical Product Detail route at `/{locale}/products/{product-slug}` is approved. **Decided — not implemented.**
+2. **Product category pages are single-level, no per-SKU detail route** — confirmed directly by the site structure source of truth's Sitemap sheet, not an inference. See §1. **[SUPERSEDED BY ADR-007]** — the six category pages stand; the no-per-SKU-detail-route half is reversed, and a canonical Product Detail route at `/{locale}/products/{product-slug}` is approved. **Decided — not implemented.** **[UPDATED BY ADR-010]** — the two share one namespace and one route, `app/[locale]/products/[slug]/page.tsx`, with Product Family precedence and colliding data treated as invalid. Still not implemented.
 3. **Mapbox's placement (`GlobalExportMap`, Export & Logistics) is now confirmed**, not just proposed — the site structure source of truth explicitly calls for "interactive or illustrated map plus regional cards" on that page's Global Reach section.
 
 ## Open Items (not resolved by this document)
