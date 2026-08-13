@@ -12,8 +12,9 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-006](./ADR-006-payload-admin-authentication.md)              | Payload Admin uses separate authentication; no SSO bridge, no synced accounts, no shared cookies         | Accepted |
 | [ADR-007](./ADR-007-product-taxonomy-v2.md)                       | Product Taxonomy v2; canonical Product Detail routes supersede the no-`[productSlug]` rule               | Accepted |
 | [ADR-008](./ADR-008-b2-filter-contract-and-segment-vocabulary.md) | Segment slugs, `Other` as vocabulary rather than a row, and the `GET /products` taxonomy filter contract | Accepted |
+| [ADR-009](./ADR-009-product-family-canonical-identifier.md)       | A Product Family has one canonical identifier — its default-locale `Category.slug`                       | Accepted |
 
-These eight, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+These nine, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 
