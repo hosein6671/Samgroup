@@ -16,6 +16,7 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "seed:catalog": "tsx prisma/seed-catalog.ts",
+    "seed:categories": "tsx prisma/seed-categories.ts",
     "prepare": "husky"
   },
   "dependencies": {
