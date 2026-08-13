@@ -47,6 +47,11 @@ import {
 
 export const BASE_OILS: ProductCategoryContent = {
   familyId: "base-oils",
+  meta: {
+    title: "Base Oils — Sam Group",
+    description:
+      "Paraffinic and naphthenic base stocks across API Groups I to III, with bright stock and synthetic base fluids — organised by group and by grade.",
+  },
 
   /* ------------------------------------------------------------------ 1 hero */
 

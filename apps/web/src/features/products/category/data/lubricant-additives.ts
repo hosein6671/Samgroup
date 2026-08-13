@@ -79,6 +79,11 @@ const COMPONENTS = "Components";
 
 export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   familyId: "lubricant-additives",
+  meta: {
+    title: "Lubricant Additives & Components — Sam Group",
+    description:
+      "Additive packages by application — engine oil, driveline and gear, ATF, grease, anti-freeze, brake fluid and fuel — with transformer oil, white oil and rubber process oil.",
+  },
 
   /* ------------------------------------------------------------------ 1 hero */
 

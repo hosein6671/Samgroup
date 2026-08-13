@@ -459,6 +459,43 @@ export type FaqEntry = {
   readonly link?: CategoryAction;
 };
 
+/* --------------------------------------------------------------- page meta */
+
+/**
+ * The page's `<title>` and `<meta name="description">`.
+ *
+ * ── Why this is content rather than route configuration ─────────────────────
+ *
+ * Six route files each carried these two strings as a literal `export const metadata`. One shared
+ * dynamic route cannot: it has a slug, not six files. The strings had to move somewhere, and there
+ * were only two candidates — a slug-keyed table in the route file, or here.
+ *
+ * Here, because a meta title and description are editorial copy about the category, written by
+ * whoever writes the rest of the category's copy. A slug-keyed lookup table in a route file would
+ * be a hardcoded repeating list, which is the one pattern PROJECT_HANDOFF §6.7 forbids outright,
+ * and it would put six categories' words in a file that is supposed to know about none of them.
+ *
+ * It also lands where the API will eventually serve it. `GET /api/v1/categories/:slug` already
+ * carries `seo: SeoFields` on the wire, whose `metaTitle`/`metaDescription` are exactly these two
+ * values. **Nothing consumes it in this gate** — see `catalog.ts` — and when a later gate does,
+ * this field is what it overlays, in the same one place `name` is overlaid today.
+ *
+ * ── The strings are the shipped ones, unchanged ─────────────────────────────
+ *
+ * Every value in the six fixtures is copied character-for-character from the proof route file it
+ * came from. Promoting six pages to a canonical route is a routing change; rewording their meta
+ * descriptions on the way would be a content change smuggled inside it.
+ *
+ * **No `robots` field, deliberately.** Indexing is a property of the tree, not of a category:
+ * `app/[locale]/layout.tsx` declares `robots: { index: false, follow: false }` for every canonical
+ * page, and P2 is not the SEO launch. A per-category override here would be a second place that
+ * answers a question the layout already answers.
+ */
+export type CategoryPageMeta = {
+  readonly title: string;
+  readonly description: string;
+};
+
 /* ------------------------------------------------------------------ content */
 
 /**
@@ -489,6 +526,11 @@ export type ProductCategoryContent = {
    * The equality now holds for all six and is enforced at module load in `products-data.ts`.
    */
   readonly familyId: string;
+  /**
+   * The page's own `<title>` and description. Read by `generateMetadata` straight from this
+   * registry — no fetch, no resolver, so a category's metadata cannot depend on the network.
+   */
+  readonly meta: CategoryPageMeta;
   readonly hero: CategoryHero;
   readonly overview: CategoryOverview;
   readonly range: CategoryRange;

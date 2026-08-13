@@ -66,6 +66,11 @@ const SUPPLY_FORM = "Supply form";
 
 export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   familyId: "antifreeze-coolants",
+  meta: {
+    title: "Antifreeze & Coolants — Sam Group",
+    description:
+      "Monoethylene and monopropylene glycol coolants across the published inhibitor technologies, supplied as concentrate or ready-to-use.",
+  },
 
   /* ------------------------------------------------------------------ 1 hero */
 

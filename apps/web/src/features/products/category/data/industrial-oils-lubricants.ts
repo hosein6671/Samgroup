@@ -73,6 +73,11 @@ const GREASES = "Greases";
 
 export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   familyId: "industrial-oils-lubricants",
+  meta: {
+    title: "Industrial Oils & Lubricants — Sam Group",
+    description:
+      "Hydraulic, gear, compressor, metalworking, heat transfer, pneumatic and slideway fluids, stationary engine oils and industrial greases.",
+  },
 
   /* ------------------------------------------------------------------ 1 hero */
 

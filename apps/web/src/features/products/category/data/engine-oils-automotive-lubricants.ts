@@ -103,6 +103,16 @@ const NO_DESIGNATIONS = "No individual designations are published for it.";
 
 export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   familyId: "engine-oils-automotive-lubricants",
+  meta: {
+    title: "Engine Oils & Automotive Lubricants — Sam Group",
+    /*
+     * The six vehicle segments, in the casing the frozen Products landing publishes them in. The
+     * category's second dimension is not described here — its members are not published, and a meta
+     * description is not the place to introduce a taxonomy the page itself withholds.
+     */
+    description:
+      "Automotive lubricants by vehicle segment — passenger cars, trucks and buses, motorcycle and ATV, agriculture, construction and mining, and gardening.",
+  },
 
   /* ------------------------------------------------------------------ 1 hero */
 

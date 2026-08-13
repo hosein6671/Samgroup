@@ -21,8 +21,28 @@
  * approved, working design-proof pages for a strictness that protects nothing.
  *
  * `notFound()` is therefore never reached from an API condition here. It stays what it was: the
- * answer to a slug with no fixture, which on these six static routes is unreachable and is kept
- * only because the dynamic route will need it.
+ * answer to a slug with no fixture — which under the canonical route's `dynamicParams = false` is
+ * unreachable, and is kept because it is the behaviour that segment needs the day that changes.
+ *
+ * ── The slug guard is locale-aware, and has to be ───────────────────────────
+ *
+ * `Category.slug` is a localized field. The endpoint resolves a request in the requested locale's
+ * vocabulary and answers in it: `data.slug` is the translated slug where one exists, and the
+ * entity's own column where one does not. The fixture key is neither — it is the DEFAULT-locale
+ * slug, permanently (ADR-009 §3, ADR-010 §5).
+ *
+ * So comparing `data.slug` against the fixture key is a valid identity test in the default locale
+ * and an invalid one everywhere else. Applying it unconditionally would be correct today only
+ * because no translated slug row exists; the first `fa` slug written turns `/fa/products/base-oils`
+ * — the URL ADR-010 §8 explicitly launches — into a false `slug-mismatch`, discarding the localized
+ * name the locale was passed for and logging drift that did not happen.
+ *
+ * The guard is therefore scoped to the default locale, and `parentId` — which is not localized —
+ * still guards every locale. What is deliberately NOT built is the alternative: reading the
+ * canonical slug back out of `seo.alternates` to compare in every locale. That means consuming the
+ * SEO block, which is a later gate, and it buys nothing here — with no translated slug rows,
+ * `findBySlug` falls straight through to a unique lookup on the requested slug, so the entity is
+ * the fixture's by construction rather than by check.
  *
  * ── Canonical identity is not rewritten from the API ────────────────────────
  *
@@ -35,6 +55,7 @@
  */
 
 import { getCategoryBySlug } from "@/lib/catalog";
+import { getLocaleByCode } from "@/lib/locales";
 
 import { FAMILIES } from "../products-data";
 
@@ -48,7 +69,7 @@ export type CategoryFallbackReason =
   | "not-found"
   | "unreachable"
   | "api-error"
-  /** A 200 whose `slug` is not the slug that was requested. */
+  /** A default-locale 200 whose `slug` is not the slug that was requested. */
   | "slug-mismatch"
   /** A 200 for a category with a parent — a Product Family must be a root. */
   | "not-root";
@@ -93,14 +114,34 @@ function report(slug: string, reason: CategoryFallbackReason, status?: number): 
  * for the slug.
  *
  * `null` rather than a throw or a `notFound()` call, so the route file keeps deciding what a
- * missing page means. On the six static routes it cannot happen — each passes a literal slug that
- * is a registry key — and the check is kept because the dynamic route will pass a real parameter.
+ * missing page means. The canonical route generates its params from this same registry and closes
+ * the segment with `dynamicParams = false`, so it cannot happen there either; the check is kept
+ * because it is what that route needs the day the segment opens.
+ *
+ * @param slug the family's canonical identifier — its DEFAULT-locale `Category.slug`, which is the
+ *   registry key and the route segment. A localized slug is never passed here (ADR-009 §3).
+ * @param locale the active locale code from the `[locale]` segment. Sent to the API, which resolves
+ *   `name` in it; also what decides whether the slug guard below applies.
+ *
+ *   **Optional, for exactly one caller and only while it exists.** The six `/design-proof` routes
+ *   are held live and unmodified for side-by-side validation against the canonical route, and they
+ *   have no locale to send — the proof tree is not locale-routed and never will be. Omitting the
+ *   argument reproduces their shipped behaviour precisely: the API resolves an absent `?locale=` to
+ *   the platform default, which is the locale the slug guard applies in. It is not a convenience
+ *   for the canonical route, which always passes one, and it leaves with the proof tree.
+ *
+ *   Omitting it also keeps the proof tree's dependencies as they shipped: it reaches the Locale API
+ *   not at all, so those six pages still render from their fixtures when only the Category API is
+ *   down, and cannot be taken down by a locale source that is unrelated to them.
  *
  * The missing-family throw below is the invariant that used to live in `ProductCategoryTemplate`.
  * It has moved, not softened: a fixture naming a `familyId` that is not one of the canonical six
  * is a broken build, and it should fail loudly rather than render a page with no name.
  */
-export async function resolveCategoryPage(slug: string): Promise<ResolvedCategoryPage | null> {
+export async function resolveCategoryPage(
+  slug: string,
+  locale?: string,
+): Promise<ResolvedCategoryPage | null> {
   const content = getCategoryContent(slug);
   if (!content) return null;
 
@@ -110,11 +151,28 @@ export async function resolveCategoryPage(slug: string): Promise<ResolvedCategor
   }
 
   /*
-   * No `locale` argument. There is no `[locale]` segment on any route yet, so the application has
-   * no locale to send, and the API resolving an omitted locale to the platform default is the
-   * correct answer rather than a shortcut.
+   * Which locale is the platform default is data, never a literal — `en` appears nowhere in the
+   * routing layer by decision (PROJECT_HANDOFF §6.9). It is read from the same authoritative source
+   * the route tree itself is generated from.
+   *
+   * **This adds no runtime dependency.** `getActiveLocales` is memoized for the lifetime of the
+   * process and `app/[locale]/layout.tsx` already awaits it on every render in this tree to set
+   * `<html lang dir>`, so this resolves the promise that request already holds. A locale source
+   * failure takes the layout down before it could reach here; it can never be this call that turns
+   * a working page into a broken one.
+   *
+   * An unrecognised code is treated as non-default, so the guard declines rather than firing on a
+   * locale it cannot classify. Unreachable while `dynamicParams = false` holds on the `[locale]`
+   * segment.
+   *
+   * With no locale at all — the proof routes — nothing is read: the API resolves an omitted
+   * `?locale=` to the platform default, so the answer is known without asking, and asking would
+   * hand those six pages a dependency they have never had.
    */
-  const result = await getCategoryBySlug(slug);
+  const isDefaultLocale =
+    locale === undefined ? true : ((await getLocaleByCode(locale))?.isDefault ?? false);
+
+  const result = await getCategoryBySlug(slug, locale);
 
   if (!result.ok) {
     report(slug, result.reason, result.reason === "api-error" ? result.status : undefined);
@@ -124,12 +182,13 @@ export async function resolveCategoryPage(slug: string): Promise<ResolvedCategor
   /*
    * Both invariants are checked before a single API value is used.
    *
-   * `slug` guards the identity ADR-009 froze — the endpoint resolves localized slugs, so a
-   * response carrying a different canonical slug means this route reached a different category.
-   * `parentId` guards reachability: `findAll` and the sitemap both read `parent_id IS NULL`, so a
-   * family that has acquired a parent is a family the rest of the platform can no longer see.
+   * `slug` guards the identity ADR-009 froze, in the one locale where `data.slug` and the fixture
+   * key are the same vocabulary — see the module note for why that scope is the whole point.
+   * `parentId` guards reachability in every locale: it is not a localized field, and `findAll` and
+   * the sitemap both read `parent_id IS NULL`, so a family that has acquired a parent is a family
+   * the rest of the platform can no longer see.
    */
-  if (result.record.slug !== slug) {
+  if (isDefaultLocale && result.record.slug !== slug) {
     report(slug, "slug-mismatch");
     return { content, family, source: "fixture", fallbackReason: "slug-mismatch" };
   }

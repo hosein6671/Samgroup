@@ -75,6 +75,11 @@ const GREASES = "Greases";
 
 export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   familyId: "marine-oils-lubricants",
+  meta: {
+    title: "Marine Oils & Lubricants — Sam Group",
+    description:
+      "TPEO, cylinder oils, system oils, stern tube and gear oils, deck hydraulic and marine greases.",
+  },
 
   /* ------------------------------------------------------------------ 1 hero */
 
