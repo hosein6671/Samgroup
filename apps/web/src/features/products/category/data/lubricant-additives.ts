@@ -329,9 +329,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
       "A package is an input. Each destination below is one of this company's own product families, and every field named under it is a range that family already publishes. Not every sub-range appears: a brake fluid and a fuel are not among this site's six categories, so the packages formulated for them have no destination page to name and none is invented for them.",
     entries: [
       {
-        familyId: "engine-oils",
+        familyId: "engine-oils-automotive-lubricants",
         note: "The gasoline, diesel and ATF packages are formulated for automotive finished fluids, which this site publishes segmented by vehicle type.",
-        fields: fields("engine-oils", [
+        fields: fields("engine-oils-automotive-lubricants", [
           "Passenger cars",
           "Trucks & buses",
           "Motorcycle & ATV",
@@ -341,9 +341,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
         ]),
       },
       {
-        familyId: "industrial-oils",
+        familyId: "industrial-oils-lubricants",
         note: "The gear and grease packages name two ranges this site publishes under industrial oils by their own names.",
-        fields: fields("industrial-oils", ["Gear", "Industrial greases"]),
+        fields: fields("industrial-oils-lubricants", ["Gear", "Industrial greases"]),
       },
       {
         familyId: "antifreeze-coolants",

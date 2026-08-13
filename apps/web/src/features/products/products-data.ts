@@ -24,10 +24,21 @@
  * itself (SITE_STRUCTURE §4); this page names the ranges and never claims how many SKUs exist.
  */
 
-import { PRODUCT_CATEGORIES } from "@/features/site/site-routes";
+import { PRODUCT_CATEGORIES, ROUTES } from "@/features/site/site-routes";
 
 export type ProductFamily = {
-  /** Stable key. Becomes the API `slug` when this is a real fetch. */
+  /**
+   * The family's one and only identifier — its **default-locale `Category.slug`**.
+   *
+   * The same value is the `/products/{slug}` route segment, the key in the category content
+   * registry, the Payload `categoryKey`, and the `slug` this record arrives under when the fetch
+   * is real. Not a UI-local handle that happens to resemble one: three of these ids were shorter
+   * than their own routes until this was settled, which is why the invariant below is now checked
+   * rather than intended.
+   *
+   * **Localized slugs are not this.** A category is reachable in `fa`/`ar` at a translated slug,
+   * resolved server-side to the same row; that never becomes a key on this side.
+   */
   readonly id: string;
   /** Two-letter register mark, as used on the homepage's family set. Presentational only. */
   readonly code: string;
@@ -97,7 +108,7 @@ export const FAMILIES: readonly ProductFamily[] = [
     ],
   },
   {
-    id: "engine-oils",
+    id: "engine-oils-automotive-lubricants",
     code: "EO",
     name: "Engine Oils & Automotive Lubricants",
     href: href(2),
@@ -113,7 +124,7 @@ export const FAMILIES: readonly ProductFamily[] = [
     ],
   },
   {
-    id: "industrial-oils",
+    id: "industrial-oils-lubricants",
     code: "IO",
     name: "Industrial Oils & Lubricants",
     href: href(3),
@@ -131,7 +142,7 @@ export const FAMILIES: readonly ProductFamily[] = [
     ],
   },
   {
-    id: "marine-oils",
+    id: "marine-oils-lubricants",
     code: "MO",
     name: "Marine Oils & Lubricants",
     href: href(4),
@@ -164,6 +175,32 @@ export const FAMILIES: readonly ProductFamily[] = [
     ],
   },
 ];
+
+/**
+ * A family's id **is** its route segment. Checked, not assumed.
+ *
+ * `href(index)` above binds this list to the canonical route table by *position*, so a category
+ * added or reordered in `site-routes.ts` fails loudly. It never compared the id, and for three of
+ * the six families the id and the route segment had silently diverged — `engine-oils` against
+ * `/products/engine-oils-automotive-lubricants`, and the same for industrial and marine. The
+ * remaining three agreed by coincidence rather than by rule.
+ *
+ * That divergence is only visible once something joins on the id: `Category.slug` is simultaneously
+ * the route segment, the registry key and the Payload join key, so an id that is not the slug is an
+ * id that cannot be fetched with. Position alone cannot catch it. This can.
+ *
+ * Runs at module load, like `href` and like `application-fields.ts`'s range check — a future family
+ * whose id drifts from its route fails the render rather than shipping a page that cannot fetch.
+ */
+for (const family of FAMILIES) {
+  const expected = `${ROUTES.products}/${family.id}`;
+  if (family.href !== expected) {
+    throw new Error(
+      `Product family "${family.id}" is routed at "${family.href}", not "${expected}". ` +
+        "A family's id is its default-locale Category.slug, which is also its route segment.",
+    );
+  }
+}
 
 /* ------------------------------------------------------------------ finder */
 

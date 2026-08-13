@@ -72,7 +72,7 @@ const FLUIDS = "Fluids";
 const GREASES = "Greases";
 
 export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
-  familyId: "industrial-oils",
+  familyId: "industrial-oils-lubricants",
 
   /* ------------------------------------------------------------------ 1 hero */
 

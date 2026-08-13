@@ -102,7 +102,7 @@ import {
 const NO_DESIGNATIONS = "No individual designations are published for it.";
 
 export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
-  familyId: "engine-oils",
+  familyId: "engine-oils-automotive-lubricants",
 
   /* ------------------------------------------------------------------ 1 hero */
 

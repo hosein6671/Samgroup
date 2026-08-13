@@ -470,7 +470,24 @@ export type FaqEntry = {
  * category pages and the landing.
  */
 export type ProductCategoryContent = {
-  /** Matches a `ProductFamily.id` in `products-data.ts` — and `Category.slug` in the API. */
+  /**
+   * The category this content belongs to, as its one canonical identifier.
+   *
+   * It matches a `ProductFamily.id` in `products-data.ts`, and that id **is** the API's
+   * default-locale `Category.slug` — one value, not two that are expected to agree. The same
+   * string is the `/products/{slug}` route segment and the key this fixture is registered under
+   * in `data/index.ts`, so `getCategoryContent(slug)` becomes `GET /api/v1/categories/:slug` with
+   * no translation step in between.
+   *
+   * **The qualifier is load-bearing: default-locale.** `Category.slug` is a localized field, and a
+   * category is reachable in `fa`/`ar` at its translated slug. That resolution happens server-side
+   * and yields the same category; a localized slug is never a key on this side, and a fixture is
+   * never registered under one.
+   *
+   * Previously this said only "matches `ProductFamily.id` — and `Category.slug` in the API", which
+   * was false for three of the six families: their ids were short forms of their own route slugs.
+   * The equality now holds for all six and is enforced at module load in `products-data.ts`.
+   */
   readonly familyId: string;
   readonly hero: CategoryHero;
   readonly overview: CategoryOverview;

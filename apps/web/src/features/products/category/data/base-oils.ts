@@ -256,9 +256,9 @@ export const BASE_OILS: ProductCategoryContent = {
       "A base oil is an input. Every destination below is one of this company's own product families, and every field named under it is a range that family already publishes — so this section is a map of the range, not a claim about a market.",
     entries: [
       {
-        familyId: "engine-oils",
+        familyId: "engine-oils-automotive-lubricants",
         note: "Automotive finished fluids, segmented by vehicle type.",
-        fields: fields("engine-oils", [
+        fields: fields("engine-oils-automotive-lubricants", [
           "Passenger cars",
           "Trucks & buses",
           "Motorcycle & ATV",
@@ -267,9 +267,9 @@ export const BASE_OILS: ProductCategoryContent = {
         ]),
       },
       {
-        familyId: "industrial-oils",
+        familyId: "industrial-oils-lubricants",
         note: "Plant fluids, grouped by the machine they serve.",
-        fields: fields("industrial-oils", [
+        fields: fields("industrial-oils-lubricants", [
           "Hydraulic",
           "Gear",
           "Compressor",
@@ -279,9 +279,9 @@ export const BASE_OILS: ProductCategoryContent = {
         ]),
       },
       {
-        familyId: "marine-oils",
+        familyId: "marine-oils-lubricants",
         note: "Engine-room and deck fluids for marine propulsion.",
-        fields: fields("marine-oils", [
+        fields: fields("marine-oils-lubricants", [
           "TPEO",
           "Cylinder oils",
           "System oils",
