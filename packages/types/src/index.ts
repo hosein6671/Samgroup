@@ -9,4 +9,5 @@ export type {
   ApiSuccessResponse,
 } from "./api";
 export type { CategoryResponse } from "./catalog";
+export type { LocaleDirection, LocaleResponse } from "./locale";
 export type { SeoAlternate, SeoFields, TwitterCardType } from "./seo";

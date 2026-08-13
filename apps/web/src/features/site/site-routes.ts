@@ -82,12 +82,19 @@ export const SECONDARY_NAV: readonly NavItem[] = [
 ] as const;
 
 /**
- * Launch locales, in the shape `GET /api/v1/locales` returns.
+ * Launch locales — **a presentational fixture for the language switcher, and nothing else.**
  *
- * A fixture, not a hardcoded list: the locale set is data in a `Locale` table and adding a
- * language must never require a code change (PROJECT_HANDOFF §6.9). Keeping it in this shape
- * means the switcher is wired to a fetch in M2 by replacing this constant, not by rewriting the
- * component.
+ * **This is NOT the routing locale source.** That is `GET /api/v1/locales`, read through
+ * `lib/locales.ts`, which generates the `[locale]` route set, sets `<html lang dir>` and drives
+ * middleware negotiation. Nothing in the routing layer may read this constant, and it must never
+ * be used as a fallback when the API is unavailable — a build with no locale source fails loudly
+ * by decision.
+ *
+ * It remains only because `site-nav.tsx`'s switcher still consumes it, and the switcher is
+ * presentational (it marks the current locale and navigates nowhere). It is left unreshaped on
+ * purpose: its fields are `label`/`native` where the endpoint serves `name`/`nativeName`, so this
+ * is a shape-alike rather than a stale copy, and reconciling the two is the gate that makes the
+ * switcher navigate.
  */
 export type Locale = {
   readonly code: string;
