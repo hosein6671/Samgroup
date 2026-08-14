@@ -6,7 +6,7 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 
 ## Current Status
 
-**M1 largely complete; M2 partially started. The next implementation boundary is the frontend design proof — step A-3.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized.
+**M1 complete; M2 advanced along the catalog and frontend axes. The next boundary is an architecture decision rather than an implementation step — see "Next" below.** Architecture Frozen (all 7 categories confirmed — see [ADR/README.md](./ADR/README.md)); Frontend Technology Stack, SEO, i18n, and RAG architecture all finalized. [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) through [ADR-010](./ADR/ADR-010-products-slug-namespace-and-collision-policy.md) have since been accepted.
 
 **Complete and verified:**
 
@@ -22,10 +22,30 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 - ✅ **Catalog APIs** — `GET /categories`, `/categories/:slug`, `/products`, `/products/:slug`, locale-aware via the shared `ContentTranslation` service. Plus `GET /health` and `GET /locales`.
 - ✅ **SEO foundation** — `GET /seo/redirects` and `GET /seo/sitemap-entries`, per [seo/SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md).
 - ✅ **Frontend design system foundation** (step A-2) — design tokens authored in TypeScript and generated into a Tailwind v4 theme layer, 13 Server-Component primitives, a twelve-column editorial grid, a specification primitive, and four scroll-driven CSS reveal patterns with no animation library. Palette contrast audited at 46 checks, 0 failures. Recorded in [design/DESIGN_SYSTEM.md](./design/DESIGN_SYSTEM.md).
+- ✅ **Product Taxonomy v2 schema** — models `Segment`, `ProductType`, `ProductSegment`, `SegmentProductType` plus nullable `Product.productTypeId`, by migration `20260812160853_add_product_taxonomy_v2` ([ADR-007](./ADR/ADR-007-product-taxonomy-v2.md)).
+- ✅ **Segment reference data** — the dedicated idempotent seed `prisma/seed-catalog.ts`, run explicitly as `pnpm seed:catalog` and never wired into `prisma db seed`. The eight approved `Segment` rows are populated in local DEV `sam_platform` ([ADR-008](./ADR/ADR-008-b2-filter-contract-and-segment-vocabulary.md)).
+- ✅ **Product Detail API (B1)** — `GET /products/:slug` serves `segments[]` and `productType`.
+- ✅ **B2 product list taxonomy filters** — `GET /products` accepts `segment` and `productType`; `type` remains unsupported and is rejected. The list response shape is unchanged.
+- ✅ **Category reference data** — the dedicated idempotent seed `prisma/seed-categories.ts`, run explicitly as `pnpm seed:categories`. Upserts by `slug`, never deletes, refuses to run unless `current_database()` is `sam_platform`, and is **not** wired into `prisma db seed`, which stays locale-only. The six approved Product Family `Category` rows are populated in local DEV `sam_platform`, all as roots (`parentId = null`).
+- ✅ **`apps/web` scaffolded and rendering** — Next.js 15 App Router, with the design system rendered by the design proof tree at `/design-proof/**`. That tree remains live during the transition described in [ADR-010](./ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §9.
+- ✅ **Locale routing foundation** — the `[locale]` segment, locale-detection middleware, and a locale contract generated from the `Locale` table rather than from code. Public URLs are now `/{locale}/…`. This makes the Locale API a **build hard dependency** for `apps/web`: `API_INTERNAL_URL` must be set for any build.
+- ✅ **Canonical route promotion** — Products landing (`/{locale}/products`), the six Product Family routes (`/{locale}/products/{slug}`), and the About Us, Customized Solutions and Quality Certifications corporate pages. The six Product Family proof routes now redirect to their canonical URLs.
+- ✅ **Category API integration into Product Family pages** — the server-side API client and the Product Family resolver. `Category` in `sam_platform` owns existence, canonical slug and name; the fixture owns editorial content until Payload arrives. API failure is fail-open by decision and reported server-side, and can never produce a canonical 404 ([ADR-010](./ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §7).
+- ✅ **Canonical Product Family identifier frozen** — one string is simultaneously the default-locale `Category.slug`, the route segment, Payload's `categoryKey` and the frontend `ProductFamily.id` ([ADR-009](./ADR/ADR-009-product-family-canonical-identifier.md)).
+- ✅ **Shared `products/` slug namespace defined** — Product Family and Product Detail occupy one namespace under one dynamic route, with Family precedence, reserved structural slugs and a symmetric collision rule ([ADR-010](./ADR/ADR-010-products-slug-namespace-and-collision-policy.md)).
 
-**Next: the frontend design proof (step A-3)** — scaffold `apps/web` (Next.js 15, App Router, Tailwind) and render the design system so it can be verified in a browser. It has never been rendered: everything about it is currently verified by compiled-CSS inspection and measurement, not by looking at it. See [PROJECT_HANDOFF.md §5](./PROJECT_HANDOFF.md) step 8.
+**Verified end-to-end in local DEV `sam_platform` on 14 August 2026** — a statement about one development database on one date, not a production claim, and not a durable property of the system:
 
-**Not yet started:** `apps/web` and `apps/cms` hold only `.gitkeep` — no Next.js or Payload scaffolding. No authentication, no form submission endpoints, no Content module fronting Payload, no Admin Dashboard. No application Dockerfiles, no CI Phases 2–3. Root `README.md` is still empty.
+- the six approved `Category` rows are present and are all roots;
+- `GET /api/v1/categories/:slug` returned 200 for all six, with ids matching the database;
+- all six `/{locale}/products/{slug}` pages returned 200;
+- the pages resolved through the **API-success path rather than fixture fallback** — no resolver fallback was reported, and each page render drove exactly one `categories` index read at the database.
+
+**Next: select and freeze the durable Product-vs-Family slug collision enforcement mechanism.** This is a **pending architecture decision**, not an implementation step, and it is deliberately not specified here. [ADR-010](./ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §6 requires durable enforcement to be in place **before** the first `Product` write, the first Product reference data, and the first translated `Category` or `Product` slug row; §6 records the requirement and leaves the mechanism unselected. Nothing that writes into the `products/` namespace should proceed ahead of it.
+
+Explicitly **not** the next gate: frontend scaffolding and Category seeding are both complete.
+
+**Not yet implemented or deferred:** no `Product` rows or Product reference data; no durable slug-collision enforcement; no Product Detail frontend branch (the shared namespace segment exists, the branch does not); no Product Finder backed by a real API; no `ProductType` vocabulary or reference data, and therefore no `SegmentProductType` or `ProductSegment` membership rows; `apps/cms` holds only `.gitkeep`, so no Payload, no Content module fronting it, and no CMS-owned editorial content; no blog; no inquiry or form submission endpoints; no authentication or RBAC; no Admin Dashboard; no `ContentTranslation` or `SeoMeta` rows for any Category; no application Dockerfiles and no CI Phases 2–3; no production deployment or hardening. Root `README.md` is still empty.
 
 Update this section as each further step lands — this is the one fact in `docs/` most likely to go stale.
 
