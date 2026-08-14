@@ -32,3 +32,33 @@ export type CategoryResponse = {
   /** Null for a top-level category — the six Product Families the site is built around. */
   parentId: string | null;
 };
+
+/**
+ * One row of `GET /products` — API_CONTRACT_FINAL.md §2.7, transcribed from `apps/api`'s own
+ * `ProductListItemResponse` field for field.
+ *
+ * `name`, `slug` and `description` carry the REQUESTED locale's values, resolved server-side from
+ * `content_translations`, on the same fallback rule as `CategoryResponse`.
+ *
+ * ── What the list deliberately does NOT carry ───────────────────────────────
+ *
+ * **No `segments`, no `productType`, no `specifications`, no `images`, no `seo`.** All five are
+ * `GET /products/:slug` fields and the backend's `PRODUCT_SELECT` is explicit that the list stays
+ * without them — media because a page of rows would mean a join per row, taxonomy because ADR-008
+ * made `?segment=`/`?productType=` list-only *filters* rather than list *fields*. This declaration
+ * therefore says what the wire says. A consumer that needs a product's Segments reads the detail
+ * endpoint; widening this shape is a backend gate, not a frontend one.
+ *
+ * `createdAt` is modelled because it is on the wire and this type claims to be the row. Nothing in
+ * `apps/web` reads it yet — the list is served in the API's default `name` order.
+ */
+export type ProductListItemResponse = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  /** The owning category's id — never its slug. Join key, not a route segment. */
+  categoryId: string;
+  /** ISO 8601. */
+  createdAt: string;
+};

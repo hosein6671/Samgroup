@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ProductCategoryTemplate } from "@/features/products/category/category-template";
 import { getCategoryContent, publishedCategorySlugs } from "@/features/products/category/data";
 import { resolveCategoryPage } from "@/features/products/category/resolve-category-page";
+import { getProductsByCategory } from "@/lib/products";
 
 /**
  * The canonical Product Family route — `/{locale}/products/{slug}`.
@@ -74,7 +75,11 @@ import { resolveCategoryPage } from "@/features/products/category/resolve-catego
  * real harm: it would mint a `[slug]` page for a path a future static sibling must own, and a static
  * segment outranking a dynamic one is exactly what keeps those paths free.
  *
- * **No Product slugs.** There are no Products.
+ * **No Product slugs.** `sam_platform` now holds Product rows — the demo set — and none of them
+ * belongs here: this function enumerates what the FAMILY branch serves, and the Product branch of
+ * the shared namespace is unimplemented, so a product slug still resolves to nothing. The page
+ * below lists those Products as content; it does not route to them, and ADR-007 Recorded Conflict 3
+ * keeps them out of the statically enumerable set in any case.
  */
 export function generateStaticParams(): { slug: string }[] {
   return publishedCategorySlugs().map((slug) => ({ slug }));
@@ -136,13 +141,56 @@ export async function generateMetadata({
   return { title: content.meta.title, description: content.meta.description };
 }
 
+/**
+ * The `?segment=` filter, read off the URL and normalized to what the client may send.
+ *
+ * Three shapes arrive here and each has one honest reading:
+ *
+ * - **absent, or blank** → no filter. A trimmed-empty value is the same request as no value, which
+ *   is also how the API's own `normalizeFilter` reads it.
+ * - **one value** → the filter, passed through unchanged. It is **not** validated against the
+ *   frontend's Segment registry: whether a slug names a Segment is the API's answer (400
+ *   VALIDATION_ERROR on `segment`, surfaced as its own state), and checking it here as well would
+ *   put a second authority in front of a contract ADR-008 already fixed.
+ * - **repeated** (`?segment=a&segment=b`) → no filter. ADR-008 explicitly defers multi-value
+ *   taxonomy filtering, so there is no defined meaning to honour; picking one of the two would be
+ *   inventing that meaning, and it stays visible because no chip renders as active.
+ */
+function readSegmentParam(raw: string | string[] | undefined): string | null {
+  if (typeof raw !== "string") return null;
+
+  const trimmed = raw.trim();
+
+  return trimmed === "" ? null : trimmed;
+}
+
 export default async function ProductFamilyPage({
   params,
+  searchParams,
 }: {
   // A Promise in Next 15 — awaited below rather than destructured in the signature.
   readonly params: Promise<{ locale: string; slug: string }>;
+  /**
+   * Reading this opts the route into dynamic rendering, which costs nothing here: every fetch this
+   * page issues is `cache: "no-store"`, so the route was already dynamic before the filter existed
+   * (`lib/api-client.ts` records how that was verified). `generateStaticParams` still decides which
+   * slugs exist — the filter narrows a page, it never mints one.
+   */
+  readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
-  const { locale, slug } = await params;
+  const [{ locale, slug }, query] = await Promise.all([params, searchParams]);
+  const activeSegment = readSegmentParam(query.segment);
+
+  /*
+   * The product list is started here and deliberately NOT awaited. Data access stays at the route
+   * (FRONTEND_ARCHITECTURE §7) while the promise travels down to a `Suspense` boundary in the
+   * template, so a slow catalog service delays one section instead of eleven. It cannot reject —
+   * `getProductsByCategory` reports every API condition as a value.
+   *
+   * `slug` is the family's canonical default-locale identifier and the route segment, which under
+   * `dynamicParams = false` is guaranteed to be one of the registered six.
+   */
+  const products = getProductsByCategory(slug, locale, activeSegment ?? undefined);
 
   /*
    * `locale` is forwarded so the API can resolve the family's `name` in it — the one API-owned
@@ -152,5 +200,13 @@ export default async function ProductFamilyPage({
   const page = await resolveCategoryPage(slug, locale);
   if (!page) notFound();
 
-  return <ProductCategoryTemplate content={page.content} family={page.family} />;
+  return (
+    <ProductCategoryTemplate
+      content={page.content}
+      family={page.family}
+      locale={locale}
+      products={products}
+      activeSegment={activeSegment}
+    />
+  );
 }

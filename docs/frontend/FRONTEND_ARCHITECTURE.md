@@ -304,6 +304,18 @@ A single typed client, `src/lib/api-client.ts`:
 - **Writes** (form submissions — `Inquiry` including "Request Sample" CTAs, `CustomFormulationRequest`, `DistributorApplication`, `JobApplication`, `DownloadRequest`, `NewsletterSubscription` — all now modeled in [DATA_MODEL.md](../DATA_MODEL.md)): Next.js **Server Actions**, not client-side `fetch`. A form is a Client Component for interactive validation feedback, but the actual POST to NestJS runs in a Server Action, keeping the mutation server-side and taking advantage of React 19's Actions model already noted as a reason for choosing React 19 in [technology/FRONTEND_STACK.md](../technology/FRONTEND_STACK.md). **[NEW DECISION]** — not previously specified anywhere; Server Actions over client-side POSTs because it keeps API error handling and auth-header attachment in one server-side place rather than duplicated across every form component.
 - Errors from NestJS's `{ error: { code, message, details } }` shape are normalized into a small typed error the UI branches on (validation vs. auth vs. server) — never rendering a raw message or stack trace, consistent with the backend-side rule already in `API_DESIGN.md`.
 
+### [SHIPPED 15 August 2026 — the Product list client]
+
+Describes code that exists. `src/lib/` now holds three modules against the plan above: `api-client.ts` (transport and envelope), `catalog.ts` (Category), and `products.ts` (Product). One module per resource, all `server-only`, all `cache: "no-store"`.
+
+- **`getProductsByCategory(categorySlug, locale, segmentSlug?)`** is the only Product function. `GET /products/:slug` is deliberately absent — there is no Product Detail route to call it.
+- **Failure is a value, never a throw.** The result union separates `unknown-filter` (a 400 naming a rejected filter parameter — the only failure a visitor caused and the only one they can undo) from `unreachable` and `api-error`, because those need different words on the page. An empty list and a failed request are never rendered alike.
+- **Filtering is the API's, in full.** `apps/web` narrows nothing locally; ADR-008 fixes the semantics of combining `category` and `segment`, and a second implementation could only agree by coincidence.
+- **Filter state is URL state.** The Segment control is a row of links carrying `?segment={slug}`, so refresh, sharing and browser history work by construction and the section ships no client JavaScript. Reading `searchParams` costs nothing here: `no-store` had already made the route dynamic.
+- **One `Suspense` boundary, at the list.** The route creates the promise and does not await it; the template awaits it below a boundary. Without that, a hung catalog service would hold eleven sections of approved editorial content for the client's full ten-second timeout. **Data access still belongs to the route** — the promise is created there, per §7; the section fetches nothing.
+
+**Open, and named so it is not mistaken for done:** there is no Segment endpoint, so the eight approved Segment slugs are mirrored in `features/products/segments-data.ts` from `prisma/seed-catalog.ts`. That module is a stopgap with its reasoning written into it, and it is **deleted** — not kept in sync — by the gate that adds `GET /segments`.
+
 ---
 
 ## 12. SEO Integration

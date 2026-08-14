@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { ReactNode } from "react";
 
 /*
@@ -15,10 +16,21 @@ import type { ReactNode } from "react";
  */
 import "../../home/flagship.css";
 import "../products.css";
+/*
+ * The product list's own stylesheet, imported on exactly the principle stated for `products.css`
+ * above: the block is a Products-domain component reused here, and importing its CSS is what that
+ * reuse honestly costs. It is a separate file rather than a section of `category.css` because
+ * `ProductCard` is written against the `GET /products` row and the Product Finder lists the same
+ * row — a card styled inside the category template's stylesheet could not be reused without
+ * dragging this page along with it.
+ */
+import "../product-list.css";
 import "./category.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav } from "@/features/site/site-nav";
+
+import type { ProductListResult } from "@/lib/products";
 
 /*
  * §4 item 12, the "Product Page CTA (shared, per §3)", is genuinely shared — SITE_STRUCTURE
@@ -36,6 +48,7 @@ import type { ProductFamily } from "../products-data";
 
 import type { ProductCategoryContent } from "./category-contract";
 import { CategoryApplications } from "./sections/applications";
+import { CategoryCatalog, CategoryCatalogSkeleton } from "./sections/catalog";
 import { CategoryDocumentation } from "./sections/documentation";
 import { CategoryFaq } from "./sections/faq";
 import { CategoryHero } from "./sections/hero";
@@ -59,6 +72,7 @@ import { CategorySupply } from "./sections/supply";
  *  1 Hero                    → `CategoryHero`
  *  2 Overview                → `CategoryOverview`
  *  3 Product Range           → `CategoryRangeSection`
+ *  – Published products      → `CategoryCatalog` — see below; not one of §4's twelve
  *  4 Key Specifications      → `CategoryProperties`
  *  5 Processing & Quality    → `CategoryQuality` (the named-process block is Base-Oil-only,
  *                              and optional in the contract for exactly that reason)
@@ -76,12 +90,32 @@ import { CategorySupply } from "./sections/supply";
  * FAQ, Documentation, and Customization sections link back to …" — rendered as one strip rather
  * than three scattered links.
  *
+ * `CategoryCatalog` is not one of the twelve either, and for a plainer reason: §4 was written when
+ * `apps/web` had no Product entity at all. It states the family's CATALOG — the `Product` rows
+ * `sam_platform` actually holds — where item 3 above it states the family's approved TAXONOMY.
+ * Two different claims, so two blocks; see the section's own note.
+ *
  * ── What this page is ───────────────────────────────────────────────────────
  *
  * **Entirely server-rendered.** Not one component here carries `"use client"`. The range is
  * links and text, the specification table is a `<table>`, the FAQ is `<details>`, and every
  * reveal is the design system's scroll-driven CSS. The only client JavaScript on the page is the
  * header's, inherited from the shared chrome — the same budget the frozen landing holds to.
+ *
+ * **The Segment filter does not change that.** It is a row of links to this same route carrying a
+ * `?segment=` query, so filter state lives in the URL, refresh and sharing work by construction,
+ * and the browser's history is the state machine. No control, no handler, no hydration.
+ *
+ * ── Why the catalog is the one section inside a `Suspense` boundary ─────────
+ *
+ * The route creates the product-list promise and does **not** await it, so this template streams
+ * the eleven sections that owe the catalog nothing while that request is in flight. Without the
+ * boundary, a slow catalog service would hold the whole page for up to the API client's ten-second
+ * timeout — approved editorial content blocked on a list it does not depend on, which is the same
+ * failure ADR-010 §7 forbids in its stronger form.
+ *
+ * Data access still belongs to the route (FRONTEND_ARCHITECTURE §7): the promise is created there
+ * and passed down. This template awaits nothing and fetches nothing.
  *
  * ── Lift path ───────────────────────────────────────────────────────────────
  *
@@ -103,6 +137,9 @@ import { CategorySupply } from "./sections/supply";
 export function ProductCategoryTemplate({
   content,
   family,
+  locale,
+  products,
+  activeSegment,
 }: {
   readonly content: ProductCategoryContent;
   /*
@@ -111,8 +148,25 @@ export function ProductCategoryTemplate({
    * the header's mega menu therefore cannot disagree about what this category is called.
    */
   readonly family: ProductFamily;
+  /** The active locale segment. Half of every filter link the catalog section emits. */
+  readonly locale: string;
+  /** Created by the route and deliberately un-awaited — see the boundary note above. */
+  readonly products: Promise<ProductListResult>;
+  /** The normalized `?segment=` value, or `null` for the unfiltered view. */
+  readonly activeSegment: string | null;
 }): ReactNode {
   const props = { content, family } as const;
+  /*
+   * The catalog section takes the family's canonical identifier rather than the fixture's or the
+   * route's, and they are the same string by the invariant `products-data.ts` enforces at module
+   * load. Taking it from the resolved family record is what makes that explicit: this is the value
+   * that goes on the wire as `?category=`, so it must be the one identity ADR-009 froze.
+   */
+  const catalog = {
+    locale,
+    familySlug: family.id,
+    activeSegment,
+  } as const;
 
   return (
     <div data-brand="flagship">
@@ -122,6 +176,11 @@ export function ProductCategoryTemplate({
         <CategoryHero {...props} />
         <CategoryOverview {...props} />
         <CategoryRangeSection {...props} />
+
+        <Suspense fallback={<CategoryCatalogSkeleton {...catalog} />}>
+          <CategoryCatalog {...catalog} products={products} />
+        </Suspense>
+
         <CategoryProperties {...props} />
         <CategoryQuality {...props} />
         <CategoryApplications {...props} />

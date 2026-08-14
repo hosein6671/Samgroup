@@ -1,0 +1,333 @@
+/*
+ * SAM GROUP — PRODUCT LIST
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * The same constraint `category.css` states for itself: it declares no colour, no typeface, no
+ * radius and no easing of its own. Every value resolves to a token already declared by
+ * `flagship.css` inside `[data-brand="flagship"]` or by the design system's generated theme, and
+ * where a construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`,
+ * `.fs-eyebrow`, `.fs-d2`, `.fs-lead` — it is used directly rather than restated under a `pl-`
+ * name.
+ *
+ * It is a separate file from `category.css` because the product list is not a category-page
+ * construction. `ProductCard` is written against the `GET /products` list row, and the Product
+ * Finder is the next surface that lists the same rows; a card whose styles lived inside the
+ * category template's stylesheet would be a card the finder could not reuse without importing a
+ * page it has nothing to do with.
+ *
+ * Imported by `category-template.tsx`, on the same principle that file already applies to
+ * `products.css`: importing a stylesheet is what reusing a component honestly costs.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`,
+ * no JavaScript.
+ */
+
+/* ============================================================================
+   SECTION SHELL
+   ============================================================================ */
+
+.pl-sec {
+  position: relative;
+}
+
+/*
+ * Heading left, the two explanatory lines right — the same split the specification section uses,
+ * so two adjacent light sections carry the same header grammar.
+ */
+.pl-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: end;
+}
+
+.pl-head h2 {
+  margin-top: 18px;
+}
+
+.pl-head-note {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/*
+ * The "not links" caveat.
+ *
+ * Set as a technical annotation rather than as body copy, because it is a statement about the
+ * interface rather than about the products — and it has to keep reading that way when the Product
+ * Detail gate deletes it.
+ */
+.pl-head-caveat {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   SEGMENT FILTER
+   ============================================================================ */
+
+.pl-filter {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: clamp(20px, 2.6vw, 44px);
+  align-items: baseline;
+  margin-top: clamp(28px, 3vw, 44px);
+  padding-block: clamp(18px, 2vw, 26px);
+  border-top: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+/* The same 68px index column the range register uses, so the two blocks share one left edge. */
+.pl-filter-label {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pl-filter-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * A chip is a link, and is drawn as one — individually bordered, never separated by a gap over a
+ * ruled background. `category.css` states the reasoning where it first applies: the gap technique
+ * paints every unfilled track in the rule colour, which reads as an item that failed to load.
+ */
+.pl-chip {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 999px;
+  font-family: var(--font-technical);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.pl-chip:hover,
+.pl-chip:focus-visible {
+  border-color: var(--color-border-accent);
+  color: var(--color-text-primary);
+}
+
+/*
+ * The active filter. Marked by `data-active` and `aria-current` together — the attribute the
+ * stylesheet reads and the one a screen reader reads are set from the same condition in the
+ * component, so the visual state and the announced state cannot disagree.
+ */
+.pl-chip[data-active="true"] {
+  border-color: var(--color-border-accent);
+  background: var(--color-surface-canvas);
+  color: var(--color-text-accent);
+}
+
+/* ============================================================================
+   COUNT
+   ============================================================================ */
+
+.pl-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: clamp(22px, 2.4vw, 32px) 0 clamp(16px, 1.8vw, 22px);
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pl-count span {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-accent);
+}
+
+.pl-count small {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-tertiary);
+}
+
+.pl-count--pending {
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   THE CARDS
+   ============================================================================ */
+
+/*
+ * `auto-fill` rather than `auto-fit`. A family holding one product keeps a card of readable
+ * measure at the left edge instead of one card stretched across the full wrap — which at 1280px
+ * would give a two-line description a 1200px line length.
+ */
+.pl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.pl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(18px, 1.8vw, 24px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  background: var(--color-surface-canvas);
+}
+
+.pl-card-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(17px, 1.4vw, 20px);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+/*
+ * Clamped, not truncated. The component's own note explains why the string is never cut in
+ * JavaScript; this is the height bound that replaces it. Five lines holds the seeded placeholder
+ * disclaimer's first two clauses, which is the part that has to be readable without expanding.
+ */
+.pl-card-summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   PENDING STATE
+   ============================================================================ */
+
+/*
+ * The streaming placeholder. Static bars, no shimmer animation: the reveal vocabulary on this page
+ * is scroll-driven CSS with a `prefers-reduced-motion` gate in `packages/ui`, and a looping
+ * keyframe introduced here would be the one piece of motion on the page that answers to neither.
+ */
+.pl-card--pending {
+  gap: 12px;
+}
+
+.pl-skeleton {
+  display: block;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--color-border-hairline);
+}
+
+.pl-skeleton--name {
+  height: 16px;
+  width: 62%;
+}
+
+.pl-skeleton--line {
+  width: 100%;
+}
+
+.pl-skeleton--short {
+  width: 74%;
+}
+
+/* ============================================================================
+   NOTICES — empty, filtered-empty, unknown filter, unavailable
+   ============================================================================ */
+
+/*
+ * One construction for all four. They are the same kind of statement — something true about the
+ * list rather than a list — and drawing them alike is what keeps "no products match this segment"
+ * from looking like a more serious event than it is.
+ */
+.pl-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: clamp(22px, 2.4vw, 32px);
+  border: 1px dashed var(--color-border-hairline);
+  border-radius: 12px;
+}
+
+.pl-notice-heading {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.pl-notice-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+
+.pl-notice-reset {
+  margin-top: 4px;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
+  text-underline-offset: 4px;
+}
+
+/* ============================================================================
+   NARROW
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  /* The header's two columns stack; the caveat stays under the lead it qualifies. */
+  .pl-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  /*
+   * The filter loses its index column. A 68px label track beside wrapping chips spends a quarter
+   * of the measure on one word, and the label reads perfectly well above them.
+   */
+  .pl-filter {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .pl-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
