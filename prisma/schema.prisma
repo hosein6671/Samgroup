@@ -39,6 +39,31 @@
 //   1. locales_single_default              — only one Locale.isDefault
 //   2. redirects_from_path_global          — unique from_path where locale IS NULL
 //   3. content_translations_unique_slug    — unique slug per (entity_type, locale)
+//
+// ADR-011 adds a second group of hand-written objects, in migration
+// 20260814120000_add_product_slug_namespace_registry. Prisma models the
+// ProductSlugClaim TABLE below; everything that MAINTAINS it is SQL this file
+// cannot express, so it lives only in that migration and is listed here for the
+// same reason the three above are — nothing else makes it visible.
+//
+//   Functions:
+//     slug_key(text)                        — lower(normalize(value, NFC))
+//     product_slug_reserved()               — the ADR-010 §4 reserved values
+//     product_slug_sources()                — the full candidate set, all 3 tables
+//     product_slug_owner_exists(...)        — INV-3 owner check
+//     product_slug_owner_uses_key(...)      — the release recomputation
+//     product_slug_claim(...)               — the one claim implementation
+//     product_slug_release(...)             — the one guarded release
+//     product_slug_release_owner(...)       — unconditional release on entity delete
+//     product_slug_tg_* (9)                 — one trigger function per table/event
+//
+//   Triggers (statement-level AFTER, with transition tables), 9 in total:
+//     product_slug_categories_{insert,update,delete}
+//     product_slug_products_{insert,update,delete}
+//     product_slug_translations_{insert,update,delete}
+//
+// `prisma migrate reset` drops all of it, exactly as it drops the three
+// constraints above; `prisma migrate deploy` restores it.
 // =============================================================================
 
 // Prisma 7 no longer accepts `url` here — the connection string for Migrate
@@ -302,6 +327,50 @@ model SegmentProductType {
   @@id([segmentId, productTypeId])
   @@index([productTypeId])
   @@map("segment_product_types")
+}
+
+/// The `/{locale}/products/{slug}` namespace registry — [ADR-011](../docs/ADR/ADR-011-products-slug-namespace-enforcement.md).
+///
+/// One row per normalized slug key claimed by a Product Family (`Category`) or a
+/// Product. `slugKey` is `lower(normalize(value, NFC))`, and **its primary key IS
+/// the invariant**: ADR-010 §5's union spans three tables, and PostgreSQL has no
+/// cross-table unique constraint, so the rule is expressed as a fourth relation
+/// on which one unique key means what no per-table key can.
+///
+/// **TRIGGER-MAINTAINED. NEVER WRITE THIS TABLE FROM APPLICATION CODE** — not
+/// from `apps/api`, not from a seed, not from an import. Nine statement-level
+/// AFTER triggers on `categories`, `products` and `content_translations` claim
+/// and release on its behalf, which is the whole point: every writer is enforced
+/// without opting in, including the direct-Prisma seeds this repository is
+/// currently made of. An application-written registry would silently drift from
+/// the tables it describes, and a registry that can disagree with reality is
+/// worse than none because it still looks authoritative.
+///
+/// One key belongs to exactly ONE entity globally, across every locale (INV-1) —
+/// intentionally stricter than route disambiguation requires, for the reasons
+/// ADR-011 §2 records. The SAME owner may back one key from several sources (its
+/// base slug plus its translated slug rows) and still holds exactly ONE row here.
+///
+/// Deliberately absent, each because release RECOMPUTES from the source tables
+/// rather than counting: no refcount, no source-row list, no `createdAt`, and no
+/// surrogate id. A counter is a second copy of the truth that can drift; a
+/// recomputed `EXISTS` cannot, and a hand-repaired row self-heals on next write.
+model ProductSlugClaim {
+  slugKey   String @id @map("slug_key")
+  /// The literal claimed value, kept for debugging only — **never compared**.
+  /// Comparison is always on `slugKey`. Where one owner holds the same key from
+  /// several sources, this carries whichever the backfill or the claim saw.
+  slug      String
+  ownerType String @map("owner_type")
+  ownerId   String @map("owner_id") @db.Uuid
+
+  // No relation to Category or Product, and none is possible: `ownerType`
+  // selects between two tables, the same polymorphic shape ContentTranslation
+  // and SeoMeta already use. Owner existence is enforced in the trigger (INV-3),
+  // scoped to these two entity types, not by a foreign key.
+
+  @@index([ownerType, ownerId])
+  @@map("product_slug_claims")
 }
 
 // --- Media -------------------------------------------------------------------
