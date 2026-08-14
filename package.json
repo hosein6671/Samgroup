@@ -17,6 +17,7 @@
     "test": "turbo run test",
     "seed:catalog": "tsx prisma/seed-catalog.ts",
     "seed:categories": "tsx prisma/seed-categories.ts",
+    "seed:products:demo": "tsx prisma/seed-products-demo.ts",
     "prepare": "husky"
   },
   "dependencies": {

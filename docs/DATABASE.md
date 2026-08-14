@@ -51,8 +51,9 @@ Role → permission mapping lives in [SECURITY.md](./SECURITY.md).
 - Specifications
 - Images
 - Documents
+- Product Slug Claim — the `/{locale}/products/{slug}` namespace registry ([ADR-011](./ADR/ADR-011-products-slug-namespace-enforcement.md)); **trigger-maintained, never written from application code**
 
-`Segment` and `Product Type` are **implemented in `prisma/schema.prisma`**: accepted architecture from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md), translated into the models `Segment`, `ProductType`, `ProductSegment` and `SegmentProductType` plus nullable `Product.productTypeId`, by migration `20260812160853_add_product_taxonomy_v2`. The approved Segment reference data is applied by a **dedicated, idempotent, explicitly-invoked catalog seed** — `prisma/seed-catalog.ts`, run as `pnpm seed:catalog` and never wired into `prisma db seed`. The eight approved Segment rows were populated in the local DEV `sam_platform` during that gate. **`Product Type` reference data and both membership joins remain unpopulated**, since no Product Type vocabulary is approved. `Category` is the Product Family axis and is unchanged. Field-level shapes, cardinalities and delete behaviour are in [DATA_MODEL.md](./DATA_MODEL.md). No Segment slug, no Product Type row and no Segment-to-Product-Type membership is approved.
+`Segment` and `Product Type` are **implemented in `prisma/schema.prisma`**: accepted architecture from [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md), translated into the models `Segment`, `ProductType`, `ProductSegment` and `SegmentProductType` plus nullable `Product.productTypeId`, by migration `20260812160853_add_product_taxonomy_v2`. The approved Segment reference data is applied by a **dedicated, idempotent, explicitly-invoked catalog seed** — `prisma/seed-catalog.ts`, run as `pnpm seed:catalog` and never wired into `prisma db seed`. The eight approved Segment rows were populated in the local DEV `sam_platform` during that gate. **`Product Type` reference data and `SegmentProductType` remain unpopulated**, since no Product Type vocabulary is approved; the only `ProductSegment` rows in existence are the DEMO memberships described below. `Category` is the Product Family axis and is unchanged. Field-level shapes, cardinalities and delete behaviour are in [DATA_MODEL.md](./DATA_MODEL.md). No Segment slug, no Product Type row and no Segment-to-Product-Type membership is approved.
 
 The six Product Family Categories (names and URLs from [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#3-products) §0/§4; the identifier rule is frozen by [ADR-009](./ADR/ADR-009-product-family-canonical-identifier.md)):
 
@@ -67,7 +68,19 @@ The six Product Family Categories (names and URLs from [SITE_STRUCTURE.md](./SIT
 
 `Category` reference data has its own implemented mechanism, separate from the Segment one above: the **dedicated Category seed** `prisma/seed-categories.ts`, run as `pnpm seed:categories`. It is idempotent (upsert by `slug`, name-only updates, no deletes), refuses to run unless `current_database()` is `sam_platform`, and is **explicit-only — never wired into `prisma db seed`**, which stays locale-only. These six rows were populated in the local DEV `sam_platform` during that gate, all as **root categories (`parentId = null`)**; no claim is made about any other environment.
 
-Still absent, and not created by that seed: any `Product` row, any `ProductType` row or membership, any `ContentTranslation` or `SeoMeta` record for a Category, and any Payload `ProductCategoryContent` entry. Frontend fetch integration for the Product Family pages is likewise not implemented.
+Still absent, and not created by that seed: any `ProductType` row or `SegmentProductType` membership, any `ContentTranslation` or `SeoMeta` record for a Category, and any Payload `ProductCategoryContent` entry.
+
+### Product rows — DEMO / PLACEHOLDER only
+
+`products` in the local DEV `sam_platform` holds **ten DEMO / PLACEHOLDER rows and nothing else**. They are **NON-AUTHORITATIVE** presentation and testing data, written so the catalog API and a future Product Detail route have something to serve during a client demonstration. **They are not SAM Group catalog content**, they carry no specification, approval, packaging, quantity or availability claim, and **they must be replaced with approved commercial product data before launch**. A production deployment must never treat them as approved catalog content.
+
+They come from a **third dedicated seed**, `prisma/seed-products-demo.ts`, run as `pnpm seed:products:demo`. It is separate from both seeds above precisely because those write APPROVED reference vocabulary and this writes acknowledged placeholder data; one command must not be capable of both. It is guarded four ways: `current_database()` must be `sam_platform`; the acknowledgement `SAM_ALLOW_DEMO_PRODUCT_SEED=true` must be present; that acknowledgement is read **before** `.env` is loaded, so parking it in a file cannot arm the seed; and it is **never wired into `prisma db seed`**. It is idempotent — upsert by `slug`, so `Product.id` survives a rerun — and it deletes nothing except the Product↔Segment memberships of the demo Products it declares.
+
+Every demo row carries the `SAM Demo` name prefix and the `sam-demo-` slug prefix, which is what marks it as demo-owned from any surface. Ten Products span all six Product Families; eighteen `ProductSegment` memberships span all eight Segments. `Product.productTypeId` is null on every one — no Product Type vocabulary is approved — and the seed creates no `ProductType`, `Specification`, `ContentTranslation`, `SeoMeta` or `Media` row.
+
+The seed **never writes `product_slug_claims`**. Each demo Product's namespace claim was produced by the ADR-011 triggers on insert, which is what makes the claim registry evidence rather than assertion.
+
+Frontend fetch integration for the Product Family pages does not read `GET /products`, so these rows appear on no page today.
 
 Base Oils has a Virgin vs. Recycled distinction — captured as a `Specification` key/value pair, not a separate column or table.
 
