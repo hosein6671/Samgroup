@@ -18,6 +18,7 @@
     "seed:catalog": "tsx prisma/seed-catalog.ts",
     "seed:categories": "tsx prisma/seed-categories.ts",
     "seed:products:demo": "tsx prisma/seed-products-demo.ts",
+    "seed:blog:demo": "tsx prisma/seed-blog-demo.ts",
     "prepare": "husky"
   },
   "dependencies": {

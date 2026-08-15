@@ -92,6 +92,18 @@ Base Oils has a Virgin vs. Recycled distinction — captured as a `Specification
 - Categories
 - Tags
 
+#### Blog rows — DEMO / PLACEHOLDER only
+
+`blog_posts` in the local DEV `sam_platform` holds **five DEMO / PLACEHOLDER rows and nothing else**, and `blog_categories` holds **one**. They are **NON-AUTHORITATIVE** presentation and testing data, written so the blog API and the Insights routes have something to serve during a client demonstration. **They are not SAM Group editorial content** — no company announcement, certification, market statistic, customer story, technical assertion or author appears in any of them, and every title and body says so in its own text. **They must be replaced with approved editorial content before launch**, and a production deployment must never treat them as published articles.
+
+They come from a **fourth dedicated seed**, `prisma/seed-blog-demo.ts`, run as `pnpm seed:blog:demo`. It is guarded exactly as the demo Product seed is: `current_database()` must be `sam_platform`; the acknowledgement `SAM_ALLOW_DEMO_BLOG_SEED=true` must be present; that acknowledgement is read **before** `.env` is loaded, so parking it in a file cannot arm the seed; and it is **never wired into `prisma db seed`**. It is idempotent — upsert by `slug`, so `BlogPost.id` survives a rerun — and it **deletes nothing at all**.
+
+Every demo row carries the `Demo:` title prefix and the `sam-demo-` slug prefix, which is what marks it as demo-owned from any surface. The single `BlogCategory` (`Demo Content` / `sam-demo-insights`) exists **only because `blog_posts.category_id` is NOT NULL**; it is not a proposal for the blog taxonomy. [SITE_STRUCTURE.md](./SITE_STRUCTURE.md) §8 names five candidate blog categories and **none of them is approved as reference data**, so none is seeded.
+
+The seed creates **no `BlogTag` and no `BlogPostTag` row** — no blog tag vocabulary is approved — **no author** (`author_id` stays null on every row; `users` is empty), and **no `ContentTranslation` or `SeoMeta` record**. Each post's `published_at` is a fixed placeholder date inside one nine-day window; it exists only because a post with no publication date is served by nothing, and it is not a publication history.
+
+Blog slugs are **not** part of the ADR-011 products slug namespace. `product_slug_claims` is maintained by triggers that read `categories`, `products` and `content_translations` where `entity_type IN ('Category','Product')` only; `/{locale}/insights/{slug}` is a separate namespace whose uniqueness comes from `blog_posts.slug` alone. The seed reports the claim count before and after so that stays checkable rather than merely asserted.
+
 ---
 
 ### CMS

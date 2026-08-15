@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter";
 import { ResponseEnvelopeInterceptor } from "./common/interceptors/response-envelope.interceptor";
 import configuration from "./config/configuration";
 import { validateEnv } from "./config/env.validation";
+import { BlogModule } from "./modules/blog/blog.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { LocalizationModule } from "./modules/localization/localization.module";
 import { SeoModule } from "./modules/seo/seo.module";
@@ -26,6 +27,7 @@ import { PrismaModule } from "./prisma/prisma.module";
     PrismaModule,
     LocalizationModule,
     CatalogModule,
+    BlogModule,
     SeoModule,
     SystemModule,
   ],

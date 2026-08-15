@@ -1,0 +1,522 @@
+/*
+ * SAM GROUP — INSIGHTS
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * The same constraint `product-list.css` and `product-detail.css` state for themselves: it declares
+ * no colour, no typeface, no radius and no easing of its own. Every value resolves to a token
+ * already declared by `flagship.css` inside `[data-brand="flagship"]` or by the design system's
+ * generated theme, and where a construction already exists as flagship vocabulary — `.fs-wrap`,
+ * `.fs-sec`, `.fs-eyebrow`, `.fs-d1`/`.fs-d2`, `.fs-lead`, `.fs-btn`, `.fs-blueprint` — it is used
+ * directly rather than restated under an `in-` name.
+ *
+ * It is a separate file from the product stylesheets rather than an extension of them. The card,
+ * the notice and the skeleton here are visually close relatives of `.pl-card`, `.pl-notice` and
+ * `.pl-skeleton`, and they are deliberately NOT the same selectors: those are written against the
+ * `GET /products` row and live in a file the Product Finder imports. Reusing them would mean an
+ * Insights page importing a product stylesheet, and would couple two lists that are free to diverge.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`, no
+ * JavaScript.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * Index: one dark hero, then one light list section. Article: one dark header carrying the title and
+ * its two facts, then one light body. Both are short, and both have to read as deliberately short
+ * rather than as unfinished — there is no editorial furniture on either, because none of it has data
+ * behind it.
+ */
+
+/* ============================================================================
+   INDEX — HERO
+   ============================================================================ */
+
+.in-hero {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(56px, 6vw, 88px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.in-hero-inner {
+  position: relative;
+}
+
+.in-hero-title {
+  margin: 18px 0 0;
+  max-width: 18ch;
+}
+
+.in-hero-lead {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  max-width: 56ch;
+}
+
+/* ============================================================================
+   INDEX — COUNT AND FALLBACK NOTICE
+   ============================================================================ */
+
+.in-count {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 clamp(16px, 1.8vw, 22px);
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.in-count span {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-accent);
+}
+
+.in-count small {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-tertiary);
+}
+
+.in-count--pending {
+  color: var(--color-text-tertiary);
+}
+
+/*
+ * The locale-fallback notice. Deliberately quiet: it reports a translation state, not a fault, and
+ * drawing it as a warning would make an untranslated article look like a broken one.
+ */
+.in-fallback-note {
+  margin: 0 0 clamp(18px, 2vw, 26px);
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-tertiary);
+}
+
+.in-fallback-note--dark {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   INDEX — THE CARDS
+   ============================================================================ */
+
+/*
+ * `auto-fill` rather than `auto-fit`. An index holding one post keeps a card of readable measure at
+ * the left edge instead of one card stretched across the full wrap.
+ */
+.in-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.in-card {
+  /* The containing block for `.in-card-link::after`, which spreads the hit area over the card. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: clamp(20px, 2vw, 28px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  background: var(--color-surface-canvas);
+  transition: border-color 0.2s ease;
+}
+
+.in-card:hover {
+  border-color: var(--color-border-accent);
+}
+
+/* The category and the date on one technical line, so the title below is the card's only voice. */
+.in-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.in-card-category {
+  color: var(--color-text-accent);
+}
+
+.in-card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(18px, 1.5vw, 22px);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+}
+
+/*
+ * The heading is the link, not the card — see `insight-card.tsx` for why.
+ *
+ * `::after` stretches the hit area over the whole card so the target is a card rather than a line of
+ * text, while the ACCESSIBLE NAME stays just the post's title.
+ */
+.in-card-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.in-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.in-card:hover .in-card-link,
+.in-card-link:focus-visible {
+  color: var(--color-text-accent);
+}
+
+/* The focus ring belongs on the card, since the card is what the pointer target covers. */
+.in-card:has(.in-card-link:focus-visible) {
+  outline: 2px solid var(--color-border-accent);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   INDEX — PENDING STATE
+   ============================================================================ */
+
+/*
+ * Static bars, no shimmer animation: the reveal vocabulary on this page is scroll-driven CSS with a
+ * `prefers-reduced-motion` gate in `packages/ui`, and a looping keyframe introduced here would be
+ * the one piece of motion on the page that answers to neither.
+ */
+.in-card--pending {
+  gap: 14px;
+}
+
+.in-skeleton {
+  display: block;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--color-border-hairline);
+}
+
+.in-skeleton--meta {
+  height: 9px;
+  width: 46%;
+}
+
+.in-skeleton--title {
+  height: 16px;
+  width: 100%;
+}
+
+.in-skeleton--short {
+  width: 68%;
+}
+
+/* ============================================================================
+   INDEX — PAGER
+   ============================================================================ */
+
+.in-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: clamp(16px, 2vw, 28px);
+  margin-top: clamp(28px, 3vw, 44px);
+  padding-top: clamp(18px, 2vw, 26px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.in-pager-position {
+  margin: 0;
+  /* Pushed between the two controls so Newer sits left and Older sits right. */
+  order: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.in-pager-link {
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.in-pager-link:hover,
+.in-pager-link:focus-visible {
+  color: var(--color-text-accent);
+}
+
+/* ============================================================================
+   NOTICES — empty, filtered-empty, unknown category, unavailable
+   ============================================================================ */
+
+/*
+ * One construction for all of them. They are the same kind of statement — something true about the
+ * index rather than an index — and drawing them alike is what keeps "no posts in this category" from
+ * looking like a more serious event than it is.
+ */
+.in-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: clamp(22px, 2.4vw, 32px);
+  border: 1px dashed var(--color-border-hairline);
+  border-radius: 12px;
+}
+
+.in-notice-heading {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.in-notice-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+
+.in-notice-reset {
+  margin-top: 4px;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
+  text-underline-offset: 4px;
+}
+
+/* ============================================================================
+   ARTICLE — HEADER
+   ============================================================================ */
+
+.in-post-head {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(48px, 5vw, 72px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.in-post-head-inner {
+  position: relative;
+}
+
+/*
+ * The trail is a logical hierarchy, not a URL one — see the component's note. Drawn as a single
+ * technical line so it reads as orientation rather than as navigation competing with the header.
+ */
+.in-crumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 clamp(24px, 3vw, 38px);
+  padding: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.in-crumbs li + li::before {
+  content: "/";
+  margin-inline-end: 8px;
+  color: var(--color-text-tertiary);
+}
+
+.in-crumbs a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.in-crumbs a:hover,
+.in-crumbs a:focus-visible {
+  color: var(--color-text-accent);
+}
+
+/* The current crumb: a title can be long, so it is clamped to one line rather than wrapping the row. */
+.in-crumbs li[aria-current="page"] {
+  max-width: 42ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.in-post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 clamp(14px, 1.6vw, 20px);
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.in-post-category {
+  color: var(--color-text-accent);
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+
+.in-post-category:hover,
+.in-post-category:focus-visible {
+  text-decoration: underline;
+}
+
+.in-post-title {
+  margin: 0;
+  max-width: 22ch;
+}
+
+/* ============================================================================
+   ARTICLE — BODY
+   ============================================================================ */
+
+.in-post-body-inner {
+  /*
+   * A single measured column. The body is the only thing on this section, and a full-wrap paragraph
+   * at 1280px would be a 1200px line length.
+   */
+  max-width: 68ch;
+}
+
+.in-post-body-inner p {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  /* The body is plain text and may carry long unbroken strings; this keeps them inside the column. */
+  overflow-wrap: anywhere;
+}
+
+.in-post-tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(24px, 3vw, 36px) 0 0;
+  padding: 0;
+}
+
+.in-post-tags li {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 999px;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+}
+
+.in-post-back {
+  margin: clamp(28px, 3vw, 44px) 0 0;
+  padding-top: clamp(18px, 2vw, 26px);
+  border-top: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+}
+
+.in-post-back a {
+  color: var(--color-text-primary);
+  text-underline-offset: 4px;
+}
+
+.in-post-back a:hover,
+.in-post-back a:focus-visible {
+  color: var(--color-text-accent);
+}
+
+/* ============================================================================
+   ARTICLE — UNAVAILABLE
+   ============================================================================ */
+
+.in-unavailable {
+  position: relative;
+  padding-block: clamp(128px, 15vh, 188px) clamp(72px, 8vw, 112px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.in-unavailable-inner {
+  position: relative;
+}
+
+.in-unavailable-title {
+  margin: 18px 0 0;
+  max-width: 20ch;
+}
+
+.in-unavailable-lead {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  max-width: 58ch;
+}
+
+.in-unavailable-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3vw, 44px);
+}
+
+/* ============================================================================
+   NARROW
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  .in-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The pager stacks; the position line reads above the two controls rather than between them. */
+  .in-pager {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .in-pager-position {
+    order: -1;
+  }
+}

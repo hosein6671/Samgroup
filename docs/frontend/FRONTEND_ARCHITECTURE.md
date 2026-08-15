@@ -163,7 +163,7 @@ Per-page composition, cross-referencing [SITE_STRUCTURE.md](../SITE_STRUCTURE.md
 | Customized Solutions            | `/[locale]/customized-solutions`                                                           | `CustomizationProcess` (GSAP, §8), `PrivateLabelProgramme`, `CaseExamples`, `CustomFormulationRequestForm`                                                                                 | Payload (Pages) + Prisma (`CustomFormulationRequest` on submit)                                                                                                |
 | Export & Logistics              | `/[locale]/export-logistics`                                                               | `GlobalExportMap`, `ManufacturingJourney` (GSAP, §8), `IncotermsBlock`                                                                                                                     | Payload (Pages) + Mapbox (client)                                                                                                                              |
 | Quality & Certifications        | `/[locale]/quality-certifications`                                                         | `ResearchLaboratory` (proposed home — see below), `CertificationsGrid`, `SamplingPolicy`                                                                                                   | Payload (Pages)                                                                                                                                                |
-| Insights (Blog index + article) | `/[locale]/insights`, `/[locale]/insights/[postSlug]`                                      | `EditorialInsights`                                                                                                                                                                        | Prisma (BlogPost, BlogCategory, BlogTag)                                                                                                                       |
+| Insights (Blog index + article) | `/[locale]/insights`, `/[locale]/insights/[slug]` — **implemented**                        | `InsightsTemplate`, `InsightCard`, `PostTemplate`, `PostUnavailable` (`features/insights/`)                                                                                                | Prisma (BlogPost, BlogCategory, BlogTag) via `GET /api/v1/blog/posts` ([API_CONTRACT_FINAL.md §2.3a](../API_CONTRACT_FINAL.md))                                |
 | Contact Us                      | `/[locale]/contact-us`, `/[locale]/contact-us/request-a-quote`                             | `InquiryForm`, `PartnershipCTA`                                                                                                                                                            | Payload (Pages) + Prisma (`Inquiry` on submit)                                                                                                                 |
 | Become a Distributor            | `/[locale]/become-a-distributor`                                                           | `DistributorApplicationForm`                                                                                                                                                               | Payload (Pages) + **new entity needed, not yet in `DATA_MODEL.md`** — see [SITE_STRUCTURE.md](../SITE_STRUCTURE.md#data-model-gaps-surfaced-by-this-structure) |
 | FAQ                             | `/[locale]/faq`                                                                            | `FaqAccordion`                                                                                                                                                                             | Payload content (likely a new collection — not yet modeled)                                                                                                    |
@@ -216,7 +216,15 @@ features/
 │   ├── research-laboratory.tsx        # proposed — see §3
 │   └── certifications-grid.tsx
 ├── blog/                               # folder name kept as "blog" internally even though the route/nav label is "Insights" — avoids churn if the public label changes again
-│   └── editorial-insights.tsx
+│   ├── editorial-insights.tsx
+│   ├── insights-template.tsx           # implemented — the /{locale}/insights index shell
+│   ├── insights-query.ts               # implemented — ?category= / ?page= URL state
+│   ├── insight-card.tsx                # implemented — one GET /blog/posts row
+│   ├── published-date.tsx              # implemented — locale-formatted <time>
+│   ├── post-template.tsx               # implemented — the article page
+│   ├── post-unavailable.tsx            # implemented — blog-service-down state, never a 404
+│   ├── resolve-post.ts                 # implemented — per-request memoized lookup
+│   └── sections/                       # implemented — hero.tsx, list.tsx
 ├── faq/
 │   └── faq-accordion.tsx
 ├── careers-partners/

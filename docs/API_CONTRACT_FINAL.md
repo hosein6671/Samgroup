@@ -75,6 +75,29 @@ All paths prefixed `/api/v1`. **P** = public (no token), **A** = authenticated, 
 
 `:slug` accepts the **locale-specific slug** resolved via `ContentTranslation` ([INTERNATIONALIZATION_STRATEGY.md §3](./i18n/INTERNATIONALIZATION_STRATEGY.md#3-content-localization)).
 
+### 2.3a Blog / Insights _(Prisma)_ **[ADDED — APPROVED]**
+
+| Method | Path                | Auth | Purpose                                                     |
+| ------ | ------------------- | ---- | ----------------------------------------------------------- |
+| GET    | `/blog/posts`       | P    | Published posts, newest first; `?category=`, `page`, `sort` |
+| GET    | `/blog/posts/:slug` | P    | One published post + its category + tags                    |
+
+**Why these were added.** Before this pass the only public blog read in this document was `GET /pages/insights` (§2.5), which composes an **Insights Global** — a Payload object — with the post list. Payload is not implemented, so that endpoint cannot be built yet; and because no blog **resource** endpoint was listed, the Article page (`/{locale}/insights/[slug]`, [SITE_STRUCTURE.md §0](./SITE_STRUCTURE.md#0-full-sitemap)) had no endpoint anywhere in this contract. That is a gap rather than a deliberate exclusion — §2.5 itself states the composition endpoints are "additive, not a replacement" and that resource endpoints "remain the foundation".
+
+These two fill it in the shape §2.3 already fixes: same envelope, same `?locale=`, same pagination `meta`, same `localeFallback`, and `:slug` is the locale-specific slug resolved via `ContentTranslation`. **`GET /pages/insights` is unchanged and still contracted** — it arrives with Payload and is expected to consume this same service rather than replace it.
+
+**Approved.** These two endpoints are the missing Prisma-owned Blog resource API under the existing NestJS sole-gateway architecture. **Blog stays Prisma-owned; Payload owns no blog content**, which is what [SEO_ARCHITECTURE.md §5](./seo/SEO_ARCHITECTURE.md) already states ("Payload holds no blog content and no blog SEO"). No write endpoint is authorized here — blog CRUD remains an Admin surface (§5).
+
+**Published means `BlogPost.publishedAt` is set and in the past** — the definition §6 already fixes for the RAG export. `sam_platform` has no draft/published status column for blog content, so a future-dated post is a scheduled one and is not served. An unpublished or scheduled post answers **404, not 403**: whether a draft exists is not a fact a public endpoint should leak.
+
+`?category=` is a `BlogCategory` slug, matched exactly (no hierarchy exists) and **not locale-aware** — `BlogCategory` and `BlogTag` are not `ContentEntityType` members, so they carry no translation rows and their `name`/`slug` are served verbatim in every locale. An unresolvable value answers 400 `VALIDATION_ERROR` naming the `category` field, never an empty 200.
+
+**No `?tag=` and no `?q=`.** `blog_post_tags` exists, but no blog tag vocabulary is approved; a tag filter would fix semantics ahead of the decision that defines them. Free-text blog search is outside §2.7's Phase 1 scope. Both are rejected by the `forbidNonWhitelisted` validation pipe rather than silently ignored.
+
+**No `author` and no `seo` on the wire.** `BlogPost.authorId` exists and is null on every row — a byline is a claim about a person. `SeoMeta` is polymorphic and [SEO_ARCHITECTURE.md §5](./seo/SEO_ARCHITECTURE.md) does name Prisma as the blog's SEO home, so `SeoFields` can be attached; it is deliberately deferred to the gate that renders it.
+
+**Write endpoints are out of scope.** Blog CRUD is an Admin surface (§5) and no write path exists here.
+
 ### 2.4 Content _(Payload, via NestJS)_
 
 | Method | Path                               | Auth | Purpose                                                                                                                                                    |
