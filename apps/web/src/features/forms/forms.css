@@ -1,0 +1,158 @@
+/* ============================================================================
+   SHARED SUBMISSION-FORM CONSTRUCTIONS
+   ----------------------------------------------------------------------------
+   Everything here is `.fm-*` and belongs to `features/forms/` — the outcome
+   banner, the field grid, the product-context note and the actions row. It is
+   imported by every page that embeds a submission form.
+
+   It deliberately declares NO control styling. `.fs-field`, `.fs-err`,
+   `.fs-hint` and `.fs-btn` are already authored in `flagship.css` for dark
+   surfaces, which is the surface every form on this platform sits on, and
+   restating them here would be a second source of truth for what an input
+   looks like. `.fs-field input[aria-invalid="true"]` in particular is already
+   the error treatment these forms rely on.
+   ============================================================================ */
+
+/* --- the outcome banner -------------------------------------------------- */
+
+.fm-banner {
+  margin: 0 0 22px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+  border: 1px solid transparent;
+}
+
+/*
+ * Colour is not the only signal in either variant: the success banner is the
+ * only element on the page after the form is replaced, and the failure banner
+ * carries role="alert". Both also differ in border weight and text colour, so
+ * neither depends on hue alone to be readable.
+ */
+.fm-banner--ok {
+  border-color: rgba(198, 168, 106, 0.45);
+  background: rgba(198, 168, 106, 0.1);
+  color: #f3ead6;
+}
+
+.fm-banner--bad {
+  border-color: rgba(255, 180, 162, 0.5);
+  background: rgba(255, 180, 162, 0.08);
+  color: #ffd8cd;
+}
+
+/* --- the field grid ------------------------------------------------------ */
+
+/*
+ * Two columns where there is room, one below it. `.fm-field--wide` spans the
+ * pair, which is what the long-answer controls need: a textarea in a half
+ * column is a textarea nobody writes more than a line into.
+ */
+.fm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0 22px;
+}
+
+.fm-grid .fm-field--wide {
+  grid-column: 1 / -1;
+}
+
+.fm-group + .fm-group {
+  margin-top: 30px;
+}
+
+.fm-group-head {
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(238, 241, 246, 0.55);
+}
+
+/* --- the product-context note -------------------------------------------- */
+
+/*
+ * Shown when a Request Quote / Request Sample CTA carried a product into the
+ * form. It is a statement of what will be submitted, not an editable field —
+ * the value itself travels in a hidden input and is verified server-side.
+ */
+.fm-context {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0 0 24px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  font-size: 13.5px;
+  color: rgba(238, 241, 246, 0.72);
+}
+
+.fm-context b {
+  font-weight: 500;
+  color: #fff;
+}
+
+.fm-context a {
+  color: rgba(238, 241, 246, 0.72);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- consent and actions ------------------------------------------------- */
+
+.fm-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 26px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(238, 241, 246, 0.72);
+}
+
+.fm-consent input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  accent-color: var(--fs-gold);
+}
+
+.fm-actions {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.fm-actions button[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.fm-required-note {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(238, 241, 246, 0.5);
+}
+
+/* --- the disabled attachment control ------------------------------------- */
+
+/*
+ * The Custom Product Request form still shows its file input because
+ * SITE_STRUCTURE §5 specifies it, and it is a real `disabled` attribute rather
+ * than a style: there is no upload endpoint, so the control must drop out of
+ * the tab order and out of submission at the platform level, not merely look
+ * inert.
+ */
+.fm-field--disabled {
+  opacity: 0.55;
+}

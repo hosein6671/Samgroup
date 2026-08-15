@@ -45,6 +45,8 @@ Two gaps previously listed in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#data-model
 **Relationships:** unchanged — optional `userId`, optional `assignedToId` (Sales Expert), `attachmentMediaId` → `Media`, `StatusHistory`.
 **Ownership:** **Prisma.** Transactional submission data, not editorial content.
 
+> **Current-schema correction — required fields.** The table above lists the fields this review _added_; it is not the entity's required set, and reading it as one understates that set. As migrated, `custom_formulation_requests` declares **seven** columns NOT NULL: `companyName`, `country`, `industry`, `email`, `productOrApplication`, `requiredSpecifications`, `consentGiven`. Those are the operational persistence contract, and both `POST /custom-formulation-requests` and the public form require all seven — accepting a submission the database then refuses, or writing `""` into a NOT NULL column, are the only alternatives and both are worse. No schema change was made and none is proposed: relaxing any of these is a migration and a decision of its own.
+
 ---
 
 ## 2. `Inquiry` — missing 2 fields

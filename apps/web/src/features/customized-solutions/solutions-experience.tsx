@@ -12,10 +12,15 @@ import type { ReactNode } from "react";
  *
  * ── Why `products.css` is imported by a page that renders none of its sections ──
  *
- * For exactly three constructions: `.pr-inert`, `.pr-gate-fieldset` and `.pr-consent`. They are
- * the "this form is deliberately inoperative" vocabulary — a dashed notice, a fieldset that dims
- * when disabled, and a consent row. Nothing about them is specific to the Products landing; they
- * happen to have been written there first, because that is where the first inert form appeared.
+ * For exactly two constructions now: `.pr-inert` and `.pr-consent` — a dashed notice and a consent
+ * row. Nothing about them is specific to the Products landing; they happen to have been written
+ * there first, because that is where the first inert form appeared. `.pr-gate-fieldset` is no
+ * longer used here: the request form is connected, and only its attachment control is disabled, so
+ * there is no fieldset to dim. The class stays in `products.css` for the download gate that still
+ * uses it.
+ *
+ * `forms.css` is imported for the `.fm-*` submission constructions this page now shares with
+ * Contact Us — the outcome banner, and the one class that dims the disabled attachment field.
  *
  * Restating them under a `cs-` name would be duplicating CSS to avoid an import, which is the
  * trade AI_RULES.md's no-duplication rule exists to prevent. The category template already sets
@@ -27,6 +32,7 @@ import type { ReactNode } from "react";
  */
 import "../home/flagship.css";
 import "../products/products.css";
+import "../forms/forms.css";
 import "./solutions.css";
 
 import { SiteFooter } from "@/features/site/site-footer";

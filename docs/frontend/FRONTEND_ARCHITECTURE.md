@@ -238,6 +238,13 @@ features/
 
 `forms/` is the one feature folder organized by capability rather than page, because every submission form shares submission/validation/error-display logic regardless of which page embeds it — duplicating that per-page would violate [CODING_STANDARDS.md](../CODING_STANDARDS.md)'s "never generate duplicated code" rule ([AI_RULES.md](../AI_RULES.md)) more than it would violate the domain-organization convention. All backing entities now exist in [DATA_MODEL.md](../DATA_MODEL.md), so `distributor-application-form.tsx` and the job-application/CV form should move here alongside the others rather than staying in `careers-partners/` — the reason they were kept separate (no backing entity to share logic against) no longer applies. **There is no separate sample-request form**: "Request Sample" CTAs open the Inquiry form pre-filled with the product, per the approved merge.
 
+**As built**, `forms/` holds `actions.ts` (the two Server Actions), `submit.ts` (`FormData` reading, the POST, and the `ApiResult` → `SubmissionState` mapping), `form-feedback.tsx` (the outcome banner, field messages, submit button), `submission-state.ts`, `inquiry-vocabulary.ts` and `inquiry-form.tsx` — the shape above with the shared logic split by concern rather than gathered into one `use-form-submit.ts` hook, because the submission itself runs server-side and only the display of its result is a client concern. **The Custom Product Request form did not move here**: it stayed at `customized-solutions/sections/custom-request-form.tsx`, which is where the page's own field data lives, and it consumes the shared modules above. The `careers-partners/` forms are unbuilt and unchanged.
+
+Two behaviours the built forms depend on and that are worth stating here because neither is obvious:
+
+- **Field error messages are keyed by the API's `details[].field`**, which is the DTO property name and therefore the input's own `name`. There is no client-side schema and no mapping table, so the two cannot drift.
+- **React 19 resets an uncontrolled form once its action completes — including when it failed.** Left alone, that empties every field the moment a validation error or an outage comes back. Both forms therefore carry the submitted text values in `SubmissionState` and remount their controls with a changing `key`, so a failed attempt keeps what was typed. The consent checkbox is deliberately excluded: consent is re-given per attempt, never restored by the server.
+
 ---
 
 ## 6. Design System Architecture

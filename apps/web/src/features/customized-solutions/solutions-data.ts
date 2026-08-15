@@ -155,14 +155,26 @@ export const PROCESS_STEPS: readonly ProcessStep[] = [
 export type FieldKind = "text" | "email" | "tel" | "select" | "textarea" | "file";
 
 export type RequestField = {
+  /**
+   * The submitted field name, and therefore the DTO property `POST /custom-formulation-requests`
+   * accepts. Not a display concern: the API runs with `forbidNonWhitelisted`, so a name that is not
+   * a DTO property is a 400 naming it, and `details[].field` comes back keyed by this same string —
+   * which is what lets the error message render beside the input that caused it with no mapping
+   * table in between.
+   */
   readonly name: string;
   readonly label: string;
   readonly kind: FieldKind;
-  /** Only where the source marks it. See the note on `REQUEST_GROUPS`. */
+  /** See the note on `REQUEST_GROUPS` — these follow the table's NOT NULL columns. */
   readonly required?: true;
   readonly options?: readonly string[];
   readonly autoComplete?: string;
   readonly wide?: true;
+  /**
+   * Rendered, and inoperative. Set on exactly one field — the attachment — because
+   * `POST /media/upload` is contracted and unbuilt, so there is nowhere for a file to go.
+   */
+  readonly disabled?: true;
 };
 
 /**
@@ -174,13 +186,19 @@ export type RequestField = {
  * §5's "Custom Product Request form fields" and DATA_MODEL_GAP_REVIEW §1, which restates the five
  * additions as exact `CustomFormulationRequest` columns. Nothing is added and nothing is dropped.
  *
- * ── What is required, and what is not ───────────────────────────────────────
+ * ── What is required — and a documented conflict, resolved toward the schema ─
  *
- * **Only Email Address and the consent checkbox.** SITE_STRUCTURE §5 marks exactly one field with
- * an asterisk (`Email Address*`), and DATA_MODEL_GAP_REVIEW §1 marks exactly two entity columns
- * required — `email` and `consentGiven`. Everything else is nullable there and unmarked there.
- * Marking more fields required would be inventing a validation rule, and on a lead form an
- * invented required field is a lead that does not arrive.
+ * This list previously marked only Email required, on the strength of SITE_STRUCTURE §5's single
+ * asterisk and DATA_MODEL_GAP_REVIEW §1's two required columns. **The migrated schema disagrees**:
+ * `custom_formulation_requests` declares `company_name`, `country`, `industry`, `email`,
+ * `product_or_application`, `required_specifications` and `consent_given` NOT NULL — five more than
+ * either document marks.
+ *
+ * Six fields are therefore marked required here, matching the columns, plus the consent checkbox
+ * below. Not because more required fields are better — the opposite is true on a lead form — but
+ * because the alternative is a form that invites a submission the database will refuse. The
+ * discrepancy is reported for a documentation or schema decision rather than settled in this file;
+ * the API's DTO takes the same position and says so at greater length.
  *
  * ── The Incoterm list is this form's, not the Inquiry form's ────────────────
  *
@@ -206,8 +224,20 @@ export const REQUEST_GROUPS: readonly RequestGroup[] = [
     id: "contact",
     heading: "Who is asking",
     fields: [
-      { name: "companyName", label: "Company name", kind: "text", autoComplete: "organization" },
-      { name: "country", label: "Country", kind: "text", autoComplete: "country-name" },
+      {
+        name: "companyName",
+        label: "Company name",
+        kind: "text",
+        required: true,
+        autoComplete: "organization",
+      },
+      {
+        name: "country",
+        label: "Country",
+        kind: "text",
+        required: true,
+        autoComplete: "country-name",
+      },
       {
         name: "email",
         label: "Email address",
@@ -222,12 +252,22 @@ export const REQUEST_GROUPS: readonly RequestGroup[] = [
     id: "requirement",
     heading: "What is required",
     fields: [
-      { name: "industry", label: "Industry", kind: "text" },
-      { name: "productApplication", label: "Product / application", kind: "text" },
+      { name: "industry", label: "Industry", kind: "text", required: true },
+      /*
+       * `productOrApplication`, not `productApplication`. The name is the DTO property — see
+       * `RequestField.name` — and the column it writes is `product_or_application`.
+       */
+      {
+        name: "productOrApplication",
+        label: "Product / application",
+        kind: "text",
+        required: true,
+      },
       {
         name: "requiredSpecifications",
         label: "Required specifications",
         kind: "textarea",
+        required: true,
         wide: true,
       },
       { name: "estimatedQuantity", label: "Estimated quantity", kind: "text" },
@@ -251,10 +291,18 @@ export const REQUEST_GROUPS: readonly RequestGroup[] = [
         kind: "textarea",
         wide: true,
       },
+      /*
+       * Still specified by SITE_STRUCTURE §5, still shown, and still inoperative — `disabled`, so
+       * it drops out of the tab order and out of submission at the platform level rather than by
+       * styling. `POST /media/upload` is contracted and unbuilt, and `attachmentMediaId` is not a
+       * field the DTO accepts. A control that accepted a technical specification and discarded it
+       * would be worse than one that says it cannot take it.
+       */
       {
         name: "technicalSpecifications",
         label: "Upload technical specifications",
         kind: "file",
+        disabled: true,
         wide: true,
       },
     ],

@@ -50,8 +50,14 @@ import type { ProductDetailResponse } from "@sam-group/types";
  * A Product Detail page is the deepest point of that same journey and its next steps are the same
  * three — find another grade, request a sample, request a quote — so it reuses the block rather
  * than introducing a fourth variant of the same idea. Its "Request Sample" action resolves to
- * Contact Us, exactly as it does everywhere else; there is no product-scoped form on the platform
- * and this page does not invent one.
+ * Contact Us, exactly as it does everywhere else; there is still no product-scoped form on the
+ * platform and this page still does not invent one.
+ *
+ * What it does now is pass the product along. `ClosingCta` takes an optional context, and this is
+ * the one surface that has one: both inquiry actions carry `?product={slug}`, which the Contact Us
+ * route resolves server-side into the `relatedProductId` the submission stores. Sample requests are
+ * exactly what `Inquiry.relatedProductId` exists to record (DATA_MODEL.md §2). The slug is the
+ * record's own, not the URL's — see `ProductHero`'s note on the same distinction for the breadcrumb.
  *
  * ── Entirely server-rendered ────────────────────────────────────────────────
  *
@@ -86,7 +92,7 @@ export function ProductDetailTemplate({
           <ProductGallery images={product.images} productName={product.name} />
         )}
 
-        <ClosingCta />
+        <ClosingCta context={{ locale, productSlug: product.slug }} />
       </main>
 
       <SiteFooter />

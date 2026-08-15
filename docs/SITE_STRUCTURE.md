@@ -121,6 +121,8 @@ Heading → Introduction → What Can We Customize? (5-card grid, unchanged) →
 
 **Custom Product Request form fields** (supersedes the field list previously in this document): Company Name, Country, Industry, Product/Application, Required Specifications, Estimated Quantity, Packaging Requirements, Additional Information, Upload Technical Specifications, **plus [NEW]** Email Address\*, Phone/WhatsApp, Target market/destination country, Preferred Incoterm (EXW/FOB/CFR/CIF), Consent checkbox. See [Data Model Gaps](#data-model-gaps-surfaced-by-this-structure) — the current `CustomFormulationRequest` entity is missing several of these.
 
+> **Current-schema correction — required fields.** The single asterisk above is **not** the set of fields this form requires. `custom_formulation_requests` as migrated declares seven columns NOT NULL, and they are the operational persistence contract: **Company Name, Country, Industry, Email Address, Product/Application, Required Specifications, and the Consent checkbox.** The API and the built form require all seven. Everything else on the list is genuinely optional. This note records what the schema already enforces — no schema change was made, none is proposed here, and no field is required beyond the existing NOT NULL columns. Relaxing any of them would be a migration and a separate decision.
+
 ---
 
 ## 6. Export & Logistics

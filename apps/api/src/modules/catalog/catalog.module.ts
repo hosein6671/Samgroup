@@ -17,9 +17,14 @@ import { ProductsService } from "./products.service";
  *
  * `CategoriesService` is exported because SEO genuinely consumes it: `/seo/sitemap-entries`
  * enumerates the category pages, and ARCHITECTURE.md requires that to happen through this
- * module's service rather than by SEO querying `categories` itself. `ProductsService` stays
- * unexported — no consumer exists, and exporting ahead of one would invite exactly the direct
- * cross-module access that rule prevents.
+ * module's service rather than by SEO querying `categories` itself.
+ *
+ * `ProductsService` is now exported for the same reason, and only for it. It stayed unexported
+ * while no consumer existed; one exists — the Forms module verifies `Inquiry.relatedProductId`
+ * against a real `Product` before writing a lead, and `Product` is this module's entity. The
+ * alternative, Forms querying `products` itself, is precisely the direct cross-module access the
+ * rule prevents. Only `existsById` was added for it: a boolean, by id, so the export widens the
+ * interface as little as the caller needs.
  *
  * SeoMetaModule and MediaModule are imported for the reverse direction. §2.3 attaches
  * `SeoFields` and product imagery to the product detail response, and this module reads both
@@ -37,6 +42,6 @@ import { ProductsService } from "./products.service";
   ],
   controllers: [CategoriesController, ProductsController],
   providers: [CategoriesService, ProductsService],
-  exports: [CategoriesService],
+  exports: [CategoriesService, ProductsService],
 })
 export class CatalogModule {}

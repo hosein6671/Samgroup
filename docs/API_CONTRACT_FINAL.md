@@ -141,6 +141,28 @@ Three pages need data from 3+ sources. Fetching each separately means 3 sequenti
 
 **There is no `/sample-requests` endpoint.** "Request Sample" CTAs POST to `/inquiries` with `inquiryType: 'Sample Request'` and `relatedProductId` set — the approved merge ([DATA_MODEL_GAP_REVIEW.md](./DATA_MODEL_GAP_REVIEW.md)).
 
+#### 2.6a Implemented submission endpoints
+
+`POST /inquiries` and `POST /custom-formulation-requests` are **implemented**; the other seven rows above are not. The paths, the entities and the merge above are unchanged — what follows records the wire shapes the implementation fixed, none of which this section previously stated.
+
+**`inquiryType` is the physical enum label, not the display label.** The seven accepted values are `product_inquiry`, `request_a_quote`, `customized_solution`, `export_and_logistics`, `distribution_partnership`, `general_inquiry`, `sample_request` — the `@map` labels `inquiry_type` already carries in PostgreSQL. The `'Sample Request'` spelling above is the **form option's** label: `schema.prisma` states that human-readable forms belong to the translation catalogs rather than to a Postgres type, and a display label on the wire would change with a rewording and could not survive a submission from `/fa` or `/ar`. This follows `GET /locales`, which serves `ltr`/`rtl` rather than `LTR`/`RTL`.
+
+**Request bodies.** `POST /inquiries` accepts `firstName`, `lastName`, `companyName`, `country`, `email`, `industry`, `inquiryType` and `consentGiven` (all required), plus optional `phone`, `productsOfInterest[]`, `relatedProductId`, `requiredQuantity`, `destinationCountryPort`, `preferredIncoterm` and `message`. `POST /custom-formulation-requests` accepts `companyName`, `country`, `industry`, `email`, `productOrApplication`, `requiredSpecifications` and `consentGiven` (all required), plus optional `phone`, `estimatedQuantity`, `packagingRequirements`, `destinationCountry`, `preferredIncoterm` and `additionalInformation`. **`preferredIncoterm` differs between the two by design** — `EXW`/`FOB`/`CFR`/`CIF`/`Not sure` on Inquiry, without `Not sure` on the formulation request, per [DATA_MODEL_GAP_REVIEW.md](./DATA_MODEL_GAP_REVIEW.md) §2.
+
+**No client-settable internal state.** `id`, `createdAt`, `status`, `userId`, `assignedToId` and `attachmentMediaId` are not accepted on either endpoint. Because the global pipe runs `forbidNonWhitelisted`, sending one answers **400 `VALIDATION_ERROR` naming the property** rather than silently ignoring it. `status` is **server-owned**: it is written as `new`, which means _initial ingestion state and nothing more_ — it defines no workflow, authorizes no transition, and has no second value ([DATA_MODEL.md](./DATA_MODEL.md) §2 Notes).
+
+**Response.** **201** with `data: { id, createdAt }` and `meta: {}`. Deliberately not the stored record: `status` and `assignedToId` are lead-routing state SECURITY.md scopes to Admin and the assigned Sales Expert, and echoing the submitter's own contact details back serves no consumer.
+
+**`relatedProductId` is validated, not merely referenced.** An id naming no `Product` answers **400 `VALIDATION_ERROR`** with `details[].field` = `relatedProductId` — not 404, which would describe the request as a request for that product rather than as a submission carrying an unusable field.
+
+**Both endpoints are rate-limited at 5 per hour per client — implemented.** §Rate limits' "Form submissions (all others)" row is enforced by `@nestjs/throttler`, and the budget is **shared across the two paths** rather than five each, because that row budgets an endpoint _group_: alternating between `/inquiries` and `/custom-formulation-requests` does not buy a sixth submission. Exceeding it answers **429 `RATE_LIMITED`** in the standard envelope, with a `Retry-After` header as §8 requires and a message that names no limit, window or counter. `X-RateLimit-Limit`/`-Remaining`/`-Reset` are set on accepted requests.
+
+**The limit reaches these two endpoints and nothing else.** No global guard is registered, so every public GET — products, categories, blog, locales, health, SEO — is untouched: §Rate limits' 100/min for reads remains contracted and unimplemented, which is the honest state rather than reads silently inheriting a 5/hour budget meant for writes.
+
+Two conditions on it, both recorded rather than solved: the counter is **in-process**, correct only for the single-instance topology ADR-005 deploys and requiring a shared store before any second `apps/api` instance exists; and the client is identified by `req.ip`, which behind nginx resolves to the proxy unless `trust proxy` is configured as part of the deployment work. See [ROADMAP.md](./ROADMAP.md).
+
+**Rate limiting is not the anti-spam control.** §Rate limits also specifies an **invisible captcha** on public forms. No provider is selected and none is implemented; the two are separate requirements and the limit does not satisfy the captcha one.
+
 **`/downloads/request` [NEW DECISION]:** submitting the gating form returns a **short-lived signed URL** (suggested TTL: 15 minutes, single-use), not a permanent public link. A permanent link defeats the gate — it gets shared, and the lead capture stops happening. Applies only to the Company Catalogue and Product Catalogue; **TDS/SDS are served as plain public URLs with no form and no endpoint**, per the approved gating scope.
 
 ### 2.7 Search & Filtering

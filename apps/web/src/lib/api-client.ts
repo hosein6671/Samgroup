@@ -2,10 +2,9 @@
  * The platform's one API client — `apps/web` → NestJS, server-side only.
  *
  * FRONTEND_ARCHITECTURE.md §11 specifies a single typed client parsing the `{ data, meta }` /
- * `{ error }` envelope exactly, with reads issued from Server Components. This is its first
- * increment: enough for the Category resource, deliberately not a general-purpose SDK. Auth
- * headers, Server Actions for writes, retries and revalidation all arrive with the gates that
- * need them.
+ * `{ error }` envelope exactly, with reads issued from Server Components and **writes issued from
+ * Server Actions**. Both verbs now exist — `apiGet` for reads, `apiPost` for the public form
+ * submissions. Auth headers, retries and revalidation still arrive with the gates that need them.
  *
  * ── Server-only, enforced at build time ────────────────────────────────────
  *
@@ -218,6 +217,35 @@ export async function apiGet<T>(
   path: string,
   query?: Readonly<Record<string, string>>,
 ): Promise<ApiResult<T>> {
+  return request<T>("GET", path, query, undefined);
+}
+
+/**
+ * One POST against the API — the write half of §11, used only from Server Actions.
+ *
+ * `body` is serialized as JSON and sent as-is: **this client validates nothing.** The DTOs behind
+ * `POST /inquiries` and `POST /custom-formulation-requests` run with `whitelist` +
+ * `forbidNonWhitelisted`, so the API is the authority on what a valid submission is, and a second
+ * copy of those rules here would be a second thing to keep in step — one that could reject a
+ * submission the API would have accepted.
+ *
+ * The failure taxonomy is `apiGet`'s, unchanged, and the `http` branch carries `details` — which is
+ * what makes a 400 renderable as per-field messages beside the inputs that caused it.
+ *
+ * **Not retried.** A POST that creates a lead is not idempotent, and a retry on a timeout is how
+ * one buyer becomes two rows in the sales queue. The caller reports the failure and the person
+ * decides whether to submit again.
+ */
+export async function apiPost<T>(path: string, body: unknown): Promise<ApiResult<T>> {
+  return request<T>("POST", path, undefined, body);
+}
+
+async function request<T>(
+  method: "GET" | "POST",
+  path: string,
+  query: Readonly<Record<string, string>> | undefined,
+  body: unknown,
+): Promise<ApiResult<T>> {
   const baseUrl = resolveBaseUrl();
 
   if (baseUrl === null) {
@@ -228,10 +256,15 @@ export async function apiGet<T>(
 
   try {
     response = await fetch(composeUrl(baseUrl, path, query), {
+      method,
       // Stated rather than inherited — see the module note. Next 15's default is already
       // uncached, and this gate does not rely on that remaining true.
       cache: "no-store",
-      headers: { accept: "application/json" },
+      headers:
+        method === "POST"
+          ? { accept: "application/json", "content-type": "application/json" }
+          : { accept: "application/json" },
+      body: method === "POST" ? JSON.stringify(body) : undefined,
       // Node 18+ and every runtime this app targets; it needs no AbortController plumbing.
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
@@ -241,29 +274,29 @@ export async function apiGet<T>(
     return { ok: false, reason: "unreachable", detail: describeTransportFailure(error) };
   }
 
-  let body: unknown;
+  let responseBody: unknown;
 
   try {
-    body = await response.json();
+    responseBody = await response.json();
   } catch {
-    body = null;
+    responseBody = null;
   }
 
   if (!response.ok) {
-    const { code, message, details } = readErrorBody(body);
+    const { code, message, details } = readErrorBody(responseBody);
 
     return { ok: false, reason: "http", status: response.status, code, message, details };
   }
 
   // §8 contracts `meta` as always present on success. A 2xx body without `data` is not the
   // envelope, whatever else it is, and is reported as malformed rather than rendered.
-  if (!isRecord(body) || !("data" in body)) {
+  if (!isRecord(responseBody) || !("data" in responseBody)) {
     return { ok: false, reason: "malformed", status: response.status };
   }
 
   return {
     ok: true,
-    data: body.data as T,
-    meta: isRecord(body.meta) ? (body.meta as ApiMeta) : {},
+    data: responseBody.data as T,
+    meta: isRecord(responseBody.meta) ? (responseBody.meta as ApiMeta) : {},
   };
 }

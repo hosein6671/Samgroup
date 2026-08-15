@@ -1,0 +1,59 @@
+/* ============================================================================
+   CONTACT US
+   ----------------------------------------------------------------------------
+   Two sections, both on the midnight surface. Everything typographic and every
+   control comes from `flagship.css` (`.fs-d1`, `.fs-lead`, `.fs-eyebrow`,
+   `.fs-field`, `.fs-btn`, `.fs-blueprint`) and every submission construction
+   from `forms.css` (`.fm-*`). What is below is only this page's layout.
+   ============================================================================ */
+
+.ct-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+}
+
+.ct-hero-lead {
+  margin-top: 20px;
+  max-width: 62ch;
+}
+
+.ct-hero-action {
+  margin: 34px 0 0;
+}
+
+/*
+ * The form section carries no top padding of its own beyond the section
+ * default: it sits directly under the hero on the same surface, and the panel's
+ * own border is what separates them. A second full band of space would read as
+ * a gap where the missing contact-details sections will eventually go, and
+ * those sections are absent by decision rather than pending layout.
+ */
+.ct-form-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(28px, 3vw, 44px);
+  max-width: 900px;
+}
+
+.ct-form-head h2 {
+  margin: 10px 0 0;
+}
+
+.ct-form-head p {
+  margin-top: 16px;
+  max-width: 60ch;
+}
+
+/*
+ * The same glass panel the Customized Solutions request form sits in, so the
+ * two forms on the platform read as one construction rather than two designs.
+ */
+.ct-form-panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  padding: clamp(24px, 2.6vw, 38px);
+}

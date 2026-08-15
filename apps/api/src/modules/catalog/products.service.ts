@@ -334,6 +334,25 @@ export class ProductsService {
   }
 
   /**
+   * Whether a `Product` row with this id exists — the cross-module read the Forms module makes
+   * before writing an `Inquiry.relatedProductId`.
+   *
+   * Exists here rather than in the caller because `Product` is this module's entity:
+   * ARCHITECTURE.md's modular-monolith rule routes cross-module access through the owning module's
+   * service interface, never through its Prisma model. This is the interface.
+   *
+   * Deliberately narrow. It takes an **id**, not a slug, and answers a boolean, not a record: the
+   * caller is validating a foreign key, not reading a product, and a method that returned the row
+   * would invite a consumer to render it without any locale having been resolved. `select: { id }`
+   * so the existence check reads one indexed column.
+   */
+  async existsById(id: string): Promise<boolean> {
+    const product = await this.prisma.product.findUnique({ where: { id }, select: { id: true } });
+
+    return product !== null;
+  }
+
+  /**
    * The at-most-one primary Product Type, through the same overlay as everything else.
    *
    * `localize` takes and returns arrays, so the wrapping and unwrapping happens here rather
