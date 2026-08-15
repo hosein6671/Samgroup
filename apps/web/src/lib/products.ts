@@ -85,34 +85,56 @@ function rejectedFilterField(details: readonly { field: string }[] | null): stri
 }
 
 /**
- * The products of one Product Family, optionally narrowed to one Segment.
+ * The taxonomy axes `GET /products` is asked to narrow on.
  *
- * @param categorySlug the family's canonical identifier — its DEFAULT-locale `Category.slug`,
- *   which is the registry key and the route segment (ADR-009 §1). Never a label, never a name.
+ * Both are optional and **both are omitted from the request when absent** rather than sent blank
+ * — see `getProducts`. Product Type is deliberately not a member: no ProductType row is approved
+ * (ADR-008), every non-blank `?productType=` answers 400, and a field here would be an invitation
+ * to send one.
+ */
+export type ProductFilters = {
+  /**
+   * A Product Family's canonical identifier — its DEFAULT-locale `Category.slug`, which is also
+   * the registry key and the route segment (ADR-009 §1). Never a label, never a name.
+   */
+  readonly category?: string;
+  /**
+   * An approved `Segment.slug` (ADR-008 §4). Single-valued: ADR-008 defers multi-value taxonomy
+   * filtering, so this never sends two.
+   */
+  readonly segment?: string;
+};
+
+/**
+ * The product list, optionally narrowed on either taxonomy axis or on both.
+ *
  * @param locale the active locale code from the `[locale]` segment. The API resolves the filter
  *   slugs in it and localizes `name`/`slug`/`description` to it.
- * @param segmentSlug an approved `Segment.slug` (ADR-008 §4), or `undefined` for the whole family.
- *   Single-valued: ADR-008 defers multi-value taxonomy filtering, so this never sends two.
+ * @param filters the axes to narrow on. `{}` is the whole published list — which is exactly what
+ *   the Product Finder asks for before a visitor touches a control, and is a real request rather
+ *   than a degenerate one.
  *
- * **Filtering is the backend's**, in full. Nothing here fetches the family and narrows it locally
- * — that would reimplement ADR-008's semantics in a second place, against a list the API has
- * already paginated, and would silently disagree the first time those semantics gain a rule.
+ * **Filtering is the backend's**, in full, and both callers depend on that equally. Nothing here
+ * fetches a wider set and narrows it locally — that would reimplement ADR-008's conjunctive
+ * semantics in a second place, against a list the API has already paginated, and would silently
+ * disagree the first time those semantics gain a rule. It is also why `total` below is `meta.total`
+ * and never a length this module computed.
  *
- * Never throws for an API condition. The Product Family page's editorial content is registered
- * locally and must survive a catalog outage (ADR-010 §7).
+ * Never throws for an API condition; every one of them is reported as a value on
+ * `ProductListResult`. Both surfaces that call this have content of their own that must survive a
+ * catalog outage (ADR-010 §7).
  */
-export async function getProductsByCategory(
-  categorySlug: string,
+export async function getProducts(
   locale: string,
-  segmentSlug?: string,
+  filters: ProductFilters = {},
 ): Promise<ProductListResult> {
   const result = await apiGet<unknown>("/products", {
     locale,
-    category: categorySlug,
     // Spread rather than sent as an empty string. The service treats `?segment=` as an omitted
     // filter, so both forms behave alike — but a parameter that is not a filter should not appear
     // in the request at all.
-    ...(segmentSlug === undefined ? {} : { segment: segmentSlug }),
+    ...(filters.category === undefined ? {} : { category: filters.category }),
+    ...(filters.segment === undefined ? {} : { segment: filters.segment }),
   });
 
   if (!result.ok) {
@@ -148,6 +170,27 @@ export async function getProductsByCategory(
     page: result.meta.page ?? 1,
     limit: result.meta.limit ?? products.length,
   };
+}
+
+/**
+ * The products of one Product Family, optionally narrowed to one Segment.
+ *
+ * A named wrapper rather than a second implementation: the Product Family page is the one caller
+ * for which `category` is not optional — it is the page's own identity, and a family page that
+ * issued an unfiltered request would be listing the whole catalog under a family's heading. The
+ * required parameter is what states that at the call site, and the type system enforces it.
+ *
+ * @param categorySlug the family's canonical identifier — its DEFAULT-locale `Category.slug`
+ *   (ADR-009 §1).
+ * @param locale the active locale code from the `[locale]` segment.
+ * @param segmentSlug an approved `Segment.slug`, or `undefined` for the whole family.
+ */
+export async function getProductsByCategory(
+  categorySlug: string,
+  locale: string,
+  segmentSlug?: string,
+): Promise<ProductListResult> {
+  return getProducts(locale, { category: categorySlug, segment: segmentSlug });
 }
 
 /* ------------------------------------------------------------------- detail */

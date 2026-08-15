@@ -1,0 +1,186 @@
+/*
+ * SAM GROUP — PRODUCT FINDER
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * The same constraint `category.css`, `product-list.css` and `product-detail.css` each state for
+ * themselves: it declares no colour, no typeface, no radius and no easing of its own. Every value
+ * resolves to a token already declared by `flagship.css` inside `[data-brand="flagship"]` or by the
+ * design system's generated theme, and where a construction already exists as flagship vocabulary —
+ * `.fs-wrap`, `.fs-sec`, `.fs-d1`, `.fs-lead`, `.fs-blueprint` — it is used directly rather than
+ * restated under a `pf-` name.
+ *
+ * ============================================================================
+ * WHAT IS DELIBERATELY NOT HERE
+ * ============================================================================
+ *
+ * **No chip, no count, no card, no grid, no skeleton and no notice.** All six are
+ * `product-list.css` constructions and the finder renders them unchanged — `.pl-filter`,
+ * `.pl-chip`, `.pl-count`, `.pl-grid`, `.pl-card`, `.pl-skeleton`, `.pl-notice`. That file already
+ * anticipated this page in its own header note: the card is written against the `GET /products`
+ * list row precisely so the finder could list the same rows without importing a page it has nothing
+ * to do with. Restating any of them under a `pf-` name would produce two visual answers to one
+ * question, and they would drift on the first change to either.
+ *
+ * What remains below is only what this page genuinely adds: its hero, the stacking of two filter
+ * rows into one bar, and the spacing between that bar and its results.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`, no
+ * JavaScript.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * One dark hero, then one light section holding the controls and everything they select. Two
+ * blocks, because the page is a tool rather than a document — there is nothing between the question
+ * and the answer for a third block to hold.
+ */
+
+/* ============================================================================
+   HERO
+   ============================================================================ */
+
+/*
+ * The same construction as the Product Detail hero, at the same measurements, and that is
+ * intentional rather than incidental: a visitor moving between the finder and a product should
+ * cross one page boundary, not two visual languages. It is not shared as a component because the
+ * two heroes carry different content — this one has no record behind it at all.
+ */
+.pf-hero {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(56px, 6vw, 88px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.pf-hero-inner {
+  position: relative;
+}
+
+/* ------------------------------------------------------------- breadcrumb */
+
+/* Two crumbs — Products, then this page. Drawn as a single technical line so it reads as
+ * orientation rather than as navigation competing with the header. */
+.pf-crumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 clamp(24px, 3vw, 38px);
+  padding: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* The separator is drawn, not typed, so it never lands in a copied selection or a screen reader. */
+.pf-crumbs li + li::before {
+  content: "/";
+  margin-inline-end: 8px;
+  color: var(--color-border-accent);
+}
+
+.pf-crumbs a {
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.pf-crumbs a:hover,
+.pf-crumbs a:focus-visible {
+  color: var(--color-text-primary);
+}
+
+/* The current page. Not a link, and set apart by weight rather than by another colour. */
+.pf-crumbs [aria-current="page"] {
+  color: var(--color-text-accent);
+}
+
+/* ------------------------------------------------------------------ title */
+
+.pf-title {
+  margin: 0;
+  max-width: 18ch;
+}
+
+.pf-lead {
+  margin: clamp(20px, 2.4vw, 30px) 0 0;
+  max-width: 62ch;
+}
+
+/* ============================================================================
+   FILTER BAR
+   ============================================================================ */
+
+.pf-sec {
+  position: relative;
+}
+
+/*
+ * Two `.pl-filter` rows read as ONE bar rather than as two independent controls.
+ *
+ * `.pl-filter` draws a rule above and below itself, which is right for the single Segment row on a
+ * Product Family page and wrong for two rows stacked: the adjacent pair would paint a double line
+ * between Family and Segment and a stray gap either side of it. The rules are collapsed below so
+ * the bar has one top edge, one shared divider and one bottom edge.
+ *
+ * The rows keep their own borders as the default, so nothing changes for the family pages.
+ */
+.pf-filters {
+  margin-top: clamp(4px, 1vw, 12px);
+}
+
+.pf-filters .pl-filter {
+  margin-top: 0;
+}
+
+/* The second row's own top rule is the first row's bottom rule; one of them has to go. */
+.pf-filters .pl-filter + .pl-filter {
+  border-top: none;
+}
+
+/* ------------------------------------------------------------------ reset */
+
+/*
+ * The clear-all control. A link, like every other control on this page, and drawn as the quietest
+ * thing in the bar: it undoes a selection rather than making one, and a button-weight treatment
+ * would make "stop filtering" look like the page's primary action.
+ */
+.pf-reset {
+  margin: clamp(14px, 1.6vw, 20px) 0 0;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+}
+
+.pf-reset a {
+  color: var(--color-text-secondary);
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.pf-reset a:hover,
+.pf-reset a:focus-visible {
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   RESULTS
+   ============================================================================ */
+
+/*
+ * The gap between the controls and what they selected. `.pl-count` already carries a top margin for
+ * the family pages' rhythm, so this adds only the difference the finder needs — the notices, which
+ * have no margin of their own, are what this rule is actually for.
+ */
+.pf-results {
+  margin-top: clamp(22px, 2.4vw, 32px);
+}
