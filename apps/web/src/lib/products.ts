@@ -1,5 +1,5 @@
 /**
- * The Product resource client — `GET /api/v1/products`, and nothing else yet.
+ * The Product resource client — `GET /api/v1/products` and `GET /api/v1/products/:slug`.
  *
  * ── Why this is not in `catalog.ts` ─────────────────────────────────────────
  *
@@ -8,11 +8,13 @@
  * draws the same line inside its own catalog module — `categories.service.ts` beside
  * `products.service.ts`. Products get their own file for the same reason.
  *
- * ── One function, and the list only ─────────────────────────────────────────
+ * ── Two functions, and the difference between their failures matters ────────
  *
- * `GET /products/:slug` is deliberately absent. There is no Product Detail route in `apps/web`
- * (ADR-010 §2 authorizes the shared namespace, not the branch), so a detail client would be a
- * function no caller can reach, typed against a response nothing renders.
+ * `getProductsByCategory` backs a section of a page that exists regardless; `getProductBySlug`
+ * decides whether a page exists at all. That makes the distinction between "this product does not
+ * exist" and "the catalog service did not answer" load-bearing rather than tidy: ADR-010 §7 forbids
+ * the second being served as the first, so both results are separated at the source here and the
+ * route can never collapse them by accident.
  *
  * Server-only by transitive import of `api-client`, whose `import "server-only"` fails a client
  * bundle at build time.
@@ -20,7 +22,7 @@
 
 import { apiGet } from "./api-client";
 
-import type { ProductListItemResponse } from "@sam-group/types";
+import type { ProductDetailResponse, ProductListItemResponse } from "@sam-group/types";
 
 /**
  * What a product-list request produced.
@@ -146,4 +148,107 @@ export async function getProductsByCategory(
     page: result.meta.page ?? 1,
     limit: result.meta.limit ?? products.length,
   };
+}
+
+/* ------------------------------------------------------------------- detail */
+
+/**
+ * What a product lookup produced.
+ *
+ * The four outcomes are kept apart because exactly one of them is allowed to become a 404.
+ * `not-found` is the API stating that no product answers this slug in this locale — a fact about
+ * the catalog, and the only honest reason to serve a canonical 404. `unreachable` and `api-error`
+ * are facts about the infrastructure, and ADR-010 §7 is explicit that neither may be converted into
+ * one. Collapsing them into `null` would make that rule impossible to keep at the call site.
+ */
+export type ProductResult =
+  | {
+      readonly ok: true;
+      readonly record: ProductDetailResponse;
+      /**
+       * `meta.localeFallback` — true when any localized part of the response was served in the
+       * default locale because the requested one has no translation. Envelope metadata, not a
+       * field on the record, so it is surfaced beside it rather than folded into it.
+       */
+      readonly localeFallback: boolean;
+    }
+  /** A definitive 404 from the API: no product answers this slug. */
+  | { readonly ok: false; readonly reason: "not-found" }
+  | { readonly ok: false; readonly reason: "unreachable" }
+  | { readonly ok: false; readonly reason: "api-error"; readonly status: number };
+
+/**
+ * The fields the Product Detail page reads, checked before any of them is trusted.
+ *
+ * `apiGet` verifies the envelope, not the payload. The four collections are checked for being
+ * arrays and nothing deeper: their contents are rendered through `.map`, so a malformed member
+ * would surface as a missing string rather than as a thrown render, and validating every element of
+ * every array would be asserting agreement this gate does not enforce.
+ *
+ * `seo` is deliberately not checked — it is declared on the type and read by nothing here.
+ */
+function isProductDetail(value: unknown): value is ProductDetailResponse {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  const category = record.category as Record<string, unknown> | null | undefined;
+
+  return (
+    typeof record.id === "string" &&
+    typeof record.name === "string" &&
+    typeof record.slug === "string" &&
+    (record.description === null || typeof record.description === "string") &&
+    typeof category === "object" &&
+    category !== null &&
+    typeof category.name === "string" &&
+    typeof category.slug === "string" &&
+    Array.isArray(record.segments) &&
+    Array.isArray(record.specifications) &&
+    Array.isArray(record.images) &&
+    (record.productType === null || typeof record.productType === "object")
+  );
+}
+
+/**
+ * One product by its locale-specific slug.
+ *
+ * @param slug the slug as it appears in the URL. The API resolves it in the requested locale's
+ *   vocabulary — translated slug first, the row's own column second — so a product with no
+ *   translation is still reachable in every locale at its default-locale path.
+ * @param locale the active locale code from the `[locale]` segment.
+ *
+ * Never throws for an API condition, and never reports a transport failure as a missing product.
+ * The route's 404 decision reads `reason`, and only `not-found` may produce one.
+ */
+export async function getProductBySlug(slug: string, locale: string): Promise<ProductResult> {
+  const result = await apiGet<unknown>(`/products/${encodeURIComponent(slug)}`, { locale });
+
+  if (!result.ok) {
+    if (result.reason === "unreachable") {
+      return { ok: false, reason: "unreachable" };
+    }
+
+    if (result.reason === "http") {
+      /*
+       * Matched on the status line rather than on `error.code`, for the same reason `catalog.ts`
+       * does: the status is the part of the contract the HTTP layer guarantees even when the body
+       * never arrived. A 404 here is the service's own NOT_FOUND — the one definitive answer.
+       */
+      return result.status === 404
+        ? { ok: false, reason: "not-found" }
+        : { ok: false, reason: "api-error", status: result.status };
+    }
+
+    return { ok: false, reason: "api-error", status: result.status };
+  }
+
+  if (!isProductDetail(result.data)) {
+    // A 2xx carrying something that is not a product. Reported as an API error and NOT as
+    // `not-found`: a broken contract must not be able to delete a page.
+    return { ok: false, reason: "api-error", status: 200 };
+  }
+
+  return { ok: true, record: result.data, localeFallback: result.meta.localeFallback === true };
 }

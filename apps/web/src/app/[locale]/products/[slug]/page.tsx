@@ -3,102 +3,95 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { ProductCategoryTemplate } from "@/features/products/category/category-template";
-import { getCategoryContent, publishedCategorySlugs } from "@/features/products/category/data";
+import { getCategoryContent } from "@/features/products/category/data";
 import { resolveCategoryPage } from "@/features/products/category/resolve-category-page";
+import { ProductDetailTemplate } from "@/features/products/detail/product-detail-template";
+import { ProductUnavailable } from "@/features/products/detail/product-unavailable";
+import { resolveProduct } from "@/features/products/detail/resolve-product-page";
+import { isReservedProductSlug } from "@/features/products/reserved-slugs";
 import { getProductsByCategory } from "@/lib/products";
 
 /**
- * The canonical Product Family route — `/{locale}/products/{slug}`.
+ * The shared Product namespace route — `/{locale}/products/{slug}`.
  *
- * ── What this file is, and what it deliberately is not ──────────────────────
+ * ── One segment, two entity types, one discriminator ────────────────────────
  *
- * ADR-010 §2 puts Product Family and Product Detail in ONE namespace served by ONE dynamic
- * segment, because the App Router cannot express `products/[categorySlug]` and
- * `products/[productSlug]` as siblings. This is that segment. It is **not** yet that route: P2
- * implements the Product Family branch only, and Product Detail remains unimplemented.
+ * ADR-010 §2 puts Product Family and Product Detail in ONE namespace served by ONE dynamic segment,
+ * because the App Router cannot express `products/[categorySlug]` and `products/[productSlug]` as
+ * siblings. This is that segment, and it now serves both. The discriminator ADR-010 §2 requires is
+ * `resolveSlug` below — exactly one of them, in exactly one place.
  *
- * There is therefore no discriminator here, and that absence is the design rather than a stub.
- * ADR-010 §2 requires exactly one shared discriminator when two entity types occupy the namespace;
- * with one entity type there is nothing to discriminate, and writing a two-branch resolution now
- * would be building the mechanism that ADR names — before the ADR authorizes it, and against data
- * that cannot exercise it. When Products arrive, the branch is added in ONE place, and the honest
- * seam is the pair below: `generateStaticParams` stops being the whole answer, and `dynamicParams`
- * flips to `true`.
+ * The order is the frozen policy, not a convenience:
  *
- * ── Why `notFound()` is unreachable from anything the network does ──────────
+ *   1. **Reserved** (`finder`, `segments`, `types`) → 404, without asking anything. ADR-010 §4
+ *      reserves them against Families and Products alike, so they can be answered before either
+ *      branch is consulted, and a Product can never occupy one.
+ *   2. **Family** → the local content registry. **Family precedence** (ADR-010 §5) is expressed by
+ *      this check running first and returning without a Product lookup ever being issued.
+ *   3. **Product** → `GET /products/:slug`, the only branch that touches the network to decide
+ *      whether a page exists.
  *
- * ADR-010 §7 freezes it: infrastructure failure must never become a canonical-content 404. Two
- * structural properties enforce that here rather than a rule anyone has to remember.
+ * Step 2 before step 3 is what "Family wins" means operationally. It is belt-and-braces rather than
+ * load-bearing — ADR-011's database triggers make a colliding Product slug unwritable, so the
+ * ambiguity this ordering resolves cannot currently occur — and the ordering stays because a rule
+ * that is only enforced in one layer is a rule that moves when that layer does.
  *
- * First, the slug set below is read from a local module. No API answers "which families exist", so
- * no API can make one stop existing.
+ * ── Which failures may become a 404, and which may never ────────────────────
  *
- * Second, `resolveCategoryPage` never returns `null` for an API condition — every failure renders
- * the fixture and reports the cause. `null` means only "no fixture is registered", which under
- * `dynamicParams = false` cannot happen at all.
+ * ADR-010 §7 freezes it: infrastructure failure must never become a canonical-content 404. Three
+ * properties keep that true here rather than leaving it to be remembered.
  *
- * The 404s this route does serve are the honest kind: a slug outside the generated set names
- * nothing, and the router answers that without consulting anything.
+ * First, the Family set is read from a local module. No API answers "which families exist", so no
+ * API can make one stop existing, and `resolveCategoryPage` still never returns `null` for an API
+ * condition — every failure renders the fixture and reports the cause.
+ *
+ * Second, the Product branch distinguishes its outcomes at the source (`lib/products.ts`), and only
+ * ONE of them reaches `notFound()`: `not-found`, which is the API stating that no product answers
+ * this slug. `unreachable` and `api-error` — a stopped service, a timeout, a 5xx, a malformed
+ * payload — render `ProductUnavailable` instead.
+ *
+ * Third, `dynamicParams` is now `true`, so an unrecognised slug is no longer answered by the router
+ * before this file runs. That makes the 404 decision this file's own, and the two clauses above are
+ * what it is allowed to base it on.
  */
 
 /**
- * The six canonical Product Family slugs — every default-locale `Category.slug` in the registry.
+ * There is deliberately NO `generateStaticParams` and NO `dynamicParams` on this segment.
  *
- * ── Local, on purpose ───────────────────────────────────────────────────────
+ * ── Why they were removed, with the mechanism stated ────────────────────────
  *
- * `publishedCategorySlugs()` reads the content registry, not `GET /categories`. That is what keeps
- * the Category API out of the build: `apps/web` already fails its build loudly when the LOCALE API
- * cannot say which locales exist (`app/[locale]/layout.tsx`), because that answer decides which
- * pages exist at all and nothing can stand in for it. A family's existence is a different kind of
- * fact — the fixture holds it, and ADR-010 §7 scopes the fail-open policy to exactly the period in
- * which it does. Querying the catalog here would convert an approved fail-open into a second build
- * hard dependency, for a set of six values that are frozen.
+ * The previous gate enumerated the six Family slugs here and closed the segment with
+ * `dynamicParams = false`, which was correct while the namespace held one entity type. Opening it
+ * for Product Detail was expected to be a one-line flip to `true`. **It is not**, and the reason is
+ * worth recording because it is not obvious from the flag's own documentation:
  *
- * ── The locale dimension is the parent's ────────────────────────────────────
+ * `dynamicParams` on THIS segment does not override `dynamicParams = false` on the PARENT
+ * `[locale]` layout. With `generateStaticParams` present here, Next builds the closed cross-product
+ * of *locales × these slugs*, and any pair outside it 404s **at the router, before this file runs**.
+ * Verified rather than assumed: with the layout closed and this function present, a Product URL
+ * 404d in 29ms with no request reaching the API and no code in this file executing; removing this
+ * function alone made the same URL render, while `/xx/...` kept 404ing.
  *
- * This returns slugs only. The `[locale]` segment generates its own params from the Locale table
- * and the framework crosses the two, so the emitted set is *active locales × these six* without
- * either level enumerating the other — and adding a language stays a database row.
+ * So the enumeration is gone rather than the parent's closure — which is the change that stays
+ * local to this segment. The alternative, opening the `[locale]` segment, would trade a frozen
+ * routing property (FRONTEND_ARCHITECTURE §2: `dynamicParams = false` is what makes `/xx` a 404
+ * without the middleware having to recognise locales) for a build-time optimisation.
  *
- * ── What is NOT here ────────────────────────────────────────────────────────
+ * ── What is actually lost: nothing measurable ───────────────────────────────
  *
- * **No translated slugs.** None exist: `content_translations` holds no `slug` row for any Category,
- * and ADR-010 §8 states the launch position plainly — `fa` and `ar` Product Family URLs are served
- * at the default-locale English slug, which is what the six values below produce under every locale
- * prefix. Those URLs are the default-locale slug under a non-default prefix. **They are not
- * localized slugs**, and generating a translated param that no row backs would be inventing the
- * vocabulary ADR-009 §3 says is resolved server-side.
+ * The six Family pages are no longer prerendered at build time. They were not meaningfully
+ * prerendered before either: this route reads `searchParams` for the Segment filter and every fetch
+ * beneath it is `cache: "no-store"`, so it has rendered per request since the Product list landed.
+ * The build's `●` marker claimed otherwise, and a check of `.next/server/app/en/products/` found no
+ * emitted HTML for these routes — they had already bailed to dynamic.
  *
- * **No `finder`, `segments` or `types`.** ADR-010 §4 reserves all three in this namespace. They are
- * absent because they are not families — not special-cased, because a route-level exception would
- * be an enforcement mechanism, and §6 deliberately did not select one. Emitting them would be the
- * real harm: it would mint a `[slug]` page for a path a future static sibling must own, and a static
- * segment outranking a dynamic one is exactly what keeps those paths free.
+ * ── What still answers an unknown URL ───────────────────────────────────────
  *
- * **No Product slugs.** `sam_platform` now holds Product rows — the demo set — and none of them
- * belongs here: this function enumerates what the FAMILY branch serves, and the Product branch of
- * the shared namespace is unimplemented, so a product slug still resolves to nothing. The page
- * below lists those Products as content; it does not route to them, and ADR-007 Recorded Conflict 3
- * keeps them out of the statically enumerable set in any case.
+ * `/xx/products/anything` still 404s at the router: the `[locale]` segment keeps its own
+ * `generateStaticParams` and `dynamicParams = false`, so an unknown LOCALE never reaches this file
+ * and never costs a catalog lookup. What reaches this file is a known locale with an arbitrary
+ * slug, and deciding what that means is exactly this file's job.
  */
-export function generateStaticParams(): { slug: string }[] {
-  return publishedCategorySlugs().map((slug) => ({ slug }));
-}
-
-/**
- * The segment is closed to the generated set — a slug that is not one of the six 404s at the router,
- * before this file's code runs at all.
- *
- * It is the same mechanism `app/[locale]/layout.tsx` uses to make `/xx` a 404, and it is what gives
- * P2 the correct answer for a non-family slug without writing a Product branch: nothing here has to
- * decide what `/en/products/some-product` means, because Product Detail does not exist and the
- * router never reaches this file to be asked.
- *
- * **This flips to `true` with Product Detail**, whose slug set is not statically enumerable — ADR-007
- * Recorded Conflict 3 keeps products out of the sitemap. One line, and the seam is stated here so
- * that gate does not have to rediscover it.
- */
-export const dynamicParams = false;
 
 /**
  * The page's `<title>` and description, read straight from the content registry.
@@ -127,18 +120,46 @@ export const dynamicParams = false;
 export async function generateMetadata({
   params,
 }: {
-  readonly params: Promise<{ slug: string }>;
+  readonly params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const content = getCategoryContent(slug);
+  const { locale, slug } = await params;
 
   /*
-   * Unreachable while `dynamicParams = false` holds. An empty object rather than a throw, because
-   * a page that is about to 404 has no metadata to describe and should not fail first.
+   * The Family branch is unchanged: fixture only, no fetch. See the note above for why that is a
+   * requirement rather than an optimisation.
    */
-  if (!content) return {};
+  const content = getCategoryContent(slug);
+  if (content) {
+    return { title: content.meta.title, description: content.meta.description };
+  }
 
-  return { title: content.meta.title, description: content.meta.description };
+  /*
+   * A reserved slug has no page and therefore nothing to describe. Returned before the lookup so a
+   * reserved path never reaches the catalog.
+   */
+  if (isReservedProductSlug(slug)) return {};
+
+  /*
+   * The Product branch DOES fetch, because a Product has no local content to read a title from —
+   * and it costs no extra request: `resolveProduct` is memoized per request with React's `cache`,
+   * so this call and the component's below are one round trip that cannot disagree.
+   *
+   * `product.seo` carries `metaTitle`/`metaDescription` and is deliberately not consumed — mapping
+   * `SeoFields` onto the Metadata API is the SEO gate's work. `name` and `description` are what the
+   * page renders, so they are what it is titled with, and the API already falls its own SEO record
+   * back to exactly these two values.
+   *
+   * Every non-success outcome returns `{}` rather than inventing a title: a 404 and an unavailable
+   * page have nothing to describe, and naming the requested slug in a `<title>` would echo
+   * caller-supplied text while implying the product is real.
+   */
+  const result = await resolveProduct(slug, locale);
+  if (!result.ok) return {};
+
+  return {
+    title: result.record.name,
+    ...(result.record.description === null ? {} : { description: result.record.description }),
+  };
 }
 
 /**
@@ -173,40 +194,117 @@ export default async function ProductFamilyPage({
   /**
    * Reading this opts the route into dynamic rendering, which costs nothing here: every fetch this
    * page issues is `cache: "no-store"`, so the route was already dynamic before the filter existed
-   * (`lib/api-client.ts` records how that was verified). `generateStaticParams` still decides which
-   * slugs exist — the filter narrows a page, it never mints one.
+   * (`lib/api-client.ts` records how that was verified).
+   *
+   * It is read for the Family branch only — `?segment=` narrows a family's product list, and a
+   * Product Detail page has no list for it to narrow. The filter never decides whether a page
+   * exists; the slug does.
    */
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale, slug }, query] = await Promise.all([params, searchParams]);
-  const activeSegment = readSegmentParam(query.segment);
 
   /*
-   * The product list is started here and deliberately NOT awaited. Data access stays at the route
-   * (FRONTEND_ARCHITECTURE §7) while the promise travels down to a `Suspense` boundary in the
-   * template, so a slow catalog service delays one section instead of eleven. It cannot reject —
-   * `getProductsByCategory` reports every API condition as a value.
+   * ── 1. Reserved ───────────────────────────────────────────────────────────
    *
-   * `slug` is the family's canonical default-locale identifier and the route segment, which under
-   * `dynamicParams = false` is guaranteed to be one of the registered six.
+   * Answered first and answered locally. ADR-010 §4 reserves `finder`, `segments` and `types`
+   * against Families and Products alike, so neither branch below can legitimately claim one, and
+   * asking the catalog about them would be treating reserved route space as a possible product.
+   *
+   * A 404 is the honest answer while the routes they are reserved FOR are unbuilt — the same answer
+   * any other unclaimed slug gets. When the Product Finder ships as a static `finder/page.tsx`
+   * sibling it outranks this dynamic segment and this clause stops being reached.
    */
-  const products = getProductsByCategory(slug, locale, activeSegment ?? undefined);
+  if (isReservedProductSlug(slug)) notFound();
 
   /*
-   * `locale` is forwarded so the API can resolve the family's `name` in it — the one API-owned
-   * value this page renders. It is also what scopes the resolver's slug guard, which is only a
-   * valid identity test in the default locale.
+   * ── 2. Family — and this is what "Family precedence" means ────────────────
+   *
+   * The local content registry decides, and a hit returns without any Product lookup being issued
+   * at all. Everything below this point is unchanged from the previous gate: the same resolver, the
+   * same fail-open, the same `Suspense`-boundaried product list, the same `?segment=` filter.
    */
-  const page = await resolveCategoryPage(slug, locale);
-  if (!page) notFound();
+  const content = getCategoryContent(slug);
 
-  return (
-    <ProductCategoryTemplate
-      content={page.content}
-      family={page.family}
-      locale={locale}
-      products={products}
-      activeSegment={activeSegment}
-    />
+  if (content) {
+    const activeSegment = readSegmentParam(query.segment);
+
+    /*
+     * The product list is started here and deliberately NOT awaited. Data access stays at the route
+     * (FRONTEND_ARCHITECTURE §7) while the promise travels down to a `Suspense` boundary in the
+     * template, so a slow catalog service delays one section instead of eleven. It cannot reject —
+     * `getProductsByCategory` reports every API condition as a value.
+     */
+    const products = getProductsByCategory(slug, locale, activeSegment ?? undefined);
+
+    /*
+     * `locale` is forwarded so the API can resolve the family's `name` in it — the one API-owned
+     * value this page renders. It is also what scopes the resolver's slug guard, which is only a
+     * valid identity test in the default locale.
+     */
+    const page = await resolveCategoryPage(slug, locale);
+
+    /*
+     * Unreachable: `content` above came from the same registry the resolver reads, so a fixture
+     * cannot be present for one and absent for the other. Kept because it is the resolver's
+     * contract — `null` means "no fixture registered" and never an API condition — and because a
+     * silent `page!` here would be the assertion this route must not make.
+     */
+    if (!page) notFound();
+
+    return (
+      <ProductCategoryTemplate
+        content={page.content}
+        family={page.family}
+        locale={locale}
+        products={products}
+        activeSegment={activeSegment}
+      />
+    );
+  }
+
+  /*
+   * ── 3. Product ────────────────────────────────────────────────────────────
+   *
+   * The only branch that asks the network whether a page exists, and therefore the only one where
+   * ADR-010 §7 has teeth. `?segment=` is not read here: it is a Product Family filter, and a
+   * Product Detail page has no list for it to narrow.
+   *
+   * There is no `Suspense` boundary around this. A boundary streams a *part* of a page while the
+   * rest renders — but here the fetch decides whether the page exists at all, so there is nothing
+   * that could honestly render before it resolves. Streaming a shell and then replacing it with a
+   * 404 would emit a page that says a product exists and then retract it.
+   */
+  const result = await resolveProduct(slug, locale);
+
+  if (result.ok) {
+    return (
+      <ProductDetailTemplate
+        product={result.record}
+        locale={locale}
+        localeFallback={result.localeFallback}
+      />
+    );
+  }
+
+  /*
+   * The ONE condition allowed to 404: the API answered, and its answer was that no product carries
+   * this slug in this locale. That is a fact about the catalog, and a canonical 404 is the correct
+   * representation of it.
+   */
+  if (result.reason === "not-found") notFound();
+
+  /*
+   * Everything else — service down, refused, timed out, 5xx, or a 200 that is not a product. The
+   * page's existence is UNKNOWN, and ADR-010 §7 forbids reporting unknown as absent. Reported
+   * server-side so the condition is visible in logs rather than only to the visitor.
+   */
+  console.warn(
+    `[product:${slug}] rendering unavailable state — ` +
+      (result.reason === "unreachable"
+        ? "the API did not respond (down, refused, timed out, or API_INTERNAL_URL unset)"
+        : `the API answered, but not with a product (HTTP ${String(result.status)})`),
   );
+
+  return <ProductUnavailable locale={locale} />;
 }

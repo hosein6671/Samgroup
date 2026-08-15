@@ -8,6 +8,14 @@ export type {
   ApiMeta,
   ApiSuccessResponse,
 } from "./api";
-export type { CategoryResponse, ProductListItemResponse } from "./catalog";
+export type {
+  CategoryResponse,
+  ProductDetailResponse,
+  ProductImageResponse,
+  ProductListItemResponse,
+  ProductSegmentResponse,
+  ProductSpecificationResponse,
+  ProductTypeResponse,
+} from "./catalog";
 export type { LocaleDirection, LocaleResponse } from "./locale";
 export type { SeoAlternate, SeoFields, TwitterCardType } from "./seo";

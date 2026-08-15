@@ -308,13 +308,24 @@ A single typed client, `src/lib/api-client.ts`:
 
 Describes code that exists. `src/lib/` now holds three modules against the plan above: `api-client.ts` (transport and envelope), `catalog.ts` (Category), and `products.ts` (Product). One module per resource, all `server-only`, all `cache: "no-store"`.
 
-- **`getProductsByCategory(categorySlug, locale, segmentSlug?)`** is the only Product function. `GET /products/:slug` is deliberately absent — there is no Product Detail route to call it.
+- **`getProductsByCategory(categorySlug, locale, segmentSlug?)`** backs the Family pages' list; **`getProductBySlug(slug, locale)`** backs Product Detail (added by the gate below, which also removed the line that said the detail endpoint had no caller).
 - **Failure is a value, never a throw.** The result union separates `unknown-filter` (a 400 naming a rejected filter parameter — the only failure a visitor caused and the only one they can undo) from `unreachable` and `api-error`, because those need different words on the page. An empty list and a failed request are never rendered alike.
 - **Filtering is the API's, in full.** `apps/web` narrows nothing locally; ADR-008 fixes the semantics of combining `category` and `segment`, and a second implementation could only agree by coincidence.
 - **Filter state is URL state.** The Segment control is a row of links carrying `?segment={slug}`, so refresh, sharing and browser history work by construction and the section ships no client JavaScript. Reading `searchParams` costs nothing here: `no-store` had already made the route dynamic.
 - **One `Suspense` boundary, at the list.** The route creates the promise and does not await it; the template awaits it below a boundary. Without that, a hung catalog service would hold eleven sections of approved editorial content for the client's full ten-second timeout. **Data access still belongs to the route** — the promise is created there, per §7; the section fetches nothing.
 
 **Open, and named so it is not mistaken for done:** there is no Segment endpoint, so the eight approved Segment slugs are mirrored in `features/products/segments-data.ts` from `prisma/seed-catalog.ts`. That module is a stopgap with its reasoning written into it, and it is **deleted** — not kept in sync — by the gate that adds `GET /segments`.
+
+### [SHIPPED 15 August 2026 — Product Detail and the shared-namespace discriminator]
+
+`/{locale}/products/{slug}` now serves both entity types from one dynamic segment, closing the ADR-010 §2 read path.
+
+- **One discriminator, in the route file**, resolving in a fixed order: **reserved** slug (`finder`/`segments`/`types`) → 404 answered locally, no catalog lookup; **Product Family** → the local content registry, returning before any Product request is issued — which is what Family precedence means operationally; **Product** → `GET /products/:slug`, the only branch that asks the network whether a page exists.
+- **Only a definitive NOT_FOUND may 404.** An unreachable service, a timeout, a 5xx or a malformed payload render a restrained unavailable page instead (ADR-010 §7). It renders with a 200, which is a known limitation: the App Router gives a page no supported way to set a 5xx, and the whole `[locale]` tree is `noindex` so nothing is interpreting the status yet. Revisit with the SEO launch.
+- **`generateStaticParams` and `dynamicParams` are absent from `[slug]`, and that is required rather than incidental.** A child segment's `dynamicParams = true` does **not** override `dynamicParams = false` on the parent `[locale]` layout: with an enumeration present, Next builds the closed cross-product of locales × slugs and 404s anything outside it **at the router, before the page runs** — measured, not inferred. Removing the enumeration keeps the fix local to this segment and preserves §2's locale closure, which is what makes `/xx` a 404 without the middleware recognising locales. The six Family pages are therefore server-rendered on demand, which they already were: the route reads `searchParams` and every fetch beneath it is `no-store`.
+- **`generateMetadata` for a Product shares the page's fetch** through React's `cache()`, so a title and a body cannot describe different responses. The Family branch still reads metadata from the local registry and issues no request at all.
+- **Product cards link to the flat canonical URL**, composed inside the card from `locale` + `product.slug` rather than passed in — a caller cannot hand it a nested path. ADR-011's triggers make a Product slug colliding with a Family or reserved value unwritable, so no card can point into Family or reserved space.
+- **The page renders only API-backed fields.** Specifications and imagery render only when the record carries them; a null `productType` renders no row. There is no empty state for any of the three, and no placeholder imagery.
 
 ---
 

@@ -7,6 +7,8 @@
  * agreement with the backend.
  */
 
+import type { SeoFields } from "./seo";
+
 /**
  * One category, as `GET /categories` and `GET /categories/:slug` both serve it.
  *
@@ -61,4 +63,87 @@ export type ProductListItemResponse = {
   categoryId: string;
   /** ISO 8601. */
   createdAt: string;
+};
+
+/**
+ * One Segment a product belongs to — ADR-007 §4, where Segment ↔ Product is many-to-many.
+ *
+ * `name` and `slug` only, and the omissions are the backend's decision rather than this file
+ * declaring less than the wire carries: the internal id is withheld because a Segment is a
+ * navigation/facet axis and never URL ancestry, and `sortOrder` is withheld because it decides the
+ * order of the array and has no meaning once the array is ordered.
+ */
+export type ProductSegmentResponse = {
+  name: string;
+  slug: string;
+};
+
+/** A product's PRIMARY Product Type — single-valued in v2, and null while no ProductType row is approved. */
+export type ProductTypeResponse = {
+  name: string;
+  slug: string;
+};
+
+/**
+ * One `Specification` row, returned verbatim.
+ *
+ * `Specification` is not one of the entity types `content_translations` covers, so there is no
+ * translated form — these three values read the same in every locale.
+ */
+export type ProductSpecificationResponse = {
+  id: string;
+  key: string;
+  value: string;
+  unit: string | null;
+};
+
+/**
+ * One public product image.
+ *
+ * "Public" is expressed by the API as `type = image`, not by a visibility flag: COA, SDS, TDS and
+ * every other document are `file`/`document` rows and are excluded by that filter, which is why a
+ * consumer can render this array without having to check anything itself.
+ */
+export type ProductImageResponse = {
+  id: string;
+  url: string;
+  altText: string | null;
+};
+
+/**
+ * One product, as `GET /products/:slug` serves it — API_CONTRACT_FINAL.md §2.3, transcribed from
+ * `apps/api`'s own `ProductDetailResponse` field for field.
+ *
+ * `name`, `slug` and `description` carry the REQUESTED locale's values; so do `category`,
+ * `segments` and `productType`, each resolved through the same `content_translations` overlay. When
+ * any of them fell back to the default locale the response says so in `meta.localeFallback` — which
+ * is envelope metadata rather than a field here, and is surfaced by the client alongside the record.
+ *
+ * ── What is on the wire and is NOT declared ─────────────────────────────────
+ *
+ * `createdAt` is on this endpoint and is modelled, because this type claims to be the record.
+ * Nothing else is omitted: unlike `CategoryResponse`, whose `seo` block is deliberately unmodelled
+ * until a gate consumes it, this shape is declared complete because the Product Detail page reads
+ * across most of it and a half-declared record would invite the next reader to guess.
+ *
+ * `seo` is declared and **not yet consumed** — the page's `generateMetadata` reads `name` and
+ * `description` directly. Wiring `SeoFields` through to the Metadata API is the SEO gate's work,
+ * and doing it here would be that gate arriving early.
+ */
+export type ProductDetailResponse = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  /** ISO 8601. */
+  createdAt: string;
+  /** The owning Product Family, localized in the same request rather than a second round trip. */
+  category: CategoryResponse;
+  /** Ordered by the Segment's publishing order. Empty when the product belongs to no Segment. */
+  segments: ProductSegmentResponse[];
+  /** Null when the product has no primary Product Type — the state of every row in Phase 1. */
+  productType: ProductTypeResponse | null;
+  specifications: ProductSpecificationResponse[];
+  images: ProductImageResponse[];
+  seo: SeoFields;
 };

@@ -181,13 +181,12 @@ export async function CategoryCatalog({
               The catalog entries held for this family, as the platform publishes them.
             </p>
             {/*
-             * Stated once, at the list, rather than as a disabled affordance on every card.
-             * Product Detail is a separate gate (ADR-010 §2) and the honest thing to say is that
-             * the pages are not published, not to draw something that looks like a link.
+             * The "individual product pages are not published yet, so these entries are not links"
+             * caveat that stood here is GONE, because it is no longer true: the Product branch of
+             * the shared namespace exists and every card links to its product's canonical page. A
+             * caveat that outlives the limitation it describes is worse than no caveat — it teaches
+             * a reader to distrust the ones that are still accurate.
              */}
-            <p className="pl-head-caveat">
-              Individual product pages are not published yet, so these entries are not links.
-            </p>
           </div>
         </header>
 
@@ -213,7 +212,7 @@ export async function CategoryCatalog({
 
             <div className="pl-grid reveal-stagger">
               {result.products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} locale={locale} />
               ))}
             </div>
           </>

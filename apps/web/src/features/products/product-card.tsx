@@ -25,14 +25,24 @@ import type { ProductListItemResponse } from "@sam-group/types";
  * list-only by decision). The Segment axis is exposed as a filter control beside the list instead
  * of as a badge on the card, so nothing here has to invent what the response did not carry.
  *
- * ── Not a link, and that is load-bearing ────────────────────────────────────
+ * ── It links, now that there is somewhere to link to ────────────────────────
  *
- * There is no `<a>` in this component. `/{locale}/products/{slug}` is a shared namespace serving
- * the Product Family branch only (ADR-010 §2); the Product branch and its discriminator are a
- * separate gate, and `dynamicParams = false` on that segment means a product slug 404s at the
- * router today. A card that linked would produce a broken link on every row, so the card does not
- * accept an `href` at all — a component that cannot be given one cannot acquire one by accident
- * before the route exists.
+ * The card previously took no `href` at all, deliberately, because the Product branch of the shared
+ * namespace did not exist and every link would have 404d. That branch now exists, so each card is a
+ * link to the product's canonical URL.
+ *
+ * **The URL is composed here rather than passed in**, and that is the safer arrangement rather than
+ * the convenient one. The canonical shape is flat — `/{locale}/products/{product-slug}` (ADR-007
+ * §4, ADR-010 §2) — with the Product Family a relationship and never URL ancestry. A caller passing
+ * an `href` could pass a nested one; a caller passing a `locale` and letting the card build the
+ * path cannot. The family page is the only caller today and it renders inside a family's URL, which
+ * is exactly the context in which a nested link would look natural and be wrong.
+ *
+ * Two invariants make the link safe without this component checking anything. A Product slug cannot
+ * equal a Family slug or a reserved value, because ADR-011's database triggers reject the write —
+ * so no card can ever point at a Family page or into reserved route space. And the slug is the
+ * REQUESTED locale's slug, resolved server-side, so the link stays inside the locale it was
+ * rendered in.
  *
  * ── No demo badge ───────────────────────────────────────────────────────────
  *
@@ -43,10 +53,27 @@ import type { ProductListItemResponse } from "@sam-group/types";
  *
  * A Server Component. No state, no JavaScript.
  */
-export function ProductCard({ product }: { readonly product: ProductListItemResponse }): ReactNode {
+export function ProductCard({
+  product,
+  locale,
+}: {
+  readonly product: ProductListItemResponse;
+  /** The active locale segment. Half of the canonical URL; the product's slug is the other half. */
+  readonly locale: string;
+}): ReactNode {
   return (
     <article className="pl-card">
-      <h3 className="pl-card-name">{product.name}</h3>
+      <h3 className="pl-card-name">
+        {/*
+         * The whole card is not the link — the heading is. A card-sized anchor wrapping a
+         * five-line description gives a screen reader one enormous link name, and it takes the
+         * description's text out of reach of selection. The heading carries the product's name,
+         * which is the accessible name this link should have.
+         */}
+        <a className="pl-card-link" href={`/${locale}/products/${product.slug}`}>
+          {product.name}
+        </a>
+      </h3>
 
       {/*
        * Clamped in CSS, never truncated in JavaScript. A string cut at a character count can end

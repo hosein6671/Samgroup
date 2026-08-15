@@ -1,0 +1,377 @@
+/*
+ * SAM GROUP — PRODUCT DETAIL
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * The same constraint `category.css` and `product-list.css` state for themselves: it declares no
+ * colour, no typeface, no radius and no easing of its own. Every value resolves to a token already
+ * declared by `flagship.css` inside `[data-brand="flagship"]` or by the design system's generated
+ * theme, and where a construction already exists as flagship vocabulary — `.fs-wrap`, `.fs-sec`,
+ * `.fs-eyebrow`, `.fs-d1`/`.fs-d2`, `.fs-lead`, `.fs-btn`, `.fs-blueprint` — it is used directly
+ * rather than restated under a `pd-` name.
+ *
+ * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`,
+ * no JavaScript.
+ *
+ * ============================================================================
+ * THE PAGE'S RHYTHM
+ * ============================================================================
+ *
+ * Short, and it has to read as deliberately short rather than as unfinished. One dark hero
+ * carrying everything the record actually states, then at most two light sections, then the shared
+ * light CTA. A product with no specifications and no imagery — which is every product today — goes
+ * straight from the dark hero to the CTA, and the hero is sized to carry that on its own.
+ */
+
+/* ============================================================================
+   HERO
+   ============================================================================ */
+
+.pd-hero {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(56px, 6vw, 88px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.pd-hero-inner {
+  position: relative;
+}
+
+/* ------------------------------------------------------------- breadcrumb */
+
+/*
+ * The trail is a logical hierarchy, not a URL one — see the component's note. Drawn as a single
+ * technical line so it reads as orientation rather than as navigation competing with the header.
+ */
+.pd-crumbs ol {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 clamp(24px, 3vw, 38px);
+  padding: 0;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* The separator is drawn, not typed, so it never lands in a copied selection or a screen reader. */
+.pd-crumbs li + li::before {
+  content: "/";
+  margin-inline-end: 8px;
+  color: var(--color-border-accent);
+}
+
+.pd-crumbs a {
+  color: var(--color-text-tertiary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.pd-crumbs a:hover,
+.pd-crumbs a:focus-visible {
+  color: var(--color-text-primary);
+}
+
+/* The current page. Not a link, and set apart by weight rather than by another colour. */
+.pd-crumbs [aria-current="page"] {
+  color: var(--color-text-accent);
+}
+
+/* ------------------------------------------------------------------ title */
+
+.pd-title {
+  margin: 0;
+  max-width: 18ch;
+}
+
+.pd-lead {
+  margin: clamp(20px, 2.4vw, 30px) 0 0;
+  max-width: 62ch;
+}
+
+/* ------------------------------------------------------------------ facts */
+
+/*
+ * Family, Segments and Product Type as a definition list — the correct element for a set of
+ * labelled values, and it degrades to a readable list with no CSS at all.
+ *
+ * `auto-fill` with a floor rather than a fixed column count: a product carrying one Segment and no
+ * Product Type has two entries, and a three-column grid would leave a third of the row empty for
+ * the state that is currently universal.
+ */
+.pd-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(216px, max-content));
+  gap: clamp(20px, 2.6vw, 44px);
+  margin: clamp(30px, 3.6vw, 52px) 0 0;
+  padding-top: clamp(22px, 2.6vw, 32px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pd-facts dt {
+  margin: 0 0 8px;
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pd-facts dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+}
+
+.pd-facts dd a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border-accent);
+  padding-bottom: 2px;
+  transition: color 0.2s ease;
+}
+
+.pd-facts dd a:hover,
+.pd-facts dd a:focus-visible {
+  color: var(--color-text-accent);
+}
+
+/*
+ * Segments are stated, not linked.
+ *
+ * A Segment has no page of its own — ADR-007 defers the Segment browse route, and `segments` is
+ * reserved rather than built. The one place a Segment IS actionable is the family page's filter,
+ * and pointing there from here would send a visitor back up to a filtered list they just came
+ * down from. So each is a plain mark until the Segment route exists.
+ */
+.pd-segments {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.pd-segments li {
+  padding: 5px 11px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 999px;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------- fallback note */
+
+/*
+ * Stated as an annotation rather than as a warning banner. It reports a translation gap, which is
+ * a content-completeness fact — not an error, and not something the visitor did.
+ */
+.pd-fallback-note {
+  margin: clamp(24px, 3vw, 36px) 0 0;
+  padding-inline-start: 14px;
+  border-inline-start: 2px solid var(--color-border-accent);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-tertiary);
+  max-width: 58ch;
+}
+
+/* ============================================================================
+   SHARED SECTION HEADER
+   ============================================================================ */
+
+.pd-section-head {
+  margin-bottom: clamp(26px, 3vw, 40px);
+}
+
+.pd-section-head h2 {
+  margin: 16px 0 0;
+}
+
+/* ============================================================================
+   SPECIFICATIONS
+   ============================================================================ */
+
+/*
+ * The wrapper scrolls, not the page. A specification table can carry long property names, and a
+ * page that scrolls sideways as a whole is broken on a phone in a way a scrolling table is not.
+ */
+.pd-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+}
+
+.pd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.pd-table caption {
+  caption-side: top;
+  padding: 16px 18px;
+  text-align: start;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pd-table th,
+.pd-table td {
+  padding: 13px 18px;
+  text-align: start;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pd-table tbody tr:last-child th,
+.pd-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.pd-table thead th {
+  font-family: var(--font-technical);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pd-table tbody th {
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.pd-table tbody td {
+  color: var(--color-text-secondary);
+}
+
+/* The unit rides beside the value rather than in a column of its own — a column would be empty
+ * for every unitless property, which is the same "blank that means nothing" the category page's
+ * property groups exist to avoid. */
+.pd-unit {
+  margin-inline-start: 6px;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   GALLERY
+   ============================================================================ */
+
+.pd-gallery-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.pd-gallery-grid li {
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-surface-canvas);
+}
+
+/*
+ * `aspect-ratio` rather than a fixed height, and `object-fit: contain` rather than `cover`: these
+ * are product images of unknown dimensions, and cropping one to fill a tile can cut a label off a
+ * container. Nothing about the image is known at render — width and height are not on the wire —
+ * so the box is the constant and the image fits inside it.
+ */
+.pd-gallery-grid img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+
+/* ============================================================================
+   UNAVAILABLE
+   ============================================================================ */
+
+/*
+ * Drawn as a full dark band, the same weight as a hero. This is the whole page when it renders —
+ * not a notice inside a page — and a small grey box on an otherwise empty document would read as
+ * something that failed to load rather than as a considered statement.
+ */
+.pd-unavailable {
+  position: relative;
+  padding-block: clamp(128px, 16vh, 200px) clamp(72px, 8vw, 112px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+  min-height: 62vh;
+}
+
+.pd-unavailable-inner {
+  position: relative;
+}
+
+.pd-unavailable-title {
+  margin: 18px 0 0;
+  max-width: 20ch;
+}
+
+.pd-unavailable-lead {
+  margin: clamp(20px, 2.4vw, 28px) 0 0;
+  max-width: 58ch;
+}
+
+.pd-unavailable-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: clamp(28px, 3.4vw, 42px);
+}
+
+/* ============================================================================
+   NARROW
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  /* One column: the fact labels are short but their values are not, and two cramped columns read
+     worse than a list. */
+  .pd-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .pd-title {
+    max-width: none;
+  }
+
+  .pd-table th,
+  .pd-table td {
+    padding: 12px 14px;
+  }
+
+  .pd-gallery-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -54,22 +54,9 @@
   gap: 10px;
 }
 
-/*
- * The "not links" caveat.
- *
- * Set as a technical annotation rather than as body copy, because it is a statement about the
- * interface rather than about the products — and it has to keep reading that way when the Product
- * Detail gate deletes it.
- */
-.pl-head-caveat {
-  margin: 0;
-  font-family: var(--font-technical);
-  font-size: 11px;
-  line-height: 1.5;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
+/* `.pl-head-caveat` stood here for the "these entries are not links" note. The Product Detail gate
+ * removed the note, exactly as its own comment anticipated, so the rule went with it rather than
+ * being left behind as a selector matching nothing. */
 
 /* ============================================================================
    SEGMENT FILTER
@@ -191,6 +178,8 @@
 }
 
 .pl-card {
+  /* The containing block for `.pl-card-link::after`, which spreads the hit area over the card. */
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -198,6 +187,7 @@
   border: 1px solid var(--color-border-hairline);
   border-radius: 12px;
   background: var(--color-surface-canvas);
+  transition: border-color 0.2s ease;
 }
 
 .pl-card-name {
@@ -208,6 +198,41 @@
   line-height: 1.25;
   letter-spacing: -0.01em;
   color: var(--color-text-primary);
+}
+
+/*
+ * The heading is the link, not the card — see `product-card.tsx` for why.
+ *
+ * `::after` stretches the hit area over the whole card so the target is a card rather than a line
+ * of text, while the ACCESSIBLE NAME stays just the product's name. That needs the card to be a
+ * containing block, which `.pl-card` gets below.
+ */
+.pl-card-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.pl-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.pl-card:hover .pl-card-link,
+.pl-card-link:focus-visible {
+  color: var(--color-text-accent);
+}
+
+/* The focus ring belongs on the card, since the card is what the pointer target covers. */
+.pl-card:has(.pl-card-link:focus-visible) {
+  outline: 2px solid var(--color-border-accent);
+  outline-offset: 2px;
+}
+
+.pl-card:hover {
+  border-color: var(--color-border-accent);
 }
 
 /*
