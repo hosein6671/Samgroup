@@ -7,7 +7,7 @@ import { SiteNav } from "@/features/site/site-nav";
 
 import { BootCurtain, PointerRing, ScrollProgress } from "./chrome/site-chrome";
 import { RevealEngine } from "./motion/reveal-engine";
-import { Certifications } from "./sections/certifications";
+import { DemoDataNotice } from "./sections/demo-data-notice";
 import { Ecosystem } from "./sections/ecosystem";
 import { Hero } from "./sections/hero";
 import { Insights } from "./sections/insights";
@@ -44,10 +44,15 @@ import { Why } from "./sections/why";
  * code (PROJECT_HANDOFF §6.9), and routing is next-intl's job in M2. Shipping the prototype's
  * version would mean building the thing that has to be deleted.
  *
- * **The form posts nowhere,** and says so. Submission endpoints are M4.
+ * **The partnership section no longer holds a form.** It held one that validated in the browser,
+ * showed a success toast and discarded the lead — acceptable while no submission endpoint existed,
+ * and not acceptable once `POST /inquiries` shipped. It is now a link into the real Contact Us
+ * flow, which stores what a visitor sends.
  *
- * **Figures are the prototype's, and are unaudited.** SITE_STRUCTURE marks the homepage
- * statistics `[ESTIMATE — CONFIRM]`; they must be replaced before launch.
+ * **Figures are the prototype's, and are unaudited.** SITE_STRUCTURE marks the homepage statistics
+ * `[ESTIMATE — CONFIRM]`; they must be replaced before launch, and `DemoDataNotice` now says so on
+ * the page rather than only in this comment. **The certification marquee is removed** — ten
+ * unverified standards, which SITE_STRUCTURE §7 forbids publishing under any framing.
  *
  * ── Lift path ──────────────────────────────────────────────────────────────
  *
@@ -66,8 +71,14 @@ export function HomeExperience(): ReactNode {
       <SiteNav />
 
       <main id="main-content">
+        {/*
+         * First, above the hero, so it precedes every figure on the page rather than trailing
+         * some of them. It replaces the certification marquee that used to sit under the hero —
+         * see `DemoDataNotice` for why that marquee was removed outright rather than annotated.
+         */}
+        <DemoDataNotice />
+
         <Hero />
-        <Certifications />
         <Story />
         <Ecosystem />
         <Why />

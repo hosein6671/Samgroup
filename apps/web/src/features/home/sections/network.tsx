@@ -128,23 +128,20 @@ export function Network(): ReactNode {
         }
       });
 
-      const pulse = 12 + Math.sin(t * 7) * 5;
-      ctx.beginPath();
-      ctx.arc(hq.x, hq.y, pulse, 0, 6.2832);
-      ctx.strokeStyle = "rgba(227,198,137,.45)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(hq.x, hq.y, 6, 0, 6.2832);
-      ctx.fillStyle = "#C39A4E";
-      ctx.fill();
-      // The origin label runs off the plate on a phone — the marker and its pulse still
-      // identify the complex, and the legend names it directly underneath.
-      if (w > 520) {
-        ctx.font = "500 10px var(--font-mono-src), monospace";
-        ctx.fillStyle = "#E3C689";
-        ctx.fillText("SAM GROUP COMPLEX", hq.x + 16, hq.y - 10);
-      }
+      /*
+       * The lanes converge here, and **nothing is painted to say what is here.**
+       *
+       * This point used to carry a gold pulsing marker with the canvas text "SAM GROUP COMPLEX"
+       * beside it, and the legend below named the same swatch "Manufacturing complex". That is a
+       * facility-location claim — the identical one removed from the footer in this pass — and it
+       * survived the earlier rendered scans precisely because canvas text is painted rather than
+       * put in the DOM, so grepping the HTML could never see it.
+       *
+       * Removed rather than relabelled, and **not** moved to another location. The origin is now
+       * only what the geometry needs: the point the lanes are drawn from. A convergence point in a
+       * lane diagram asserts no ownership, names no site, and carries no marker distinguishing it
+       * from the drawing.
+       */
     },
     {
       aspect,
@@ -264,15 +261,25 @@ export function Network(): ReactNode {
             onMouseMove={onMove}
             onPointerDown={onTap}
             onMouseLeave={() => setHover(-1)}
-            aria-label="World map showing Sam Group export routes from the Persian Gulf to hubs across Europe, Asia, Africa and the Americas"
+            /*
+             * Describes the drawing, and names no facility. It previously read "Sam Group export
+             * routes from the Persian Gulf to hubs across…", which asserted both a named production
+             * site and a served-market list — the same Persian Gulf plant claim removed from the
+             * footer in this pass, and the market list is one of SITE_STRUCTURE's open
+             * confirmations. The lanes and transit times this map draws are placeholder data, and
+             * the label now says so to a screen reader exactly as the page's notice says it to
+             * everyone else.
+             */
+            aria-label="Illustrative world map of export shipping lanes. The routes, hubs and transit times shown are placeholder data."
             role="img"
           />
 
+          {/*
+           * The "Manufacturing complex" row is gone with the marker it described — it was the DOM
+           * half of the same facility claim the canvas was painting. Two rows remain, and both
+           * describe marks that are still drawn.
+           */}
           <div className="fs-map-legend">
-            <span className="fs-lg">
-              <i style={{ background: "#C39A4E" }} />
-              <span>Manufacturing complex</span>
-            </span>
             <span className="fs-lg">
               <i style={{ background: "#7FA8FF" }} />
               <span>Export hub</span>

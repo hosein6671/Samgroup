@@ -24,8 +24,9 @@ import { LOCALES, PRIMARY_NAV, PRODUCT_CATEGORIES, ROUTES } from "./site-routes"
  * click, and when focus leaves the group. The trigger still points at `/products` for anyone
  * who wants the landing page: the label is a link inside the panel's first row.
  *
- * Mobile is a hamburger drawer with Products as a disclosure accordion. WhatsApp and Request a
- * Quote are pinned to the bottom of the drawer, per the same sheet.
+ * Mobile is a hamburger drawer with Products as a disclosure accordion. Two actions are pinned to
+ * the bottom of the drawer, per the same sheet — though the first of them is **Contact Us and not
+ * WhatsApp**, because no WhatsApp number is confirmed; see the note at the drawer foot.
  */
 export function SiteNav(): ReactNode {
   const ref = useRef<HTMLElement>(null);
@@ -309,15 +310,19 @@ export function SiteNav(): ReactNode {
           )}
         </nav>
 
-        {/* Pinned actions, per SITE_STRUCTURE's Global Components sheet. */}
+        {/*
+         * Pinned actions, per SITE_STRUCTURE's Global Components sheet.
+         *
+         * **The WhatsApp action is not rendered.** That sheet pins WhatsApp here and gives it
+         * explicit visual priority — "communication with foreign customers is mainly via WhatsApp"
+         * — but the number is one of the Outstanding Confirmations, and what stood here was
+         * `https://wa.me/` with no number: a button that opened WhatsApp's own error page in a new
+         * tab. A dead primary action is worse than an absent one, and inventing a number is not an
+         * option. Contact Us takes its place until the real number is confirmed.
+         */}
         <div className="fs-drawer-foot">
-          <a
-            href="https://wa.me/"
-            className="fs-btn fs-btn--glass"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            WhatsApp
+          <a href={ROUTES.contactUs} className="fs-btn fs-btn--glass">
+            Contact Us
           </a>
           <a href={ROUTES.requestQuote} className="fs-btn fs-btn--gold">
             Request a Quote

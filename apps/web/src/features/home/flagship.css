@@ -1189,45 +1189,54 @@
 }
 
 /* ============================================================================
-   8 · CERTIFICATION MARQUEE
+   8 · PLACEHOLDER-DATA NOTICE
+   ----------------------------------------------------------------------------
+   Occupies the slot the certification marquee used to hold. That marquee is
+   gone rather than restyled: it published ten unverified standards, and
+   SITE_STRUCTURE §7 forbids publishing a placeholder certification at all.
+
+   Deliberately not subtle. A provisional-data notice that reads as decoration
+   is the same failure as the source comment that claimed this note existed
+   while nothing rendered it.
    ============================================================================ */
 
-.fs-certs {
+.fs-demo-note {
   background: var(--fs-ink);
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  overflow: hidden;
-  padding: 20px 0;
+  border-top: 1px solid rgba(201, 167, 92, 0.34);
+  border-bottom: 1px solid rgba(201, 167, 92, 0.34);
+  padding: 14px 0;
 }
-.fs-certs-track {
+
+.fs-demo-note-inner {
   display: flex;
-  gap: 64px;
-  width: max-content;
-  animation: fs-march 42s linear infinite;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
 }
-.fs-certs:hover .fs-certs-track {
-  animation-play-state: paused;
-}
-@keyframes fs-march {
-  to {
-    transform: translateX(-50%);
-  }
-}
-.fs-cert {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(238, 241, 246, 0.42);
-  white-space: nowrap;
-}
-.fs-cert svg {
-  color: var(--fs-gold);
-  opacity: 0.85;
+
+.fs-demo-tag {
   flex: none;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fs-ink);
+  background: var(--fs-gold);
+  border-radius: 4px;
+  padding: 4px 9px;
+}
+
+.fs-demo-note p {
+  margin: 0;
+  max-width: 92ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(238, 241, 246, 0.72);
+}
+
+.fs-demo-note strong {
+  color: #fff;
+  font-weight: 500;
 }
 
 /* ============================================================================
@@ -2153,96 +2162,26 @@
    15 · EDITORIAL INSIGHTS
    ============================================================================ */
 
+/*
+ * The magazine well is gone with the five fabricated articles it laid out — the lead column, the
+ * generated cover and its tag, the article headline and meta row, and the numbered secondary
+ * stack. What remains is a heading, a lede and one link, so what remains here is the band and the
+ * row that holds them.
+ */
 .fs-insights {
   background: #fff;
 }
-.fs-ins-lead {
-  grid-column: 1 / span 7;
-}
-.fs-ins-side {
-  grid-column: 9 / span 4;
-}
-.fs-ins-hero {
-  position: relative;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  aspect-ratio: 16/10;
-  background: var(--fs-navy);
-}
-.fs-ins-hero canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.fs-ins-hero-tag {
-  position: absolute;
-  top: 18px;
-  inset-inline-start: 18px;
-  z-index: 2;
-  font-family: var(--font-technical);
-  font-size: 9.5px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: rgba(3, 11, 31, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: var(--fs-gold-2);
-  backdrop-filter: blur(8px);
-}
-.fs-ins-lead h3 {
-  margin: 22px 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(26px, 3vw, 44px);
-  font-weight: 400;
-  letter-spacing: -0.028em;
-  color: var(--fs-navy);
-  max-width: 20ch;
-}
-.fs-ins-meta {
+.fs-ins-head {
   display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-top: 16px;
-  font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.fs-ins-lede {
+  margin: 20px 0 0;
+  max-width: 52ch;
   color: var(--color-text-secondary);
-}
-.fs-ins-item {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 20px;
-  padding: 24px 0;
-  border-top: 1px solid rgba(6, 19, 70, 0.13);
-  align-items: start;
-}
-.fs-ins-item .n {
-  font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
-  color: var(--color-text-accent);
-  padding-top: 4px;
-}
-.fs-ins-item h4 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(17px, 1.4vw, 21px);
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  color: var(--fs-navy);
-  transition: color var(--t-micro);
-}
-.fs-ins-item:hover h4 {
-  color: var(--color-text-accent);
-}
-.fs-ins-item p {
-  margin: 8px 0 0;
-  font-size: 13.5px;
-  color: var(--color-text-secondary);
-  line-height: 1.6;
 }
 
 /* ============================================================================
@@ -2345,12 +2284,8 @@
   gap: 12px;
   margin-top: 26px;
 }
-.fs-formnote {
-  margin-top: 16px;
-  font-size: 12px;
-  color: rgba(238, 241, 246, 0.45);
-  line-height: 1.55;
-}
+/* `.fs-formnote` is removed with the homepage partnership form it annotated — its note said the
+   form posted nowhere, and there is no longer a form on this page to say that about. */
 .fs-cta-links {
   margin-top: 36px;
   display: grid;
@@ -2441,35 +2376,9 @@
   color: rgba(238, 241, 246, 0.4);
 }
 
-.fs-toast {
-  position: fixed;
-  inset-block-end: 28px;
-  inset-inline-start: 50%;
-  transform: translate(-50%, 20px);
-  z-index: 200;
-  background: #fff;
-  color: var(--fs-navy);
-  border-radius: 14px;
-  padding: 15px 22px;
-  font-size: 14px;
-  box-shadow: 0 24px 60px -20px rgba(3, 11, 31, 0.6);
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 340ms var(--e-entrance);
-  max-width: min(90vw, 460px);
-}
-.fs-toast[data-show="true"] {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, 0);
-}
-.fs-toast svg {
-  color: var(--fs-gold);
-  flex: none;
-}
+/* The success toast is removed with the homepage partnership form. It was the mechanism by which
+   that form told a visitor "Request logged" about a lead it had just discarded; the real forms
+   report their outcome from what the API actually answered (`features/forms/form-feedback.tsx`). */
 
 /* ============================================================================
    17 · RESPONSIVE
@@ -2505,16 +2414,13 @@
   .fs-lab-copy,
   .fs-lab-cards,
   .fs-cta-copy,
-  .fs-cta-panel,
-  .fs-ins-lead,
-  .fs-ins-side {
+  .fs-cta-panel {
     grid-column: 1 / span 12;
   }
   .fs-cap-viz,
   .fs-tech-copy,
   .fs-lab-cards,
-  .fs-cta-panel,
-  .fs-ins-side {
+  .fs-cta-panel {
     margin-top: 40px;
   }
   .fs-qual-grid {
@@ -2638,9 +2544,6 @@
 @media (prefers-reduced-motion: reduce) {
   .fs-curtain {
     display: none;
-  }
-  .fs-certs-track {
-    animation: none;
   }
   .fs-nav[data-hidden="true"] {
     transform: none;

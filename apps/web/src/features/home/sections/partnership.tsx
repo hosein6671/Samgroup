@@ -1,32 +1,45 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
-import { CTA_LINKS, PRODUCT_INTERESTS } from "../home-data";
+import { Arrow } from "@/features/site/logo-mark";
+import { ROUTES } from "@/features/site/site-routes";
+
+import { CTA_LINKS } from "../home-data";
 import { useCanvas } from "../motion/use-canvas";
 
 /**
  * 9 · Partnership — the closing moment.
  *
- * Rising particles over a deep radial bloom, with a glass contact panel at the trailing five
- * columns. The particles wrap when they leave the top, so the field never empties.
+ * Rising particles over a deep radial bloom, with a glass panel at the trailing five columns.
+ * The particles wrap when they leave the top, so the field never empties.
  *
- * **The form validates in the browser and posts nowhere.** That is not a shortcut — submission
- * endpoints belong to M4 (`Inquiry`, per API_CONTRACT_FINAL), and wiring a real POST here would
- * mean inventing a contract the backend has not agreed. The note under the button says so
- * plainly rather than letting a visitor believe a message was sent.
+ * ── The form is gone, and why ───────────────────────────────────────────────
  *
- * Validation is authored the way it should ship: `noValidate` so the browser's own bubbles
- * don't fight ours, errors tied to inputs through `aria-describedby`, `aria-invalid` on the
- * field itself, focus moved to the first failure, and a `role="status"` toast on success.
+ * This section used to hold a second inquiry form. It validated in the browser, called
+ * `form.reset()`, raised a success toast reading "Request logged. An engineer will reply within one
+ * business day" — and **discarded the lead**. That was defensible while no submission endpoint
+ * existed anywhere and the note under the button said so plainly.
+ *
+ * It stopped being defensible the moment `POST /inquiries` shipped. A visitor who filled this in
+ * was told their request had been logged when nothing had been stored and nobody would ever see it,
+ * while an identical request three clicks away on Contact Us would have been persisted. A form that
+ * fakes success is the one thing worse than no form.
+ *
+ * **The panel is now a route into the real flow**, not a second submission path. There is exactly
+ * one Inquiry write path on this platform (`features/forms`), and this section deliberately does
+ * not duplicate a field of it — the fields a buyer needs are the ones Contact Us already collects,
+ * validated server-side against the DTO, stored with consent.
+ *
+ * ── Two claims removed with it ──────────────────────────────────────────────
+ *
+ * The lead said "An engineer — not a mailbox — replies within one business day", and the toast
+ * repeated the same promise. **Response time is unconfirmed** — SITE_STRUCTURE's Outstanding
+ * Confirmations lists it, and it is why the real forms' success copy is "Your inquiry has been
+ * received" and nothing more. Promising one business day here while the form that actually stores
+ * the lead promises nothing would have been the site contradicting itself.
  */
-type Errors = { name?: string; email?: string };
-
 export function Partnership(): ReactNode {
-  const [errors, setErrors] = useState<Errors>({});
-  const [toast, setToast] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const toastTimer = useRef(0);
   const particles = useRef<
     { x: number; y: number; r: number; s: number; o: number; gold: boolean }[]
   >([]);
@@ -71,188 +84,63 @@ export function Partnership(): ReactNode {
     },
   );
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    const name = String(data.get("name") ?? "").trim();
-    const email = String(data.get("email") ?? "").trim();
-
-    const next: Errors = {};
-    if (name.length < 2) next.name = "Enter your full name so we know who to reply to.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      next.email = "Enter a valid business email, e.g. name@company.com.";
-    }
-    setErrors(next);
-
-    if (Object.keys(next).length > 0) {
-      const firstInvalid = next.name ? "fs-f-name" : "fs-f-email";
-      document.getElementById(firstInvalid)?.focus();
-      return;
-    }
-
-    form.reset();
-    setToast(true);
-    window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(false), 4200);
-  };
-
   return (
-    <>
-      <section className="fs-sec fs-cta" id="partnership" data-surface="midnight">
-        <canvas ref={canvasRef} aria-hidden="true" />
-        <div className="fs-wrap fs-grid12" style={{ alignItems: "center" }}>
-          <div className="fs-cta-copy fs-rv">
-            <div className="fs-eyebrow">Partnership</div>
-            <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "13ch" }}>
-              <span className="fs-line-mask">
-                <span>Building the future</span>
-              </span>
-              <span className="fs-line-mask">
-                <span>of industrial</span>
-              </span>
-              <span className="fs-line-mask">
-                <span style={{ color: "var(--fs-gold-2)" }}>performance.</span>
-              </span>
-            </h2>
-            <p className="fs-lead" style={{ marginTop: 26, color: "rgba(238,241,246,.72)" }}>
-              Tell us the specification and the destination port. An engineer — not a mailbox —
-              replies within one business day.
+    <section className="fs-sec fs-cta" id="partnership" data-surface="midnight">
+      <canvas ref={canvasRef} aria-hidden="true" />
+      <div className="fs-wrap fs-grid12" style={{ alignItems: "center" }}>
+        <div className="fs-cta-copy fs-rv">
+          <div className="fs-eyebrow">Partnership</div>
+          <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "13ch" }}>
+            <span className="fs-line-mask">
+              <span>Building the future</span>
+            </span>
+            <span className="fs-line-mask">
+              <span>of industrial</span>
+            </span>
+            <span className="fs-line-mask">
+              <span style={{ color: "var(--fs-gold-2)" }}>performance.</span>
+            </span>
+          </h2>
+          <p className="fs-lead" style={{ marginTop: 26, color: "rgba(238,241,246,.72)" }}>
+            Tell us the specification and the destination port. The more of a requirement an inquiry
+            carries, the fewer rounds it takes to answer.
+          </p>
+
+          <div className="fs-cta-links">
+            {CTA_LINKS.map((link) => (
+              <a className="fs-cta-link" href={link.href} key={link.title}>
+                <b>{link.title}</b>
+                <span>{link.meta}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/*
+         * The panel keeps its position in the composition and sends people to the one form that
+         * stores what they write. No fields, no local state, no second endpoint.
+         */}
+        <div className="fs-cta-panel fs-rv">
+          <div className="fs-panel">
+            <h3 className="fs-d4">Send an inquiry</h3>
+            <p className="fs-small" style={{ color: "rgba(238,241,246,.72)", marginTop: 10 }}>
+              Product questions, quotations and sample requests all go through one form. Give the
+              grade, the volume, the packaging and the destination port, and the exchange starts a
+              round further on.
             </p>
 
-            <div className="fs-cta-links">
-              {CTA_LINKS.map((link) => (
-                <a className="fs-cta-link" href="#partnership" key={link.title}>
-                  <b>{link.title}</b>
-                  <span>{link.meta}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className="fs-cta-panel fs-rv">
-            <div className="fs-panel">
-              <h3 className="fs-d4">Request partnership</h3>
-              <p className="fs-small" style={{ color: "rgba(238,241,246,.6)", marginTop: 8 }}>
-                Fields marked with an asterisk are required.
-              </p>
-
-              <form ref={formRef} onSubmit={onSubmit} noValidate>
-                <div className="fs-field">
-                  <label htmlFor="fs-f-name">Full name *</label>
-                  <input
-                    id="fs-f-name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
-                    placeholder="Jane Okafor"
-                    required
-                    aria-invalid={errors.name ? "true" : undefined}
-                    aria-describedby={errors.name ? "fs-e-name" : undefined}
-                  />
-                  {errors.name && (
-                    <p className="fs-err" id="fs-e-name">
-                      <ErrIcon />
-                      <span>{errors.name}</span>
-                    </p>
-                  )}
-                </div>
-
-                <div className="fs-field">
-                  <label htmlFor="fs-f-email">Business email *</label>
-                  <input
-                    id="fs-f-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    placeholder="procurement@company.com"
-                    required
-                    aria-invalid={errors.email ? "true" : undefined}
-                    aria-describedby={errors.email ? "fs-e-email" : undefined}
-                  />
-                  {errors.email && (
-                    <p className="fs-err" id="fs-e-email">
-                      <ErrIcon />
-                      <span>{errors.email}</span>
-                    </p>
-                  )}
-                </div>
-
-                <div className="fs-field">
-                  <label htmlFor="fs-f-interest">Product interest</label>
-                  <select id="fs-f-interest" name="interest">
-                    {PRODUCT_INTERESTS.map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="fs-field">
-                  <label htmlFor="fs-f-msg">Specification &amp; destination</label>
-                  <textarea
-                    id="fs-f-msg"
-                    name="message"
-                    placeholder="SN 500, 2,000 MT / month, CFR Jebel Ali"
-                    aria-describedby="fs-f-hint"
-                  />
-                  <p className="fs-hint" id="fs-f-hint">
-                    Grade, volume, packaging and port get you a faster quote.
-                  </p>
-                </div>
-
-                <div className="fs-cta-actions">
-                  <button type="submit" className="fs-btn fs-btn--gold">
-                    Send request
-                  </button>
-                  <a href="#lab" className="fs-btn fs-btn--glass">
-                    Book a plant visit
-                  </a>
-                </div>
-
-                <p className="fs-formnote">
-                  This is a design proof — submissions are validated in the browser and are not sent
-                  anywhere. The real endpoint arrives with the M4 inquiry API.
-                </p>
-              </form>
+            <div className="fs-cta-actions" style={{ marginTop: 26 }}>
+              <a href={ROUTES.contactUs} className="fs-btn fs-btn--gold">
+                Contact Us
+                <Arrow size={15} />
+              </a>
+              <a href={ROUTES.requestQuote} className="fs-btn fs-btn--glass">
+                Request a quote
+              </a>
             </div>
           </div>
         </div>
-      </section>
-
-      <div className="fs-toast" data-show={toast ? "true" : undefined} role="status">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          aria-hidden="true"
-        >
-          <path d="M20 6 9 17l-5-5" />
-        </svg>
-        <span>
-          {toast ? "Request logged. An engineer will reply within one business day." : ""}
-        </span>
       </div>
-    </>
-  );
-}
-
-function ErrIcon(): ReactNode {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v5M12 16h.01" />
-    </svg>
+    </section>
   );
 }

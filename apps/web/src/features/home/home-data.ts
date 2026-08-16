@@ -9,9 +9,28 @@
  *
  * **Figures are illustrative.** They are the approved prototype's numbers, not audited company
  * data. `docs/SITE_STRUCTURE.md` marks the homepage statistics `[ESTIMATE — CONFIRM]`, and
- * CLAUDE.md §4 forbids seeding a marker into a page as fact — so the page carries a visible
- * provisional note and these must be replaced before launch.
+ * CLAUDE.md §4 forbids seeding a marker into a page as fact.
+ *
+ * This note used to claim "the page carries a visible provisional note". **It did not** — nothing
+ * in the rendered output said any of this, so the caveat protected only people reading the source.
+ * `sections/demo-data-notice.tsx` is that note, rendered first inside `<main>`, above every figure
+ * on the page. The figures below still have to be replaced with confirmed data before launch.
+ *
+ * ── No certification, standard, licence or approval is stated in this file ──
+ *
+ * There was a `CERTS` list of ten (ISO 9001:2015, ISO 14001, ISO 45001, API Licensed, ACEA, ILSAC
+ * GF-6, IATF 16949, SGS, REACH, ASTM) feeding a marquee under the hero, an "International
+ * certification" module claiming annually-audited systems with "API and OEM approvals maintained
+ * per grade", and a "9 OEM approvals" trust figure. All are removed.
+ *
+ * SITE_STRUCTURE §7's Outstanding Confirmations is unambiguous about the certificate list —
+ * **"do not publish placeholders here"** — and `features/quality` honours that exactly, publishing
+ * no certificate and saying on the page that the list is withheld. The homepage was contradicting
+ * the page whose entire subject is certification. **Nothing here may name a certificate, standard,
+ * licence, accreditation, issuing body or OEM approval until the real list is confirmed.**
  */
+
+import { ROUTES } from "@/features/site/site-routes";
 
 export type Stat = { readonly value: number; readonly suffix: string; readonly label: string };
 export type Fact = { readonly value: string; readonly label: string };
@@ -33,18 +52,8 @@ export const HERO_STATS: readonly Stat[] = [
   { value: 480, suffix: "+", label: "Product formulations" },
 ];
 
-export const CERTS: readonly string[] = [
-  "ISO 9001:2015",
-  "ISO 14001",
-  "ISO 45001",
-  "API Licensed",
-  "ACEA Sequences",
-  "ILSAC GF-6",
-  "IATF 16949",
-  "SGS Verified",
-  "REACH Registered",
-  "ASTM Test Methods",
-];
+/* `CERTS` is deleted, not emptied — an empty array is a slot a plausible guess gets dropped into
+   later. See the module note: no certificate, standard, licence or approval may be named here. */
 
 /* ----------------------------------------------------------------- 2 · story */
 
@@ -84,13 +93,11 @@ export const MODULES: readonly Module[] = [
     diagram:
       '<circle cx="95" cy="95" r="66"/><path d="M29 95h132M95 29c26 26 26 106 0 132M95 29c-26 26-26 106 0 132"/>',
   },
-  {
-    title: "International certification",
-    body: "Quality, environmental and occupational systems audited annually, with API and OEM approvals maintained per grade.",
-    tags: ["ISO 9001", "ISO 14001", "9 OEM approvals"],
-    diagram:
-      '<path d="M95 25l58 26v56c0 40-30 60-58 68-28-8-58-28-58-68V51z"/><path d="M70 96l18 18 34-36"/>',
-  },
+  /*
+   * The "International certification" module is removed, not reworded. Its title, its body ("API
+   * and OEM approvals maintained per grade") and all three of its tags were certification claims,
+   * so there was nothing left of it once those went. Five modules, not six.
+   */
   {
     title: "Laboratory technology",
     body: "Viscometry, FTIR, ICP elemental analysis and oxidation rigs — 12,400 tests a month under one roof.",
@@ -213,10 +220,11 @@ export const RELEASE_SPEC: readonly (readonly [string, string])[] = [
   ["Sulphated ash", "0.78 %m/m"],
 ];
 
+/* "9 OEM approvals" is dropped from this list — an OEM approval is a certification claim, and it
+   is the one entry here that no placeholder notice could make acceptable. Four figures, not five. */
 export const TRUST: readonly Fact[] = [
   { value: "52", label: "Export markets" },
   { value: "130+", label: "Active distributors" },
-  { value: "9", label: "OEM approvals" },
   { value: "0", label: "Major NCRs, 5 years" },
   { value: "98.6%", label: "On-time shipment" },
 ];
@@ -238,8 +246,14 @@ export type Hub = {
   readonly lane: string;
 };
 
-/** The manufacturing complex every lane departs from. */
-export const HQ = { name: "Persian Gulf Complex", lon: 56.3, lat: 27.2 } as const;
+/**
+ * The origin point every lane on the map is drawn from — **coordinates only**.
+ *
+ * It carried `name: "Persian Gulf Complex"`, which nothing rendered and which nothing may: a named
+ * production site is a facility claim, and the identical one was removed from the footer in this
+ * pass. The map needs somewhere to draw from; it does not need to say what is there.
+ */
+export const HQ = { lon: 56.3, lat: 27.2 } as const;
 
 export const HUBS: readonly Hub[] = [
   { n: "Rotterdam", lon: 4.5, lat: 51.9, lane: "ISO tank · 21 days" },
@@ -561,55 +575,45 @@ export const STAGES: readonly Stage[] = [
 
 /* ------------------------------------------------------------- 8 · insights */
 
-export const LEAD_ARTICLE = {
-  tag: "Base oils · Market",
-  title: "Why Group III supply is rewriting lubricant procurement in 2026",
-  meta: ["12 Min read", "Market Analysis"],
-  body: "Hydrocracker capacity additions in the Gulf have narrowed the Group II–III price gap. For blenders, the calculation that made Group II the default is no longer obviously true.",
-} as const;
-
-export const INSIGHTS: readonly {
-  readonly n: string;
-  readonly title: string;
-  readonly body: string;
-}[] = [
-  {
-    n: "02",
-    title: "Reading a certificate of analysis like an auditor",
-    body: "The five fields that reveal whether a batch was actually tested or merely typed.",
-  },
-  {
-    n: "03",
-    title: "Additive depletion in high-idle fleets",
-    body: "Field returns from three climates, and what they say about drain intervals.",
-  },
-  {
-    n: "04",
-    title: "Drum, flexitank or ISO tank: a cost model",
-    body: "Landed cost per metric tonne across six lanes, including demurrage risk.",
-  },
-  {
-    n: "05",
-    title: "What changed in API SP and why it matters to you",
-    body: "LSPI protection, chain wear limits, and the reformulation cost behind them.",
-  },
-];
+/*
+ * `LEAD_ARTICLE` and `INSIGHTS` are deleted, not emptied.
+ *
+ * They were five fabricated articles — a lead titled "Why Group III supply is rewriting lubricant
+ * procurement in 2026" carrying a dated market claim about Gulf hydrocracker capacity, plus four
+ * invented secondaries with their own summaries. None corresponded to a `BlogPost` row or to any
+ * approved editorial content, and a market assertion published under a company's name is a
+ * commercial claim, not decoration.
+ *
+ * **No blog content is fixtured here, and none may be.** `BlogPost` is Prisma-owned and served by
+ * `GET /blog/posts`; `/{locale}/insights` renders it. A second, hand-written blog source on the
+ * homepage is exactly the duplication that would drift from the real one. The homepage section now
+ * links to that page instead — see `sections/insights.tsx`.
+ */
 
 /* --------------------------------------------------------- 9 · partnership */
 
-export const PRODUCT_INTERESTS: readonly string[] = [
-  "Base oils",
-  "Lubricants",
-  "Petroleum products",
-  "Industrial fluids",
-  "Automotive solutions",
-  "Specialty products",
-];
+/* `PRODUCT_INTERESTS` is deleted with the local partnership form it fed. The one Inquiry form on
+   the platform owns its own field vocabulary in `features/forms`; a second copy here would drift. */
 
-export const CTA_LINKS: readonly { readonly title: string; readonly meta: string }[] = [
-  { title: "Contact the engineering team", meta: "Direct line" },
-  { title: "Download company profile", meta: "PDF · 4.2 MB" },
-  { title: "Request product data sheets", meta: "TDS / MSDS" },
+/**
+ * The closing section's three routes.
+ *
+ * All three used to point at `#partnership` — the section containing them — and one of them
+ * offered a "company profile" as "PDF · 4.2 MB", an asset that does not exist and a file size that
+ * was invented for it. They now carry real `href`s to routes that resolve.
+ *
+ * "Request product data sheets" points at the Products landing page's documentation block. That
+ * block is itself still gated and inert, which is a known state rather than a broken link: it is a
+ * real anchor on a real page that says what it is.
+ */
+export const CTA_LINKS: readonly {
+  readonly title: string;
+  readonly meta: string;
+  readonly href: string;
+}[] = [
+  { title: "Contact us", meta: "Inquiry form", href: ROUTES.contactUs },
+  { title: "Request a quote", meta: "Pre-filtered inquiry", href: ROUTES.requestQuote },
+  { title: "Product data sheets", meta: "TDS / SDS", href: ROUTES.documentation },
 ];
 
 export const NAV_LINKS: readonly { readonly href: string; readonly label: string }[] = [

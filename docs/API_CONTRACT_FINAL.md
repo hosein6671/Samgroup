@@ -295,7 +295,14 @@ All of `sam_platform`. Payload never touches it (ADR-002).
 
 ### Submission handling, uniformly
 
-Every submission endpoint: validates → persists → writes an initial `StatusHistory` row → fires notification → returns `201` with a reference id (never the full record echoed back).
+Every submission endpoint: validates → persists → returns `201` with a reference id (never the full record echoed back).
+
+**Corrected to the approved behaviour.** This step previously read "validates → persists → writes an initial `StatusHistory` row → fires notification → returns `201`". Neither the `StatusHistory` write nor the notification is implemented, and the flow above is what the two live endpoints (§2.6a) actually do.
+
+- **No `StatusHistory` row is written on submission.** `status` is set to `new` and never changes, so there is no transition to record ([DATA_MODEL.md](./DATA_MODEL.md) §2 Notes). The audit trail arrives with the Admin workflow that first moves a submission out of `new`.
+- **No notification is fired.** No email or notification infrastructure exists anywhere in the platform — no provider, dependency, credential, queue, or template. The success copy on every form is written to match ("Your inquiry has been received"), claiming nothing was sent and nobody was told.
+
+**Approved architecture for notification, when it is built:** it is **not** in the persistence success path. A submission is validated, persisted, and answered `201` first; notification is attempted separately afterwards. **A delivery failure must never invalidate, reject or lose an already-persisted inquiry** — it is logged for operations and nothing more. The outbound provider, the internal recipient address(es), whether the buyer receives an acknowledgement, reply-to behaviour, retry strategy and whether delivery status is persisted are all **undecided**; a durable retry or delivery audit would additionally need schema this gate has not added.
 
 - **Inquiry workflow** — `status` transitions recorded in `StatusHistory`; `assignedToId` routes to a Sales Expert. Sales Expert sees own leads only ([SECURITY.md](./SECURITY.md)).
 - **Distributor applications** — same lead-routing shape as Inquiry.

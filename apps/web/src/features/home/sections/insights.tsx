@@ -1,115 +1,64 @@
-"use client";
-
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-
-import { INSIGHTS, LEAD_ARTICLE } from "../home-data";
-import { useCanvas } from "../motion/use-canvas";
+import { ROUTES } from "@/features/site/site-routes";
 
 /**
  * 8 · Editorial insights.
  *
- * A magazine well: one lead with a generated cover, four secondaries as a numbered stack. The
- * structural difference from a card grid is hierarchy — a grid gives every article equal weight,
- * which is a database query rendered as design.
+ * ── The articles were invented, and are gone ────────────────────────────────
  *
- * The cover is a **refined-cut gradient field**: 34 stacked sine curves over a navy gradient
- * with a warm bloom in the upper right. It is painted once per resize rather than per frame —
- * a still image that happens to be generated, so it costs nothing to leave on screen.
+ * This section was a magazine well: one lead article with a generated cover, four secondaries in a
+ * numbered stack. **Every word of it was fabricated.** The lead was titled "Why Group III supply is
+ * rewriting lubricant procurement in 2026", tagged "Base oils · Market", labelled "12 Min read ·
+ * Market Analysis", and carried a specific market claim about hydrocracker capacity additions in
+ * the Gulf narrowing the Group II–III price gap. The four secondaries were the same in miniature.
+ *
+ * None of it corresponded to anything: not to a `BlogPost` row, not to the demo blog dataset, not
+ * to any approved editorial content. It was prototype filler that read as published analysis, and a
+ * dated market assertion attributed to nobody is the kind of invented fact CLAUDE.md §4 forbids
+ * outright — arguably worse than an invented statistic, because it is presented as this company's
+ * professional judgement.
+ *
+ * ── Why a CTA and not a real feed ───────────────────────────────────────────
+ *
+ * `GET /blog/posts` exists and `/{locale}/insights` renders it, so wiring the five real (explicitly
+ * DEMO-prefixed) posts in here would be possible. It is deliberately not done: this component is a
+ * leaf of a homepage tree that receives no locale and performs no fetch, so consuming the blog
+ * would mean making it async, plumbing `locale` down from the route, and adding a Suspense boundary
+ * — a homepage/blog integration, not a tiny reuse. Subtraction was the instruction and is the right
+ * call; the section now points at the page that already lists the real posts.
+ *
+ * ── What that removed with it ───────────────────────────────────────────────
+ *
+ * The generated cover canvas went too. It existed to give a fabricated lead article an image, and
+ * with no article there is nothing for it to be the cover of. Losing it is what lets this file drop
+ * `"use client"` — it is now a Server Component shipping no JavaScript, which is the honest end
+ * state for a section that is a heading and a link.
+ *
+ * The "All articles" action also pointed at `#insights`, this section, rather than anywhere. It now
+ * resolves to the real route.
  */
 export function Insights(): ReactNode {
-  const coverRef = useCanvas(
-    ({ ctx, w, h }) => {
-      const g = ctx.createLinearGradient(0, 0, w, h);
-      g.addColorStop(0, "#061346");
-      g.addColorStop(0.55, "#0A1C57");
-      g.addColorStop(1, "#030B1F");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
-
-      // Amplitude and opacity both rise down the field, so the cuts separate toward the base.
-      for (let i = 0; i < 34; i++) {
-        const y = h * (i / 34);
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 10) {
-          ctx.lineTo(x, y + Math.sin(x * 0.008 + i * 0.5) * (8 + i * 0.7));
-        }
-        ctx.strokeStyle = `rgba(227,198,137,${(0.03 + (i / 34) * 0.11).toFixed(3)})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      const bloom = ctx.createRadialGradient(w * 0.72, h * 0.28, 0, w * 0.72, h * 0.28, w * 0.6);
-      bloom.addColorStop(0, "rgba(227,198,137,.22)");
-      bloom.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = bloom;
-      ctx.fillRect(0, 0, w, h);
-    },
-    { still: true },
-  );
-
   return (
     <section className="fs-sec fs-insights" id="insights" data-surface="light">
       <div className="fs-wrap">
-        <div
-          className="fs-rv"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            gap: 32,
-            flexWrap: "wrap",
-            marginBottom: "clamp(32px,4vw,56px)",
-          }}
-        >
+        <div className="fs-ins-head fs-rv">
           <div>
             <div className="fs-eyebrow">Global Insights</div>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "14ch" }}>
               Notes from the industry.
             </h2>
+            <p className="fs-lead fs-ins-lede">
+              Technical and market notes on base oils, lubricants and export logistics, published as
+              they are written.
+            </p>
           </div>
-          <a href="#insights" className="fs-btn fs-btn--outline">
-            All articles
+
+          <a href={ROUTES.insights} className="fs-btn fs-btn--outline">
+            Read the insights
             <Arrow />
           </a>
-        </div>
-
-        <div className="fs-grid12">
-          <article className="fs-ins-lead fs-rv">
-            <div className="fs-ins-hero">
-              <canvas ref={coverRef} aria-hidden="true" />
-              <span className="fs-ins-hero-tag">{LEAD_ARTICLE.tag}</span>
-            </div>
-            <h3>{LEAD_ARTICLE.title}</h3>
-            <div className="fs-ins-meta">
-              {LEAD_ARTICLE.meta.map((m, i) => (
-                <span key={m}>
-                  {i > 0 && (
-                    <span aria-hidden="true" style={{ marginInlineEnd: 14 }}>
-                      ·
-                    </span>
-                  )}
-                  {m}
-                </span>
-              ))}
-            </div>
-            <p className="fs-small" style={{ marginTop: 14, maxWidth: "56ch" }}>
-              {LEAD_ARTICLE.body}
-            </p>
-          </article>
-
-          <div className="fs-ins-side fs-rv">
-            {INSIGHTS.map((item) => (
-              <article className="fs-ins-item" key={item.n}>
-                <div className="n">{item.n}</div>
-                <div>
-                  <h4>{item.title}</h4>
-                  <p>{item.body}</p>
-                </div>
-              </article>
-            ))}
-          </div>
         </div>
       </div>
     </section>
