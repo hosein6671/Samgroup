@@ -36,7 +36,10 @@ const FULL_RECORD = {
   robotsFollow: false,
   keywords: ["base oil", "sn 500"],
   structuredDataOverride: { "@type": "Product" },
-  socialImage: { url: "https://cdn.example.test/social.png" },
+  socialImage: {
+    url: "https://cdn.example.test/social.png",
+    altText: "A drum of SN 500 base oil.",
+  },
 };
 
 type Stubs = {
@@ -93,7 +96,9 @@ describe("SeoService.buildFor — record lookup", () => {
 
     const call = seoFindUnique.mock.calls[0]?.[0] as { select: Record<string, unknown> };
 
-    expect(call.select.socialImage).toEqual({ select: { url: true } });
+    // Both columns in the one query. `altText` rides along with the URL because §Image SEO needs
+    // it and a second round trip per detail endpoint would be the alternative.
+    expect(call.select.socialImage).toEqual({ select: { url: true, altText: true } });
   });
 
   it("returns every stored value verbatim when the record is complete", async () => {
@@ -155,7 +160,7 @@ describe("SeoService.buildFor — fallbacks", () => {
     expect(seo.twitterTitle).toBe(FULL_RECORD.metaTitle);
     expect(seo.ogDescription).toBe(FULL_RECORD.metaDescription);
     expect(seo.twitterDescription).toBe(FULL_RECORD.metaDescription);
-    expect(seo.twitterImageUrl).toBe(FULL_RECORD.socialImage.url);
+    expect(seo.twitterImage).toEqual(seo.socialImage);
   });
 
   // An admin form that submits a cleared input writes "", not NULL. Treating the two the
@@ -192,23 +197,37 @@ describe("SeoService.buildFor — fallbacks", () => {
 describe("SeoService.buildFor — social image", () => {
   // §2 keeps the social image separate from the hero image precisely so OG previews do not
   // break when content imagery changes, which makes social_image_id the source of truth.
-  it("prefers the resolved Media URL over the stored ogImageUrl", async () => {
+  it("prefers the resolved Media row over the stored ogImageUrl, and carries its alt text", async () => {
     const { service, seoFindUnique } = createService();
 
     seoFindUnique.mockResolvedValue(FULL_RECORD);
 
+    // Only the Media row can supply alt text (§Image SEO). Dimensions are null on this half of
+    // the §0 seam: `sam_platform`'s media table has no width/height columns.
     await expect(service.buildFor(REQUEST, EN)).resolves.toMatchObject({
-      ogImageUrl: "https://cdn.example.test/social.png",
+      socialImage: {
+        url: "https://cdn.example.test/social.png",
+        alt: "A drum of SN 500 base oil.",
+        width: null,
+        height: null,
+      },
     });
   });
 
-  it("falls back to ogImageUrl when no social image is attached", async () => {
+  it("falls back to the free-text ogImageUrl, which has no alt text to carry", async () => {
     const { service, seoFindUnique } = createService();
 
     seoFindUnique.mockResolvedValue({ ...FULL_RECORD, socialImage: null });
 
     await expect(service.buildFor(REQUEST, EN)).resolves.toMatchObject({
-      ogImageUrl: "https://cdn.example.test/og-fallback.png",
+      socialImage: {
+        url: "https://cdn.example.test/og-fallback.png",
+        // A bare URL column has nowhere to store one, so null is the honest answer rather than
+        // borrowing a description that belongs to a different image.
+        alt: null,
+        width: null,
+        height: null,
+      },
     });
   });
 
@@ -224,8 +243,8 @@ describe("SeoService.buildFor — social image", () => {
 
     const seo = await service.buildFor(REQUEST, EN);
 
-    expect(seo.ogImageUrl).toBeNull();
-    expect(seo.twitterImageUrl).toBeNull();
+    expect(seo.socialImage).toBeNull();
+    expect(seo.twitterImage).toBeNull();
   });
 
   // The Twitter chain only falls back to OG; a card image an editor set explicitly is not
@@ -237,8 +256,11 @@ describe("SeoService.buildFor — social image", () => {
 
     const seo = await service.buildFor(REQUEST, EN);
 
-    expect(seo.ogImageUrl).toBe("https://cdn.example.test/social.png");
-    expect(seo.twitterImageUrl).toBe("https://cdn.example.test/twitter.png");
+    expect(seo.socialImage?.url).toBe("https://cdn.example.test/social.png");
+    expect(seo.twitterImage?.url).toBe("https://cdn.example.test/twitter.png");
+    // The explicit Twitter URL is free text, so it does not inherit the Media row's alt text —
+    // that description belongs to a different image.
+    expect(seo.twitterImage?.alt).toBeNull();
   });
 });
 

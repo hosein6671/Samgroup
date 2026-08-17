@@ -39,6 +39,50 @@ export type SeoAlternate = {
 };
 
 /**
+ * A social/OG image, resolved to the four facts a consumer can actually act on.
+ *
+ * ── Why this is an object and not a URL string ─────────────────────────────
+ *
+ * §2's contract table names `ogImageUrl`/`twitterImageUrl`, but two other rules in the same
+ * document need more than a URL, and neither can be satisfied by a string:
+ *
+ * - **§Image SEO** requires descriptive alt text on every image. `og:image:alt` is part of the
+ *   Open Graph protocol and Next's Metadata API accepts it, so dropping the alt text at this
+ *   boundary would make the requirement unimplementable for CMS-owned images.
+ * - **§6** requires "real width/height to avoid layout shift". `next/image` needs intrinsic
+ *   dimensions, and a consumer that has only a URL must either guess them or fetch the image.
+ *
+ * Both facts are already stored beside the URL — Payload's upload metadata for `sam_cms` content,
+ * Prisma's `Media` row for `sam_platform` content — so this widens the contract to carry what both
+ * halves of the §0 seam already hold. It is the resolved image, never the storage record: no id,
+ * no filename, no prefix, no MIME type, no focal point.
+ */
+export type SeoImage = {
+  /**
+   * Where the image is served from.
+   *
+   * **Origin-relative** for CMS media (`/media/cms/<file>`, proxied by nginx from the public
+   * bucket). The API does not compose absolute URLs — it does not know the public origin, and the
+   * production object store is undecided — so absolutising it for Open Graph, which requires an
+   * absolute URL, is the frontend's job. Next resolves a relative image against `metadataBase`.
+   */
+  url: string;
+  /**
+   * Descriptive alt text (§Image SEO), in the requested locale with the same fallback behaviour as
+   * every other localized value on the record.
+   *
+   * Nullable despite the CMS marking it required: the contract is shared with the Prisma half,
+   * and a normalizer that cannot represent "the upstream did not give me one" would have to invent
+   * a string instead. **Plain text, never markup** — a consumer puts it in an attribute.
+   */
+  alt: string | null;
+  /** Intrinsic pixel width (§6). Null when the source has no usable dimension, as for some SVGs. */
+  width: number | null;
+  /** Intrinsic pixel height (§6). Null when the source has no usable dimension, as for some SVGs. */
+  height: number | null;
+};
+
+/**
  * The normalized SEO record for one entity in one locale, after fallbacks are applied.
  *
  * Null means "no value available from any source the API can reach", not "not looked up".
@@ -59,11 +103,21 @@ export type SeoFields = {
   canonicalUrl: string | null;
   ogTitle: string | null;
   ogDescription: string | null;
-  ogImageUrl: string | null;
+  /**
+   * §2's `socialImageId`, resolved. Null when no image is set — the entity's own hero image is
+   * deliberately NOT substituted (§Image SEO keeps the two separate so an OG preview does not
+   * break when a hero image changes).
+   */
+  socialImage: SeoImage | null;
   twitterCardType: TwitterCardType;
   twitterTitle: string | null;
   twitterDescription: string | null;
-  twitterImageUrl: string | null;
+  /**
+   * The Twitter card's image. §2 keeps this separate from the OG image and falls it back to the OG
+   * equivalent when empty; that fallback is a contract rule, so the API applies it and this is
+   * null only when neither image is set.
+   */
+  twitterImage: SeoImage | null;
   /** Default true. False marks this one entity `noindex`. */
   robotsIndex: boolean;
   /** Default true. False marks this one entity `nofollow`. */

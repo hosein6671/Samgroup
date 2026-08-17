@@ -25,4 +25,4 @@ export type {
 } from "./catalog";
 export type { ContentPageResponse } from "./content";
 export type { LocaleDirection, LocaleResponse } from "./locale";
-export type { SeoAlternate, SeoFields, TwitterCardType } from "./seo";
+export type { SeoAlternate, SeoFields, SeoImage, TwitterCardType } from "./seo";

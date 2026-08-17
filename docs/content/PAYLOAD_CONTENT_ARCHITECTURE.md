@@ -380,13 +380,10 @@ which parts of it are built, and states plainly that most are not.
 - **`ProductCategoryContent`, `Certifications`, `JobOpenings`, `FaqEntries`** — none exists, so the
   `categoryKey` soft key to Prisma `Category`, the Admin-only certification publish gate and the
   shared FAQ collection are all still design only.
-- **Payload's Media/upload collection** — not enabled. No storage adapter is configured, and the
-  S3-compatible production target is itself undecided ([DEVOPS.md](../DEVOPS.md)).
-- **The `SeoFields` group**, on `Pages` or anywhere else. Its contract
-  ([SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md) §2) includes `socialImageId`, a reference to the
-  Media collection above, so a partial group would put a shape on the wire that matches neither
-  document. Recorded as outstanding rather than dropped — see "Deferred dependency" below, which
-  makes both a precondition of the first real page rather than an open-ended omission.
+- **A production object store.** Media storage is implemented and MinIO serves it in development, but
+  which S3-compatible store runs in production is still the open decision
+  ([DEVOPS.md](../DEVOPS.md) §Object storage). Nothing in the codebase names one, and because public
+  URLs are origin-relative, choosing one later requires no data migration.
 - **Legal page content.** No Privacy Policy, Terms of Use, Cookie Notice or General Sales
   Conditions row exists, in any locale. [SITE_STRUCTURE.md](../SITE_STRUCTURE.md) §12 is explicit
   that these are drafting specifications requiring legal review, and none has been performed.
@@ -446,17 +443,54 @@ The boundary is in the API rather than the frontend deliberately: NestJS is the 
 HTML and none of them can forget to sanitize. Full detail:
 [API_CONTRACT_FINAL.md](../API_CONTRACT_FINAL.md) §2.4a.
 
-### Deferred dependency — Media and `SeoFields` block the first real page
+### Media and `SeoFields` — implemented
 
-The `Pages` foundation is **intentionally partial for this gate**, and that does **not** redefine the
-frozen `Pages` contract in §1. Two items must be closed **before the first canonical legal or
-corporate Page is implemented**, and both are their own gates:
+Both deferred dependencies are closed. `Pages` now carries all five fields §1 specifies: `title`,
+`slug`, `body`, `lastUpdatedDate` and the standard `SeoFields` group.
 
-1. **The Media collection and its storage decision.** Payload has no upload collection here and no
-   storage adapter is configured; the S3-compatible production target is itself undecided
-   ([DEVOPS.md](../DEVOPS.md) §Object storage).
-2. **The standard `SeoFields` group.** Its contract ([SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md)
-   §2) includes `socialImageId`, a reference to that Media collection, which is why it is second and
-   not first. A partial group would put a shape on the wire matching neither document.
+**`Media` — Payload's upload collection, editorial media only.** One declared field, `alt`
+(required, localized) — the single field the frozen documents specify for it
+([SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md) §Image SEO, [DATABASE.md](../DATABASE.md)).
+**No caption, credit, attribution or tag field**, because none is specified anywhere and Payload's
+examples shipping them is not a specification. Width, height, filesize, MIME type and URL come from
+Payload's own upload handling. Images only (`image/jpeg|png|webp|avif|svg+xml`); widening it is a
+content-model decision for the day a Global actually needs a PDF. No `imageSizes` — §6 already
+commits to `next/image` doing derivative generation, and a second resizer would duplicate it.
 
-Until both land, the `Pages` shape in this repository is a foundation, not the final one.
+The ownership boundary of approved decision 4 is enforced, not merely stated: product imagery,
+product technical documents (TDS/SDS/COA), blog featured images and every application upload remain
+Prisma's. The two `Media` tables live in different databases and neither can reference the other.
+
+**Storage — S3-compatible object storage, never a container disk.** `@payloadcms/storage-s3` writes
+to the **`sam-public`** bucket under a `cms/` key prefix, with `disableLocalStorage: true`.
+[DEVOPS.md](../DEVOPS.md) §Object storage is categorical that media "never lives in a database or on
+a container volume belonging to an app", and Payload's default `staticDir` behaviour is exactly what
+that forbids. `sam-public` rather than a third bucket: DEVOPS defines two buckets split by
+**sensitivity**, not by owner, and editorial images on public pages are public content. A value
+containing `private` is **refused at config-build time** — `sam-private` holds CVs and confidential
+documents, is never proxied, and an upload collection writing there would produce objects that look
+published to an editor and are unreachable in fact.
+
+Every storage value is process-scoped configuration. The development store is MinIO; the production
+store remains the open decision DEVOPS.md records, and **no production host is named anywhere**.
+
+**Public media URLs are origin-relative — `/media/cms/<file>`.** This is not a new decision: nginx
+already implements it (`docker/nginx/templates/default.conf.template`), proxying `/media/<key>` to
+the public bucket from the site's own origin. So no absolute URL, no object-store endpoint and no
+bucket name ever reaches a database row, a response body or a browser, and swapping object stores
+needs no data migration. `apps/web` needs no `next/image` `remotePatterns` entry, because the images
+are same-origin. Payload's access-controlled file route (`/api/media/file/...`) is **disabled** for
+this collection: it would put the CMS origin into the browser's request path, which ADR-003 forbids,
+while gating objects that are anonymously readable by design.
+
+**`SeoFields` — one shared `seoFields()` function**, as §3 requires, spread into `Pages` and
+unchanged when the seven company Globals adopt it. It is a transcription of
+[SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md) §2's contract table, with two rows deliberately not
+stored — `locale`, which Payload's localization already provides, and `alternates`, which is derived
+from which documents are genuinely translated. Copy is localized; switches (`robotsIndex`,
+`robotsFollow`, `twitterCardType`, `canonicalUrl`) are not, because a `noindex` decision is about the
+entity rather than about a language.
+
+**Still not implemented:** the seven company Globals, `ProductCategoryContent`, `Certifications`,
+`JobOpenings`, `FaqEntries`, and every canonical legal or Contact Us page. Those remain blocked on
+approved, legally reviewed content in three locales.

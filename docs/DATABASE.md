@@ -113,28 +113,44 @@ Blog slugs are **not** part of the ADR-011 products slug namespace. `product_slu
 - Footer
 - Settings
 
-#### `sam_cms` — implementation status (16 August 2026)
+#### `sam_cms` — implementation status (17 August 2026)
 
 `sam_cms` now holds a real Payload schema. It was created by Payload's Postgres adapter in local DEV
-and holds **13 tables**, all owned by `sam_cms_user`:
+and holds **17 tables**, all owned by `sam_cms_user`:
 
-- `pages`, `pages_locales`, `_pages_v`, `_pages_v_locales` — the `Pages` collection with drafts
-  enabled. Localized values (`title`, `body`) live in the `_locales` tables; `slug` and
-  `lastUpdatedDate` are columns on `pages` itself, because neither is localized (see
+- `pages`, `pages_locales`, `pages_texts`, `_pages_v`, `_pages_v_locales`, `_pages_v_texts` — the
+  `Pages` collection with drafts enabled. Localized values (`title`, `body`, and the localized half
+  of the SEO group) live in the `_locales` tables; `slug`, `lastUpdatedDate`, `seo_robots_index`,
+  `seo_robots_follow`, `seo_twitter_card_type` and `seo_canonical_url` are columns on `pages` itself,
+  because none of them is localized (see
   [PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md) §1).
+- `media`, `media_locales` — Payload's upload collection. **The record only**: the bytes live in
+  S3-compatible object storage, never in Postgres and never on a container volume
+  ([DEVOPS.md](./DEVOPS.md) §Object storage). `alt` is localized and therefore in `media_locales`;
+  `filename`, `mime_type`, `filesize`, `width`, `height`, `prefix` and `url` are columns on `media`.
 - `users`, `users_roles`, `users_sessions` — Payload's own admin users ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)).
 - `payload_kv`, `payload_migrations`, `payload_locked_documents`, `payload_locked_documents_rels`,
   `payload_preferences`, `payload_preferences_rels` — Payload's own bookkeeping.
 
 **Menus, Footer and Settings do not exist yet**, nor does any other collection or global in the
-content architecture. Only `Pages` and `Users` are implemented.
+content architecture. Only `Pages`, `Media` and `Users` are implemented.
 
-**Verified on 16 August 2026, in local DEV:** `sam_platform` contains no `payload*`, `pages*` or
-`_pages*` table, and `sam_cms` contains none of `products`, `categories`, `locales`, `blog_posts`,
-`inquiries`, `product_slug_claims` or `_prisma_migrations`. `scripts/verify-db-isolation.sh` passes
-4/4, including both negative cases. `apps/cms` additionally refuses at config-build time to open any
-database other than `sam_cms`, mirroring the check `apps/api` already applies to `sam_platform` —
-defense in depth, not a replacement for the PostgreSQL grants.
+> **Two `Media` tables exist, in two databases, and that is the design.** `sam_cms.media` is
+> Payload's, for Payload-owned editorial media. `sam_platform.media` is Prisma's polymorphic
+> `MEDIA` entity (`owner_type`/`owner_id`), for Prisma-owned entities — product imagery, product
+> technical documents, blog featured images. They share a name and nothing else: different columns,
+> different databases, no foreign key possible between them. The boundary is
+> [PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md) approved decision 4,
+> following from [ADR-002](./ADR/ADR-002-two-databases.md).
+
+**Verified on 17 August 2026, in local DEV:** `sam_platform` contains no `payload_*`, `pages*` or
+`_pages_v*` table and no `media_locales` — its only `media` table is Prisma's own, with
+`owner_type`/`owner_id` columns Payload's does not have. `sam_cms` contains none of `products`,
+`categories`, `locales`, `blog_posts`, `inquiries`, `product_slug_claims` or `_prisma_migrations`.
+`scripts/verify-db-isolation.sh` passes 4/4, including both negative cases. `apps/cms` additionally
+refuses at config-build time to open any database other than `sam_cms`, mirroring the check
+`apps/api` already applies to `sam_platform` — defense in depth, not a replacement for the PostgreSQL
+grants. It refuses a media bucket whose name contains `private` on the same principle.
 
 ---
 

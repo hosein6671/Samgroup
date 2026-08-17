@@ -144,6 +144,37 @@ The rule, stated once and applied everywhere: **whichever system owns a piece of
 
 Both halves — Payload's `seoFields()` group and Prisma's `SeoMeta` table — satisfy the identical `SeoFields` contract defined in §2, and NestJS normalizes them into one shape before `apps/web` sees either. That's §0's core design, applied to page ownership.
 
+### Implementation status
+
+**The Payload half is implemented.** `apps/cms/src/fields/seo.ts` exports the single `seoFields()` function this section requires, spread into the `Pages` collection and unchanged when the Globals adopt it. It transcribes §2's table, with two rows deliberately not stored: `locale`, which Payload's localization already supplies per request, and `alternates`, which is derived from which documents genuinely hold a translation rather than typed by an editor (§4 of the [i18n strategy](../i18n/INTERNATIONALIZATION_STRATEGY.md) requires untranslated locales be omitted, which only a computed answer can guarantee). `socialImage` is an upload relationship to Payload's `Media` collection — §2's `socialImageId`.
+
+NestJS normalizes it in `apps/api`'s Content module and serves it on `GET /content/pages/:slug`. The record is **always present**: a page whose editor never opened the SEO tab yields nulls and §2's documented defaults rather than a missing object, so `generateMetadata` reads one shape.
+
+**The Prisma half is implemented too**, and predates the Payload half: `apps/api/src/modules/seo/seo.service.ts` reads `seo_meta`, dereferences `social_image_id` into Prisma's `Media` in the same query, applies §11's fallback chain, and returns the identical `SeoFields`. Products and Categories serve it today. Blog is the remaining consumer.
+
+**Site-wide consumption is not implemented.** §4's `generateMetadata` mapping exists on the `cms-proof` demonstration route only, as proof that CMS-authored SEO reaches Next's Metadata API through NestJS. There is no `metadataBase`, no `hreflang` rendering, no canonical emission, no JSON-LD renderer, and no `sitemap.ts`/`robots.ts`. `robots` is deliberately **not** mapped even on the proof route: Next resolves metadata by nearest value, so emitting it there would override the `noindex, nofollow` its layout sets and make a non-authoritative demo page indexable.
+
+#### The social image is an object, not a URL string
+
+§2's contract table names `ogImageUrl` and `twitterImageUrl` as strings, and that was too narrow to satisfy two other rules in this same document: §Image SEO requires descriptive **alt text** on every image, and §6 requires real **width/height** to avoid layout shift. A bare URL can carry neither, so the normalized contract instead carries **`socialImage`** and **`twitterImage`**, each a `SeoImage`:
+
+| Field    | Type           | Source                                                                                |
+| -------- | -------------- | ------------------------------------------------------------------------------------- |
+| `url`    | string         | Payload: the upload's generated URL. Prisma: `media.url`, or free-text `og_image_url` |
+| `alt`    | string \| null | Payload: the localized `alt` field. Prisma: `media.alt_text`                          |
+| `width`  | number \| null | Payload upload metadata. **Always null on the Prisma half** — no such column          |
+| `height` | number \| null | Payload upload metadata. **Always null on the Prisma half** — no such column          |
+
+The storage fields §2 names are unchanged; this is the shape of the **normalized wire record**, and both halves of §0's seam produce it. `og:image:alt`, `og:image:width` and `og:image:height` are part of the Open Graph protocol and Next's Metadata API accepts all three, so the frontend maps them directly.
+
+Rules the normalizers share, stated once: an entry with no usable URL is **null**, whatever other metadata came with it — an image a consumer cannot load is not an image. `twitterImage` falls back to `socialImage` **as a whole**, never borrowing the other picture's alt text. `alt` is plain text carried verbatim: it lands in an HTML attribute, where escaping belongs to the renderer's own context, and sanitizing it at the API would corrupt ordinary copy containing `<` or `&`.
+
+Giving Prisma's `Media` real dimension columns would close the remaining null — a schema migration, and its own decision.
+
+### Public media URLs
+
+Payload media is served at **`/media/<prefix>/<file>`, origin-relative**, proxied by nginx from the public bucket (`docker/nginx/templates/default.conf.template`). `SeoImage.url` therefore carries a relative path for CMS media, and absolutising it — which Open Graph requires — is the frontend's job, consistent with `canonicalUrl`'s existing rule that composing public URLs belongs to `apps/web`. Next's Metadata API resolves a relative image against `metadataBase`.
+
 **On `Documents`/`Downloads`**: not pages, so no full `SeoFields` record individually. Product-specific technical documents (TDS/SDS/COA) are Prisma `Media`; company-wide assets (catalogue, company profile PDFs) are Payload uploads attached to the Global that offers them. Either way, the individual files need indexability control (§6) but not a meta title/description/OG set. If a "Downloads" _listing page_ is ever added, that's a new Global or `Pages` entry, inheriting SEO normally.
 
 **Future collections**: because `seoFields()` is a shared function, not per-collection boilerplate, any future Payload collection or Global adopts the same SEO capability by spreading it into its field array — no redesign of the SEO system itself.

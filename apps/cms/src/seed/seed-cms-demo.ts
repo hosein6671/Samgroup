@@ -39,12 +39,25 @@ import { getPayload } from "payload";
 
 import { CMS_DEFAULT_LOCALE } from "../localization";
 
+import { demoImagePng } from "./demo-image";
+
 import type { Page } from "../payload-types";
 
 const DEMO_SLUG = "cms-demo-page";
 const DEMO_TITLE = "CMS Demo Page";
 const EXPECTED_DATABASE = "sam_cms";
 const ARMING_VARIABLE = "SAM_ALLOW_DEMO_CMS_SEED";
+
+/**
+ * The demo social image.
+ *
+ * The filename is the idempotency key — a second run finds this record and reuses it rather than
+ * uploading a second copy of identical bytes. `alt` says what it is, in the same register as the
+ * page body: an editor who opens the media library must not have to guess whether this is real.
+ */
+const DEMO_IMAGE_FILENAME = "cms-demo-placeholder.png";
+const DEMO_IMAGE_ALT =
+  "DEMO / PLACEHOLDER: a plain grey rectangle generated for testing. Not SAM Group imagery.";
 
 const DEMO_BODY_PARAGRAPHS: readonly string[] = [
   "DEMO / PLACEHOLDER / NON-AUTHORITATIVE. This page exists only to prove that editorial content stored in Payload reaches the public site through the NestJS Content API. It is not SAM Group content and states nothing true about the company.",
@@ -119,6 +132,57 @@ async function assertCmsDatabase(db: unknown): Promise<void> {
   }
 }
 
+/**
+ * Find or create the demo image, and return its id.
+ *
+ * Idempotent on `filename`: Payload's upload handling would otherwise happily store a second object
+ * under a suffixed name, leaving two identical grey rectangles in the bucket and no way to tell
+ * which one a page points at.
+ *
+ * @returns the media document's id, for the page's `seo.socialImage`.
+ */
+async function ensureDemoImage(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  locale: typeof CMS_DEFAULT_LOCALE,
+  // Payload's generated types key an upload relationship by the collection's own id type, so the
+  // return type is read from `Page` rather than widened to `number | string` — the generated types
+  // are the authority on which it is, and a widened type would only be cast back at the call site.
+): Promise<NonNullable<NonNullable<Page["seo"]>["socialImage"]>> {
+  const existing = await payload.find({
+    collection: "media",
+    where: { filename: { equals: DEMO_IMAGE_FILENAME } },
+    limit: 1,
+    overrideAccess: true,
+  });
+
+  const found = existing.docs[0];
+
+  if (found !== undefined) {
+    console.log(`unchanged: media "${DEMO_IMAGE_FILENAME}" already exists.`);
+
+    return found.id;
+  }
+
+  const created = await payload.create({
+    collection: "media",
+    locale,
+    overrideAccess: true,
+    data: { alt: DEMO_IMAGE_ALT },
+    // The bytes never touch this container's disk — the S3 adapter streams them to the public
+    // bucket, and only the record lands in sam_cms (DEVOPS.md "Object storage").
+    file: {
+      data: demoImagePng(),
+      mimetype: "image/png",
+      name: DEMO_IMAGE_FILENAME,
+      size: demoImagePng().length,
+    },
+  });
+
+  console.log(`created: media "${DEMO_IMAGE_FILENAME}" — generated placeholder, not real imagery.`);
+
+  return created.id;
+}
+
 async function seed(): Promise<void> {
   if (process.env[ARMING_VARIABLE] !== "true") {
     console.error(
@@ -160,6 +224,13 @@ async function seed(): Promise<void> {
     return;
   }
 
+  /*
+   * The media row comes first, because the page's SEO group references it. Both are looked up
+   * before either is written, so a rerun after a partial failure reuses whatever survived instead of
+   * uploading a duplicate.
+   */
+  const socialImageId = await ensureDemoImage(payload, defaultLocale);
+
   await payload.create({
     collection: "pages",
     locale: defaultLocale,
@@ -170,10 +241,23 @@ async function seed(): Promise<void> {
       body: demoBody(),
       lastUpdatedDate: new Date().toISOString(),
       _status: "published",
+      /*
+       * Deliberately partial. Only the fields the proof actually exercises are set — a title, a
+       * description, the social image, and the robots flags left at their defaults — so the response
+       * shows real values where an editor supplied one and real fallbacks where none exists. Filling
+       * every field would prove less, not more: nothing would be left to demonstrate the fallback
+       * chain SEO_ARCHITECTURE.md §11 describes.
+       */
+      seo: {
+        metaTitle: "DEMO — CMS Demo Page (non-authoritative)",
+        metaDescription:
+          "DEMO / PLACEHOLDER metadata. Proves SEO fields stored in Payload reach the site through the NestJS Content API. Describes nothing real about SAM Group.",
+        socialImage: socialImageId,
+      },
     },
   });
 
-  console.log(`created: "${DEMO_SLUG}" in locale "${defaultLocale}", published.`);
+  console.log(`created: "${DEMO_SLUG}" in locale "${defaultLocale}", published, with SEO fields.`);
   console.log("DEMO / PLACEHOLDER content. Not SAM Group copy. Remove it before launch.");
 }
 

@@ -12,6 +12,8 @@
  * wrapper, its draft status — stops at the Content module and is never transcribed here.
  */
 
+import type { SeoFields } from "./seo";
+
 /**
  * One page from `GET /content/pages/:slug` — the Payload `Pages` collection, which holds legal
  * pages and nothing else (PAYLOAD_CONTENT_ARCHITECTURE.md §1).
@@ -19,8 +21,9 @@
  * `title` and `bodyHtml` carry the requested locale's values; an untranslated page is served in the
  * default locale and the response's `meta.localeFallback` says so (API_CONTRACT_FINAL.md §3).
  *
- * **No `seo` field.** The `SeoFields` group is not implemented on the collection yet, so there is
- * nothing behind one — see `apps/cms/src/collections/pages.ts`.
+ * `seo` carries the shared `SeoFields` contract — the same shape Prisma-owned content will serve
+ * from its own `SeoMeta` table, normalized by NestJS so `apps/web` cannot tell the two apart
+ * (SEO_ARCHITECTURE.md §0).
  */
 export type ContentPageResponse = {
   /** The URL segment, identical in every locale (PROJECT_HANDOFF.md §6.12). */
@@ -37,4 +40,16 @@ export type ContentPageResponse = {
   bodyHtml: string;
   /** ISO 8601, or null when the editor has not set one. Not localized. */
   lastUpdatedDate: string | null;
+  /**
+   * The page's SEO record for the requested locale, after the API's fallbacks.
+   *
+   * Always present — a page with no SEO values yields nulls and documented defaults rather than a
+   * missing object, so `generateMetadata` reads one shape.
+   *
+   * `socialImage` and `twitterImage` carry a URL, alt text and intrinsic dimensions. Their URLs are
+   * **origin-relative** (`/media/cms/<file>`), served from this site's own origin by nginx. Open
+   * Graph requires absolute URLs, so absolutising them is the frontend's job — Next's Metadata API
+   * does it against `metadataBase`.
+   */
+  seo: SeoFields;
 };

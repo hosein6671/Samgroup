@@ -6,9 +6,11 @@ import { ErrorCode } from "../../common/http/error-code";
 // design:paramtypes at runtime, and a type-only import erases to nothing.
 import { PayloadClient } from "./payload.client";
 import { sanitizeRichTextHtml } from "./rich-text.sanitizer";
+import { normalizeSeo } from "./seo.normalizer";
 
 import type { ContentPageResponse } from "./dto/content-page.response";
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
+import type { SeoAlternate } from "@sam-group/types";
 
 /**
  * Reads of the Payload `Pages` collection — the Legal Pages collection, and only that.
@@ -93,8 +95,17 @@ export class ContentPagesService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NotFound, NOT_FOUND_MESSAGE);
     }
 
+    /*
+     * `alternates` is derived, not stored — which locales a page is genuinely translated into is a
+     * fact about the documents, and INTERNATIONALIZATION_STRATEGY.md §4 requires untranslated
+     * locales be omitted rather than pointed at a fallback. Its own request because the primary read
+     * cannot answer it: a per-locale read sees one locale, and `locale=all` cannot replace it —
+     * `bodyHtml` is computed per resolved locale and comes back empty under it.
+     */
+    const alternates = await this.findAlternates(slug);
+
     if (isFullyTranslated(strict)) {
-      return { page: toResponse(strict, slug), localeFallback: false };
+      return { page: toResponse(strict, slug, locale.code, alternates), localeFallback: false };
     }
 
     const fallen = await this.findOne(slug, { locale: locale.code });
@@ -122,15 +133,17 @@ export class ContentPagesService {
       );
     }
 
-    return { page: toResponse(fallen, slug), localeFallback: true };
+    return { page: toResponse(fallen, slug, locale.code, alternates), localeFallback: true };
   }
 
   /**
    * The single matching document, or null when the collection holds none.
    *
-   * `depth=0` keeps Payload from expanding relationships into nested documents — there are none on
-   * this collection today, and a future one must reach the wire through a deliberate mapping rather
-   * than by arriving on its own.
+   * `depth=1`, not 0. It expands exactly one level, which is what turns the SEO group's upload
+   * references into documents carrying a `url` — at depth 0 they are bare ids, and an id is not
+   * something this API can serve. One level and no more: a relationship to a relationship would
+   * arrive uninvited, and the response is built by allow-list precisely so nothing reaches the wire
+   * without someone writing it there.
    */
   private async findOne(
     slug: string,
@@ -138,12 +151,47 @@ export class ContentPagesService {
   ): Promise<Record<string, unknown> | null> {
     const { docs } = await this.payload.find(PAGES_COLLECTION, {
       "where[slug][equals]": slug,
-      depth: "0",
+      depth: "1",
       limit: "1",
       ...localeQuery,
     });
 
     return docs[0] ?? null;
+  }
+
+  /**
+   * Every locale this page is genuinely translated into.
+   *
+   * `locale=all` makes Payload return each localized field as an object keyed by locale, **omitting
+   * locales with no stored value** — so the keys of `title` are exactly the translated set. `depth=0`
+   * because nothing here needs a relationship expanded.
+   *
+   * The slug is the same in every locale (PROJECT_HANDOFF.md §6.12, structural URLs stay fixed
+   * English), so each alternate carries the requested slug rather than a per-locale one. When
+   * localized slugs eventually arrive for products and articles, their own module supplies them —
+   * `SeoAlternate` already carries a slug per locale for that reason.
+   *
+   * A failure here is an upstream failure and propagates as one; it is never silently swallowed into
+   * an empty list, because "no alternates" and "we could not find out" would then be the same
+   * answer, and the first of those legitimately means a page exists in one locale only.
+   */
+  private async findAlternates(slug: string): Promise<SeoAlternate[]> {
+    const { docs } = await this.payload.find(PAGES_COLLECTION, {
+      "where[slug][equals]": slug,
+      depth: "0",
+      limit: "1",
+      locale: "all",
+    });
+
+    const title = docs[0]?.title;
+
+    if (typeof title !== "object" || title === null) {
+      return [];
+    }
+
+    return Object.entries(title as Record<string, unknown>)
+      .filter(([, value]) => isNonEmptyString(value))
+      .map(([code]) => ({ locale: code, slug }));
   }
 }
 
@@ -173,11 +221,22 @@ function isNonEmptyString(value: unknown): value is string {
  * `title` needs no sanitizing: it is a `text` field, it is never rendered as markup, and React
  * escapes it.
  */
-function toResponse(doc: Record<string, unknown>, slug: string): ContentPageResponse {
+function toResponse(
+  doc: Record<string, unknown>,
+  slug: string,
+  locale: string,
+  alternates: readonly SeoAlternate[],
+): ContentPageResponse {
   return {
     slug,
     title: typeof doc.title === "string" ? doc.title : "",
     bodyHtml: sanitizeRichTextHtml(doc.bodyHtml),
     lastUpdatedDate: typeof doc.lastUpdatedDate === "string" ? doc.lastUpdatedDate : null,
+    /*
+     * Always present, never omitted. A page whose editor never opened the SEO tab produces a record
+     * of nulls with the documented defaults rather than a missing key, so `apps/web` applies the
+     * fallback chain against one shape instead of testing for the object first.
+     */
+    seo: normalizeSeo(doc.seo, locale, alternates),
   };
 }

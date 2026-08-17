@@ -1,6 +1,7 @@
 import { lexicalHTMLField } from "@payloadcms/richtext-lexical";
 
 import { editorOnly, publishedForService } from "../access";
+import { seoFields } from "../fields/seo";
 
 import type { CollectionConfig } from "payload";
 
@@ -14,14 +15,13 @@ import type { CollectionConfig } from "payload";
  * `pageType` discriminator, no layout fields. Layout is code, editorial content is CMS
  * (PROJECT_HANDOFF.md §6.7).
  *
- * ── Field set: the frozen four, and what is deliberately absent ─────────────
+ * ── Field set: complete as of the Media/SEO gate ───────────────────────────
  *
  * §1 specifies `title`, `slug`, `body` (rich text), `lastUpdatedDate` and "standard `SeoFields`".
- * The first four are here. **`SeoFields` is deliberately NOT implemented in this gate** — the
- * contract in SEO_ARCHITECTURE.md §2 includes `socialImageId`, a reference to Payload's Media
- * collection, and no upload collection, storage adapter or media pipeline exists yet; a partial
- * group would put a contract on the wire that agrees with neither document. It is recorded as
- * outstanding, not dropped.
+ * All five are now present: the standard group arrives through `seoFields()`, the single shared
+ * implementation §3 requires, which is why it is spread in rather than declared here. It could only
+ * land once the `Media` collection existed, because SEO_ARCHITECTURE.md §2's `socialImageId` is a
+ * reference to it.
  *
  * ── No legal content ────────────────────────────────────────────────────────
  *
@@ -113,6 +113,12 @@ export const Pages: CollectionConfig = {
         position: "sidebar",
       },
     },
+    /*
+     * The standard SEO group — one shared function, not per-collection boilerplate, so the seven
+     * company Globals adopt the identical contract by spreading the same call (SEO_ARCHITECTURE.md
+     * §3, "Future collections").
+     */
+    ...seoFields(),
   ],
   /*
    * Draft/publish, per §1's publishing workflow for this collection ("human review required, plus

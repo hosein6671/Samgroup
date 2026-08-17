@@ -14,6 +14,29 @@ const PAGE: ContentPageResponse = {
   title: "CMS Demo Page",
   bodyHtml: "<p>DEMO / PLACEHOLDER / NON-AUTHORITATIVE.</p>",
   lastUpdatedDate: "2026-08-16T00:00:00.000Z",
+  /*
+   * The shape a page with no editorial SEO produces — all nulls, documented defaults. The controller
+   * does not read it; it is here because the DTO requires it, which is the point: the record is
+   * always present, so no consumer has to test for it.
+   */
+  seo: {
+    locale: "en",
+    metaTitle: null,
+    metaDescription: null,
+    canonicalUrl: null,
+    ogTitle: null,
+    ogDescription: null,
+    socialImage: null,
+    twitterCardType: "summary_large_image",
+    twitterTitle: null,
+    twitterDescription: null,
+    twitterImage: null,
+    robotsIndex: true,
+    robotsFollow: true,
+    keywords: [],
+    structuredDataOverride: null,
+    alternates: [{ locale: "en", slug: "cms-demo-page" }],
+  },
 };
 
 type Harness = {

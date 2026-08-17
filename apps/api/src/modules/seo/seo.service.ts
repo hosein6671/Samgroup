@@ -5,7 +5,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 
 import type { ContentEntityType } from "../../common/content/content-entity-type";
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
-import type { SeoAlternate, SeoFields, TwitterCardType } from "@sam-group/types";
+import type { SeoAlternate, SeoFields, SeoImage, TwitterCardType } from "@sam-group/types";
 
 /**
  * SEO_ARCHITECTURE.md §2: "Default `summary_large_image`". It lives here rather than in
@@ -75,7 +75,12 @@ const SEO_META_SELECT = {
   // `social_image_id` may reference any media row, so such an accessor could not carry the
   // owner allow-list that RAG_IMPLEMENTATION_ARCHITECTURE.md §4 makes mandatory. The boundary
   // is better served by leaving this here.
-  socialImage: { select: { url: true } },
+  //
+  // `altText` comes along with the URL because SEO_ARCHITECTURE.md §Image SEO requires descriptive
+  // alt text on every image and `SeoFields.socialImage` carries it. There is no width/height to
+  // select: Prisma's `Media` has no dimension columns, so this half of the §0 seam serves null for
+  // both. Adding them would be a schema migration, not a normalization change.
+  socialImage: { select: { url: true, altText: true } },
 } as const;
 
 type SeoMetaRecord = {
@@ -93,7 +98,7 @@ type SeoMetaRecord = {
   robotsFollow: boolean;
   keywords: string[];
   structuredDataOverride: unknown;
-  socialImage: { url: string } | null;
+  socialImage: { url: string; altText: string | null } | null;
 };
 
 /**
@@ -202,10 +207,19 @@ function normalize(
   const metaDescription =
     blankToNull(record?.metaDescription) ?? blankToNull(request.fallbackDescription);
 
-  // §2 keeps the social image as its own field precisely so an OG preview does not break
-  // when a hero image changes; `social_image_id` is therefore the source of truth and the
-  // free-text `og_image_url` column is what an editor falls back on when no Media row fits.
-  const ogImageUrl = blankToNull(record?.socialImage?.url) ?? blankToNull(record?.ogImageUrl);
+  /*
+   * §2 keeps the social image as its own field precisely so an OG preview does not break when a
+   * hero image changes; `social_image_id` is therefore the source of truth and the free-text
+   * `og_image_url` column is what an editor falls back on when no Media row fits.
+   *
+   * Only the Media row can carry alt text — `og_image_url` is a bare URL column with nowhere to
+   * put one — so the free-text fallback yields an image with a null `alt`. Neither source has
+   * dimensions: Prisma's `Media` has no width/height columns, which is why `SeoImage` makes both
+   * nullable rather than this half inventing numbers §6 would then rely on.
+   */
+  const socialImage =
+    toSeoImage(record?.socialImage?.url, record?.socialImage?.altText) ??
+    toSeoImage(record?.ogImageUrl, null);
 
   const ogTitle = blankToNull(record?.ogTitle) ?? metaTitle;
   const ogDescription = blankToNull(record?.ogDescription) ?? metaDescription;
@@ -217,11 +231,13 @@ function normalize(
     canonicalUrl: blankToNull(record?.canonicalUrl),
     ogTitle,
     ogDescription,
-    ogImageUrl,
+    socialImage,
     twitterCardType: toTwitterCardType(record?.twitterCardType),
     twitterTitle: blankToNull(record?.twitterTitle) ?? ogTitle,
     twitterDescription: blankToNull(record?.twitterDescription) ?? ogDescription,
-    twitterImageUrl: blankToNull(record?.twitterImageUrl) ?? ogImageUrl,
+    // §2: falls back to the OG equivalent when empty. The stored Twitter URL is free text with no
+    // alt text of its own, so it falls back as a whole image rather than borrowing the OG alt.
+    twitterImage: toSeoImage(record?.twitterImageUrl, null) ?? socialImage,
     // Both columns are NOT NULL with a `true` default, so a false only ever comes from an
     // editor deliberately setting it. No record at all means indexable and followable.
     robotsIndex: record?.robotsIndex ?? true,
@@ -241,6 +257,30 @@ function blankToNull(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
 
   return trimmed === undefined || trimmed === "" ? null : trimmed;
+}
+
+/**
+ * A URL and its alt text as the shared `SeoImage`, or null when there is no usable URL.
+ *
+ * An image a consumer cannot load is not an image, so a blank URL yields null however much other
+ * metadata came with it — the same rule the Payload half applies in `seo.normalizer.ts`, stated in
+ * both places because the two normalizers must agree for §0's seam to hold.
+ *
+ * `width`/`height` are always null on this side: `sam_platform`'s `media` table has no dimension
+ * columns. Filling them with guesses would defeat §6, whose whole purpose is that the number is
+ * real.
+ */
+function toSeoImage(
+  url: string | null | undefined,
+  altText: string | null | undefined,
+): SeoImage | null {
+  const resolved = blankToNull(url);
+
+  if (resolved === null) {
+    return null;
+  }
+
+  return { url: resolved, alt: blankToNull(altText), width: null, height: null };
 }
 
 function toTwitterCardType(value: string | null | undefined): TwitterCardType {

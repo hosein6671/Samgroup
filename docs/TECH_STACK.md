@@ -59,6 +59,13 @@ approval.
 ## CMS
 
 - Payload CMS **3.88.0** (pinned when `apps/cms` was scaffolded, 16 August 2026)
+- **`@payloadcms/storage-s3` 3.88.0** — the official S3-compatible storage adapter, version-matched
+  to the core. Editorial media goes to object storage rather than a container disk, which
+  [DEVOPS.md](./DEVOPS.md) §Object storage requires; Payload's default `staticDir` handling is
+  exactly what that rule forbids. It targets MinIO in development through process-scoped
+  configuration and names no production host — the production object store is still an open decision,
+  and because public URLs are origin-relative (`/media/<prefix>/<file>`, proxied by nginx) choosing
+  one later needs no data migration.
 
 ### `apps/cms` runs its own Next.js version — approved, and intentional
 

@@ -3,11 +3,13 @@ import { fileURLToPath } from "node:url";
 
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { s3Storage } from "@payloadcms/storage-s3";
 import { buildConfig } from "payload";
 
+import { Media, mediaFileURL } from "./collections/media";
 import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
-import { cmsDatabaseUri, payloadSecret } from "./env";
+import { cmsDatabaseUri, cmsMediaStorage, payloadSecret } from "./env";
 import { CMS_LOCALIZATION, assertFrozenLocalization } from "./localization";
 
 /**
@@ -33,11 +35,13 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 // decision stops the process here rather than reaching a database migration or a served page.
 assertFrozenLocalization();
 
+const mediaStorage = cmsMediaStorage();
+
 export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  collections: [Users, Pages],
+  collections: [Users, Pages, Media],
   /*
    * `sam_cms`, and nothing else. `cmsDatabaseUri()` refuses a connection string naming any other
    * database, so a pasted `sam_platform` URL fails while this config is being built rather than
@@ -62,6 +66,61 @@ export default buildConfig({
    * make a silent change to it a failed type-check rather than a surprise in a deployment.
    */
   localization: { ...CMS_LOCALIZATION, locales: [...CMS_LOCALIZATION.locales] },
+  /*
+   * Editorial media goes to S3-compatible object storage, never to a disk belonging to this
+   * container — DEVOPS.md "Object storage (MinIO)" states that as a rule, and Payload's default
+   * upload handling is precisely what it forbids. The plugin replaces that handling for the `media`
+   * collection only.
+   *
+   * Every value is configuration. The development store is MinIO; the production one is an open
+   * decision DEVOPS.md records as owed, and naming either here would be the hard-coding this
+   * architecture has avoided everywhere else. Note what is NOT configured: no public base URL. The
+   * object's public address is `/media/<prefix>/<file>`, produced by the collection's
+   * `generateFileURL` and served from the site's own origin by nginx, so the store's real endpoint
+   * never reaches a database row, a response body or a browser.
+   *
+   * `forcePathStyle` is required by MinIO and by most S3-compatible stores: virtual-hosted-style
+   * addressing would put the bucket in the hostname (`sam-public.minio:9000`), which resolves
+   * nowhere outside AWS.
+   */
+  plugins: [
+    s3Storage({
+      bucket: mediaStorage.bucket,
+      collections: {
+        [Media.slug]: {
+          /*
+           * By default the plugin serves files through Payload's own access control, at
+           * `/api/media/file/<name>` on the CMS origin. Disabled deliberately, for two reasons that
+           * both matter:
+           *
+           * - **It would put Payload in the browser's request path.** ADR-003 and this gate's
+           *   boundary require the browser to make zero requests to the CMS; an `<img>` pointing at
+           *   `cms.<domain>/api/media/file/...` breaks that on every page with an image.
+           * - **It would gate nothing.** These objects live in `sam-public`, which is anonymously
+           *   readable by design and already proxied by nginx at `/media/*`. Access control in front
+           *   of a public object is a detour, not a protection.
+           *
+           * Media whose bytes genuinely need protecting is not this collection: `sam-private` holds
+           * those, is never proxied, and is reached through presigned URLs from NestJS.
+           */
+          disablePayloadAccessControl: true,
+          generateFileURL: mediaFileURL,
+          // Namespaces CMS objects inside the shared public bucket. Half of the URL contract: this
+          // prefix is the `cms` in `/media/cms/<file>`.
+          prefix: mediaStorage.prefix,
+        },
+      },
+      config: {
+        credentials: {
+          accessKeyId: mediaStorage.accessKeyId,
+          secretAccessKey: mediaStorage.secretAccessKey,
+        },
+        endpoint: mediaStorage.endpoint,
+        forcePathStyle: true,
+        region: mediaStorage.region,
+      },
+    }),
+  ],
   secret: payloadSecret(),
   /*
    * Left at Payload's default `[]` — no CORS headers, no allowed origin, wildcard or otherwise.

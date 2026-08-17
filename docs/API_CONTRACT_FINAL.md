@@ -144,8 +144,28 @@ like every content-bearing endpoint (§3), answers in the standard envelope, and
   report a fallback that did not happen.
 - **No Payload document id on the wire**, and no `_status` — only published pages are served, so a
   status field would have exactly one value.
-- **No `seo`.** The `SeoFields` group is not implemented on the `Pages` collection
-  ([PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md) §Implementation status).
+- **`seo` carries the shared `SeoFields` contract**, normalized from Payload's `seoFields()` group —
+  the same shape Prisma-owned content will serve from its own `SeoMeta` table, so a consumer cannot
+  tell which database it came from ([SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md) §0).
+  **Always present.** A page whose editor never opened the SEO tab yields nulls and §2's documented
+  defaults (`robotsIndex`/`robotsFollow` true, `twitterCardType` `summary_large_image`, `keywords`
+  `[]`) rather than a missing object, so `generateMetadata` reads one shape and never tests for it.
+  `locale` is the **requested** locale, never the one values may have fallen back to —
+  `meta.localeFallback` is what reports that. `alternates` lists only locales holding a real
+  translation, derived from the documents rather than stored.
+- **`socialImage`/`twitterImage` are objects, not URL strings** — `{ url, alt, width, height }`, the
+  facts [SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md) §Image SEO and §6 require for
+  `og:image:alt` and for layout-stable rendering. Null when no image is set; `twitterImage` falls
+  back to `socialImage` whole. `alt` follows the same locale and fallback rules as every other
+  localized value; `width`/`height` come from Payload's upload metadata and are null when it has
+  none.
+- **Their `url` is origin-relative** (`/media/cms/<file>`), served from the site's own origin by
+  nginx. The API does not compose absolute URLs — it does not know the public origin, and the
+  production object store is undecided — so absolutising them for Open Graph is the frontend's job,
+  exactly as `canonicalUrl` already specifies.
+- **No media document on the wire.** Payload expands an upload relationship into a full record — id,
+  `filename`, `prefix`, MIME type, filesize, focal point, timestamps. Everything beyond the four
+  fields above describes how the CMS stores the object, so it is dropped by allow-list.
 - **`:slug` is not locale-specific**, unlike the catalog and blog detail routes: structural page URLs
   stay fixed English across locales ([PROJECT_HANDOFF.md](./PROJECT_HANDOFF.md) §6.12).
 

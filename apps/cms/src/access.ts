@@ -94,3 +94,27 @@ export const publishedForService: Access = ({ req: { user } }) => {
 
   return false;
 };
+
+/**
+ * Media read: editors and the service identity, nobody else.
+ *
+ * **Unconditional `true` for `service`, and that is not an oversight** — it is the one place the
+ * Media rule deliberately differs from `publishedForService`, so the difference is stated rather
+ * than left to be inferred:
+ *
+ * Media has no draft/publish cycle. `Pages` does, which is what gives `publishedForService` a
+ * `_status` column to constrain on; an upload has no equivalent state, so there is no "unpublished
+ * media" for a constraint to exclude and a copied `_status` filter would silently match nothing and
+ * make every image unreachable.
+ *
+ * What actually keeps unreferenced media out of a public response is upstream of this: NestJS reads
+ * media only by following a relationship from a document it has already been allowed to read, so an
+ * image reachable through a published page is exactly the set it can see. And the objects
+ * themselves are anonymously readable by design — they live in the `sam-public` bucket and are
+ * served by nginx at `/media/*` — so this rule governs access to the *metadata* (alt text, sizes,
+ * the record), never secrecy of the bytes.
+ *
+ * Anonymous is still refused, for the same reason as `Pages`: `cms.<domain>` is publicly routable,
+ * and Payload's REST API must not be a second, unaudited way to enumerate the CMS.
+ */
+export const mediaRead: Access = ({ req: { user } }) => isEditor(user) || isService(user);

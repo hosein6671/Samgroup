@@ -63,9 +63,20 @@ services:
       # eye. It is deliberately absent from the base file so it can never be
       # published in production.
       - "127.0.0.1:9001:9001"
-      # S3 API. Uncomment when host-run applications need object storage;
-      # nginx already reaches MinIO over the internal network without it.
-      # - "127.0.0.1:9000:9000"
+      # S3 API. Published as of the Payload Media gate: apps/cms runs on the
+      # host via `pnpm dev` (ADR-005, approved implementation decision 4) and
+      # its S3 storage adapter writes editorial media to the sam-public bucket,
+      # which a host process cannot reach over an unpublished container port.
+      #
+      # Unlike postgres, minio needs no companion network for this. It already
+      # joins `edge` in docker-compose.yml — a normal bridge — so it has a route
+      # to the host and the published binding works. `data` stays internal and
+      # nothing about the base topology changes.
+      #
+      # nginx still reaches MinIO over the internal network, exactly as before;
+      # this binding is additional, development-only, and cannot follow the
+      # stack to the VPS because production does not load this file.
+      - "127.0.0.1:9000:9000"
 
 networks:
   # Development only, and declared only in this file — docker-compose.yml has

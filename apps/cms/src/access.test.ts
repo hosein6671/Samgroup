@@ -26,10 +26,13 @@ import {
   isAdmin,
   isEditor,
   isService,
+  mediaRead,
   publishedForService,
 } from "./access";
+import { Media, mediaFileURL } from "./collections/media";
 import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
+import { seoFields } from "./fields/seo";
 
 import type { Access, AccessArgs } from "payload";
 
@@ -134,6 +137,194 @@ describe("service identity", () => {
     // with a credential that lives in a server's environment.
     assert.equal(canAccessAdminPanel(as(SERVICE)), false);
     assert.equal(Users.access?.admin, canAccessAdminPanel);
+  });
+});
+
+describe("media access", () => {
+  test("anonymous cannot read media, and cannot upload, replace or delete it", () => {
+    // Anonymous read matters even though the OBJECTS are public: this governs the record — alt
+    // text, filenames, sizes — and refusing it keeps Payload's REST API from being a second,
+    // unaudited way to enumerate the CMS on a publicly routable host.
+    assert.equal(call(Media.access?.read, ANONYMOUS), false);
+    assert.equal(call(Media.access?.create, ANONYMOUS), false);
+    assert.equal(call(Media.access?.update, ANONYMOUS), false);
+    assert.equal(call(Media.access?.delete, ANONYMOUS), false);
+  });
+
+  test("the service identity reads media but can never write it", () => {
+    // Read is unconditional here, unlike Pages, because media has no draft state to constrain on.
+    assert.equal(call(Media.access?.read, SERVICE), true);
+    assert.equal(call(Media.access?.create, SERVICE), false);
+    assert.equal(call(Media.access?.update, SERVICE), false);
+    assert.equal(call(Media.access?.delete, SERVICE), false);
+  });
+
+  test("editors manage media, which is the editorial role", () => {
+    for (const editor of [ADMIN, CONTENT_MANAGER]) {
+      assert.equal(call(Media.access?.read, editor), true);
+      assert.equal(call(Media.access?.create, editor), true);
+      assert.equal(call(Media.access?.update, editor), true);
+      assert.equal(call(Media.access?.delete, editor), true);
+    }
+  });
+
+  test("mediaRead grants nothing to a user carrying an unknown or malformed role", () => {
+    for (const user of [{}, { roles: ["viewer"] }, { roles: "service" }, undefined]) {
+      assert.equal(mediaRead(as(user)), false);
+    }
+  });
+
+  test("every media operation is declared explicitly rather than inherited", () => {
+    for (const operation of ["read", "create", "update", "delete"] as const) {
+      assert.ok(Media.access?.[operation] !== undefined, `Media.access.${operation} is unset`);
+    }
+
+    assert.equal(Media.access?.create, editorOnly);
+    assert.equal(Media.access?.read, mediaRead);
+  });
+
+  test("media never writes to a local disk, and accepts images only", () => {
+    const upload = Media.upload;
+
+    assert.ok(typeof upload === "object" && upload !== null);
+    // DEVOPS.md forbids media on a container volume. Payload's default does exactly that, so this
+    // flag is the difference between following the rule and silently breaking it.
+    assert.equal(upload.disableLocalStorage, true);
+    assert.equal(upload.staticDir, undefined);
+    assert.ok(Array.isArray(upload.mimeTypes) && upload.mimeTypes.length > 0);
+    assert.ok(upload.mimeTypes.every((type) => type.startsWith("image/")));
+  });
+
+  test("the public URL is origin-relative and carries no host, scheme or bucket", () => {
+    // The nginx contract: /media/<prefix>/<file>. An absolute URL here would bake today's object
+    // store — still undecided for production — into every media row in the database.
+    assert.equal(mediaFileURL({ filename: "demo.png", prefix: "cms" }), "/media/cms/demo.png");
+    // The plugin does not always pass a prefix; the collection's own is the fallback, never a bare
+    // /media/demo.png that would resolve to a different object.
+    assert.equal(mediaFileURL({ filename: "demo.png" }), "/media/cms/demo.png");
+
+    for (const url of [
+      mediaFileURL({ filename: "a.png", prefix: "cms" }),
+      mediaFileURL({ filename: "b.webp" }),
+    ]) {
+      assert.ok(url.startsWith("/media/"));
+      assert.ok(!url.includes("://"), "must carry no scheme or host");
+      assert.ok(!url.includes("sam-public"), "must not leak the bucket name");
+      assert.ok(!url.includes("9000"), "must not leak the object store endpoint");
+      // The Payload-gated form would route browsers to the CMS origin, which ADR-003 forbids.
+      assert.ok(!url.includes("/api/"), "must not be the Payload access-controlled file route");
+    }
+  });
+
+  test("alt text is required and localized, and no unspecified field crept in", () => {
+    const names = Media.fields.map((field) => ("name" in field ? field.name : undefined));
+
+    // Exactly one declared field. Payload contributes filename/mimeType/filesize/width/height/url
+    // itself; anything else here would be an invented DAM feature (no caption, credit or tags are
+    // specified in any frozen document).
+    assert.deepEqual(names, ["alt"]);
+
+    const alt = Media.fields[0] as { required?: boolean; localized?: boolean } | undefined;
+
+    assert.ok(alt !== undefined);
+    // Required: an image with no alt text is an accessibility failure and a missing Image SEO
+    // signal, so the CMS refuses to store one rather than leaving it to editorial discipline.
+    assert.equal(alt.required, true);
+    // Localized because alt text is read aloud and indexed as text, not because it is a fact.
+    assert.equal(alt.localized, true);
+  });
+});
+
+describe("SEO field group", () => {
+  const seo = Pages.fields.find((field) => "name" in field && field.name === "seo");
+
+  test("Pages carries the standard group, spread from the shared function", () => {
+    assert.ok(seo !== undefined, "Pages must carry the seo group");
+    assert.equal("type" in seo && seo.type, "group");
+    // The same call must serve every future collection and Global — SEO_ARCHITECTURE.md §3 requires
+    // one shared function, not per-collection boilerplate.
+    assert.deepEqual(seoFields(), seoFields());
+  });
+
+  test("the group is exactly the frozen contract — no invented fields, no missing ones", () => {
+    assert.ok(seo !== undefined && "fields" in seo);
+
+    const names = seo.fields.map((field) => ("name" in field ? field.name : undefined));
+
+    // Every entry is a row of SEO_ARCHITECTURE.md §2. `locale` and `alternates` are absent by
+    // design: the first is what Payload's localization already provides, the second is derived from
+    // which documents are genuinely translated.
+    assert.deepEqual(names, [
+      "metaTitle",
+      "metaDescription",
+      "canonicalUrl",
+      "ogTitle",
+      "ogDescription",
+      "socialImage",
+      "twitterCardType",
+      "twitterTitle",
+      "twitterDescription",
+      "twitterImage",
+      "robotsIndex",
+      "robotsFollow",
+      "keywords",
+      "structuredDataOverride",
+    ]);
+  });
+
+  test("copy is localized and switches are not", () => {
+    assert.ok(seo !== undefined && "fields" in seo);
+
+    const localized = new Map(
+      seo.fields.map((field) => [
+        "name" in field ? field.name : "",
+        "localized" in field ? field.localized === true : false,
+      ]),
+    );
+
+    for (const copy of ["metaTitle", "metaDescription", "ogTitle", "socialImage", "keywords"]) {
+      assert.equal(localized.get(copy), true, `${copy} should be localized`);
+    }
+
+    // A noindex decision is about the entity, not about a language — per-locale robots flags would
+    // let a page be quietly indexable in one locale and not another.
+    for (const structural of ["robotsIndex", "robotsFollow", "twitterCardType", "canonicalUrl"]) {
+      assert.equal(localized.get(structural), false, `${structural} should not be localized`);
+    }
+  });
+
+  test("robots default to indexable and the card type to the §2 default", () => {
+    assert.ok(seo !== undefined && "fields" in seo);
+
+    const byName = new Map(seo.fields.map((field) => ["name" in field ? field.name : "", field]));
+
+    for (const flag of ["robotsIndex", "robotsFollow"]) {
+      const field = byName.get(flag);
+
+      assert.ok(field !== undefined && "defaultValue" in field);
+      // Defaulting to false would silently deindex every page an editor creates.
+      assert.equal(field.defaultValue, true);
+    }
+
+    const card = byName.get("twitterCardType");
+
+    assert.ok(card !== undefined && "defaultValue" in card);
+    assert.equal(card.defaultValue, "summary_large_image");
+  });
+
+  test("both image fields point at the Media collection", () => {
+    assert.ok(seo !== undefined && "fields" in seo);
+
+    for (const name of ["socialImage", "twitterImage"]) {
+      const field = seo.fields.find((entry) => "name" in entry && entry.name === name) as
+        { type?: string; relationTo?: unknown } | undefined;
+
+      assert.ok(field !== undefined, `${name} is missing from the SEO group`);
+      // An upload relationship, not a free URL string: SEO_ARCHITECTURE.md §2's `socialImageId`
+      // points at Media, which is what lets the API serve a real URL and alt text together.
+      assert.equal(field.type, "upload");
+      assert.equal(field.relationTo, Media.slug);
+    }
   });
 });
 
