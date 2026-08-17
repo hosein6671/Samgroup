@@ -1,0 +1,157 @@
+/*
+ * SAM GROUP — CMS CONTENT PROOF ROUTE
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * The same constraint `insights.css` and the product stylesheets state for themselves: it declares
+ * no colour, no typeface, no radius and no easing of its own. Every value resolves to a token
+ * already declared by `flagship.css` inside `[data-brand="flagship"]` or by the design system's
+ * generated theme, and where a construction already exists as flagship vocabulary — `.fs-wrap`,
+ * `.fs-sec`, `.fs-eyebrow`, `.fs-d1`, `.fs-blueprint` — it is used directly rather than restated.
+ *
+ * It is deliberately short. This route exists to prove a data path, not to establish a page design;
+ * the template it styles is a header and a body and nothing else.
+ *
+ * ============================================================================
+ * THE PROSE BLOCK IS THE ONLY UNUSUAL PART
+ * ============================================================================
+ *
+ * `.cms-body-inner` styles element selectors — `p`, `h2`, `ul` — rather than classes, because its
+ * children are HTML produced by the CMS and carry no class names this application chose. That is
+ * confined to this one block on purpose, and the element list is limited to what Payload's default
+ * editor can actually emit.
+ */
+
+/* ============================================================================
+   THE DEMO BAND
+   ============================================================================ */
+
+/*
+ * First thing inside <main>, above the content, and rendered rather than merely documented. A page
+ * carrying non-authoritative content has to say so on the page — see the homepage's DemoDataNotice
+ * for the same rule applied for the same reason.
+ */
+.cms-demo-band {
+  margin: 0;
+  padding: clamp(72px, 8vh, 96px) clamp(20px, 5vw, 64px) clamp(12px, 1.4vw, 18px);
+  background: var(--color-surface-canvas);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.cms-demo-band strong {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.cms-head {
+  position: relative;
+  /* Block-start padding is smaller than the Insights header's, because the demo band above already
+     clears the fixed navigation. */
+  padding-block: clamp(28px, 3vw, 44px) clamp(48px, 5vw, 72px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.cms-head-inner {
+  position: relative;
+}
+
+.cms-title {
+  margin: clamp(12px, 1.4vw, 18px) 0 0;
+  max-width: 20ch;
+}
+
+.cms-updated,
+.cms-fallback-note {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   BODY
+   ============================================================================ */
+
+.cms-body-inner {
+  /* A single measured column, for the reason `.in-post-body-inner` gives: a full-wrap paragraph at
+     1280px would be a 1200px line length. */
+  max-width: 68ch;
+}
+
+.cms-body-inner p {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.cms-body-inner h2,
+.cms-body-inner h3,
+.cms-body-inner h4 {
+  margin: clamp(28px, 3vw, 40px) 0 clamp(10px, 1.2vw, 16px);
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+.cms-body-inner ul,
+.cms-body-inner ol {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  padding-inline-start: 1.4em;
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.cms-body-inner li {
+  margin-bottom: 0.4em;
+}
+
+.cms-body-inner a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+.cms-body-inner blockquote {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  padding-inline-start: 1em;
+  border-inline-start: 1px solid var(--color-border-subtle);
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   UNAVAILABLE
+   ============================================================================ */
+
+.cms-unavailable {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(72px, 8vw, 112px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.cms-unavailable-inner {
+  position: relative;
+  max-width: 62ch;
+}
+
+.cms-unavailable-title {
+  margin: clamp(12px, 1.4vw, 18px) 0 clamp(16px, 1.8vw, 24px);
+}

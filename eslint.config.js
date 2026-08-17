@@ -18,6 +18,11 @@ module.exports = [
       "**/.turbo/**",
       "**/coverage/**",
       "apps/api/src/prisma/generated/**",
+      // Payload's generated artifacts, emitted into the repository by `payload generate:types` and
+      // `payload generate:importmap` and required by the build. `payload-types.ts` contains `any`
+      // in the Lexical node shape, which is Payload's schema, not a choice this project makes.
+      "apps/cms/src/payload-types.ts",
+      "apps/cms/src/app/(payload)/admin/importMap.js",
     ],
   },
   ...samGroup,

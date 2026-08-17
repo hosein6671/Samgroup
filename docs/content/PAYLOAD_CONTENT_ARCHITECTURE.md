@@ -1,5 +1,11 @@
 # Payload CMS Content Architecture
 
+> **Implementation status — 16 August 2026.** The sentence below ("no collections are created, no
+> Payload config is written") described this document at the time it was written and is **no longer
+> true of the repository**. The design in it is unchanged and still authoritative; what exists is a
+> foundation covering a small part of it. See [§Implementation status](#implementation-status-16-august-2026)
+> at the end of this document for exactly what is built and what is not.
+
 Complete content model for `sam_cms` (Payload). No collections are created, no Payload config is written, no database schema changes here — this is the design that config will follow. No frozen decision (ADR-001/002/003, the Payload/Prisma database split, NestJS-as-only-API-surface, the bespoke-pages-not-a-block-renderer frontend decision) is changed by anything below; this document exists entirely inside those boundaries.
 
 ---
@@ -336,3 +342,121 @@ Confirmed and approved after this document's initial draft:
 Two items previously listed here were closed without needing a decision: _Downloads' company-wide assets_ (settled by decision 4's media boundary — any future gated-download lead tracking is a Prisma data-model question, tracked with the other Prisma gaps in [SITE_STRUCTURE.md](../SITE_STRUCTURE.md#data-model-gaps-surfaced-by-this-structure)), and the _`SEO_ARCHITECTURE.md` follow-up edit_, which has since been applied.
 
 Remaining blockers for building these collections are **content and technical**, not decisions: the `[TO CONFIRM]` items in [SITE_STRUCTURE.md](../SITE_STRUCTURE.md#outstanding-confirmations-needed) (real certifications, photography, contact details, commercial terms) and the unmodeled Prisma-side entities (Distributor Application, Job Application) that two Payload collections reference.
+
+---
+
+## Implementation status (16 August 2026)
+
+The Payload foundation exists. **Nothing in the model above is changed by it** — this section records
+which parts of it are built, and states plainly that most are not.
+
+### Built
+
+- **`apps/cms`** — Payload 3.88.0 on **Next.js 16.2.12**, TypeScript, `@payloadcms/db-postgres`
+  against `sam_cms`. GraphQL is disabled in the config; Payload's REST API and admin UI are the only
+  surfaces. CORS is left at Payload's default (`[]` — no allowed origin, wildcard or otherwise).
+  **`apps/cms` runs a different Next version from `apps/web` on purpose** — Payload supports a narrow
+  set of Next releases that excludes `apps/web`'s line, and pnpm's package isolation is the boundary.
+  `apps/web` must not be moved to match. Full reasoning: [TECH_STACK.md](../TECH_STACK.md) §CMS.
+- **`Users`** — Payload's own admin collection ([ADR-006](../ADR/ADR-006-payload-admin-authentication.md)),
+  with a `roles` field. ADR-006's minimum of `admin` and `content-manager` is met; a third role,
+  `service`, exists solely as the identity behind the NestJS service credential
+  ([API_CONTRACT_FINAL.md](../API_CONTRACT_FINAL.md) §4) and is refused access to the admin panel.
+  Bootstrap is Payload's own create-first-user flow — no credential is seeded or committed.
+- **`Pages`** — the Legal Pages collection of §1, with the four frozen fields: `title` (localized),
+  `slug` (**not** localized — structural page URLs stay fixed English,
+  [PROJECT_HANDOFF.md](../PROJECT_HANDOFF.md) §6.12), `body` (rich text, localized) and
+  `lastUpdatedDate` (a fact, not localized). Draft/publish versioning is on.
+- **Localization** — `en`/`fa`/`ar`, default `en`, `fallback: true`, **frozen in code and not
+  readable from the environment** (see below).
+- **Access control** — unauthenticated requests are refused entirely; the `service` identity is
+  constrained by a `_status` query constraint to **published** documents only; editors may read
+  drafts and write.
+
+### Not built — and each is its own gate
+
+- **Every Global.** Home, About Us, Products Landing, Customized Solutions, Export & Logistics,
+  Quality & Certifications, Contact Us, FAQ Page, Header, Footer and Settings do not exist.
+- **`ProductCategoryContent`, `Certifications`, `JobOpenings`, `FaqEntries`** — none exists, so the
+  `categoryKey` soft key to Prisma `Category`, the Admin-only certification publish gate and the
+  shared FAQ collection are all still design only.
+- **Payload's Media/upload collection** — not enabled. No storage adapter is configured, and the
+  S3-compatible production target is itself undecided ([DEVOPS.md](../DEVOPS.md)).
+- **The `SeoFields` group**, on `Pages` or anywhere else. Its contract
+  ([SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md) §2) includes `socialImageId`, a reference to the
+  Media collection above, so a partial group would put a shape on the wire that matches neither
+  document. Recorded as outstanding rather than dropped — see "Deferred dependency" below, which
+  makes both a precondition of the first real page rather than an open-ended omission.
+- **Legal page content.** No Privacy Policy, Terms of Use, Cookie Notice or General Sales
+  Conditions row exists, in any locale. [SITE_STRUCTURE.md](../SITE_STRUCTURE.md) §12 is explicit
+  that these are drafting specifications requiring legal review, and none has been performed.
+
+### The only content that exists
+
+One `Pages` entry, `cms-demo-page`, created by the opt-in bootstrap script
+`apps/cms/src/seed/seed-cms-demo.ts` (`pnpm --filter @sam-group/cms seed:demo`, armed only by
+`SAM_ALLOW_DEMO_CMS_SEED=true`). It exists in `en` only, so that `fa` and `ar` demonstrate the
+fallback path.
+
+**It is DEMO / PLACEHOLDER / NON-AUTHORITATIVE content.** It is not SAM Group copy, it makes no
+legal, commercial, technical, certification, availability or contact claim, and its own body says so.
+A production deployment must never treat it as approved content. The script creates nothing else,
+edits nothing that already exists, and deletes nothing.
+
+### Locales are frozen in code — `en`/`fa`/`ar`, default `en`, fallback on
+
+**Decided and implemented**, in `apps/cms/src/localization.ts`. The Phase 1 locale set is already a
+frozen decision, so Payload's configuration states it directly rather than reading it from anywhere.
+
+An earlier revision of this scaffold read it from `CMS_LOCALES`/`CMS_DEFAULT_LOCALE`. **That was
+removed**: an environment variable that can override a frozen decision means the decision is not
+frozen, and one deployment could have served a locale set the platform does not have with nothing
+reporting the divergence. Those two variables no longer exist anywhere, including in
+`apps/cms/.env.example`.
+
+Three mechanisms were available and two are **rejected outright**: Payload must not open
+`sam_platform` ([ADR-002](../ADR/ADR-002-two-databases.md)), and there is to be **no boot-time
+`cms` → `api` dependency** (today `api` calls `cms` and never the reverse) and **no reconciliation
+service**. The frozen set is the third, and it is what the platform already committed to.
+
+Drift is guarded twice: compile-time assertions in `localization.ts` fail `pnpm type-check` if the
+tuple, the default or the fallback flag changes, and a runtime assertion runs before the Payload
+config is built. Both are covered by tests, including one that sets the old environment variables and
+proves they change nothing.
+
+**Adding a locale is deliberately an intentional architecture step, not a configuration edit** — a
+change in `localization.ts`, a `Locale` row in `sam_platform`, a `sam_cms` schema change (Payload's
+Postgres adapter stores localized values per locale), and translated content.
+
+Locale **direction** is still not carried in Payload's config. `rtl: true` per locale would improve
+Payload's own admin editing surface, but direction is a `Locale` column and restating it here would
+be a second vocabulary for it. The public site is unaffected — it reads direction from the `Locale`
+table through NestJS.
+
+### Rich text is sanitized before it is served
+
+Payload's rich text reaches consumers as HTML (`bodyHtml`), and **NestJS sanitizes it** — an
+allow-list rebuild in `apps/api`'s Content module, applied in the one function every Content response
+is assembled by. Editorial markup for legal and corporate prose survives (headings, emphasis, lists,
+links, quotes, tables); script hosts, event-handler attributes, `style`, embeds, form controls and
+any URL scheme outside `http`/`https`/`mailto`/`tel` do not.
+
+The boundary is in the API rather than the frontend deliberately: NestJS is the only public contract
+([ADR-003](../ADR/ADR-003-api-gateway.md)), so every present and future consumer gets the same safe
+HTML and none of them can forget to sanitize. Full detail:
+[API_CONTRACT_FINAL.md](../API_CONTRACT_FINAL.md) §2.4a.
+
+### Deferred dependency — Media and `SeoFields` block the first real page
+
+The `Pages` foundation is **intentionally partial for this gate**, and that does **not** redefine the
+frozen `Pages` contract in §1. Two items must be closed **before the first canonical legal or
+corporate Page is implemented**, and both are their own gates:
+
+1. **The Media collection and its storage decision.** Payload has no upload collection here and no
+   storage adapter is configured; the S3-compatible production target is itself undecided
+   ([DEVOPS.md](../DEVOPS.md) §Object storage).
+2. **The standard `SeoFields` group.** Its contract ([SEO_ARCHITECTURE.md](../seo/SEO_ARCHITECTURE.md)
+   §2) includes `socialImageId`, a reference to that Media collection, which is why it is second and
+   not first. A partial group would put a shape on the wire matching neither document.
+
+Until both land, the `Pages` shape in this repository is a foundation, not the final one.

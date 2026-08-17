@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsInt,
   IsOptional,
+  IsString,
   Max,
   Min,
   Validate,
@@ -63,6 +64,37 @@ export class IsPlatformDatabaseUrl implements ValidatorConstraintInterface {
   }
 }
 
+/**
+ * An http(s) origin, or nothing at all.
+ *
+ * Deliberately not `@IsUrl()`: that accepts `mailto:` and `ftp:` among others, and would let a
+ * scheme this application can never fetch through startup validation and into a runtime failure.
+ */
+@ValidatorConstraint({ name: "isOptionalHttpOrigin" })
+export class IsOptionalHttpOrigin implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    if (value === undefined || value === null || value === "") {
+      return true;
+    }
+
+    if (typeof value !== "string") {
+      return false;
+    }
+
+    try {
+      const url = new URL(value);
+
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  defaultMessage(): string {
+    return "PAYLOAD_INTERNAL_URL must be an http:// or https:// origin, or be left unset";
+  }
+}
+
 class EnvironmentVariables {
   @IsOptional()
   @IsEnum(NodeEnv)
@@ -75,6 +107,24 @@ class EnvironmentVariables {
 
   @Validate(IsPlatformDatabaseUrl)
   DATABASE_URL!: string;
+
+  /**
+   * Payload's internal origin. **Optional** — see the note on `payloadInternalUrl` in
+   * `configuration.ts` for why an unconfigured CMS degrades one module rather than the process.
+   * Its *shape* is still checked, so a typo fails at boot rather than as a confusing fetch error.
+   */
+  @IsOptional()
+  @Validate(IsOptionalHttpOrigin)
+  PAYLOAD_INTERNAL_URL?: string;
+
+  /**
+   * The Payload service account's API key. Optional, and deliberately unvalidated beyond being a
+   * string: its format is Payload's to define, and a shape rule here would be this application
+   * asserting something it does not own.
+   */
+  @IsOptional()
+  @IsString()
+  PAYLOAD_API_KEY?: string;
 }
 
 /**

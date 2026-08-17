@@ -16,6 +16,13 @@ packages/ui/src/tokens/theme.generated.css
 # code — Prettier neither reads .gitignore nor should reformat it.
 apps/api/src/prisma/generated/
 
+# Payload emits both of these into the repository — `payload generate:types` and
+# `payload generate:importmap` — and the build needs them there. Generated code,
+# and the generator owns its formatting: reformatting would produce a diff on
+# every regeneration, exactly as for the Prisma client above.
+apps/cms/src/payload-types.ts
+apps/cms/src/app/(payload)/admin/importMap.js
+
 # Lockfile is tool-owned; reformatting it produces noise and diff churn
 pnpm-lock.yaml
 

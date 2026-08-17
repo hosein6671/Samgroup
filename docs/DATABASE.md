@@ -113,6 +113,29 @@ Blog slugs are **not** part of the ADR-011 products slug namespace. `product_slu
 - Footer
 - Settings
 
+#### `sam_cms` — implementation status (16 August 2026)
+
+`sam_cms` now holds a real Payload schema. It was created by Payload's Postgres adapter in local DEV
+and holds **13 tables**, all owned by `sam_cms_user`:
+
+- `pages`, `pages_locales`, `_pages_v`, `_pages_v_locales` — the `Pages` collection with drafts
+  enabled. Localized values (`title`, `body`) live in the `_locales` tables; `slug` and
+  `lastUpdatedDate` are columns on `pages` itself, because neither is localized (see
+  [PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md) §1).
+- `users`, `users_roles`, `users_sessions` — Payload's own admin users ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)).
+- `payload_kv`, `payload_migrations`, `payload_locked_documents`, `payload_locked_documents_rels`,
+  `payload_preferences`, `payload_preferences_rels` — Payload's own bookkeeping.
+
+**Menus, Footer and Settings do not exist yet**, nor does any other collection or global in the
+content architecture. Only `Pages` and `Users` are implemented.
+
+**Verified on 16 August 2026, in local DEV:** `sam_platform` contains no `payload*`, `pages*` or
+`_pages*` table, and `sam_cms` contains none of `products`, `categories`, `locales`, `blog_posts`,
+`inquiries`, `product_slug_claims` or `_prisma_migrations`. `scripts/verify-db-isolation.sh` passes
+4/4, including both negative cases. `apps/cms` additionally refuses at config-build time to open any
+database other than `sam_cms`, mirroring the check `apps/api` already applies to `sam_platform` —
+defense in depth, not a replacement for the PostgreSQL grants.
+
 ---
 
 ### SEO

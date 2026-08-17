@@ -301,6 +301,45 @@ Two libraries, two non-overlapping jobs (already decided in [technology/FRONTEND
 - **Caching**: NestJS's Content module already caches CMS content aggressively ([SEO_ARCHITECTURE.md §6](../seo/SEO_ARCHITECTURE.md#6-performance-seo)). `apps/web` layers Next.js's own fetch cache / tag-based revalidation on top for CMS-backed routes.
 - **Open follow-up, not built here**: cache invalidation currently relies on TTL expiry; a publish-triggered revalidation path (Payload publish → NestJS → an `apps/web` revalidation call) would close the gap between "content published" and "site updated" but isn't specified anywhere yet. Worth adding to `API_DESIGN.md` in a future pass — flagged here, not designed here, since it's a backend contract change and out of scope for a frontend-only document.
 
+### [SHIPPED 16 August 2026 — the first CMS-backed route]
+
+`src/lib/content.ts` consumes `GET /api/v1/content/pages/:slug` through the existing `apiGet` client.
+It is the first Payload-backed data in `apps/web`, and **nothing about it knows a CMS exists**: no
+Payload origin, no CMS credential, no Payload-shaped type. `PAYLOAD_INTERNAL_URL` and
+`PAYLOAD_API_KEY` are read only by `apps/api` and must never be given to this application.
+
+The route is `app/[locale]/cms-proof/[slug]/page.tsx` — **a demonstration route, not a canonical
+one**, and it must not become one. The `Pages` collection holds legal pages, and every one of them is
+blocked on approved, legally reviewed text in three locales that does not exist
+([SITE_STRUCTURE.md](../SITE_STRUCTURE.md) §12). `/{locale}/privacy-policy` is created by the gate
+that has that content; pointing it at this data now would publish whatever is in the CMS as though it
+were policy. When that gate arrives, this route follows
+[ADR-010](../ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §9's transition order
+(implement → validate → redirect → remove) and is deleted.
+
+Four things it establishes, each of which the legal routes will inherit unchanged:
+
+- **Only a definitive NOT_FOUND becomes a canonical 404.** A stopped API, a stopped **Payload**, a
+  timeout, a 5xx, a rejected service credential and a malformed payload all render a restrained
+  unavailable state, reported server-side and specific about which of the two services failed. The
+  new failure mode compared with every earlier route is a CMS outage, and turning that into a 404
+  would tell crawlers the company's legal pages had been withdrawn.
+- **Locale fallback is surfaced, not hidden.** `meta.localeFallback` renders a "not yet translated"
+  notice, as the article route already does.
+- **The `cms-proof/` namespace is its own**, separate from `products/` and `insights/`. Nothing here
+  claims, reserves or consults a `ProductSlugClaim` — ADR-010 and ADR-011 govern `/products/{slug}`
+  alone.
+- **`bodyHtml` is rendered as markup**, via `dangerouslySetInnerHTML`, and it is the only place in
+  `apps/web` that renders any. **It is sanitized server-side by NestJS before it arrives** — an
+  allow-list rebuild described in [API_CONTRACT_FINAL.md](../API_CONTRACT_FINAL.md) §2.4a — and
+  `apps/web` deliberately does **not** sanitize it a second time: a second policy would be a second
+  thing to keep in step, and the API is the boundary precisely so every consumer inherits it. The
+  alternative to rendering markup at all — parsing the HTML into React elements here — would be a
+  second hand-written renderer for a document format this application does not own.
+
+**Verified in the browser:** every request on the page goes to the Next origin. None reaches the API
+origin, and none reaches Payload's.
+
 ### CMS Content Modeling Rules
 
 Every Payload-backed page — About Us is the clearest example, but this applies to every `[CMS]`-tagged section in [SITE_STRUCTURE.md](../SITE_STRUCTURE.md), not just that page — must be edited to completion **without a code change**. Three concrete rules that make that actually true, not just aspirational:

@@ -1,0 +1,21 @@
+{
+  "extends": "@sam-group/tsconfig/base.json",
+  "compilerOptions": {
+    // Payload's admin UI is React rendered by this application, so DOM libs are needed here
+    // exactly as they are in apps/web — and for the same reason are not in the shared base.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    "types": ["node", "react"],
+    "allowJs": true,
+    "incremental": true,
+    "moduleDetection": "force",
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      // The specifier Payload's own generated route files import the config through.
+      "@payload-config": ["./src/payload.config.ts"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "next.config.ts", "src", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "@sam-group/cms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002",
+    "type-check": "tsc --noEmit",
+    "test": "node --import tsx --test src/*.test.ts",
+    "generate:types": "payload generate:types",
+    "seed:demo": "payload run src/seed/seed-cms-demo.ts"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.88.0",
+    "@payloadcms/next": "3.88.0",
+    "@payloadcms/richtext-lexical": "3.88.0",
+    "graphql": "16.11.0",
+    "next": "16.2.12",
+    "payload": "3.88.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@sam-group/tsconfig": "workspace:*",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "tsx": "4.23.11",
+    "typescript": "6.0.3"
+  }
+}

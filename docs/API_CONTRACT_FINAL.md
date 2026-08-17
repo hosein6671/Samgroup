@@ -111,6 +111,73 @@ These two fill it in the shape §2.3 already fixes: same envelope, same `?locale
 | GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                      |
 | GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                          |
 
+#### 2.4a Implementation status — 16 August 2026
+
+**One of the eight paths is implemented, and no path was added, renamed or reshaped.**
+
+`GET /content/pages/:slug` is live, served by a new `ContentModule` in `apps/api`. It takes `?locale=`
+like every content-bearing endpoint (§3), answers in the standard envelope, and serves four fields:
+`slug`, `title`, `bodyHtml`, `lastUpdatedDate`.
+
+- **`bodyHtml`, not a rich-text AST.** §4 names Payload's rich-text AST as an internal shape, so
+  something has to turn the Lexical document into a transport form. It is produced by **Payload's own
+  official converter**, as a virtual unstored field on the collection. The alternatives were a
+  hand-written AST walker inside `apps/api` (a second implementation of a format `apps/api` does not
+  depend on) or a newly invented block vocabulary on the wire (a contract decision this gate had no
+  mandate to make).
+- **`bodyHtml` is SANITIZED by NestJS before it is served, and this is the platform's only such
+  boundary.** An allow-list rebuild using `sanitize-html`, applied in the one function every Content
+  response is assembled by, so no response can be constructed that skips it. It admits headings,
+  emphasis, lists, links, quotes, tables and the converter's own wrapper classes; it removes script
+  hosts (tag **and** contents), every `on*` handler, `style` elements and attributes, `iframe`,
+  `object`, `embed`, `svg`, form controls, comments, and any URL scheme outside
+  `http`/`https`/`mailto`/`tel` — including entity-, whitespace- and case-obfuscated `javascript:`.
+  Links opening a new tab have `rel="noopener noreferrer"` applied by the sanitizer rather than
+  trusted from the editor.
+  The boundary is here rather than in `apps/web` deliberately: NestJS is the only public contract
+  (§1), so every present and future consumer receives the same safe HTML and none can forget to
+  sanitize. A frontend-side sanitizer would be repeated per consumer and would leave the unsafe form
+  on the wire. `title` is not sanitized and does not need to be — it is a `text` field, never
+  rendered as markup, and escaped by the renderer.
+  **Fallback detection reads the RAW body, not the sanitized one**: a body made entirely of stripped
+  markup is _present_ in the CMS, and treating its empty sanitized output as "untranslated" would
+  report a fallback that did not happen.
+- **No Payload document id on the wire**, and no `_status` — only published pages are served, so a
+  status field would have exactly one value.
+- **No `seo`.** The `SeoFields` group is not implemented on the `Pages` collection
+  ([PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md) §Implementation status).
+- **`:slug` is not locale-specific**, unlike the catalog and blog detail routes: structural page URLs
+  stay fixed English across locales ([PROJECT_HANDOFF.md](./PROJECT_HANDOFF.md) §6.12).
+
+**Published-state filtering, per §4, is applied twice.** NestJS never sends `draft`, and Payload's own
+access control additionally constrains the service identity to published documents. Verified: with the
+demo page unpublished, asking Payload directly with the service credential and `draft=true` returns
+zero documents.
+
+**Failure semantics, and the one distinction that matters most here:**
+
+| Condition                                                                                     | Answer                            |
+| --------------------------------------------------------------------------------------------- | --------------------------------- |
+| CMS answered; no published page carries the slug                                              | 404 `NOT_FOUND`                   |
+| CMS unconfigured, unreachable, timed out, 4xx/5xx, or a 2xx that is not a Payload find result | 503 `UPSTREAM_UNAVAILABLE`        |
+| `?locale=` names an inactive locale                                                           | 400 `INVALID_LOCALE`, no CMS call |
+
+`UPSTREAM_UNAVAILABLE` had no thrower in the platform until now. **A Payload outage never becomes a
+404** — that is [ADR-010](./ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §7's principle
+applied to a chain one service longer than the one it was written for.
+
+**`meta.localeFallback` is measured, not inferred.** Payload's `fallback: true` serves the default
+locale's value without saying so, so the service asks with `fallback-locale=none` first and re-asks
+with fallback on only when a localized field is missing — one request for a fully translated locale,
+two for an untranslated one.
+
+**Service credential (§4) is implemented** as a Payload API key belonging to a user whose only role is
+`service`. `PAYLOAD_INTERNAL_URL` and `PAYLOAD_API_KEY` are read only by `apps/api`; both are
+**optional**, and with either absent the Content endpoints answer 503 and log why rather than taking
+the whole API down with them.
+
+**The other seven paths are unbuilt** because the Globals and collections behind them do not exist.
+
 ### 2.5 Page Composition **[NEW DECISION]**
 
 Three pages need data from 3+ sources. Fetching each separately means 3 sequential frontend→NestJS round trips, each potentially triggering a NestJS→Payload hop — directly at odds with the LCP < 2.5s budget ([SEO_ARCHITECTURE.md §6](./seo/SEO_ARCHITECTURE.md#6-performance-seo)).
