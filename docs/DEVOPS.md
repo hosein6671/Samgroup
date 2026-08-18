@@ -144,6 +144,32 @@ Payload's admin UI gets its **own subdomain** because Payload's admin route also
 
 ---
 
+## Outbound Email (SMTP)
+
+`apps/api` submits one internal notification per persisted lead to an SMTP relay. **This project runs no mail server and adds no Compose service for mail** — outbound submission to a relay the client supplies is the whole of it.
+
+Runtime configuration, process-scoped and injected at deploy time like every other secret:
+
+| Variable                      | Meaning                                                                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `SMTP_HOST`                   | Relay hostname.                                                                                                                  |
+| `SMTP_PORT`                   | 587 (STARTTLS submission), 465 (implicit TLS), or 25 (internal relay).                                                           |
+| `SMTP_USER` / `SMTP_PASSWORD` | Both or neither — half a pair is treated as unconfigured rather than attempted. `SMTP_PASSWORD` is a secret and is never logged. |
+| `SMTP_SECURE`                 | Exactly `true` or `false`. `true` pairs with port 465.                                                                           |
+| `MAIL_FROM`                   | The `From` header. Must be an address the relay is authorised to send as.                                                        |
+| `LEAD_NOTIFICATION_TO`        | The single internal mailbox notifications are delivered to.                                                                      |
+
+**All of them are optional, and the group degrades as one.** With any of `SMTP_HOST`, `SMTP_PORT`, `MAIL_FROM` or `LEAD_NOTIFICATION_TO` missing, the API still boots and every form still validates, persists and answers `201`; the notification is skipped and the names of the missing variables are logged. The same holds when the relay is down, rejects the credential or stalls — **a lead is never lost to a mail failure**, because the row is committed before the attempt is made.
+
+**Operational notes:**
+
+- A mail attempt is bounded at **5 seconds total**, so an unreachable relay adds up to ~5 s to a form submission's response and never more (measured: 5.09 s against a relay that accepts the connection and then stalls). Any reverse-proxy read timeout in front of `apps/api` must exceed that; the Nginx templates in `docker/` set no `proxy_read_timeout`, so the 60 s default applies and leaves ample margin.
+- **No retries, no queue, and no delivery state in the database.** A failed notification is one `ERROR` log line carrying the submission id, the notification kind, `mechanism=smtp` and the error class/code — enough to find the lead in `sam_platform`, which still holds it. Alerting on that line is the recovery mechanism, and a durable retry or delivery audit would need both a queue and schema, so it is a separate architecture gate.
+- Outbound egress on the relay's port must be open from the application container. No inbound mail port is needed and none is opened.
+- **The production mailbox, relay and credential do not exist yet** and are the client's to supply. Until they do, every deployment runs with the notification skipped — a supported state, not a broken one.
+
+---
+
 ## Monitoring & Backups (Phase 1 minimum)
 
 - Container health checks in `docker-compose.yml`

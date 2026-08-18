@@ -6,6 +6,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { ProductsService } from "../catalog/products.service";
 
 import { PRISMA_INQUIRY_TYPE } from "./dto/create-inquiry.dto";
+import { LeadNotificationService } from "./notification/lead-notification.service";
 import { ACTIVE_PRIVACY_POLICY_REVISION } from "./privacy-policy-revision";
 import { INITIAL_SUBMISSION_STATUS } from "./submission-status";
 
@@ -57,6 +58,7 @@ export class InquiriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly productsService: ProductsService,
+    private readonly leadNotifications: LeadNotificationService,
   ) {}
 
   async create(dto: CreateInquiryDto): Promise<SubmissionResponse> {
@@ -98,6 +100,49 @@ export class InquiriesService {
       select: { id: true, createdAt: true },
     });
 
-    return { id: inquiry.id, createdAt: inquiry.createdAt.toISOString() };
+    const response: SubmissionResponse = {
+      id: inquiry.id,
+      createdAt: inquiry.createdAt.toISOString(),
+    };
+
+    /*
+     * ── After the write, and outside its success condition ─────────────────
+     *
+     * The row is committed by the line above; this cannot undo it, and by contract
+     * `LeadNotificationService` never throws — a refused relay, a rejected credential and the
+     * 5-second timeout are all caught, logged and swallowed inside it. So the `await` here
+     * delays the response by at most the mail budget and can never change it.
+     *
+     * It is awaited rather than detached deliberately. A floating promise would return sooner and
+     * would be silently dropped whenever the process is replaced mid-request; doing it properly
+     * asynchronously needs a queue and a durable delivery record, which is a separate architecture
+     * gate. See the note on LeadNotificationService.
+     *
+     * The values passed are the ones just written — the persisted `id` and `createdAt`, the
+     * validated DTO, and the same `ACTIVE_PRIVACY_POLICY_REVISION` the row carries. Nothing is
+     * re-read, and `relatedProductId` is passed as the id it is: resolving a product name would
+     * add a Catalog read to a path whose failure is defined not to matter.
+     */
+    await this.leadNotifications.notifyInquiry({
+      id: response.id,
+      createdAt: response.createdAt,
+      privacyPolicyVersion: ACTIVE_PRIVACY_POLICY_REVISION,
+      inquiryType: dto.inquiryType,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      companyName: dto.companyName,
+      country: dto.country,
+      email: dto.email,
+      industry: dto.industry,
+      phone: dto.phone,
+      relatedProductId: dto.relatedProductId,
+      productsOfInterest: dto.productsOfInterest,
+      requiredQuantity: dto.requiredQuantity,
+      destinationCountryPort: dto.destinationCountryPort,
+      preferredIncoterm: dto.preferredIncoterm,
+      message: dto.message,
+    });
+
+    return response;
   }
 }

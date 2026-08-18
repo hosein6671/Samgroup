@@ -3,6 +3,7 @@ import { Test } from "@nestjs/testing";
 import { PrismaService } from "../../prisma/prisma.service";
 
 import { CustomFormulationRequestsService } from "./custom-formulation-requests.service";
+import { LeadNotificationService } from "./notification/lead-notification.service";
 import * as revision from "./privacy-policy-revision";
 import { INITIAL_SUBMISSION_STATUS } from "./submission-status";
 
@@ -25,19 +26,27 @@ const MINIMAL: CreateCustomFormulationRequestDto = {
 type Harness = {
   service: CustomFormulationRequestsService;
   create: jest.Mock;
+  notifyCustomFormulationRequest: jest.Mock;
 };
 
 async function createHarness(): Promise<Harness> {
   const create = jest.fn().mockResolvedValue(ROW);
+  // See the note on the same mock in inquiries.service.spec.ts.
+  const notifyCustomFormulationRequest = jest.fn().mockResolvedValue(undefined);
 
   const moduleRef = await Test.createTestingModule({
     providers: [
       CustomFormulationRequestsService,
       { provide: PrismaService, useValue: { customFormulationRequest: { create } } },
+      { provide: LeadNotificationService, useValue: { notifyCustomFormulationRequest } },
     ],
   }).compile();
 
-  return { service: moduleRef.get(CustomFormulationRequestsService), create };
+  return {
+    service: moduleRef.get(CustomFormulationRequestsService),
+    create,
+    notifyCustomFormulationRequest,
+  };
 }
 
 /**
@@ -174,5 +183,91 @@ describe("CustomFormulationRequestsService.create — the revision comes from th
     await service.create({ ...MINIMAL });
 
     expect(create.mock.calls[0][0].data.privacyPolicyVersion).toBe(REVISION);
+  });
+});
+
+/** The same hand-off as the Inquiry path, over a different entity. */
+describe("CustomFormulationRequestsService.create — internal notification", () => {
+  it("notifies once for a successful submission", async () => {
+    const { service, notifyCustomFormulationRequest } = await createHarness();
+
+    await service.create({ ...MINIMAL });
+
+    expect(notifyCustomFormulationRequest).toHaveBeenCalledTimes(1);
+  });
+
+  it("hands over every submitted field the approved mapping names", async () => {
+    const { service, notifyCustomFormulationRequest } = await createHarness();
+
+    await service.create({
+      ...MINIMAL,
+      phone: "+44 20 7946 0000",
+      estimatedQuantity: "5 MT / month",
+      packagingRequirements: "IBC tanks",
+      destinationCountry: "United Arab Emirates",
+      preferredIncoterm: "CIF",
+      additionalInformation: "Existing supplier is discontinuing the grade.",
+    });
+
+    expect(notifyCustomFormulationRequest.mock.calls[0][0]).toEqual({
+      id: ROW.id,
+      createdAt: "2026-08-15T09:30:00.000Z",
+      privacyPolicyVersion: revision.ACTIVE_PRIVACY_POLICY_REVISION,
+      companyName: MINIMAL.companyName,
+      country: MINIMAL.country,
+      industry: MINIMAL.industry,
+      email: MINIMAL.email,
+      phone: "+44 20 7946 0000",
+      productOrApplication: MINIMAL.productOrApplication,
+      requiredSpecifications: MINIMAL.requiredSpecifications,
+      estimatedQuantity: "5 MT / month",
+      packagingRequirements: "IBC tanks",
+      destinationCountry: "United Arab Emirates",
+      preferredIncoterm: "CIF",
+      additionalInformation: "Existing supplier is discontinuing the grade.",
+    });
+  });
+
+  it("hands over no product reference, because the entity has no column for one", async () => {
+    const { service, notifyCustomFormulationRequest } = await createHarness();
+
+    await service.create({ ...MINIMAL });
+
+    expect(notifyCustomFormulationRequest.mock.calls[0][0]).not.toHaveProperty("relatedProductId");
+  });
+
+  it("notifies only after the row is written", async () => {
+    const order: string[] = [];
+    const { service, create, notifyCustomFormulationRequest } = await createHarness();
+
+    create.mockImplementation(async () => {
+      order.push("persist");
+
+      return ROW;
+    });
+    notifyCustomFormulationRequest.mockImplementation(async () => {
+      order.push("notify");
+    });
+
+    await service.create({ ...MINIMAL });
+
+    expect(order).toEqual(["persist", "notify"]);
+  });
+
+  it("attempts no notification when the write fails", async () => {
+    const { service, create, notifyCustomFormulationRequest } = await createHarness();
+    create.mockRejectedValue(new Error("write failed"));
+
+    await expect(service.create({ ...MINIMAL })).rejects.toThrow("write failed");
+
+    expect(notifyCustomFormulationRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns id and createdAt and nothing else", async () => {
+    const { service } = await createHarness();
+
+    const result = await service.create({ ...MINIMAL });
+
+    expect(Object.keys(result).sort()).toEqual(["createdAt", "id"]);
   });
 });

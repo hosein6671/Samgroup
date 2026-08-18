@@ -95,6 +95,52 @@ export class IsOptionalHttpOrigin implements ValidatorConstraintInterface {
   }
 }
 
+/**
+ * A TCP port, or nothing at all.
+ *
+ * Deliberately not `@IsInt() @Min(1) @Max(65535)` on a number field: `SMTP_PORT=` — a variable
+ * present but blank, which is exactly what a copied `.env.example` produces — converts to `0` and
+ * fails the range check, so the API would refuse to boot over an unconfigured optional capability.
+ * An empty value means "not set", the same as an absent one.
+ */
+@ValidatorConstraint({ name: "isOptionalPort" })
+export class IsOptionalPort implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    if (value === undefined || value === null || value === "") {
+      return true;
+    }
+
+    const port = Number(value);
+
+    return Number.isInteger(port) && port >= 1 && port <= 65535;
+  }
+
+  defaultMessage(): string {
+    return "SMTP_PORT must be a TCP port between 1 and 65535, or be left unset";
+  }
+}
+
+/**
+ * A literal `"true"` or `"false"`, or nothing at all.
+ *
+ * Deliberately not `@IsBoolean()`: environment variables are strings, and class-transformer's
+ * implicit boolean conversion reads `"false"` as truthy — the one misreading that would silently
+ * turn implicit TLS off while the configuration file says it is on. Anything else, `"TRUE"`
+ * included, fails at boot rather than being guessed at.
+ */
+@ValidatorConstraint({ name: "isOptionalBooleanFlag" })
+export class IsOptionalBooleanFlag implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    return (
+      value === undefined || value === null || value === "" || value === "true" || value === "false"
+    );
+  }
+
+  defaultMessage(): string {
+    return 'SMTP_SECURE must be exactly "true" or "false", or be left unset';
+  }
+}
+
 class EnvironmentVariables {
   @IsOptional()
   @IsEnum(NodeEnv)
@@ -125,6 +171,56 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   PAYLOAD_API_KEY?: string;
+
+  /*
+   * ── Outbound SMTP ─────────────────────────────────────────────────────────
+   *
+   * All seven are OPTIONAL, for the same reason PAYLOAD_INTERNAL_URL is: a missing mail relay
+   * degrades one capability — the internal lead notification — and must never stop the process
+   * that persists the lead. What is validated here is only *shape*, so a typo fails at boot rather
+   * than as a confusing runtime send failure; whether the group is complete enough to send at all
+   * is `SmtpMailer`'s decision, made once at startup and logged there.
+   *
+   * Nothing is validated for content: no host is checked for reachability and no address against a
+   * domain. Both are deployment facts this application does not own.
+   */
+
+  @IsOptional()
+  @IsString()
+  SMTP_HOST?: string;
+
+  /** Typed as a string, and validated as a port. See `IsOptionalPort` for why it is not a number. */
+  @IsOptional()
+  @Validate(IsOptionalPort)
+  SMTP_PORT?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_USER?: string;
+
+  /**
+   * The relay credential. **Never validated beyond being a string, and never quoted in any
+   * message** — a boot failure prints to stdout and into container logs (SECURITY.md §Secrets
+   * Management), so a length or complexity rule here would be a rule whose violation leaks it.
+   */
+  @IsOptional()
+  @IsString()
+  SMTP_PASSWORD?: string;
+
+  /** Implicit TLS on/off, as a literal string. See `IsOptionalBooleanFlag`. */
+  @IsOptional()
+  @Validate(IsOptionalBooleanFlag)
+  SMTP_SECURE?: string;
+
+  /** Free-form, so `Name <mailbox@example.com>` passes. The relay is the authority on it. */
+  @IsOptional()
+  @IsString()
+  MAIL_FROM?: string;
+
+  /** One internal mailbox. Never defaulted — unset means "notify nobody", and that is honoured. */
+  @IsOptional()
+  @IsString()
+  LEAD_NOTIFICATION_TO?: string;
 }
 
 /**

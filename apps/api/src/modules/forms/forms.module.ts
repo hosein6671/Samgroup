@@ -7,6 +7,8 @@ import { CustomFormulationRequestsController } from "./custom-formulation-reques
 import { CustomFormulationRequestsService } from "./custom-formulation-requests.service";
 import { InquiriesController } from "./inquiries.controller";
 import { InquiriesService } from "./inquiries.service";
+import { LeadNotificationService } from "./notification/lead-notification.service";
+import { SmtpMailer } from "./notification/smtp.mailer";
 
 /**
  * The **Forms** module — ARCHITECTURE.md §Modules, "sample requests, custom formulation requests,
@@ -32,17 +34,33 @@ import { InquiriesService } from "./inquiries.service";
  * submit an inquiry. Exporting ahead of a consumer is the same mistake `CatalogModule`'s own note
  * warns about.
  *
- * ── No notification, no email, and the API says so ──────────────────────────
+ * ── Internal notification, and nothing the submitter can see ────────────────
  *
- * A successful submission writes one row and returns. Nothing is emailed to the submitter, nothing
- * notifies a Sales Expert, and no acknowledgement is queued: API_CONTRACT_FINAL.md's Remaining
- * Blockers §4 records that email delivery is unspecified — no provider, no sender domain, no
- * deliverability plan exists in any document. The frontend's confirmation copy is written to match
- * what actually happens.
+ * A successful submission writes one row, then attempts one internal email to the mailbox named by
+ * `LEAD_NOTIFICATION_TO`. `LeadNotificationService` is the boundary and `SmtpMailer` is the
+ * transport; both are private to this module, because a lead notification is the only thing either
+ * of them knows how to send.
+ *
+ * Three properties this module depends on, all of them asserted by test rather than intended:
+ *
+ * 1. **The email is outside the success condition.** The row is committed before the attempt, the
+ *    boundary never throws, and the 201 is identical whether the relay answered, refused or was
+ *    never configured. A lead is never lost to a mail failure.
+ * 2. **Nothing reaches the submitter.** No acknowledgement is sent, and the response body still
+ *    carries `{ id, createdAt }` and nothing else — no delivery status of any kind is exposed.
+ *    The frontend's confirmation copy is unchanged and still claims nothing was sent.
+ * 3. **No mailbox is hard-coded.** Sender and recipient are environment configuration with no
+ *    defaults; unconfigured means the attempt is skipped and logged, not that mail goes somewhere
+ *    unintended.
  */
 @Module({
   imports: [PrismaModule, CatalogModule],
   controllers: [InquiriesController, CustomFormulationRequestsController],
-  providers: [InquiriesService, CustomFormulationRequestsService],
+  providers: [
+    InquiriesService,
+    CustomFormulationRequestsService,
+    LeadNotificationService,
+    SmtpMailer,
+  ],
 })
 export class FormsModule {}

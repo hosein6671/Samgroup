@@ -119,6 +119,7 @@ The admin area sits outside the localized public route tree, is excluded from `s
 - Secrets live in `.env` files, never committed (see `.gitignore`)
 - `.env.example` documents required variables with placeholder values
 - Production secrets injected via the deployment environment, not baked into Docker images
+- **`SMTP_PASSWORD` is a secret of the same class as the `DATABASE_URL` password.** It is read from the environment and handed to nodemailer, and it is never logged, never included in an error message, never returned by any endpoint, and never written into `.env.example`. Startup validation checks that it is a string and nothing further, so no validation failure can quote it. Asserted by test in `env.validation.spec.ts` and `smtp.mailer.spec.ts`.
 
 ---
 
@@ -128,6 +129,18 @@ The admin area sits outside the localized public route tree, is excluded from `s
 - Database backups encrypted at rest
 - Media files (product docs, images) served through access-controlled URLs where confidentiality matters (e.g. unpublished formulation documents)
 - **CV files** (`JobApplication.cvMediaId`) are the most sensitive assets in object storage — always access-controlled, never served from a public/guessable URL, and readable only by Admin per the RBAC matrix above
+
+---
+
+## Outbound Lead Notification
+
+**Personal data leaves the platform by email**, and as of 18 August 2026 this is the only route by which it does. When a public form submission is persisted, `apps/api` sends one internal message over SMTP to the single mailbox named by `LEAD_NOTIFICATION_TO`, carrying the submitted contact and enquiry fields. Nothing is sent to the person who submitted the form.
+
+- **The relay operator becomes a processor for that data.** Whichever mailbox and relay the client supplies, lead PII passes through it — a contractual and GDPR question, not only a technical one, since Europe is a served market. It belongs in the same processor and retention review as the tables below.
+- **The recipient is configuration, never a literal.** No mailbox is hard-coded anywhere in code or documentation. With `LEAD_NOTIFICATION_TO` unset nothing is sent at all — the attempt is skipped and logged — so an unconfigured or half-configured deployment cannot deliver a lead to an unintended address.
+- **The message is plain text with no HTML part**, so submitted markup can never be executable in a reader's mail client.
+- **Logs carry the submission id and nothing else about the lead** — no name, company, email address, message body, or recipient mailbox. The id resolves to the full record in `sam_platform`, which is the access-controlled place it belongs, keeping the "no sensitive personal data in URLs or logs" rule below true of this path too.
+- **No delivery state is persisted**, so the notification creates no second copy of lead data and nothing additional to retain or purge.
 
 ---
 

@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 
 import { PrismaService } from "../../prisma/prisma.service";
 
+import { LeadNotificationService } from "./notification/lead-notification.service";
 import { ACTIVE_PRIVACY_POLICY_REVISION } from "./privacy-policy-revision";
 import { INITIAL_SUBMISSION_STATUS } from "./submission-status";
 
@@ -24,7 +25,10 @@ import type { SubmissionResponse } from "./dto/submission.response";
  */
 @Injectable()
 export class CustomFormulationRequestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly leadNotifications: LeadNotificationService,
+  ) {}
 
   async create(dto: CreateCustomFormulationRequestDto): Promise<SubmissionResponse> {
     const request = await this.prisma.customFormulationRequest.create({
@@ -48,6 +52,38 @@ export class CustomFormulationRequestsService {
       select: { id: true, createdAt: true },
     });
 
-    return { id: request.id, createdAt: request.createdAt.toISOString() };
+    const response: SubmissionResponse = {
+      id: request.id,
+      createdAt: request.createdAt.toISOString(),
+    };
+
+    /*
+     * Same division as `InquiriesService`, and the same guarantees: the row is committed above,
+     * `LeadNotificationService` never throws, and this `await` can only delay the response — by
+     * at most the 5-second mail budget — never change it. See that service for why the attempt is
+     * awaited rather than detached.
+     *
+     * No `relatedProductId` is passed because the entity has no such column; the notification for
+     * this form carries no product reference at all.
+     */
+    await this.leadNotifications.notifyCustomFormulationRequest({
+      id: response.id,
+      createdAt: response.createdAt,
+      privacyPolicyVersion: ACTIVE_PRIVACY_POLICY_REVISION,
+      companyName: dto.companyName,
+      country: dto.country,
+      industry: dto.industry,
+      email: dto.email,
+      phone: dto.phone,
+      productOrApplication: dto.productOrApplication,
+      requiredSpecifications: dto.requiredSpecifications,
+      estimatedQuantity: dto.estimatedQuantity,
+      packagingRequirements: dto.packagingRequirements,
+      destinationCountry: dto.destinationCountry,
+      preferredIncoterm: dto.preferredIncoterm,
+      additionalInformation: dto.additionalInformation,
+    });
+
+    return response;
   }
 }

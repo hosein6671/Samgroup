@@ -91,3 +91,90 @@ describe("validateEnv", () => {
     });
   });
 });
+
+/**
+ * The mail group.
+ *
+ * The property that matters most is the negative one: **an unconfigured or half-configured relay
+ * must not stop the process.** A lead the platform could have persisted is worth more than a
+ * notification it could have sent, so every one of these variables is optional and only its shape
+ * is checked here — whether the group is complete enough to send is `SmtpMailer`'s decision.
+ */
+describe("validateEnv — outbound SMTP", () => {
+  const SMTP_PASSWORD = "smtp-secret-must-never-be-logged";
+
+  const configured = {
+    ...base,
+    SMTP_HOST: "smtp.relay.invalid",
+    SMTP_PORT: "587",
+    SMTP_USER: "relay-user",
+    SMTP_PASSWORD,
+    SMTP_SECURE: "false",
+    MAIL_FROM: "SAM Group <noreply@example.invalid>",
+    LEAD_NOTIFICATION_TO: "leads@example.invalid",
+  };
+
+  it("accepts an environment with no mail configuration at all", () => {
+    expect(validateEnv(base)).toMatchObject({ API_PORT: 3001 });
+  });
+
+  it("accepts a fully configured relay", () => {
+    expect(validateEnv(configured)).toMatchObject({ SMTP_HOST: "smtp.relay.invalid" });
+  });
+
+  /*
+   * A copied `.env.example` produces present-but-blank variables. Rejecting those would make the
+   * documentation file itself unbootable, which is the opposite of what it is for.
+   */
+  it.each([
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASSWORD",
+    "SMTP_SECURE",
+    "MAIL_FROM",
+    "LEAD_NOTIFICATION_TO",
+  ])("accepts a blank %s rather than refusing to boot", (variable) => {
+    expect(() => validateEnv({ ...configured, [variable]: "" })).not.toThrow();
+  });
+
+  it("accepts every variable blank at once, which is a copied example file", () => {
+    const blank = Object.fromEntries(Object.keys(configured).map((key) => [key, ""]));
+
+    expect(() => validateEnv({ ...blank, ...base })).not.toThrow();
+  });
+
+  it.each(["0", "70000", "not-a-port", "587.5"])("throws on SMTP_PORT %s", (port) => {
+    expect(() => validateEnv({ ...configured, SMTP_PORT: port })).toThrow();
+  });
+
+  it("coerces a valid SMTP_PORT without altering it", () => {
+    expect(validateEnv({ ...configured, SMTP_PORT: "465" })).toMatchObject({ SMTP_PORT: "465" });
+  });
+
+  /*
+   * The one misreading that would matter: implicit boolean conversion treats the string "false" as
+   * truthy, which would turn implicit TLS on while the configuration says it is off.
+   */
+  it.each(["true", "false"])("accepts SMTP_SECURE %s", (value) => {
+    expect(() => validateEnv({ ...configured, SMTP_SECURE: value })).not.toThrow();
+  });
+
+  it.each(["TRUE", "False", "1", "yes", "on"])("throws on SMTP_SECURE %s", (value) => {
+    expect(() => validateEnv({ ...configured, SMTP_SECURE: value })).toThrow();
+  });
+
+  // Same rule as DATABASE_URL: a boot failure goes to stdout and into container logs.
+  it("never exposes the SMTP password in a failure message", () => {
+    expect.assertions(2);
+
+    try {
+      validateEnv({ ...configured, SMTP_PORT: "70000" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      expect(message).not.toContain(SMTP_PASSWORD);
+      expect(message).toContain("SMTP_PORT");
+    }
+  });
+});

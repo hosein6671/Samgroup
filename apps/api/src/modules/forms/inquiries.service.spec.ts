@@ -6,6 +6,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { ProductsService } from "../catalog/products.service";
 
 import { InquiriesService } from "./inquiries.service";
+import { LeadNotificationService } from "./notification/lead-notification.service";
 import * as revision from "./privacy-policy-revision";
 import { INITIAL_SUBMISSION_STATUS } from "./submission-status";
 
@@ -31,21 +32,27 @@ type Harness = {
   service: InquiriesService;
   create: jest.Mock;
   existsById: jest.Mock;
+  notifyInquiry: jest.Mock;
 };
 
 async function createHarness(productExists = true): Promise<Harness> {
   const create = jest.fn().mockResolvedValue(ROW);
   const existsById = jest.fn().mockResolvedValue(productExists);
+  // Stands in for the real boundary, whose own contract — that it never throws — is asserted in
+  // lead-notification.service.spec.ts. Here it resolves, so these tests measure what this service
+  // does with a notification that behaves.
+  const notifyInquiry = jest.fn().mockResolvedValue(undefined);
 
   const moduleRef = await Test.createTestingModule({
     providers: [
       InquiriesService,
       { provide: PrismaService, useValue: { inquiry: { create } } },
       { provide: ProductsService, useValue: { existsById } },
+      { provide: LeadNotificationService, useValue: { notifyInquiry } },
     ],
   }).compile();
 
-  return { service: moduleRef.get(InquiriesService), create, existsById };
+  return { service: moduleRef.get(InquiriesService), create, existsById, notifyInquiry };
 }
 
 describe("InquiriesService.create", () => {
@@ -255,5 +262,149 @@ describe("InquiriesService.create — the revision actually comes from the const
     await service.create({ ...MINIMAL });
 
     expect(create.mock.calls[0][0].data.privacyPolicyVersion).toBe(REVISION);
+  });
+});
+
+/**
+ * The notification hand-off.
+ *
+ * What is asserted here is the **division of responsibility**, not delivery: that the row is
+ * written first, that the boundary receives exactly the values just persisted, and that nothing it
+ * does reaches the response. Delivery itself — timeouts, refused relays, unconfigured mail — is
+ * `lead-notification.service.spec.ts` and `smtp.mailer.spec.ts`.
+ */
+describe("InquiriesService.create — internal notification", () => {
+  it("notifies once for a successful submission", async () => {
+    const { service, notifyInquiry } = await createHarness();
+
+    await service.create({ ...MINIMAL });
+
+    expect(notifyInquiry).toHaveBeenCalledTimes(1);
+  });
+
+  it("hands over the persisted id and timestamp, not values of its own", async () => {
+    const { service, notifyInquiry } = await createHarness();
+
+    await service.create({ ...MINIMAL });
+
+    expect(notifyInquiry.mock.calls[0][0]).toMatchObject({
+      id: ROW.id,
+      createdAt: "2026-08-15T09:30:00.000Z",
+    });
+  });
+
+  it("hands over every submitted field the approved mapping names", async () => {
+    const { service, notifyInquiry } = await createHarness();
+
+    await service.create({
+      ...MINIMAL,
+      inquiryType: "request_a_quote",
+      phone: "+44 20 7946 0000",
+      relatedProductId: PRODUCT_ID,
+      productsOfInterest: ["Base oils"],
+      requiredQuantity: "20 MT",
+      destinationCountryPort: "Jebel Ali",
+      preferredIncoterm: "FOB",
+      message: "Please quote for quarterly shipments.",
+    });
+
+    expect(notifyInquiry.mock.calls[0][0]).toEqual({
+      id: ROW.id,
+      createdAt: "2026-08-15T09:30:00.000Z",
+      privacyPolicyVersion: revision.ACTIVE_PRIVACY_POLICY_REVISION,
+      inquiryType: "request_a_quote",
+      firstName: MINIMAL.firstName,
+      lastName: MINIMAL.lastName,
+      companyName: MINIMAL.companyName,
+      country: MINIMAL.country,
+      email: MINIMAL.email,
+      industry: MINIMAL.industry,
+      phone: "+44 20 7946 0000",
+      relatedProductId: PRODUCT_ID,
+      productsOfInterest: ["Base oils"],
+      requiredQuantity: "20 MT",
+      destinationCountryPort: "Jebel Ali",
+      preferredIncoterm: "FOB",
+      message: "Please quote for quarterly shipments.",
+    });
+  });
+
+  it("hands over the same policy revision the row was stamped with", async () => {
+    const { service, create, notifyInquiry } = await createHarness();
+
+    await service.create({ ...MINIMAL });
+
+    expect(notifyInquiry.mock.calls[0][0].privacyPolicyVersion).toBe(
+      create.mock.calls[0][0].data.privacyPolicyVersion,
+    );
+  });
+
+  /**
+   * The ordering the whole gate depends on. A notification attempted before the write could fire
+   * for a lead that was never stored.
+   */
+  it("notifies only after the row is written", async () => {
+    const order: string[] = [];
+    const { service, create, notifyInquiry } = await createHarness();
+
+    create.mockImplementation(async () => {
+      order.push("persist");
+
+      return ROW;
+    });
+    notifyInquiry.mockImplementation(async () => {
+      order.push("notify");
+    });
+
+    await service.create({ ...MINIMAL });
+
+    expect(order).toEqual(["persist", "notify"]);
+  });
+
+  it("attempts no notification when the write fails", async () => {
+    const { service, create, notifyInquiry } = await createHarness();
+    create.mockRejectedValue(new Error("write failed"));
+
+    await expect(service.create({ ...MINIMAL })).rejects.toThrow("write failed");
+
+    expect(notifyInquiry).not.toHaveBeenCalled();
+  });
+
+  it("attempts no notification when the product reference is rejected", async () => {
+    const { service, notifyInquiry } = await createHarness(false);
+
+    await expect(
+      service.create({ ...MINIMAL, relatedProductId: PRODUCT_ID }),
+    ).rejects.toBeInstanceOf(ApiException);
+
+    expect(notifyInquiry).not.toHaveBeenCalled();
+  });
+
+  /**
+   * **Documents where the safety actually lives, and it is not here.**
+   *
+   * This service awaits the boundary and adds no second catch of its own, so a boundary that broke
+   * its never-throws contract would surface as a failed submission — which is precisely why that
+   * contract is asserted exhaustively in `lead-notification.service.spec.ts` against every SMTP
+   * failure mode, rather than assumed. Wrapping this call in another try/catch would hide a real
+   * defect in the boundary behind a silent success, and the row would still be written either way.
+   *
+   * The test is kept as the record of that choice: if it ever starts failing, the boundary is
+   * broken and the fix belongs there.
+   */
+  it("relies on the boundary never rejecting, rather than catching a second time", async () => {
+    const { service, notifyInquiry } = await createHarness();
+    notifyInquiry.mockRejectedValue(new Error("boundary contract broken"));
+
+    await expect(service.create({ ...MINIMAL })).rejects.toThrow("boundary contract broken");
+  });
+
+  it("returns id and createdAt and nothing else, whatever the notification did", async () => {
+    const { service, notifyInquiry } = await createHarness();
+
+    const result = await service.create({ ...MINIMAL });
+
+    expect(Object.keys(result).sort()).toEqual(["createdAt", "id"]);
+    expect(notifyInquiry).toHaveBeenCalledTimes(1);
   });
 });

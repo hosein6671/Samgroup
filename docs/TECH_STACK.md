@@ -24,6 +24,7 @@ Full rationale (purpose, why selected, performance/SEO/accessibility considerati
 
 - NestJS
 - TypeScript
+- **`nodemailer`** — the SMTP client behind the internal lead notification, in `apps/api` only. An HTTP transactional provider was deliberately not chosen for Phase 1: one needs a commercial account and a verified sender domain, neither of which exists, while SMTP submits through a mailbox the business already owns. It sits behind a narrow notification boundary, so replacing it later is one file and its spec. **This project runs no mail server**, and email is never part of a request's success condition — see [DEVOPS.md](./DEVOPS.md) §Outbound Email (SMTP).
 - **`sanitize-html` — pinned to exactly `2.17.5`. Do not upgrade without reading the next paragraph.**
 
 ### Why `sanitize-html` is held at 2.17.5
