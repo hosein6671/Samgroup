@@ -477,6 +477,27 @@ model Inquiry {
   message                String?
   attachmentMediaId      String?     @map("attachment_media_id") @db.Uuid
   consentGiven           Boolean     @map("consent_given")
+  /// The Privacy Policy revision this consent was recorded against — server-owned,
+  /// written once on insert, and never re-derived afterwards. Its value is the
+  /// constant ACTIVE_PRIVACY_POLICY_REVISION in apps/api (Forms module): no client
+  /// supplies it, and it is not looked up in sam_cms, so a later CMS edit cannot
+  /// silently rewrite what a past submitter agreed to.
+  ///
+  /// A plain human-readable revision identifier, never a Payload row or revision
+  /// id and never a foreign key — sam_cms is a separate database (ADR-002) and
+  /// Pages.lastUpdatedDate is an editor-set display field, not consent evidence
+  /// (SECURITY.md #Personal Data Retention).
+  ///
+  /// NULL means no versioned Privacy Policy was in force when the consent was
+  /// recorded. That is the literal truth of every row written today: no approved
+  /// policy content exists, the consent labels link to nothing, and no value is
+  /// invented to fill the column.
+  ///
+  /// **Immutable after INSERT, enforced by a BEFORE UPDATE trigger** that Prisma
+  /// does not model (migration 20260818140000_privacy_policy_version_immutable):
+  /// any update where the value IS DISTINCT FROM the stored one is rejected,
+  /// NULL to a revision included. Every other column stays updateable.
+  privacyPolicyVersion   String?     @map("privacy_policy_version")
   status                 String
   createdAt              DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -513,6 +534,27 @@ model CustomFormulationRequest {
   preferredIncoterm      String?  @map("preferred_incoterm")
   attachmentMediaId      String?  @map("attachment_media_id") @db.Uuid
   consentGiven           Boolean  @map("consent_given")
+  /// The Privacy Policy revision this consent was recorded against — server-owned,
+  /// written once on insert, and never re-derived afterwards. Its value is the
+  /// constant ACTIVE_PRIVACY_POLICY_REVISION in apps/api (Forms module): no client
+  /// supplies it, and it is not looked up in sam_cms, so a later CMS edit cannot
+  /// silently rewrite what a past submitter agreed to.
+  ///
+  /// A plain human-readable revision identifier, never a Payload row or revision
+  /// id and never a foreign key — sam_cms is a separate database (ADR-002) and
+  /// Pages.lastUpdatedDate is an editor-set display field, not consent evidence
+  /// (SECURITY.md #Personal Data Retention).
+  ///
+  /// NULL means no versioned Privacy Policy was in force when the consent was
+  /// recorded. That is the literal truth of every row written today: no approved
+  /// policy content exists, the consent labels link to nothing, and no value is
+  /// invented to fill the column.
+  ///
+  /// **Immutable after INSERT, enforced by a BEFORE UPDATE trigger** that Prisma
+  /// does not model (migration 20260818140000_privacy_policy_version_immutable):
+  /// any update where the value IS DISTINCT FROM the stored one is rejected,
+  /// NULL to a revision included. Every other column stays updateable.
+  privacyPolicyVersion   String?  @map("privacy_policy_version")
   status                 String
   createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 

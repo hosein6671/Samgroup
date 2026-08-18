@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 
 import { PrismaService } from "../../prisma/prisma.service";
 
+import { ACTIVE_PRIVACY_POLICY_REVISION } from "./privacy-policy-revision";
 import { INITIAL_SUBMISSION_STATUS } from "./submission-status";
 
 import type { CreateCustomFormulationRequestDto } from "./dto/create-custom-formulation-request.dto";
@@ -12,7 +13,10 @@ import type { SubmissionResponse } from "./dto/submission.response";
  * `/customized-solutions`, and nothing else.
  *
  * Same division as `InquiriesService`: the submitter supplies fields, the server supplies `id`,
- * `createdAt` and `status`, and `userId` / `assignedToId` / `attachmentMediaId` are never written.
+ * `createdAt`, `status` and `privacyPolicyVersion`, and `userId` / `assignedToId` /
+ * `attachmentMediaId` are never written. The consent-evidence field comes from the same
+ * `ACTIVE_PRIVACY_POLICY_REVISION` constant both services share — see its own file for why it is
+ * neither client-supplied nor read from Payload.
  *
  * **No product reference.** `custom_formulation_requests` has no `relatedProductId` column and this
  * service does not invent one — the form describes a product that does not exist yet, which is the
@@ -38,6 +42,7 @@ export class CustomFormulationRequestsService {
         destinationCountry: dto.destinationCountry ?? null,
         preferredIncoterm: dto.preferredIncoterm ?? null,
         consentGiven: dto.consentGiven,
+        privacyPolicyVersion: ACTIVE_PRIVACY_POLICY_REVISION,
         status: INITIAL_SUBMISSION_STATUS,
       },
       select: { id: true, createdAt: true },

@@ -6,6 +6,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { ProductsService } from "../catalog/products.service";
 
 import { PRISMA_INQUIRY_TYPE } from "./dto/create-inquiry.dto";
+import { ACTIVE_PRIVACY_POLICY_REVISION } from "./privacy-policy-revision";
 import { INITIAL_SUBMISSION_STATUS } from "./submission-status";
 
 import type { CreateInquiryDto } from "./dto/create-inquiry.dto";
@@ -20,12 +21,16 @@ const UNKNOWN_PRODUCT_ISSUE = "must be the id of an existing product";
  *
  * ── The submitter supplies fields; the server supplies state ────────────────
  *
- * `id`, `createdAt` and `status` are set here and are not reachable from the request: the first two
- * by the database's own defaults, the third from `INITIAL_SUBMISSION_STATUS`. `userId`,
- * `assignedToId` and `attachmentMediaId` are never written — the first because these endpoints are
- * unauthenticated (DATA_MODEL.md §2 keeps `userId` optional precisely for the later authenticated
- * case), the second because lead assignment is an Admin action, the third because no upload
- * endpoint exists.
+ * `id`, `createdAt`, `status` and `privacyPolicyVersion` are set here and are not reachable from the
+ * request: the first two by the database's own defaults, the third from `INITIAL_SUBMISSION_STATUS`,
+ * the fourth from `ACTIVE_PRIVACY_POLICY_REVISION` — the consent evidence SECURITY.md ratified, a
+ * stored literal rather than a lookup, so no CMS outage can block this write and no later edit
+ * anywhere can rewrite what a submitter agreed to.
+ *
+ * `userId`, `assignedToId` and `attachmentMediaId` are never written — the first because these
+ * endpoints are unauthenticated (DATA_MODEL.md §2 keeps `userId` optional precisely for the later
+ * authenticated case), the second because lead assignment is an Admin action, the third because no
+ * upload endpoint exists.
  *
  * `productsOfInterest` falls back to `[]` rather than being omitted. The column is a NOT NULL
  * `text[]`, and an absent multi-select means "none chosen", which is an empty array — not a null
@@ -85,6 +90,7 @@ export class InquiriesService {
         preferredIncoterm: dto.preferredIncoterm ?? null,
         message: dto.message ?? null,
         consentGiven: dto.consentGiven,
+        privacyPolicyVersion: ACTIVE_PRIVACY_POLICY_REVISION,
         status: INITIAL_SUBMISSION_STATUS,
       },
       // Only what the response carries. A `create` without `select` returns every column,

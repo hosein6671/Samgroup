@@ -195,7 +195,7 @@ Full strategy: [docs/i18n/INTERNATIONALIZATION_STRATEGY.md](./i18n/INTERNATIONAL
 - **Download Request** — lead capture gating the Company Catalogue and Product Catalogue only; TDS/SDS downloads are deliberately ungated
 - **Newsletter Subscription** — footer and Insights sign-up; double opt-in (`pending`/`confirmed`/`unsubscribed`)
 
-Field-level detail for all six: [DATA_MODEL.md](./DATA_MODEL.md). All carry `consentGiven` and fall under the retention requirement in [SECURITY.md](./SECURITY.md#personal-data-retention).
+Field-level detail for all six: [DATA_MODEL.md](./DATA_MODEL.md). All carry `consentGiven` and fall under the retention requirement in [SECURITY.md](./SECURITY.md#personal-data-retention). **Inquiry and Custom Formulation Request — the two with live endpoints — additionally carry `privacyPolicyVersion`**, a nullable server-owned column recording which Privacy Policy revision each consent was given against; it is written by `apps/api` from its own constant, is never a reference into `sam_cms`, and is `NULL` while no approved policy exists.
 
 ---
 

@@ -83,7 +83,8 @@ describe("CreateCustomFormulationRequestDto", () => {
     expect(await fieldsRejected({ ...VALID, budget: "50000" })).toContain("budget");
   });
 
-  it.each(["status", "userId", "assignedToId", "attachmentMediaId"])(
+  /** `privacyPolicyVersion` is server-owned consent evidence — see the Inquiry DTO spec. */
+  it.each(["status", "userId", "assignedToId", "attachmentMediaId", "privacyPolicyVersion"])(
     "rejects the internal field %s",
     async (field) => {
       expect(await fieldsRejected({ ...VALID, [field]: "anything" })).toContain(field);

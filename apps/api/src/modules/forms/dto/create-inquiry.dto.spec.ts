@@ -134,10 +134,22 @@ describe("CreateInquiryDto — rejected submissions", () => {
     expect(await fieldsRejected({ ...VALID, nickname: "Ada" })).toContain("nickname");
   });
 
-  it.each(["status", "userId", "assignedToId", "attachmentMediaId", "id", "createdAt"])(
-    "rejects the internal field %s",
-    async (field) => {
-      expect(await fieldsRejected({ ...VALID, [field]: "anything" })).toContain(field);
-    },
-  );
+  /**
+   * `privacyPolicyVersion` joins the internal list for the same reason `status` is on it: it is
+   * consent evidence the server owns, and a value an anonymous submitter could set would be
+   * evidence of nothing. The DTO simply does not declare it, so `forbidNonWhitelisted` answers 400
+   * naming the property rather than dropping it silently — the difference matters here, because a
+   * silently dropped field would let a client believe it had recorded a version.
+   */
+  it.each([
+    "status",
+    "userId",
+    "assignedToId",
+    "attachmentMediaId",
+    "id",
+    "createdAt",
+    "privacyPolicyVersion",
+  ])("rejects the internal field %s", async (field) => {
+    expect(await fieldsRejected({ ...VALID, [field]: "anything" })).toContain(field);
+  });
 });
