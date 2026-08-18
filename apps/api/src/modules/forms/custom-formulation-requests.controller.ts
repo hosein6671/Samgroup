@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
-import { ThrottlerGuard } from "@nestjs/throttler";
+import { SkipThrottle, ThrottlerGuard } from "@nestjs/throttler";
 
 import { CustomFormulationRequestsService } from "./custom-formulation-requests.service";
 import { CreateCustomFormulationRequestDto } from "./dto/create-custom-formulation-request.dto";
@@ -20,7 +20,14 @@ import type { SubmissionResponse } from "./dto/submission.response";
  *
  * Rate limited on the **same 5/hour budget** as `/inquiries`, not a second one of its own — see
  * that controller's note and `generateThrottleKey` in `throttle.config.ts`.
+ *
+ * **`@SkipThrottle({ login: true })` is not optional.** `ThrottlerGuard` evaluates every named
+ * throttler on every route it guards, and the login policy sharing this configuration is 5 per 15
+ * MINUTES — a stricter budget over a shorter window than this endpoint's 5 per hour. Without the
+ * skip, a legitimate burst of form submissions would be blocked by a limit that exists to slow
+ * credential stuffing. See throttle.config.ts.
  */
+@SkipThrottle({ login: true })
 @UseGuards(ThrottlerGuard)
 @Controller("custom-formulation-requests")
 export class CustomFormulationRequestsController {

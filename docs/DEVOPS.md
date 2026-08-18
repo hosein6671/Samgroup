@@ -144,6 +144,26 @@ Payload's admin UI gets its **own subdomain** because Payload's admin route also
 
 ---
 
+## Application authentication
+
+`apps/api` issues the platform's access tokens, and that adds exactly one runtime variable — process-scoped and injected at deploy time like every other secret:
+
+| Variable     | Meaning                                                                                                                                                                                                                                                                                |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET` | The HMAC key access tokens are signed and verified with. **Required** — the process refuses to boot without one of at least 32 characters. A real secret: never committed, never logged, never quoted in an error. Generate it (`openssl rand -base64 48`); do not compose it by hand. |
+
+**It is the one required variable this section adds, and it is required on purpose.** Everything else optional in this document degrades a single capability when unset; an identity system with no signing key does not degrade, it forges. Generating one per boot would log every user out on each restart, and shipping a default would put a working Admin-token key in the repository.
+
+**Per environment, never shared.** Rotating it invalidates every token already issued — a 15-minute inconvenience, since that is how long a session lasts. There is no key-id or overlap mechanism and none is needed at that lifetime.
+
+**The token lifetime is not a variable.** It is frozen at 15 minutes by [SECURITY.md](./SECURITY.md#authentication) and [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §7 and lives as a constant in code, for the reason `apps/cms` keeps its locale list out of the environment: a variable that can override a frozen decision means it is not frozen.
+
+**Payload's admin authentication is separate and configured separately** ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)). `PAYLOAD_API_KEY` is a _service_ credential for the Content module's server-to-server hop, not a user identity, and no value above is shared with `apps/cms`.
+
+**The first Admin account is created outside the request path**, by an explicitly armed seed (`pnpm seed:admin`, `SAM_ALLOW_ADMIN_BOOTSTRAP=true`) that has no committed credential and refuses to run against any database but `sam_platform` — see [SECURITY.md](./SECURITY.md#admin-bootstrap). **Whether production bootstraps this way is an operational decision that has not been taken**, and belongs with the VPS work below.
+
+---
+
 ## Outbound Email (SMTP)
 
 `apps/api` submits one internal notification per persisted lead to an SMTP relay. **This project runs no mail server and adds no Compose service for mail** — outbound submission to a relay the client supplies is the whole of it.

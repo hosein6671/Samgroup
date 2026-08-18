@@ -19,6 +19,18 @@ export type AppConfig = {
   /** The Payload service account's API key. Optional for the same reason as the URL above. */
   payloadApiKey: string;
   /**
+   * The HMAC key every access token is signed and verified with (SECURITY.md §Authentication).
+   *
+   * **A REAL SECRET, and deployment-scoped.** It is per-environment, never committed, never logged,
+   * never returned by any endpoint and never quoted in a validation message — the same class as
+   * `smtpPassword` and the `DATABASE_URL` password. Unlike the Payload and SMTP groups it is
+   * REQUIRED: those degrade one capability when unset, whereas an identity system without a signing
+   * key does not degrade, it forges. `env.validation.ts` refuses to boot without it.
+   *
+   * The token's LIFETIME is deliberately not configurable — see jwt.config.ts.
+   */
+  jwtSecret: string;
+  /**
    * Outbound SMTP, and the internal mailbox lead notifications are sent to.
    *
    * **Every field is optional, and the group degrades as one.** The same principle as the Payload
@@ -63,6 +75,10 @@ export default (): AppConfig => ({
   databaseUrl: process.env.DATABASE_URL ?? "",
   payloadInternalUrl: process.env.PAYLOAD_INTERNAL_URL?.trim() ?? "",
   payloadApiKey: process.env.PAYLOAD_API_KEY?.trim() ?? "",
+  // Deliberately NOT trimmed, for the reason smtpPassword is not: a generated secret may contain
+  // leading or trailing whitespace, and silently altering a signing key invalidates every token
+  // issued by a process that read it differently.
+  jwtSecret: process.env.JWT_SECRET ?? "",
   mail: {
     smtpHost: process.env.SMTP_HOST?.trim() ?? "",
     // Number("") is 0 and so is the fallback, so one falsy check covers unset and blank alike.

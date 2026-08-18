@@ -61,6 +61,18 @@ All paths prefixed `/api/v1`. **P** = public (no token), **A** = authenticated, 
 | POST   | `/auth/logout`  | A      | Invalidate refresh token, clear cookie                                   |
 | GET    | `/auth/me`      | A      | Current user + role, for admin-surface authorization                     |
 
+#### 2.2a Implementation status — **two of the four paths are live**
+
+**Implemented:** `POST /auth/login` and `GET /auth/me`. **Not implemented:** `POST /auth/refresh` and `POST /auth/logout`. The table above is unchanged — it remains the contract; this records how much of it exists.
+
+- **`POST /auth/login`** answers **200** (not 201 — logging in creates no resource) with `data: { accessToken, tokenType: "Bearer", expiresIn, user: { id, email, role } }`. The body is `{ email, password }` and **nothing else**: the global pipe runs `forbidNonWhitelisted`, so a request carrying `role` — or any other property — answers **400 `VALIDATION_ERROR` naming it** rather than having it stripped. A failure is always **401 `UNAUTHENTICATED`** with one fixed message, `"Invalid email or password."`, for an unknown email and a wrong password alike; the two paths also do the same amount of argon2 work, so they are not distinguishable by timing either. No password hash appears in any response.
+- **`GET /auth/me`** answers `data: { id, email, role }` for any authenticated caller. It is **not role-gated** — it discloses nothing the caller has not already proven.
+- **`role` is on the wire as the physical enum label** — `admin`, `content_manager`, `sales_expert`, `customer` — following the precedent §2.6 set for `inquiryType` and `GET /locales` set for `ltr`/`rtl`.
+
+**No refresh token is issued, and no cookie is set.** §2.2 defines logout as "invalidate refresh token", which needs server-side token state that `sam_platform` has no table for — [DATA_MODEL.md](./DATA_MODEL.md) models no session or refresh-token entity. Issuing a refresh token that nothing can redeem or revoke would be worse than issuing none, and inventing the table is a schema decision that was not taken here. **The consequence, stated rather than discovered: a session lasts 15 minutes and then the user logs in again.** No token was quietly made longer-lived to compensate. Closing this is its own gate.
+
+**No self-registration exists, and none is contracted.** The first Admin is created by an explicitly armed bootstrap script outside the request path (`pnpm seed:admin`), described in [SECURITY.md](./SECURITY.md#admin-bootstrap).
+
 **[NEW DECISION] Password reset is deferred to the admin surface build, not Phase 1 launch.** Phase 1 has no public customer login — the Customer role exists in the data model for the future Customer Portal, but no Phase 1 page authenticates an end user. The only accounts are internal staff, who can be reset by an Admin directly. A public reset flow (token issuance, email delivery, expiry) is real work with a real attack surface, and building it before anyone can log in publicly is premature. Revisit with Customer Portal.
 
 ### 2.3 Products & Catalog _(Prisma)_
@@ -321,6 +333,8 @@ The Admin Dashboard lives inside `apps/web` as a separate application area (appr
 - **`/admin/job-applications` has no assignment endpoint at all.** `JobApplication` carries no `assignedToId` by design; there is no route to put a CV in a Sales queue, which is the API-level expression of that decision.
 - **Nothing under `/admin/*` touches `sam_cms`.** Payload content is edited in Payload's own admin UI — see §2.11.
 
+**Implementation status — one endpoint of one group.** `GET /admin/users` is live, as **list only**: it answers `data: [{ id, email, role }]` with `meta.total`, `Cache-Control: no-store`, and **Admin alone** — every other role receives **403 `FORBIDDEN`** with a message naming neither the caller's role nor the required one. It exists as the authorization proof for the auth foundation and is a real contracted endpoint rather than a scaffold; the rest of the Users group (create, update, **role assignment**) and every other group in the table above are unbuilt. Role assignment in particular is privilege management and needs its own gate.
+
 ### 2.11 What the Admin Dashboard does _not_ manage
 
 The split follows the **ADR-002 database boundary exactly**, which makes it easy to reason about: _whichever database owns the data owns the UI that edits it._
@@ -498,6 +512,8 @@ JWT issued only by NestJS. Access token 15 min (Authorization header); refresh t
 | `GET /auth/login`             | 5 / 15 min, then backoff | Credential stuffing                                               |
 | Public GET endpoints          | 100 / min                | Effectively server-to-server (all frontend calls are server-side) |
 | `GET /rag/export`             | 10 / min                 | Service client; bulk by design                                    |
+
+**Two of the seven are enforced**: form submissions at 5/hour, and **login at 5 per 15 minutes**, each on its **own budget**. The login row's `GET` is a typo for the `POST /auth/login` §2.2 contracts, and the numbers are what was read from it. The two buckets are deliberately separate — sharing one would let form-submission volume lock staff out of the Admin surface, and let login attempts consume a lead's ability to submit. **"then backoff" is implemented as a block for the remainder of the window, not as escalation**: a genuinely escalating backoff needs per-client violation history, which the in-process storage does not keep. The remaining five groups have no throttler because the endpoints behind them do not exist, and the public GET budget is deliberately unenforced.
 
 Numbers are a starting point to tune against real traffic, not a permanent commitment. **Invisible captcha** on public forms, per the site structure — never a visible challenge, which costs real B2B leads.
 

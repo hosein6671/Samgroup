@@ -12,6 +12,8 @@ import {
   validateSync,
 } from "class-validator";
 
+import { JWT_SECRET_MIN_LENGTH } from "../modules/identity/jwt.config";
+
 export enum NodeEnv {
   Development = "development",
   Production = "production",
@@ -141,6 +143,29 @@ export class IsOptionalBooleanFlag implements ValidatorConstraintInterface {
   }
 }
 
+/**
+ * A signing key long enough that it is not the weakest part of the construction.
+ *
+ * **The message never quotes the value, and never reports the actual length.** JWT_SECRET is a real
+ * secret, a boot failure prints straight to stdout and into container logs (SECURITY.md §Secrets
+ * Management), and even "got 12 characters" narrows a search. This follows exactly the rule
+ * IsPlatformDatabaseUrl already applies to the DATABASE_URL password.
+ */
+@ValidatorConstraint({ name: "isJwtSigningSecret" })
+export class IsJwtSigningSecret implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    return typeof value === "string" && value.length >= JWT_SECRET_MIN_LENGTH;
+  }
+
+  defaultMessage(): string {
+    return (
+      `JWT_SECRET must be set and at least ${String(JWT_SECRET_MIN_LENGTH)} characters long. ` +
+      "Generate one (for example `openssl rand -base64 48`) and provide it through the process " +
+      "environment; it is never committed to this repository."
+    );
+  }
+}
+
 class EnvironmentVariables {
   @IsOptional()
   @IsEnum(NodeEnv)
@@ -153,6 +178,20 @@ class EnvironmentVariables {
 
   @Validate(IsPlatformDatabaseUrl)
   DATABASE_URL!: string;
+
+  /**
+   * The access-token signing key.
+   *
+   * **Required, unlike every other optional group in this file.** PAYLOAD_INTERNAL_URL and the SMTP
+   * seven are optional because an unconfigured upstream degrades one capability and must not stop
+   * the process. A missing signing key is not that: there is no safe degraded behaviour for an
+   * identity system, and the two alternatives to failing here — a generated per-boot secret, or a
+   * committed default — are respectively "every restart logs everyone out and nobody knows why" and
+   * "anyone who has read this repository can mint an Admin token". So the process refuses to start,
+   * exactly as it does for a DATABASE_URL pointing at the wrong database.
+   */
+  @Validate(IsJwtSigningSecret)
+  JWT_SECRET!: string;
 
   /**
    * Payload's internal origin. **Optional** — see the note on `payloadInternalUrl` in

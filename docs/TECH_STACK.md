@@ -25,6 +25,8 @@ Full rationale (purpose, why selected, performance/SEO/accessibility considerati
 - NestJS
 - TypeScript
 - **`nodemailer`** — the SMTP client behind the internal lead notification, in `apps/api` only. An HTTP transactional provider was deliberately not chosen for Phase 1: one needs a commercial account and a verified sender domain, neither of which exists, while SMTP submits through a mailbox the business already owns. It sits behind a narrow notification boundary, so replacing it later is one file and its spec. **This project runs no mail server**, and email is never part of a request's success condition — see [DEVOPS.md](./DEVOPS.md) §Outbound Email (SMTP).
+- **`@nestjs/jwt`** — access-token signing and verification, in `apps/api` only. Nest's own wrapper around `jsonwebtoken`, chosen over reaching for `jsonwebtoken` directly because it registers as a module and takes its secret through `ConfigService` rather than through a global. **Passport is deliberately not used**: the whole authentication surface is one Bearer header and one database lookup, and a strategy framework would add a dependency and an indirection for a surface with exactly one strategy.
+- **`argon2`** — password hashing, in `apps/api` and in the bootstrap seed. The algorithm is frozen by [ADR-004](./ADR/ADR-004-freeze-decisions.md); this is the binding. **Its install script is denied in `pnpm-workspace.yaml`, which is safe and was verified rather than assumed**: the published package ships prebuilt binaries for `win32-x64` and `linux-x64` among others, covering both this workspace's development platform and [ADR-005](./ADR/ADR-005-vps-docker-deployment.md)'s Docker target, so no C++ toolchain is needed anywhere. `argon2.hash` and `argon2.verify` were both exercised against the installed package with the script blocked.
 - **`sanitize-html` — pinned to exactly `2.17.5`. Do not upgrade without reading the next paragraph.**
 
 ### Why `sanitize-html` is held at 2.17.5
@@ -91,8 +93,11 @@ they share a version.
 
 ## Authentication
 
-- JWT
-- RBAC
+- JWT — **HS256**, signed and verified by `apps/api` with `@nestjs/jwt`, 15-minute access token, `Authorization: Bearer`
+- RBAC — role-level, `@Roles()` + a deny-by-default guard; no permission model exists or is planned
+- argon2id password hashing ([ADR-004](./ADR/ADR-004-freeze-decisions.md))
+
+Payload's admin authentication is a separate system with its own hashing and its own sessions, and shares none of the above ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)). Implementation status and everything deliberately deferred: [SECURITY.md](./SECURITY.md#authentication).
 
 ---
 

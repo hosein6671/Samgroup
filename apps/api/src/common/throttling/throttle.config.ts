@@ -7,10 +7,10 @@ import type { ThrottlerModuleOptions } from "@nestjs/throttler";
  *
  * ── What is enforced, and what is only contracted ───────────────────────────
  *
- * §Rate limits names seven endpoint groups. **One is enforced**: form submissions, at 5 per hour.
- * The other six — newsletter, uploads, downloads, login, public GETs, the RAG export — have no
- * throttler here because five of the seven endpoints behind them do not exist yet, and the two
- * public GET groups are deliberately left alone (see `THROTTLED_ROUTES` below).
+ * §Rate limits names seven endpoint groups. **Two are enforced**: form submissions at 5 per hour,
+ * and login at 5 per 15 minutes. The other five — newsletter, uploads, downloads, public GETs, the
+ * RAG export — have no throttler here because four of the endpoints behind them do not exist yet,
+ * and the public GET group is deliberately left alone.
  *
  * ── Where this is applied — and where it deliberately is not ────────────────
  *
@@ -21,9 +21,11 @@ import type { ThrottlerModuleOptions } from "@nestjs/throttler";
  * enter the guard, never increment a counter, and never receive an `X-RateLimit-*` header. That is
  * checked by a test rather than left as an intention.
  *
- * Adding a second named throttler later is not free: the guard evaluates **every** named throttler
- * on every route it guards. A future group with a different limit therefore needs its own name plus
- * `@SkipThrottle({ forms: true })` on its routes, or the two policies stack.
+ * The guard is now also attached to `AuthController`, for the login limit. **The guard evaluates
+ * every named throttler on every route it guards**, so the two policies would stack without
+ * `@SkipThrottle`: `AuthController` carries `@SkipThrottle({ forms: true })` and both Forms
+ * controllers carry `@SkipThrottle({ login: true })`. Any third named throttler needs the same
+ * treatment on every existing throttled route, or it silently narrows them.
  */
 
 /** One hour, in milliseconds — the unit `ThrottlerStorageService` takes (verified in its source). */
@@ -42,6 +44,36 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 export const FORMS_THROTTLER_NAME = "forms";
 export const FORMS_LIMIT = 5;
 export const FORMS_TTL_MS = ONE_HOUR_MS;
+
+/**
+ * The login budget: five attempts per fifteen minutes, per client.
+ *
+ * Transcribed from §Rate limits' row "`GET /auth/login` | 5 / 15 min, then backoff | Credential
+ * stuffing" — the method there is a typo for the `POST /auth/login` §2.2 contracts, and the numbers
+ * are what is being read. Not chosen here, and not tuned here.
+ *
+ * **"then backoff" is not implemented as escalation.** `blockDuration` is left unset, so it falls
+ * back to `ttl`: the sixth attempt blocks the client for the remainder of the fifteen minutes
+ * rather than for a period that grows with each violation. That is the library's default and the
+ * stricter reading of "5 / 15 min"; a genuinely escalating backoff needs per-client violation
+ * history, which this in-process storage does not keep.
+ *
+ * ── Why its own name, and the cost of that ──────────────────────────────────
+ *
+ * The note above is explicit that `ThrottlerGuard` evaluates **every** named throttler on every
+ * route it guards. Adding this one therefore has a consequence that must be handled rather than
+ * discovered: without `@SkipThrottle`, the two Forms controllers would silently acquire the 5/15min
+ * login budget on top of their 5/hour one, and login would acquire the forms budget. Both
+ * controllers now skip the throttler they are not subject to, and a test asserts each budget is
+ * reached only from its own endpoint.
+ *
+ * Sharing the `forms` bucket instead was the alternative, and it is wrong twice over: the numbers
+ * differ (5/hour vs 5/15min), and a shared bucket would let form-submission volume lock staff out
+ * of the Admin surface — and let login attempts consume a lead's ability to submit.
+ */
+export const LOGIN_THROTTLER_NAME = "login";
+export const LOGIN_LIMIT = 5;
+export const LOGIN_TTL_MS = 15 * 60 * 1000;
 
 /**
  * The 429 message.
@@ -100,7 +132,10 @@ export function generateThrottleKey(_context: unknown, tracker: string, name: st
  * configuration decision that belongs with the VPS work, and the VPS does not exist yet.
  */
 export const THROTTLE_OPTIONS: ThrottlerModuleOptions = {
-  throttlers: [{ name: FORMS_THROTTLER_NAME, ttl: FORMS_TTL_MS, limit: FORMS_LIMIT }],
+  throttlers: [
+    { name: FORMS_THROTTLER_NAME, ttl: FORMS_TTL_MS, limit: FORMS_LIMIT },
+    { name: LOGIN_THROTTLER_NAME, ttl: LOGIN_TTL_MS, limit: LOGIN_LIMIT },
+  ],
   errorMessage: RATE_LIMIT_MESSAGE,
   generateKey: generateThrottleKey,
 };

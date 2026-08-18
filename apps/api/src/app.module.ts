@@ -12,6 +12,7 @@ import { BlogModule } from "./modules/blog/blog.module";
 import { CatalogModule } from "./modules/catalog/catalog.module";
 import { ContentModule } from "./modules/content/content.module";
 import { FormsModule } from "./modules/forms/forms.module";
+import { IdentityModule } from "./modules/identity/identity.module";
 import { LocalizationModule } from "./modules/localization/localization.module";
 import { SeoModule } from "./modules/seo/seo.module";
 import { SystemModule } from "./modules/system/system.module";
@@ -45,6 +46,12 @@ import { PrismaModule } from "./prisma/prisma.module";
     // needs the database imports it for itself.
     PrismaModule,
     LocalizationModule,
+    /*
+     * Identity & Access. It registers NO global guard — see the note in identity.module.ts. Every
+     * endpoint that existed before this module still answers without a token, which is what
+     * SECURITY.md's "the public site is entirely unauthenticated in Phase 1" requires.
+     */
+    IdentityModule,
     CatalogModule,
     BlogModule,
     ContentModule,

@@ -15,6 +15,50 @@ Security is the highest priority per [AI_RULES.md](./AI_RULES.md). This document
 
 ---
 
+### Implementation status — the foundation is live, the session lifecycle is not
+
+Implemented in `apps/api`'s **Identity & Access** module (`src/modules/identity/`), against the existing `User` model with **no schema change**:
+
+- **Transport is `Authorization: Bearer`.** The two documents describing this do not conflict, and the reading is worth recording: [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §7 states "Access token 15 min (Authorization header)" and [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §11 says `apps/web` attaches that header on outbound calls, while the [Token handling](#token-handling--a-clarification-that-follows-from-the-architecture) note below describes where `apps/web` **stores** tokens in the browser — it says so itself, "only the storage location is made explicit". Those are two different hops. **NestJS accepts the access token in the header and reads no cookie**; a token presented in a cookie is treated as no token at all.
+- **The token carries `sub` and nothing else** — no email, no role. The role is resolved from `sam_platform` on **every** authenticated request, which costs one primary-key lookup and buys two properties the current schema needs: a role change takes effect immediately rather than up to 15 minutes later, and **deleting a `User` revokes access on the very next request** rather than at the end of the token's life. Both are verified by test and end-to-end.
+- **HS256, pinned on verification as well as on signing**, so a token's own header cannot choose the algorithm — `alg: none` and key-confusion tokens are rejected.
+- **argon2id** (m=64 MiB, t=3, p=4), pinned in one service that both the API and the bootstrap script hash through.
+- **RBAC is role-level and denies by default.** `@Roles(...)` + `RolesGuard`; a handler carrying no `@Roles()` is denied rather than allowed, which makes this document's "opt into higher requirements, never out of a base one" mechanical. **No permission model was built** — authorization is defined here as a role × resource matrix and nothing finer, there is no `Permission` entity anywhere in the data model, and a dynamic permission database would be exactly the speculative infrastructure the project's rules forbid.
+- **The public site is untouched.** No global guard is registered; the guards are attached per route. Every catalog, blog, content, SEO and form endpoint still answers without a token — asserted by test, not left as an intention.
+
+**Deliberately not built, each for a stated reason:**
+
+| Not built                                                           | Why                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /auth/refresh`, `POST /auth/logout`                           | "Invalidate refresh token" needs server-side token state, and [DATA_MODEL.md](./DATA_MODEL.md) models no session or refresh-token entity. Issuing a refresh token nothing can revoke would be worse than issuing none. **A session therefore lasts 15 minutes.** Needs a schema decision. |
+| Account disable / suspend                                           | `User` has six fields and none of them expresses status. Adding one is a migration **and** a decision about what "disabled" means for a token already issued. **Deleting the row is the only revocation that exists today**, and the guard makes it immediate.                            |
+| Password reset, forgot-password, email verification, MFA, SSO/OAuth | Already deferred by [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §2.2, and unchanged here.                                                                                                                                                                                            |
+| Self-registration                                                   | No endpoint creates an account. None is contracted, and none was added.                                                                                                                                                                                                                   |
+| Password change                                                     | There is no authenticated flow to change a password, and the bootstrap script deliberately refuses to reset one.                                                                                                                                                                          |
+| Any admin frontend                                                  | See [Admin Dashboard Access](#admin-dashboard-access).                                                                                                                                                                                                                                    |
+
+<a id="admin-bootstrap"></a>
+
+### Admin bootstrap
+
+`users` starts empty, no endpoint creates an account, and `/admin/users` is Admin-only — so the first Admin cannot be created through the API. `prisma/seed-admin.ts` (`pnpm seed:admin`) breaks that circle once, following the precedent the demo seeds already set and the one [ROADMAP.md](./ROADMAP.md) records for Payload's first admin, created "with no seeded or committed credential".
+
+- **Armed explicitly**, by the process-scoped `SAM_ALLOW_ADMIN_BOOTSTRAP=true`; anything else stops it before the first query. It is **not** wired into `prisma db seed`, so no migration command can create an account as a side effect.
+- **Refuses any database but `sam_platform`**, asked of the server with `current_database()` rather than parsed out of a URL (ADR-002).
+- **No committed credential and no default.** `SAM_ADMIN_EMAIL` and `SAM_ADMIN_PASSWORD` are supplied by the operator at run time; the file contains neither, and a password under 12 characters is refused.
+- **Idempotent, and it never resets an existing password.** A rerun with a _different_ password reports that the account exists and changes nothing — a bootstrap script that silently rewrote a credential would be a privilege-escalation path for anyone who could run it, and "I reran the seed" would be indistinguishable from an attack.
+- **Nothing is printed but the address the operator supplied** — never the password, never the hash, and never a driver error that could quote the connection string.
+
+**Whether production creates its first Admin this way is a separate operational decision, and it has not been taken** — the VPS does not exist yet ([DEVOPS.md](./DEVOPS.md#deployment-target)). The script is safe to run anywhere only in the sense that it refuses to do anything surprising.
+
+### Auth secrets are deployment-scoped
+
+`JWT_SECRET` is a real secret of the same class as `SMTP_PASSWORD` and the `DATABASE_URL` password: per-environment, injected through the process environment, never committed, never logged, never returned by any endpoint, and **never quoted in a validation message** — a boot failure prints to stdout and into container logs. It is **required**: startup validation refuses to boot without one of at least 32 characters, because the two alternatives — a per-boot generated key, or a committed default — are respectively "every restart logs everyone out and nobody knows why" and "anyone who has read this repository can mint an Admin token". Rotating it invalidates every issued token, which is a 15-minute inconvenience by construction.
+
+The **token lifetime is not configurable**, deliberately. It is frozen at 15 minutes here and in [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §7, so it lives as a constant in code — the same rule `apps/cms` applies to its frozen locale list, where an environment variable able to override an already-frozen decision would mean it is not frozen.
+
+---
+
 ## RBAC Permission Matrix
 
 | Role            | Products/Catalog | Blog | CMS Content | Certifications                           | Forms & Leads    | Job Applications       | Users            | Admin Settings |
@@ -92,6 +136,12 @@ Per-role admin access follows the matrix directly: **Admin** — full. **Content
 
 **Job applications remain Admin-only inside the dashboard too** — there is no admin route, list view, or assignment action exposing them to any other role, which is the UI-level counterpart of `JobApplication` carrying no `assignedToId`.
 
+### Implementation status — none of this is built
+
+**No admin route, layout, login page or middleware session check exists in `apps/web`.** The route architecture is frozen ([FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §1: an `(admin)` group outside `[locale]`), but that same document records the middleware's admin concern as deferred to its own gate, and it is still deferred.
+
+The blocker is the session lifecycle, not the routing. Everything above assumes a 15-minute access token refreshed by a 7-day cookie, and **the refresh half does not exist** (see the [Authentication](#authentication) section's implementation status). An admin shell built on the access token alone would sign its user out every fifteen minutes with no recovery path — so cookie names, cookie attributes and the server-side refresh flow all have to be settled in the same gate that settles refresh-token persistence. Building the login page first would mean choosing that architecture implicitly.
+
 ### Non-indexable by construction
 
 The admin area sits outside the localized public route tree, is excluded from `sitemap.xml`, and is disallowed in `robots.txt`. It carries no SEO metadata, no `hreflang`, and no structured data — it isn't a website surface, and treating it as one would only create ways to leak its existence.
@@ -110,6 +160,7 @@ The admin area sits outside the localized public route tree, is excluded from `s
 
 - HTTPS enforced everywhere (Nginx terminates TLS)
 - CORS restricted to known frontend origins — no wildcard `*` in production
+- **Login is rate limited on its own budget** — 5 attempts per 15 minutes per client, per [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §Rate limits, and deliberately **not** sharing the form-submission bucket: one bucket would let submission volume lock staff out of the Admin surface, and let credential stuffing consume a lead's ability to submit
 - Rate limiting on every public submission endpoint — Inquiry (incl. Sample Request), Custom Formulation Request, Distributor Application, Job Application, Download Request, and Newsletter Subscription — to prevent spam/abuse. Newsletter sign-up needs it most: an ungated email field is the easiest abuse surface on the site
 
 ---

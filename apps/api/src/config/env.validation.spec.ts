@@ -4,7 +4,15 @@ const PASSWORD = "s3cr3t-must-never-be-logged";
 const PLATFORM_URL = `postgresql://sam_platform_user:${PASSWORD}@localhost:5432/sam_platform?schema=public`;
 const CMS_URL = `postgresql://sam_cms_user:${PASSWORD}@localhost:5432/sam_cms`;
 
-const base = { NODE_ENV: "development", API_PORT: "3001", DATABASE_URL: PLATFORM_URL };
+/** Long enough to pass the length floor, and it signs nothing — no token is issued in this file. */
+const JWT_SECRET = "test-placeholder-signing-secret-32-chars";
+
+const base = {
+  NODE_ENV: "development",
+  API_PORT: "3001",
+  DATABASE_URL: PLATFORM_URL,
+  JWT_SECRET,
+};
 
 describe("validateEnv", () => {
   it("accepts a valid environment and coerces the port to a number", () => {
@@ -176,5 +184,70 @@ describe("validateEnv — outbound SMTP", () => {
       expect(message).not.toContain(SMTP_PASSWORD);
       expect(message).toContain("SMTP_PORT");
     }
+  });
+});
+
+/**
+ * The access-token signing key. Required, unlike every optional group in this file — an identity
+ * system with no key does not degrade, it forges.
+ */
+describe("JWT_SECRET", () => {
+  const withSecret = (JWT_SECRET: unknown): Record<string, unknown> => ({ ...base, JWT_SECRET });
+
+  it("accepts a secret at the minimum length", () => {
+    const secret = "x".repeat(32);
+
+    expect(validateEnv(withSecret(secret))).toMatchObject({ JWT_SECRET: secret });
+  });
+
+  it("throws when it is missing", () => {
+    const { JWT_SECRET: _omitted, ...withoutSecret } = base;
+
+    expect(() => validateEnv(withoutSecret)).toThrow();
+  });
+
+  it("throws when it is empty or blank", () => {
+    expect(() => validateEnv(withSecret(""))).toThrow();
+    expect(() => validateEnv(withSecret("   "))).toThrow();
+  });
+
+  it("throws when it is shorter than the floor", () => {
+    expect(() => validateEnv(withSecret("x".repeat(31)))).toThrow();
+    expect(() => validateEnv(withSecret("short"))).toThrow();
+  });
+
+  /**
+   * The secret is a credential and a boot failure prints to stdout and into container logs
+   * (SECURITY.md §Secrets Management). The message must not quote it — and must not report its
+   * actual length either, which would narrow a search.
+   */
+  it("never quotes the value or its length in the failure message", () => {
+    const secret = "too-short-but-recognisable";
+
+    try {
+      validateEnv(withSecret(secret));
+    } catch (error) {
+      const message = (error as Error).message;
+
+      expect(message).not.toContain(secret);
+      expect(message).not.toContain("recognisable");
+      expect(message).not.toContain(String(secret.length));
+
+      return;
+    }
+
+    throw new Error("expected validateEnv to throw");
+  });
+
+  it("keeps the DATABASE_URL password out of the message when both are wrong", () => {
+    try {
+      validateEnv({ ...base, DATABASE_URL: CMS_URL, JWT_SECRET: "short" });
+    } catch (error) {
+      expect((error as Error).message).not.toContain(PASSWORD);
+
+      return;
+    }
+
+    throw new Error("expected validateEnv to throw");
   });
 });

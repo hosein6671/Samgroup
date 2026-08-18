@@ -16,6 +16,7 @@
     "type-check": "turbo run type-check",
     "test": "turbo run test",
     "seed:catalog": "tsx prisma/seed-catalog.ts",
+    "seed:admin": "tsx prisma/seed-admin.ts",
     "seed:categories": "tsx prisma/seed-categories.ts",
     "seed:products:demo": "tsx prisma/seed-products-demo.ts",
     "seed:blog:demo": "tsx prisma/seed-blog-demo.ts",
@@ -23,7 +24,8 @@
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.1",
-    "@prisma/client": "7.9.1"
+    "@prisma/client": "7.9.1",
+    "argon2": "0.44.0"
   },
   "devDependencies": {
     "@sam-group/eslint-config": "workspace:*",

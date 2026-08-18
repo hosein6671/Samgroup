@@ -1,5 +1,5 @@
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
-import { ThrottlerGuard } from "@nestjs/throttler";
+import { SkipThrottle, ThrottlerGuard } from "@nestjs/throttler";
 
 import { CreateInquiryDto } from "./dto/create-inquiry.dto";
 import { InquiriesService } from "./inquiries.service";
@@ -44,7 +44,14 @@ import type { SubmissionResponse } from "./dto/submission.response";
  *
  * A rejected request answers **429 `RATE_LIMITED`** in the standard envelope with a `Retry-After`
  * header, and its message names no limit, window or counter.
+ *
+ * **`@SkipThrottle({ login: true })` is not optional.** `ThrottlerGuard` evaluates every named
+ * throttler on every route it guards, and the login policy sharing this configuration is 5 per 15
+ * MINUTES — a stricter budget over a shorter window than this endpoint's 5 per hour. Without the
+ * skip, a legitimate burst of form submissions would be blocked by a limit that exists to slow
+ * credential stuffing. See throttle.config.ts.
  */
+@SkipThrottle({ login: true })
 @UseGuards(ThrottlerGuard)
 @Controller("inquiries")
 export class InquiriesController {

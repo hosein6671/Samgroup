@@ -3,6 +3,7 @@ import { ThrottlerGuard, ThrottlerStorageService } from "@nestjs/throttler";
 
 import { CategoriesController } from "../../modules/catalog/categories.controller";
 import { ProductsController } from "../../modules/catalog/products.controller";
+import { AuthController } from "../../modules/identity/auth.controller";
 import { CustomFormulationRequestsController } from "../../modules/forms/custom-formulation-requests.controller";
 import { InquiriesController } from "../../modules/forms/inquiries.controller";
 import { BlogPostsController } from "../../modules/blog/blog-posts.controller";
@@ -14,6 +15,8 @@ import {
   FORMS_LIMIT,
   FORMS_THROTTLER_NAME,
   FORMS_TTL_MS,
+  LOGIN_LIMIT,
+  LOGIN_TTL_MS,
   RATE_LIMIT_MESSAGE,
   THROTTLE_OPTIONS,
   generateThrottleKey,
@@ -264,6 +267,9 @@ describe("rate limiting is scoped to the write endpoints", () => {
      */
     process.env.API_PORT ??= "3001";
     process.env.DATABASE_URL ??= "postgresql://user:pass@127.0.0.1:5432/sam_platform";
+    // Required since the Identity module: long enough to satisfy the length floor, and a
+    // placeholder that signs nothing — no token is issued anywhere in this file.
+    process.env.JWT_SECRET ??= "test-placeholder-signing-secret-32-chars";
 
     const { AppModule } = require("../../app.module") as { AppModule: object };
 
@@ -272,5 +278,76 @@ describe("rate limiting is scoped to the write endpoints", () => {
 
     expect(providers.length).toBeGreaterThan(0);
     expect(providers.some((provider) => provider.provide === APP_GUARD)).toBe(false);
+  });
+});
+
+/**
+ * The login limit, and — more importantly — the isolation between the two budgets.
+ *
+ * These run against the same real `ThrottlerGuard` and real storage as the block above, with the
+ * real controllers, so the `@SkipThrottle` decorators on those controllers are the ones being
+ * exercised. That is the point: the guard evaluates **every** named throttler on every route it
+ * guards, so adding the login policy silently narrows the form endpoints unless each side skips the
+ * other — a regression no functional test of either endpoint on its own would catch.
+ */
+describe("login rate limit", () => {
+  it("is the 5 per 15 minutes API_CONTRACT_FINAL §Rate limits specifies", () => {
+    expect(LOGIN_LIMIT).toBe(5);
+    expect(LOGIN_TTL_MS).toBe(15 * 60 * 1000);
+  });
+
+  it("allows five login attempts and rejects the sixth", async () => {
+    const guard = await createGuard();
+
+    const outcomes = await submit(guard, "203.0.113.20", 6, AuthController, "login");
+
+    expect(outcomes).toEqual(["allowed", "allowed", "allowed", "allowed", "allowed", "throttled"]);
+  });
+
+  it("does not spend the form-submission budget", async () => {
+    const guard = await createGuard();
+
+    // Exhaust login for this client, then submit a form as the same client.
+    await submit(guard, "203.0.113.21", 6, AuthController, "login");
+    const forms = await submit(guard, "203.0.113.21", 5, InquiriesController);
+
+    expect(forms).toEqual(["allowed", "allowed", "allowed", "allowed", "allowed"]);
+  });
+
+  it("is not spent by form submissions", async () => {
+    const guard = await createGuard();
+
+    await submit(guard, "203.0.113.22", 6, InquiriesController);
+    const logins = await submit(guard, "203.0.113.22", 5, AuthController, "login");
+
+    expect(logins).toEqual(["allowed", "allowed", "allowed", "allowed", "allowed"]);
+  });
+
+  it("reports only its own budget in the response headers", async () => {
+    const guard = await createGuard();
+
+    const { context, headers } = makeContext("203.0.113.23", AuthController, "login");
+    await guard.canActivate(context);
+
+    expect(headers["X-RateLimit-Limit-login"]).toBe(LOGIN_LIMIT);
+    // The forms throttler is skipped on this controller, so it sets no header and counts nothing.
+    expect(headers["X-RateLimit-Limit-forms"]).toBeUndefined();
+  });
+
+  it("leaves the form endpoints reporting only theirs", async () => {
+    const guard = await createGuard();
+
+    const { context, headers } = makeContext("203.0.113.24", InquiriesController, "create");
+    await guard.canActivate(context);
+
+    expect(headers["X-RateLimit-Limit-forms"]).toBe(FORMS_LIMIT);
+    expect(headers["X-RateLimit-Limit-login"]).toBeUndefined();
+  });
+
+  it("keys the two budgets separately even for one client", () => {
+    const formsKey = generateThrottleKey(null, "203.0.113.25", FORMS_THROTTLER_NAME);
+    const loginKey = generateThrottleKey(null, "203.0.113.25", "login");
+
+    expect(formsKey).not.toBe(loginKey);
   });
 });
