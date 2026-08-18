@@ -387,6 +387,12 @@ which parts of it are built, and states plainly that most are not.
 - **Legal page content.** No Privacy Policy, Terms of Use, Cookie Notice or General Sales
   Conditions row exists, in any locale. [SITE_STRUCTURE.md](../SITE_STRUCTURE.md) §12 is explicit
   that these are drafting specifications requiring legal review, and none has been performed.
+  **The consuming end is now built and waiting:** as of 17 August 2026 `apps/web` serves a canonical
+  `/{locale}/privacy-policy` route that reads this collection through NestJS and 404s because the
+  row is absent ([ROADMAP.md](../ROADMAP.md)). Creating that row is an **editorial act performed in
+  the admin UI after legal review** — not a bootstrap script, not a seed, and not something this
+  repository may generate. The demo bootstrap deliberately does not create it, and adding it there
+  would be the exact failure the script's own guard rails exist to prevent.
 
 ### The only content that exists
 

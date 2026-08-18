@@ -1,0 +1,159 @@
+/*
+ * SAM GROUP — CANONICAL LEGAL PAGES
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * The same constraint `insights.css`, `cms-proof.css` and the product stylesheets state for
+ * themselves: it declares no colour, no typeface, no radius and no easing of its own. Every value
+ * resolves to a token already declared by `flagship.css` inside `[data-brand="flagship"]` or by the
+ * design system's generated theme, and where a construction already exists as flagship vocabulary —
+ * `.fs-wrap`, `.fs-sec`, `.fs-eyebrow`, `.fs-d1`, `.fs-blueprint` — it is used directly rather than
+ * restated.
+ *
+ * It is deliberately plain. A legal document is read, not browsed: one measured column, generous
+ * line height, and nothing competing with the text. Visual refinement belongs to a later design
+ * pass; inventing decoration here would risk implying facts (seals, badges, certification marks)
+ * that this page has no approved source for.
+ *
+ * ============================================================================
+ * THE PROSE BLOCK IS THE ONLY UNUSUAL PART
+ * ============================================================================
+ *
+ * `.lg-body-inner` styles element selectors — `p`, `h2`, `ul` — rather than classes, because its
+ * children are HTML produced by the CMS and carry no class names this application chose. That is
+ * confined to this one block on purpose, and the element list is limited to what Payload's editor
+ * can emit and the API's sanitizer admits.
+ */
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.lg-head {
+  position: relative;
+  /* Block-start padding clears the fixed navigation, as the Insights header's does — there is no
+     notice band above this one to do it. */
+  padding-block: clamp(116px, 13vh, 172px) clamp(48px, 5vw, 72px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.lg-head-inner {
+  position: relative;
+}
+
+.lg-title {
+  margin: 0;
+  max-width: 20ch;
+}
+
+.lg-updated,
+.lg-fallback-note {
+  margin: clamp(18px, 2vw, 26px) 0 0;
+  max-width: 62ch;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   BODY
+   ============================================================================ */
+
+.lg-body-inner {
+  /* A single measured column, for the reason `.in-post-body-inner` gives: a full-wrap paragraph at
+     1280px would be a 1200px line length. */
+  max-width: 68ch;
+}
+
+.lg-body-inner p {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.lg-body-inner h2,
+.lg-body-inner h3,
+.lg-body-inner h4 {
+  margin: clamp(28px, 3vw, 40px) 0 clamp(10px, 1.2vw, 16px);
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+.lg-body-inner ul,
+.lg-body-inner ol {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  padding-inline-start: 1.4em;
+  font-size: 16px;
+  line-height: 1.75;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.lg-body-inner li {
+  margin-bottom: 0.4em;
+}
+
+.lg-body-inner a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+}
+
+.lg-body-inner blockquote {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  padding-inline-start: 1em;
+  border-inline-start: 1px solid var(--color-border-subtle);
+  color: var(--color-text-tertiary);
+}
+
+.lg-body-inner table {
+  width: 100%;
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.lg-body-inner th,
+.lg-body-inner td {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-subtle);
+  text-align: start;
+  vertical-align: top;
+}
+
+.lg-body-inner th {
+  color: var(--color-text-primary);
+  font-weight: 400;
+}
+
+/* ============================================================================
+   UNAVAILABLE
+   ============================================================================ */
+
+.lg-unavailable {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(72px, 8vw, 112px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.lg-unavailable-inner {
+  position: relative;
+  max-width: 62ch;
+}
+
+.lg-unavailable-title {
+  margin: clamp(12px, 1.4vw, 18px) 0 clamp(16px, 1.8vw, 24px);
+}

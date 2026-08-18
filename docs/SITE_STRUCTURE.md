@@ -179,6 +179,8 @@ Consolidates the per-page FAQs already embedded in Home/About/each product page/
 
 Privacy Policy, Terms of Use, Cookie Notice, General Sales Conditions, and a Technical Data Disclaimer (footer note on every product page/TDS: technical data is indicative, not a contractual guarantee). All four full pages are **specifications for a legal drafter, not finished legal text** — the source document is explicit that these need actual legal review before publication, and that the Privacy Policy specifically blocks the contact form from legally collecting data until it exists. These map onto the existing Payload `Pages` collection (a Legal Page is a `Page` with a template, same pattern already established for Company/Landing pages) — **no new content type needed.**
 
+**Route status, 17 August 2026 — capability, not content.** `/{locale}/privacy-policy` is implemented as a canonical route reading Payload through NestJS, with a shared legal-page template the other three will reuse. **It answers 404 in every locale** — measured against a healthy CMS and Content API — because no approved Privacy Policy text exists and none was invented to fill the page; publishing a `Pages` document with slug `privacy-policy` after legal review is what turns it on. A CMS or API outage renders a restrained unavailable state instead, never a 404. `/terms-of-use`, `/cookie-notice` and `/general-sales-conditions` have no route. **The legal-review item in Outstanding Confirmations below is unchanged and remains a launch blocker** — the route existing does not move it, and neither does the fallback that would serve English text under `/fa` and `/ar`: a Payload locale fallback is not a human-reviewed legal translation.
+
 ---
 
 ## 13. Global Components
