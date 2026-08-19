@@ -4,6 +4,9 @@
 
 - **apps/api** (NestJS): Jest for unit + integration tests (NestJS's default)
 - **apps/web** (Next.js): Vitest + React Testing Library for component/unit tests
+  - **Vitest 4.1.10 is now installed and running** (`pnpm --filter @sam-group/web test`), configured in `apps/web/vitest.config.mts`: node environment, specs colocated as `src/**/*.spec.{ts,tsx}`.
+  - **Pinned one patch behind the latest on purpose.** This workspace enforces pnpm's `minimumReleaseAge` supply-chain policy, and 4.1.11 was hours old — installing it made `pnpm install --frozen-lockfile` fail the policy check and required eight `minimumReleaseAgeExclude` entries in `pnpm-workspace.yaml`. 4.1.10 needs none, so the policy stays intact rather than being carved open for a version whose only advantage was recency. **Prefer this over adding an exclusion when bumping any dependency here.**
+  - **React Testing Library is still not installed.** Every subject tested so far is server-side — cookie attributes, middleware, the session boundary, Server Actions, the API client — and the one rendering assertion (that no credential reaches the output) walks the returned React element tree, which inspects prop values as well as text and needs no DOM. RTL and a DOM environment arrive with the first gate that builds an interactive Admin component; adding them earlier would be two dependencies no assertion uses.
 - **End-to-end**: Playwright, run against a full docker-compose stack
 
 ---

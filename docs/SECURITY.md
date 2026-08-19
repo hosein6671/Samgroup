@@ -169,11 +169,26 @@ Per-role admin access follows the matrix directly: **Admin** — full. **Content
 
 **Job applications remain Admin-only inside the dashboard too** — there is no admin route, list view, or assignment action exposing them to any other role, which is the UI-level counterpart of `JobApplication` carrying no `assignedToId`.
 
-### Implementation status — none of this is built
+### Implementation status — the session shell is built; the modules are not
 
-**No admin route, layout, login page or middleware session check exists in `apps/web`.** The route architecture is frozen ([FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §1: an `(admin)` group outside `[locale]`), but that same document records the middleware's admin concern as deferred to its own gate, and it is still deferred.
+**Built:** `/login`, `/admin`, the middleware session check, and the two browser cookies. The route architecture is unchanged ([FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §1: an `(admin)` group outside `[locale]`); §2a of that document is the implementation record and the fuller description of what follows.
 
-**The blocker named here — the missing refresh half — is now closed.** [ADR-012](./ADR/ADR-012-application-session-and-account-status.md) built refresh-token persistence, rotation and logout, so an admin shell can hold a session for seven days rather than fifteen minutes. What remains unbuilt is everything in `apps/web`: the login page, the middleware session check, the dashboard shell, and **the HttpOnly cookie itself** — including its name, `SameSite`, `Secure` behaviour, `Path` and `Max-Age`, which that gate fixes because that tier issues them. The backend contract they build against is settled and will not move underneath them.
+**The cookies this section left unfixed are now fixed**, by the tier that issues them:
+
+| Cookie              | Purpose                                                   | `Max-Age` |
+| ------------------- | --------------------------------------------------------- | --------- |
+| `sam_admin_refresh` | the 7-day refresh credential                              | `604800`  |
+| `sam_admin_access`  | the 15-minute access token, a **credential carrier only** | `900`     |
+
+Both are `HttpOnly`, `SameSite=Strict`, `Path=/`, **host-only** (no `Domain`, so nothing reaches `cms.samgp.com` — ADR-006's separate realm stays separate), and `Secure` except on a local non-HTTPS development server. Clearing uses the identical name/`Path`/`Domain` triple with `Max-Age: 0`. **Neither is readable by browser JavaScript, and no credential is ever placed in `localStorage` or `sessionStorage`** — which is what makes the anti-XSS claim above true rather than aspirational.
+
+Two cookies rather than one because Next 15 forbids `cookies().set()` outside the action phase: a Server Component cannot persist a rotated refresh token, and rotation revokes the presented one immediately. Middleware therefore owns rotation and refreshes only when the access cookie is absent.
+
+**`apps/web` converts the access cookie into `Authorization: Bearer` on the internal hop and decodes no JWT.** Identity and role come from `GET /auth/me` on each request, so a role change, a delete, or a `disabled` transition takes effect on the very next Admin request. The `admin`-role gate in the shell decides what to render; **NestJS remains the authorization authority**, and the shell deliberately fetches no `/admin/*` data, so nothing on it depends on that gate being right.
+
+**A backend outage is never treated as an authentication failure.** 401/403 clears credentials and requires a new sign-in; a network failure, timeout or 5xx clears nothing and renders a neutral unavailable state. An explicit logout is the mirror image: it calls `POST /auth/logout` and then clears both browser cookies **regardless** of the API's answer.
+
+**Not built, deferred to their own gates:** every Admin module (leads, catalog, blog, users, locales, redirects, translations), password reset/change, MFA, SSO/OAuth, self-registration, any status- or role-management surface, session-management UI, and refresh-token family reuse detection.
 
 ### Non-indexable by construction
 

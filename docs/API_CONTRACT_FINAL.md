@@ -87,7 +87,9 @@ All paths prefixed `/api/v1`. **P** = public (no token), **A** = authenticated, 
 | Browser ↔ `apps/web` | An **HttpOnly cookie owned by `apps/web`** — never readable by browser JavaScript     |
 | `apps/web` → NestJS  | The **raw token as a body value**, over the trusted server-to-server hop behind nginx |
 
-**NestJS sets no cookie, reads no cookie and clears no cookie**, and `apps/api` has no cookie dependency. "Clear cookie" in §2.2's logout row is `apps/web`'s half. The cookie's name, `SameSite`, `Secure`, `Path` and `Max-Age` belong to the frontend session gate, which is the tier that issues them.
+**NestJS sets no cookie, reads no cookie and clears no cookie**, and `apps/api` has no cookie dependency. "Clear cookie" in §2.2's logout row is `apps/web`'s half.
+
+**[STATUS] `apps/web` has now issued them, and this changes nothing on this side.** The frontend session gate fixed **two** cookies — `sam_admin_refresh` (7 days) and `sam_admin_access` (15 minutes), both `HttpOnly`, `SameSite=Strict`, `Path=/`, host-only, `Secure` outside local development. The second exists because Next 15 forbids cookie mutation during a render, so a Server Component cannot persist a rotated refresh token; it carries the access token that `apps/web` presents to this API as `Authorization: Bearer`, which is the same header §2.2 already contracts. **No endpoint, body, status or claim on this side moved**, `apps/api` still has no cookie parser, and the table above is unchanged. Full description: [FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §2a.
 
 **No self-registration exists, and none is contracted.** The first Admin is created by an explicitly armed bootstrap script outside the request path (`pnpm seed:admin`), described in [SECURITY.md](./SECURITY.md#admin-bootstrap).
 

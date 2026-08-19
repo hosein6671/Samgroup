@@ -1,0 +1,258 @@
+/* ============================================================================
+   ADMIN SURFACE
+   ----------------------------------------------------------------------------
+   Everything here is `.ad-*` and belongs to `features/admin/`. Two pages use
+   it: the login form and the session shell.
+
+   It is deliberately NOT the `.fs-*` / `.fm-*` vocabulary the public submission
+   forms use. Those are authored for the marketing site's midnight flagship
+   surfaces — gold accents, glass panels, editorial rhythm — and the Admin
+   surface is an internal tool. Reusing them would import a visual language
+   that says "brochure" onto a screen that should say "console". This is the
+   restraint the gate asks for, not a second design system: every value below
+   resolves to a token from `@sam-group/ui`, and no colour, size, radius,
+   duration or spacing literal is invented here.
+   ============================================================================ */
+
+.ad-root {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-primary);
+  font-family: var(--font-text);
+  min-height: 100vh;
+}
+
+/* --- the centred auth panel (login, forbidden, unavailable) -------------- */
+
+.ad-centre {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-section-compact) var(--spacing-gutter);
+}
+
+.ad-panel {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-panel);
+  padding: 40px 36px;
+}
+
+/*
+ * The wordmark above the panel. `--text-technical` carries the wide tracking the
+ * design system uses for labels, which reads as instrumentation rather than as
+ * a marketing lockup — the right register for an internal surface.
+ */
+.ad-mark {
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  letter-spacing: var(--text-technical--letter-spacing);
+  font-weight: var(--text-technical--font-weight);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  margin: 0 0 8px;
+}
+
+.ad-title {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+  font-weight: var(--text-title--font-weight);
+  color: var(--color-text-primary);
+  margin: 0 0 28px;
+}
+
+.ad-lede {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-text-secondary);
+  margin: 0 0 24px;
+}
+
+/* --- fields -------------------------------------------------------------- */
+
+.ad-field {
+  display: block;
+  margin: 0 0 20px;
+}
+
+.ad-label {
+  display: block;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0 0 6px;
+}
+
+.ad-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: var(--text-body);
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  background: var(--color-surface-canvas);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.ad-input:hover {
+  border-color: var(--color-border-strong);
+}
+
+/*
+ * `:focus-visible` rather than `:focus` so a pointer click does not paint a ring,
+ * and an outline rather than a border swap so the control does not shift by a
+ * pixel when it gains focus.
+ */
+.ad-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+  border-color: var(--color-border-accent);
+}
+
+/* --- the submit control -------------------------------------------------- */
+
+.ad-submit {
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: var(--text-body);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-on-accent);
+  background: var(--color-accent-default);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.ad-submit:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.ad-submit:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/*
+ * Disabled while the action is in flight. `cursor: default` matters as much as the
+ * opacity: a pointer over a control that will not respond reads as broken.
+ */
+.ad-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* --- the outcome banner -------------------------------------------------- */
+
+/*
+ * Colour is not the only signal: the banner carries role="alert", sits in flow
+ * above the fields, and differs from the panel in border weight as well as hue.
+ */
+.ad-banner {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-inset);
+  color: var(--color-text-primary);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+/* --- the signed-in shell ------------------------------------------------- */
+
+.ad-shell {
+  max-width: var(--container-narrow);
+  margin: 0 auto;
+  padding: var(--spacing-section-compact) var(--spacing-gutter);
+}
+
+.ad-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  margin: 0 0 28px;
+}
+
+.ad-identity {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * The role, rendered as instrumentation rather than as prose. It is the physical
+ * enum label the API serves (`admin`), shown verbatim — a display form belongs to
+ * a translation catalogue that does not exist yet, and inventing one here would be
+ * a second vocabulary for the same value.
+ */
+.ad-role {
+  font-family: var(--font-technical);
+  font-size: var(--text-technical);
+  letter-spacing: var(--text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+/*
+ * Sign out is a real form posting a Server Action, so its control is a <button>.
+ * Styled as a quiet secondary action: it is the only action on the shell, and a
+ * filled primary button would make signing out look like the page's purpose.
+ */
+.ad-signout {
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.ad-signout:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+.ad-signout:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/*
+ * The shell's one piece of body copy. It says what this surface is and is not,
+ * because a dashboard-shaped page with nothing on it otherwise reads as broken
+ * rather than as deliberately empty.
+ */
+.ad-note {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-text-secondary);
+  max-width: var(--container-measure);
+  margin: 0;
+}

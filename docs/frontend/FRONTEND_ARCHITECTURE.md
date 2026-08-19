@@ -91,7 +91,46 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
   Order matters: running locale resolution on an admin path would rewrite `/admin` to `/en/admin` before the auth check ever sees it.
 
-  **[STATUS] Concern 1 is still deferred, and its backend blocker is now gone.** No admin route, login page or middleware session check exists in `apps/web`. The session contract it was waiting on is complete — `POST /auth/refresh` and `POST /auth/logout` are implemented, refresh sessions are persisted and rotated, and a session lasts seven days rather than fifteen minutes ([ADR-012](../ADR/ADR-012-application-session-and-account-status.md)). **The HttpOnly refresh cookie is this tier's to own**: NestJS sets and reads none, so the cookie's name, `SameSite`, `Secure` behaviour, `Path` and `Max-Age` are decided by the gate that builds this middleware, and the raw token is forwarded to NestJS as a request value.
+  **[SHIPPED] Concern 1 is implemented.** `src/middleware.ts` short-circuits `/admin/*` and `/login` before locale resolution, `/login` and `/admin` exist, and the cookies this tier owns are fixed. See §2a below for the session model. Concern 3 (`Redirect` table) remains deferred to the gate that creates the first row.
+
+  _Superseded status, kept as the record of what was open: "Concern 1 is still deferred, and its backend blocker is now gone. No admin route, login page or middleware session check exists in `apps/web`… **The HttpOnly refresh cookie is this tier's to own**: NestJS sets and reads none, so the cookie's name, `SameSite`, `Secure` behaviour, `Path` and `Max-Age` are decided by the gate that builds this middleware, and the raw token is forwarded to NestJS as a request value."_
+
+### 2a. Admin Browser Session — [SHIPPED]
+
+**Routes, both outside `[locale]`.** `/login` (the sign-in page — **not** `/admin/login`) and `/admin` (the shell), plus one narrow Route Handler at `/admin/session/end`. All three live in the `(admin)` group and are non-localized: Admin UI language is a preference, not a route. The group carries its own root layout with `robots: { index: false, follow: false, nocache, noarchive }`, so both pages are non-indexable from one declaration. **No global `robots.ts` was added** — that is a public-site file with its own gate.
+
+**Two cookies, both owned by `apps/web`, both `HttpOnly`.**
+
+| Cookie              | Carries                      | `Max-Age` | Attributes                                                                               |
+| ------------------- | ---------------------------- | --------- | ---------------------------------------------------------------------------------------- |
+| `sam_admin_refresh` | the 7-day refresh credential | `604800`  | `HttpOnly`, `SameSite=Strict`, `Path=/`, no `Domain` (host-only), `Secure` in production |
+| `sam_admin_access`  | the 15-minute access token   | `900`     | identical                                                                                |
+
+`Secure` is dropped **only** when `NODE_ENV` is not `production`, so a local non-HTTPS dev server can hold a session; it is never derived from a request header. Both are cleared with the identical name/`Path`/`Domain` triple and `Max-Age: 0`, so a clear cannot leave a shadowing cookie behind. **Nothing is stored in `localStorage` or `sessionStorage`, and neither token is readable by browser JavaScript.**
+
+**Why two cookies rather than one.** Next 15 rejects `cookies().set()` outside the action phase, so a Server Component cannot persist a rotated refresh token — and `POST /auth/refresh` revokes the presented session in the same transaction that mints its replacement. Refreshing during a render would therefore destroy the browser's only credential and be unable to store what replaced it. The access cookie is what lets middleware refresh **only when it is absent** (≈ every 15 minutes) instead of on every navigation. This is the model [SECURITY.md](../SECURITY.md#admin-dashboard-access) already described: "both tokens live in httpOnly cookies, read server-side per request and attached to the outbound NestJS call".
+
+**The access cookie is a credential carrier, never an authority.** `apps/web` reads it server-side and forwards it as `Authorization: Bearer` on the internal hop. **No JWT is decoded anywhere in `apps/web`** — the token carries `sub`/`iat`/`exp` and no role claim, the cookie's `Max-Age` is aligned to the token TTL so the browser dropping it _is_ expiry, and identity and role come from `GET /auth/me`, which re-reads `sam_platform` on every request. NestJS remains the final authorization authority; the `admin`-role check in the shell decides what to render, not what is permitted.
+
+**Middleware refresh lifecycle**, at most once per incoming browser request (middleware runs once per request, so this is structural — no lock, no shared store):
+
+1. access cookie present → continue, no refresh.
+2. absent, no refresh cookie → `307` to `/login`.
+3. `POST /auth/refresh` **rejected** (401/403) → clear both cookies, `307` to `/login`.
+4. **unavailable** (network, timeout, 5xx, non-envelope) → **touch no cookie**, flag the request with `x-sam-admin-session: unavailable`, and let the page render a neutral state.
+5. success → set both cookies on the response **and** rewrite the forwarded `Cookie` request header via `NextResponse.next({ request: { headers } })`, so the render that triggered the refresh observes the new token. The header clone must be complete: Next deletes every request header absent from the override list.
+
+**Outage is not an auth failure, anywhere.** 401/403 is auth truth and clears credentials; a network failure or 5xx never does. A backend outage renders "Temporarily unavailable" on `/admin` and "Sign-in is unavailable" on `/login` — never "Invalid email or password", and never a login redirect.
+
+**Wrong role.** An authenticated non-Admin gets a distinct Access-denied page with a sign-out control, not a login redirect — collapsing the two would send someone to re-enter credentials that work.
+
+**Logout.** `signOut` sends `POST /auth/logout` with both factors, then **clears both cookies whatever the API answered** — already-revoked, 401, 5xx, unreachable alike — and redirects to `/login`. It is not retried.
+
+**Stale-credential cleanup.** When `GET /auth/me` refuses an access token the browser still holds (deleted, `disabled`, or predating the credential-revocation cutoff), the render redirects to `/admin/session/end`, a parameterless Route Handler that clears both cookies and lands on `/login`. It exists because a render cannot mutate cookies and a direct redirect would bounce forever against middleware waving the stale cookie through.
+
+**CSRF and caching.** Login and logout are Server Actions: POST-only to an unguessable action id, origin-checked by Next, and both cookies are `SameSite=Strict`. **Future Admin mutations must preserve both properties** — Server Actions or same-origin-checked handlers, never a handler accepting a cross-origin POST. Every Admin route is `force-dynamic` with `revalidate = 0`, and every protected API call is `cache: "no-store"`; no identity, role or auth result is ever cached or prerendered.
+
+**Not built, and deferred to their own gates:** every Admin module (lead inbox, catalog, blog, users, locales, redirects, translations), password reset/change, MFA/SSO, self-registration, any status- or role-management surface, session-management UI, and refresh-token family reuse detection.
 
 - `generateStaticParams` for the `[locale]` segment calls `GET /api/v1/locales` at build time — the route tree is generated from the `Locale` table, not a hardcoded `['en','fa','ar']` array, so a new locale needs no route code change (per [i18n strategy §1](../i18n/INTERNATIONALIZATION_STRATEGY.md#1-url-strategy)).
 - `app/[locale]/layout.tsx` sets `<html lang={locale} dir={direction}>` from that same locale data — `direction` travels with the locale record, never inferred client-side.

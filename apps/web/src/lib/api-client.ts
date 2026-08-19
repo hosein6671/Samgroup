@@ -75,6 +75,45 @@ export type ApiResult<T> =
   | { readonly ok: false; readonly reason: "malformed"; readonly status: number };
 
 /**
+ * The three failure branches of `ApiResult`, on their own.
+ *
+ * Extracted rather than restated so `ApiNoContentResult` below cannot drift from the taxonomy every
+ * existing caller already switches on. `never` is safe as the payload type because not one of the
+ * three branches mentions it.
+ */
+export type ApiFailure = Extract<ApiResult<never>, { readonly ok: false }>;
+
+/**
+ * What a request against an endpoint that answers **204 No Content** produced.
+ *
+ * `POST /auth/logout` is the only such endpoint today (API_CONTRACT_FINAL §2.2a: "answers 204 with
+ * an empty body"). It needs its own result type because the envelope check `apiGet`/`apiPost` apply
+ * — a 2xx must carry `data` — is exactly wrong for it: a correct 204 has no body at all, and
+ * reporting that as `malformed` would make success indistinguishable from a contract violation.
+ *
+ * The success branch carries nothing, deliberately. There is no `data` to assert and no `meta` to
+ * read; a caller that wants either is calling the wrong function.
+ */
+export type ApiNoContentResult = { readonly ok: true } | ApiFailure;
+
+/**
+ * Per-request options. One field today, and it is the reason this type exists.
+ *
+ * `accessToken` becomes `Authorization: Bearer <token>` on the internal hop. It is supplied by the
+ * caller rather than read from a cookie in here, because this module is the platform's transport
+ * and knows nothing about sessions — `features/admin/session` owns the cookie, decides whether a
+ * credential is usable, and hands the raw value down. Inverting that would put cookie knowledge in
+ * the one module every public page already depends on.
+ *
+ * **This is not a general header escape hatch.** It is one named credential field, so no caller can
+ * use it to set `Cookie`, `Host`, or anything else on a server-to-server request, and there is no
+ * shape here that a browser-originated proxy could be built out of.
+ */
+export type RequestOptions = {
+  readonly accessToken?: string;
+};
+
+/**
  * The configured API origin, or `null` when it is unusable.
  *
  * **A missing variable is not thrown.** Before this gate, `apps/web` read no environment at all
@@ -216,8 +255,9 @@ function readErrorBody(body: unknown): {
 export async function apiGet<T>(
   path: string,
   query?: Readonly<Record<string, string>>,
+  options?: RequestOptions,
 ): Promise<ApiResult<T>> {
-  return request<T>("GET", path, query, undefined);
+  return requestEnvelope<T>("GET", path, query, undefined, options);
 }
 
 /**
@@ -236,51 +276,138 @@ export async function apiGet<T>(
  * one buyer becomes two rows in the sales queue. The caller reports the failure and the person
  * decides whether to submit again.
  */
-export async function apiPost<T>(path: string, body: unknown): Promise<ApiResult<T>> {
-  return request<T>("POST", path, undefined, body);
+export async function apiPost<T>(
+  path: string,
+  body: unknown,
+  options?: RequestOptions,
+): Promise<ApiResult<T>> {
+  return requestEnvelope<T>("POST", path, undefined, body, options);
 }
 
-async function request<T>(
+/**
+ * One POST against an endpoint contracted to answer **204 No Content**.
+ *
+ * Separate from `apiPost` rather than a flag on it, because the two disagree about what a valid
+ * success looks like and a boolean parameter would hide that at every call site. Everything else is
+ * identical — same origin, same timeout, same `no-store`, same failure taxonomy — so a 401 from
+ * `POST /auth/logout` is the same `{ reason: "http", status: 401 }` a caller already knows how to
+ * read.
+ *
+ * A 2xx carrying a body is still accepted as success and the body ignored: this function's contract
+ * is "nothing to read", not "the server must send zero bytes", and turning an unexpected body into
+ * a failure would break a logout over a detail the caller cannot act on.
+ */
+export async function apiPostNoContent(
+  path: string,
+  body: unknown,
+  options?: RequestOptions,
+): Promise<ApiNoContentResult> {
+  const transport = await send("POST", path, undefined, body, options);
+
+  if (transport.kind === "unreachable") {
+    return { ok: false, reason: "unreachable", detail: transport.detail };
+  }
+
+  const { response } = transport;
+
+  if (!response.ok) {
+    const { code, message, details } = readErrorBody(await readJsonBody(response));
+
+    return { ok: false, reason: "http", status: response.status, code, message, details };
+  }
+
+  return { ok: true };
+}
+
+/**
+ * What one attempt at reaching the API produced, before anything is read from it.
+ *
+ * The split exists so the envelope readers and the no-content reader share the origin resolution,
+ * the header assembly, the `no-store` policy, the timeout and the framework-control-flow rethrow
+ * without sharing the body expectation, which is the one thing they disagree about.
+ */
+type Transport =
+  | { readonly kind: "response"; readonly response: Response }
+  | { readonly kind: "unreachable"; readonly detail: string };
+
+/** The request headers, assembled per call. `Authorization` appears only when a token was passed. */
+function composeHeaders(method: "GET" | "POST", options: RequestOptions | undefined): HeadersInit {
+  const headers: Record<string, string> = { accept: "application/json" };
+
+  if (method === "POST") {
+    headers["content-type"] = "application/json";
+  }
+
+  /*
+   * The scheme is hard-coded rather than read from the login response's `tokenType`. §2.2a
+   * contracts that field as always `"Bearer"`, and taking a scheme from a response would mean a
+   * compromised or confused upstream could choose how its own credential is presented.
+   */
+  if (options?.accessToken !== undefined && options.accessToken !== "") {
+    headers.authorization = `Bearer ${options.accessToken}`;
+  }
+
+  return headers;
+}
+
+async function send(
   method: "GET" | "POST",
   path: string,
   query: Readonly<Record<string, string>> | undefined,
   body: unknown,
-): Promise<ApiResult<T>> {
+  options: RequestOptions | undefined,
+): Promise<Transport> {
   const baseUrl = resolveBaseUrl();
 
   if (baseUrl === null) {
-    return { ok: false, reason: "unreachable", detail: "API_INTERNAL_URL is unset or invalid" };
+    return { kind: "unreachable", detail: "API_INTERNAL_URL is unset or invalid" };
   }
 
-  let response: Response;
-
   try {
-    response = await fetch(composeUrl(baseUrl, path, query), {
+    const response = await fetch(composeUrl(baseUrl, path, query), {
       method,
       // Stated rather than inherited — see the module note. Next 15's default is already
-      // uncached, and this gate does not rely on that remaining true.
+      // uncached, and this gate does not rely on that remaining true. An authenticated request
+      // must never be cached at all, so this is now load-bearing rather than merely explicit.
       cache: "no-store",
-      headers:
-        method === "POST"
-          ? { accept: "application/json", "content-type": "application/json" }
-          : { accept: "application/json" },
+      headers: composeHeaders(method, options),
       body: method === "POST" ? JSON.stringify(body) : undefined,
       // Node 18+ and every runtime this app targets; it needs no AbortController plumbing.
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
+
+    return { kind: "response", response };
   } catch (error: unknown) {
     if (isFrameworkControlFlow(error)) throw error;
 
-    return { ok: false, reason: "unreachable", detail: describeTransportFailure(error) };
+    return { kind: "unreachable", detail: describeTransportFailure(error) };
   }
+}
 
-  let responseBody: unknown;
-
+/** The parsed body, or `null` when there is none or it is not JSON. Never throws. */
+async function readJsonBody(response: Response): Promise<unknown> {
   try {
-    responseBody = await response.json();
+    return await response.json();
   } catch {
-    responseBody = null;
+    return null;
   }
+}
+
+async function requestEnvelope<T>(
+  method: "GET" | "POST",
+  path: string,
+  query: Readonly<Record<string, string>> | undefined,
+  body: unknown,
+  options: RequestOptions | undefined,
+): Promise<ApiResult<T>> {
+  const transport = await send(method, path, query, body, options);
+
+  if (transport.kind === "unreachable") {
+    return { ok: false, reason: "unreachable", detail: transport.detail };
+  }
+
+  const { response } = transport;
+  const responseBody = await readJsonBody(response);
 
   if (!response.ok) {
     const { code, message, details } = readErrorBody(responseBody);

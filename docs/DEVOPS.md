@@ -162,6 +162,16 @@ Payload's admin UI gets its **own subdomain** because Payload's admin route also
 
 **The first Admin account is created outside the request path**, by an explicitly armed seed (`pnpm seed:admin`, `SAM_ALLOW_ADMIN_BOOTSTRAP=true`) that has no committed credential and refuses to run against any database but `sam_platform` — see [SECURITY.md](./SECURITY.md#admin-bootstrap). **Whether production bootstraps this way is an operational decision that has not been taken**, and belongs with the VPS work below.
 
+### The Admin browser cookies depend on `NODE_ENV`, and on HTTPS
+
+`apps/web` owns two browser cookies for the Admin surface, `sam_admin_refresh` and `sam_admin_access` (attributes in [SECURITY.md](./SECURITY.md#admin-dashboard-access)). One property is operational rather than architectural and belongs here:
+
+**`Secure` is set whenever `NODE_ENV === "production"`, and dropped otherwise.** `next build` and `next start` both set `NODE_ENV=production`, so any deployed container issues `Secure` cookies — which a browser will only store over HTTPS. That is correct behind nginx with TLS terminated at the edge (ADR-005), and it means **an Admin surface served over plain HTTP cannot hold a session at all**: the browser silently discards both cookies and every sign-in appears to fail. If the Admin area ever seems to reject correct credentials in a deployed environment, check TLS before checking the credentials.
+
+**It is deliberately not derived from the request.** Neither the protocol nor `X-Forwarded-Proto` decides it: a header a client controls must not decide whether a credential is transport-protected, and behind nginx the inner hop is plain HTTP anyway, so protocol sniffing would drop `Secure` in production — the exact failure this avoids. The only environment that legitimately runs without `Secure` is a local `next dev` over `http://localhost`.
+
+**No new variable.** This section still adds exactly one, `JWT_SECRET`; the cookies read `NODE_ENV`, which the runtime already sets.
+
 ---
 
 ## Outbound Email (SMTP)
