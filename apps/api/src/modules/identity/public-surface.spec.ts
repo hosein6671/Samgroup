@@ -113,6 +113,17 @@ describe("the public API surface stays unauthenticated", () => {
     expect(classGuards(AuthController)).not.toContain(JwtAuthGuard);
     expect(handlerGuards(AuthController.prototype.login)).not.toContain(JwtAuthGuard);
   });
+
+  /**
+   * Refresh is unauthenticated by design, and it is worth an assertion rather than a comment: the
+   * endpoint exists to be reachable once the access token has expired, so a `JwtAuthGuard` added
+   * here — which looks like tightening security — would make it useful only while it was
+   * unnecessary, and would strand every session at the fifteen-minute mark. The refresh token is
+   * the authentication factor (ADR-012).
+   */
+  it("keeps POST /auth/refresh reachable without an access token", () => {
+    expect(handlerGuards(AuthController.prototype.refresh)).not.toContain(JwtAuthGuard);
+  });
 });
 
 describe("the protected surface is protected by declaration", () => {
@@ -122,6 +133,18 @@ describe("the protected surface is protected by declaration", () => {
     expect(guards).toContain(JwtAuthGuard);
     // Any authenticated caller may ask who they are; RolesGuard denies by default and would need a
     // list of all four roles to say the same thing.
+    expect(guards).not.toContain(RolesGuard);
+  });
+
+  /**
+   * Logout is authenticated, per §2.2's **A** — and the guard is load-bearing rather than
+   * decorative. The revocation is scoped to the id the guard resolved, so without it there would be
+   * no id to scope to and presenting a stranger's refresh token would end their session.
+   */
+  it("gates POST /auth/logout on authentication, without a role requirement", () => {
+    const guards = handlerGuards(AuthController.prototype.logout);
+
+    expect(guards).toContain(JwtAuthGuard);
     expect(guards).not.toContain(RolesGuard);
   });
 

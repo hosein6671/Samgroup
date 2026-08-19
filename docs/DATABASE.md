@@ -28,6 +28,33 @@ Prisma never connects to `sam_cms`. Payload never connects to `sam_platform`.
 
 Role → permission mapping lives in [SECURITY.md](./SECURITY.md).
 
+Every `User` also carries a **status**, `active` or `disabled` — a `user_status` enum column,
+`NOT NULL DEFAULT 'active'` ([ADR-012](./ADR/ADR-012-application-session-and-account-status.md)). A
+disabled account cannot log in, cannot refresh, and fails its next authenticated request. No
+endpoint writes the column; `GET /admin/users` serves it read-only.
+
+**Disabling is permanent revocation.** `users.credentials_revoked_at` (nullable `TIMESTAMPTZ`) is
+the per-user credential cutoff: two triggers stamp it on every `active → disabled` transition and
+revoke that user's live `auth_sessions` in the same transaction, and the stamp can never be cleared
+or moved backwards. Re-enabling the account restores login and nothing else — pre-disable refresh
+tokens and unexpired access tokens alike stay refused ([ADR-012](./ADR/ADR-012-application-session-and-account-status.md)
+§7). The column is served by no endpoint.
+
+---
+
+### Auth Sessions
+
+- `auth_sessions` — one row per live refresh session, the server-side half of a login
+  ([ADR-012](./ADR/ADR-012-application-session-and-account-status.md), migration
+  `20260819120000_add_auth_session_and_user_status`). `user_id` (FK, `ON DELETE CASCADE`),
+  `token_hash` (unique), `created_at`, `expires_at`, `revoked_at`.
+- **`token_hash` is a SHA-256 digest of the refresh token, lowercase hex — the raw token is
+  never stored.** A dump of this table authenticates nobody.
+- Rows are retained after revocation and after expiry; **there is no sweep job, and building one is a deferred retention decision** ([SECURITY.md](./SECURITY.md#data-retention)).
+- Disabling the owning `User` revokes every live row here, in the same transaction, by trigger.
+- **Not to be confused with `sam_cms.users_sessions`**, which is Payload's own and belongs to a
+  separate identity system ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)).
+
 ---
 
 ### Organizations
@@ -128,7 +155,7 @@ and holds **17 tables**, all owned by `sam_cms_user`:
   S3-compatible object storage, never in Postgres and never on a container volume
   ([DEVOPS.md](./DEVOPS.md) §Object storage). `alt` is localized and therefore in `media_locales`;
   `filename`, `mime_type`, `filesize`, `width`, `height`, `prefix` and `url` are columns on `media`.
-- `users`, `users_roles`, `users_sessions` — Payload's own admin users ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)).
+- `users`, `users_roles`, `users_sessions` — Payload's own admin users ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)). **Unrelated to `sam_platform`'s `users` and `auth_sessions`**, which are the application's; the two identity systems share no account, no session and no cookie, and the similar table names are a coincidence of both being called users.
 - `payload_kv`, `payload_migrations`, `payload_locked_documents`, `payload_locked_documents_rels`,
   `payload_preferences`, `payload_preferences_rels` — Payload's own bookkeeping.
 

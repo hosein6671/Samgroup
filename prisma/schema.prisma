@@ -1,7 +1,7 @@
 // =============================================================================
 // SAM Group Platform — sam_platform
 //
-// A literal translation of docs/DATA_MODEL.md §1: 22 entities plus three join
+// A literal translation of docs/DATA_MODEL.md §1: 23 entities plus three join
 // tables — BlogPost/BlogTag, Product/Segment, and the ordered
 // Segment/ProductType. Not a redesign.
 //
@@ -19,6 +19,17 @@
 //     here, in any form (ADR-002).
 //   - References that cross into sam_cms are soft string keys, never foreign
 //     keys: JobApplication.jobOpeningKey, DownloadRequest.documentKey.
+//   - ADR-012 adds a second set of database-enforced objects, listed with the
+//     ADR-011 ones below: users_credential_revocation_guard (BEFORE UPDATE
+//     ROW) advances users.credentials_revoked_at on active → disabled and
+//     refuses to move it backwards, and users_revoke_sessions_on_disable
+//     (AFTER UPDATE STATEMENT) revokes that user's live auth_sessions in the
+//     same transaction. Disable is revocation, not suspension, and the
+//     invariant does not depend on a status-management endpoint that does not
+//     exist yet.
+//   - AuthSession is an application-session entity added by ADR-012, not a
+//     Payload one: Payload keeps its own users_sessions in sam_cms and the
+//     two are unrelated (ADR-006).
 //   - Future-phase entities (DATA_MODEL.md §2 — Order, Quote, Lead, Workflow*,
 //     Notification, ExternalSyncMap) are deliberately absent until their phase
 //     starts.
@@ -81,7 +92,7 @@ generator client {
 }
 
 // --- Enums -------------------------------------------------------------------
-// Six enums, for closed value sets only. Submission `status` fields are
+// Seven enums, for closed value sets only. Submission `status` fields are
 // deliberately String: the business lifecycle is not yet defined.
 // Physical labels are the lowercase strings the documentation specifies; the
 // human-readable forms ("Request a Quote") are presentation strings and belong
@@ -94,6 +105,17 @@ enum UserRole {
   CUSTOMER        @map("customer")
 
   @@map("user_role")
+}
+
+// Account status, and deliberately only two values (ADR-012). `suspended`,
+// `locked`, `pending` and a `deleted` soft-delete state are NOT members:
+// nothing on this platform distinguishes them, and an unused enum label is a
+// lifecycle nobody implemented. Deleting a row remains a real delete.
+enum UserStatus {
+  ACTIVE   @map("active")
+  DISABLED @map("disabled")
+
+  @@map("user_status")
 }
 
 enum InquiryType {
@@ -142,14 +164,30 @@ enum MediaType {
 // --- Identity & Access -------------------------------------------------------
 
 model User {
-  id             String   @id @default(uuid()) @db.Uuid
-  email          String   @unique
-  passwordHash   String   @map("password_hash")
+  id             String     @id @default(uuid()) @db.Uuid
+  email          String     @unique
+  passwordHash   String     @map("password_hash")
   role           UserRole
-  organizationId String?  @map("organization_id") @db.Uuid
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Whether this account may authenticate at all — ADR-012. NOT NULL with a
+  /// database-level default, so a row written by any path (a raw INSERT
+  /// included) is active unless it says otherwise, and no code path can
+  /// create an account whose status is unknown. No endpoint writes it.
+  status         UserStatus @default(ACTIVE)
+
+  /// The credential cutoff: every access token and refresh session issued at
+  /// or before this instant is permanently invalid (ADR-012 §7).
+  ///
+  /// NULL means no credential has ever been revoked for this account, which is
+  /// the state every user is created in. It is set by the database — never by
+  /// application code — when `status` goes active → disabled, and it is
+  /// monotonic: re-enabling the account does NOT clear or lower it, which is
+  /// what makes disable a revocation rather than a suspension.
+  credentialsRevokedAt DateTime? @map("credentials_revoked_at") @db.Timestamptz(6)
+  organizationId String?    @map("organization_id") @db.Uuid
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
 
   organization                    Organization?              @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  authSessions                    AuthSession[]
   inquiriesSubmitted              Inquiry[]                  @relation("InquirySubmitter")
   inquiriesAssigned               Inquiry[]                  @relation("InquiryAssignee")
   formulationRequestsSubmitted    CustomFormulationRequest[] @relation("FormulationSubmitter")
@@ -161,6 +199,44 @@ model User {
 
   @@index([organizationId])
   @@map("users")
+}
+
+/// One live refresh session — the server-side half of a login, and the only
+/// thing that makes logout and revocation mean anything (ADR-012).
+///
+/// The raw refresh token is NEVER stored. tokenHash is its SHA-256 digest as
+/// lowercase hex, which is what a lookup matches against; the raw value exists
+/// only in the response to apps/web and in that tier’s own HttpOnly cookie. A
+/// dump of this table therefore authenticates nobody.
+///
+/// Deliberately minimal. No ipAddress, userAgent, deviceName, lastUsedAt,
+/// familyId or replacedById: this is authentication state, not a
+/// device-management or analytics surface, and refresh-token family reuse
+/// detection is explicitly deferred rather than half-modelled here.
+model AuthSession {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  /// SHA-256 of the raw refresh token, lowercase hex, always 64 characters.
+  /// Unique because a digest collision would mean two sessions answer to one
+  /// token — the constraint is what makes "the session for this token" a
+  /// question with at most one answer.
+  tokenHash String    @unique @map("token_hash")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  /// Set once, by rotation or by logout, and never cleared. A revoked row is
+  /// kept rather than deleted so a rotated token fails as revoked rather than
+  /// as unknown. The client cannot tell the two apart — it sees one generic
+  /// failure either way — but the row is the difference between a record and
+  /// a hole.
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// The FK index PostgreSQL does not create on its own. It also serves the
+  /// only non-token query shape that exists — this user’s sessions — which
+  /// logout uses to scope revocation to the caller.
+  @@index([userId])
+  @@map("auth_sessions")
 }
 
 /// A customer's company. Internal staff have no organization; Customer users

@@ -6,7 +6,11 @@ import { UserRole } from "../../prisma/generated/client";
 import { AdminUsersController } from "./admin-users.controller";
 import { AuthController } from "./auth.controller";
 import { LoginDto } from "./dto/login.dto";
+import { LogoutDto } from "./dto/logout.dto";
+import { RefreshDto } from "./dto/refresh.dto";
 import { toWireRole } from "./user-role";
+import { toWireStatus } from "./user-status";
+import { UserStatus } from "../../prisma/generated/client";
 
 import type { AuthService } from "./auth.service";
 import type { ApiErrorDetail } from "../../common/http/api-response.types";
@@ -121,6 +125,8 @@ describe("AuthController", () => {
       accessToken: "token",
       tokenType: "Bearer" as const,
       expiresIn: 900,
+      refreshToken: "raw-refresh",
+      refreshExpiresIn: 604_800,
       user: { id: "id", email: "admin@example.test", role: "admin" },
     };
     const auth = { login: jest.fn().mockResolvedValue(response) } as unknown as AuthService;
@@ -146,21 +152,124 @@ describe("AuthController", () => {
     });
     expect(Object.keys(body).sort()).toEqual(["email", "id", "role"]);
   });
+
+  it("passes the raw refresh token to the service and returns its answer unchanged", async () => {
+    const response = {
+      accessToken: "new-token",
+      tokenType: "Bearer" as const,
+      expiresIn: 900,
+      refreshToken: "rotated-refresh",
+      refreshExpiresIn: 604_800,
+    };
+    const auth = { refresh: jest.fn().mockResolvedValue(response) } as unknown as AuthService;
+
+    await expect(
+      new AuthController(auth).refresh({ refreshToken: "raw-refresh" } as RefreshDto),
+    ).resolves.toBe(response);
+    expect(auth.refresh).toHaveBeenCalledWith("raw-refresh");
+  });
+
+  /**
+   * The scoping guarantee, at the boundary: the id comes from the guard-resolved user, never from
+   * the body. A caller cannot name whose session to end.
+   */
+  it("scopes logout to the authenticated caller, not to anything in the body", async () => {
+    const auth = { logout: jest.fn().mockResolvedValue(undefined) } as unknown as AuthService;
+    const caller = {
+      id: "6a1f6a0e-0f5f-4a1a-9f8a-3f4d5b6c7d8e",
+      email: "manager@example.test",
+      role: UserRole.CONTENT_MANAGER,
+    };
+
+    const body = await new AuthController(auth).logout(caller, {
+      refreshToken: "raw-refresh",
+    } as LogoutDto);
+
+    expect(auth.logout).toHaveBeenCalledWith(caller.id, "raw-refresh");
+    // 204: nothing is returned, so nothing about the session can leak through the response.
+    expect(body).toBeUndefined();
+  });
+});
+
+/**
+ * The BFF boundary, asserted rather than described (ADR-012).
+ *
+ * `apps/web` owns the browser's HttpOnly refresh cookie. This API receives the raw token as a body
+ * value over the trusted internal hop, and must never read, set or clear a cookie — a `Set-Cookie`
+ * here would land on a server-side `fetch`, not on a browser, and would put a second, disagreeing
+ * copy of the session into the architecture.
+ */
+describe("the cookie boundary", () => {
+  it("has no cookie dependency in apps/api", () => {
+    const manifest = require("../../../package.json") as {
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    const declared = Object.keys({ ...manifest.dependencies, ...manifest.devDependencies });
+
+    expect(declared.filter((name) => name.includes("cookie"))).toEqual([]);
+  });
+
+  it("never sets or reads a cookie anywhere in the identity module", () => {
+    const fs = require("node:fs") as typeof import("node:fs");
+    const path = require("node:path") as typeof import("node:path");
+    const root = path.join(__dirname);
+
+    const sources = fs
+      .readdirSync(root, { recursive: true, encoding: "utf8" })
+      .filter((entry) => entry.endsWith(".ts") && !entry.endsWith(".spec.ts"))
+      .map((entry) => fs.readFileSync(path.join(root, entry), "utf8"));
+
+    expect(sources.length).toBeGreaterThan(0);
+
+    for (const source of sources) {
+      // Comments are stripped first. Prose about cookies is expected here — this module documents
+      // the boundary at length, and a doc comment explaining that no Set-Cookie appears anywhere
+      // must not be the thing that fails the assertion. Executable code is what is checked.
+      const code = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+
+      expect(code).not.toMatch(/cookie/i);
+    }
+  });
 });
 
 describe("AdminUsersController", () => {
-  it("serves id, email and role only, with a total", async () => {
+  it("serves id, email, role and status only, with a total", async () => {
     const users = {
-      listAll: jest
-        .fn()
-        .mockResolvedValue([{ id: "a", email: "a@example.test", role: UserRole.ADMIN }]),
+      listAll: jest.fn().mockResolvedValue([
+        { id: "a", email: "a@example.test", role: UserRole.ADMIN, status: UserStatus.ACTIVE },
+        {
+          id: "b",
+          email: "b@example.test",
+          role: UserRole.SALES_EXPERT,
+          status: UserStatus.DISABLED,
+        },
+      ]),
     } as unknown as UsersService;
 
     const result = await new AdminUsersController(users).list();
 
-    expect(result.data).toEqual([{ id: "a", email: "a@example.test", role: "admin" }]);
-    expect(result.meta).toEqual({ total: 1 });
+    expect(result.data).toEqual([
+      { id: "a", email: "a@example.test", role: "admin", status: "active" },
+      { id: "b", email: "b@example.test", role: "sales_expert", status: "disabled" },
+    ]);
+    expect(result.meta).toEqual({ total: 2 });
     expect(JSON.stringify(result)).not.toContain("passwordHash");
+  });
+});
+
+describe("the account-status vocabulary on the wire", () => {
+  it("serves the two physical enum labels and no others", () => {
+    expect(Object.values(UserStatus).map(toWireStatus).sort()).toEqual(["active", "disabled"]);
+  });
+
+  /**
+   * ADR-012 fixes the vocabulary at two values. A third member appearing in the Prisma enum would
+   * be a lifecycle state nothing in this module enforces, and it must not arrive unnoticed — the
+   * same guard `UserRole` carries for the RBAC matrix.
+   */
+  it("has exactly the two states ADR-012 defines", () => {
+    expect(Object.values(UserStatus).sort()).toEqual(["ACTIVE", "DISABLED"]);
   });
 });
 

@@ -8,8 +8,9 @@ import { RolesGuard } from "./guards/roles.guard";
 import { UserRole } from "../../prisma/generated/client";
 import { UsersService } from "./users.service";
 import { toWireRole } from "./user-role";
+import { toWireStatus } from "./user-status";
 
-import type { AuthenticatedUserResponse } from "./dto/login.response";
+import type { AdminUserResponse } from "./dto/login.response";
 import type { ResponseWithMeta } from "../../common/http/with-meta";
 
 /**
@@ -46,19 +47,30 @@ export class AdminUsersController {
   constructor(private readonly users: UsersService) {}
 
   /**
-   * The staff list: `id`, `email`, `role`, and nothing else.
+   * The staff list: `id`, `email`, `role`, `status`, and nothing else.
    *
-   * `passwordHash` cannot appear here even by mistake — `UsersService.listAll` selects three
+   * `status` is here because this is the one surface for which it is not a constant: every other
+   * identity response answers only for an active account. An Admin list of staff accounts that
+   * cannot show which of them are switched off is a list that misleads. **Read-only** — §2.10
+   * contracts CRUD, and this gate still implements only the list; nothing here writes a status,
+   * and no endpoint anywhere does.
+   *
+   * `passwordHash` cannot appear here even by mistake — `UsersService.listAll` selects four
    * columns explicitly, so the hash is never in the object this maps over. `organizationId` and
    * `createdAt` are omitted because no consumer of this gate needs them.
    */
   @Header("Cache-Control", "no-store")
   @Get()
-  async list(): Promise<ResponseWithMeta<AuthenticatedUserResponse[]>> {
+  async list(): Promise<ResponseWithMeta<AdminUserResponse[]>> {
     const users = await this.users.listAll();
 
     return withMeta(
-      users.map((user) => ({ id: user.id, email: user.email, role: toWireRole(user.role) })),
+      users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        role: toWireRole(user.role),
+        status: toWireStatus(user.status),
+      })),
       { total: users.length },
     );
   }

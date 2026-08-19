@@ -28,7 +28,7 @@ const user = { id: USER_ID, email: "admin@example.test", role: UserRole.ADMIN };
 
 function makeUsers(found: typeof user | null = user): UsersService {
   return {
-    findAuthenticatedById: jest.fn().mockResolvedValue(found),
+    findActiveByToken: jest.fn().mockResolvedValue(found),
   } as unknown as UsersService;
 }
 
@@ -140,6 +140,87 @@ describe("JwtAuthGuard", () => {
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
 
     await expectUnauthenticated(guard, bearer(token));
+  });
+
+  /**
+   * The same property for the softer revocation ADR-012 added. `findActiveById` filters on
+   * `status = active`, so a disabled account produces the identical `null` a deleted one does —
+   * which is why this test looks like the one above and why the guard needs no status branch of its
+   * own. The token itself is untouched and still verifies; what changed is the row behind it.
+   */
+  it("rejects a valid token whose user has been disabled", async () => {
+    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
+
+    await expectUnauthenticated(guard, bearer(token));
+  });
+
+  /**
+   * Status is resolved, never asserted by the caller. A token carrying its own `status: "active"`
+   * claim must not survive a disabled account — the guard reads the row and ignores the claim.
+   */
+  it("ignores a status claim smuggled into the token", async () => {
+    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const token = jwt.sign(
+      { sub: USER_ID, status: "active", role: "admin" },
+      { algorithm: JWT_ALGORITHM, expiresIn: 900 },
+    );
+
+    await expectUnauthenticated(guard, bearer(token));
+  });
+
+  /**
+   * The credential cutoff is checked in the database, not here — but the guard has to hand the
+   * lookup the one fact only the token knows: when it was minted. This asserts that `iat` reaches
+   * `findActiveByToken` unmodified, because a guard that passed `Date.now()` instead would look
+   * identical in every other test and would silently accept every revoked token ever issued.
+   */
+  it("passes the token's own iat to the account lookup, not the current time", async () => {
+    const users = makeUsers();
+    const guard = new JwtAuthGuard(jwt, users);
+    // A few seconds in the past, not an arbitrary constant: jsonwebtoken derives `exp` from
+    // whatever `iat` it is given, so a fixed historical value would sign an already-expired token
+    // and the guard would reject it before the lookup was ever reached.
+    const issuedAt = Math.floor(Date.now() / 1000) - 5;
+    const token = jwt.sign(
+      { sub: USER_ID, iat: issuedAt },
+      { algorithm: JWT_ALGORITHM, expiresIn: 900 },
+    );
+
+    await guard.canActivate(makeContext(bearer(token)).context);
+
+    expect(
+      (users as unknown as { findActiveByToken: jest.Mock }).findActiveByToken,
+    ).toHaveBeenCalledWith(USER_ID, issuedAt);
+  });
+
+  /**
+   * A token whose `iat` predates the account's cutoff is refused, and the refusal is the database's
+   * — `findActiveByToken` answers `null` for it exactly as it does for a deleted or disabled
+   * account, which is why all three are one 401 here.
+   */
+  it("rejects a token the account lookup refuses on the cutoff", async () => {
+    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
+
+    await expectUnauthenticated(guard, bearer(token));
+  });
+
+  /**
+   * `iat` is not optional to this guard. Every token it signs carries one, and a token without it
+   * cannot be placed against the cutoff — so it is refused rather than quietly exempted from the
+   * check, which would make omitting the claim a bypass.
+   */
+  it("rejects a token with no iat rather than skipping the cutoff check", async () => {
+    const users = makeUsers();
+    const guard = new JwtAuthGuard(jwt, users);
+    // `noTimestamp` is jsonwebtoken's switch for omitting `iat`.
+    const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, noTimestamp: true });
+
+    await expectUnauthenticated(guard, bearer(token));
+    expect(
+      (users as unknown as { findActiveByToken: jest.Mock }).findActiveByToken,
+    ).not.toHaveBeenCalled();
   });
 
   it("does not accept a token outside the Bearer scheme", async () => {

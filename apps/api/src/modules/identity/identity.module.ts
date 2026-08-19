@@ -7,6 +7,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
 import { AdminUsersController } from "./admin-users.controller";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { AuthSessionsService } from "./auth-sessions.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { PasswordService } from "./password.service";
 import { RolesGuard } from "./guards/roles.guard";
@@ -56,11 +57,20 @@ import { ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM } from "./jwt.config";
     }),
   ],
   controllers: [AuthController, AdminUsersController],
-  providers: [AuthService, UsersService, PasswordService, JwtAuthGuard, RolesGuard],
+  providers: [
+    AuthService,
+    AuthSessionsService,
+    UsersService,
+    PasswordService,
+    JwtAuthGuard,
+    RolesGuard,
+  ],
   /*
    * Exported so a later module can protect its own routes with `@UseGuards(JwtAuthGuard)` without
-   * duplicating identity logic. `UsersService` is deliberately NOT exported: no other module has a
-   * reason to read `users`, and exporting it now would invite one to.
+   * duplicating identity logic. `UsersService` and `AuthSessionsService` are deliberately NOT
+   * exported: no other module has a reason to read `users` or `auth_sessions`, and exporting
+   * either now would invite one to. A session table reachable from outside Identity is how a
+   * second, disagreeing notion of "logged in" gets built.
    */
   exports: [JwtAuthGuard, RolesGuard],
 })

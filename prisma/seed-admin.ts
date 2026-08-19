@@ -53,7 +53,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import * as argon2 from "argon2";
 
 import { ARGON2_OPTIONS } from "../apps/api/src/modules/identity/password.service";
-import { PrismaClient, UserRole } from "../apps/api/src/prisma/generated/client";
+import { PrismaClient, UserRole, UserStatus } from "../apps/api/src/prisma/generated/client";
 
 // Prisma 7 does not load .env automatically, and this file is also runnable outside the Prisma
 // CLI. Guarded because a fresh clone has no .env yet.
@@ -129,6 +129,9 @@ async function bootstrap(prisma: PrismaClient): Promise<"created" | "already-exi
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
 
   if (existing !== null) {
+    // Returned untouched, and that includes `status`. A rerun does not re-enable a disabled admin
+    // any more than it resets a password: both would let anyone who can run this script undo an
+    // administrative decision, and "I reran the seed" would be indistinguishable from an attack.
     return "already-exists";
   }
 
@@ -138,7 +141,12 @@ async function bootstrap(prisma: PrismaClient): Promise<"created" | "already-exi
 
   await prisma.user.create({
     // `organizationId` is left null: internal staff have no Organization (schema.prisma).
-    data: { email, passwordHash, role: UserRole.ADMIN },
+    //
+    // `status` is written explicitly rather than left to the column default (ADR-012). The default
+    // would produce the same row today, but a bootstrap that relies on it would silently change
+    // meaning if the default ever did — and the one account this script exists to create is the
+    // one that must not arrive in an unexpected state.
+    data: { email, passwordHash, role: UserRole.ADMIN, status: UserStatus.ACTIVE },
     select: { id: true },
   });
 

@@ -91,6 +91,8 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
   Order matters: running locale resolution on an admin path would rewrite `/admin` to `/en/admin` before the auth check ever sees it.
 
+  **[STATUS] Concern 1 is still deferred, and its backend blocker is now gone.** No admin route, login page or middleware session check exists in `apps/web`. The session contract it was waiting on is complete — `POST /auth/refresh` and `POST /auth/logout` are implemented, refresh sessions are persisted and rotated, and a session lasts seven days rather than fifteen minutes ([ADR-012](../ADR/ADR-012-application-session-and-account-status.md)). **The HttpOnly refresh cookie is this tier's to own**: NestJS sets and reads none, so the cookie's name, `SameSite`, `Secure` behaviour, `Path` and `Max-Age` are decided by the gate that builds this middleware, and the raw token is forwarded to NestJS as a request value.
+
 - `generateStaticParams` for the `[locale]` segment calls `GET /api/v1/locales` at build time — the route tree is generated from the `Locale` table, not a hardcoded `['en','fa','ar']` array, so a new locale needs no route code change (per [i18n strategy §1](../i18n/INTERNATIONALIZATION_STRATEGY.md#1-url-strategy)).
 - `app/[locale]/layout.tsx` sets `<html lang={locale} dir={direction}>` from that same locale data — `direction` travels with the locale record, never inferred client-side.
 

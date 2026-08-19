@@ -33,16 +33,39 @@ const UNAUTHENTICATED_MESSAGE = "Authentication is required.";
  *
  * ── Why the user is loaded from the database on every request ───────────────
  *
- * The token carries `sub` and nothing else, so `role` here is always the row's current value.
- * That costs one primary-key lookup per authenticated request and buys two things this gate
- * specifically needs:
+ * The token carries `sub`, `iat` and `exp`, so `role` here is always the row's current value.
+ * That costs one primary-key lookup per authenticated request and buys four things:
  *
- *   1. **Revocation actually works.** `users` has no status column (see `AuthService.login`), so
- *      deleting the row is the only way to revoke an account — and a self-contained token would
- *      keep authenticating a deleted user for the rest of its 15 minutes. Here the next request
- *      after the delete is a 401.
- *   2. **A role change takes effect immediately**, rather than up to 15 minutes later, and there is
+ *   1. **Revocation actually works.** A self-contained token would keep authenticating a deleted
+ *      user for the rest of its 15 minutes. Here the next request after the delete is a 401.
+ *   2. **Disabling an account is equally immediate.** The lookup filters on `status = active`
+ *      (ADR-012), so an account switched off a second ago fails its very next authenticated
+ *      request — the same 401, indistinguishable from every other. The status is **never** read
+ *      from a claim: there is no status claim, deliberately, because a token that carried one
+ *      would go on asserting `active` until it expired.
+ *   3. **Disabling is permanent, not a pause** (ADR-012 §7). The same lookup requires the token's
+ *      `iat` to sit after the account's `credentials_revoked_at` cutoff, which the database
+ *      advances on every active → disabled transition and never lowers. So re-enabling an account
+ *      does **not** bring a pre-disable token back to life, even one whose `exp` is still in the
+ *      future — the account can be used again, the credentials it held cannot.
+ *   4. **A role change takes effect immediately**, rather than up to 15 minutes later, and there is
  *      no second copy of the role that can disagree with `sam_platform`.
+ *
+ * All four are one `findActiveByToken` call and one 401, so nothing here can leak which of them
+ * refused the request.
+ *
+ * ── `iat` does the work that a `jti` would, without a claim being added ─────
+ *
+ * Point 3 needs to know when a token was minted, and `iat` already says so — it is in the frozen
+ * claim set (API_CONTRACT_FINAL.md §7) because every JWT signer writes it, not because this gate
+ * wanted it. **No `jti`, no `status` claim, no session id in the token**: a per-token identifier
+ * would need a table of issued access tokens to be checked against, which is the deny-list this
+ * platform deliberately does not keep. A cutoff timestamp on the account revokes every token at
+ * once and stores one nullable column to do it.
+ *
+ * Note what this does *not* do: it consults no session table. An access token is valid until it
+ * expires or until the account's cutoff passes it, and logging out does not shorten it — see
+ * `AuthService.logout` for why no deny-list exists.
  *
  * The cost is acceptable on this surface: every `/admin/*` response is `Cache-Control: no-store`
  * and admin traffic is a handful of staff, not public read volume. It would need revisiting if a
@@ -82,7 +105,14 @@ export class JwtAuthGuard implements CanActivate {
       throw unauthenticated();
     }
 
-    const user = await this.users.findAuthenticatedById(claims.sub);
+    if (typeof claims.iat !== "number") {
+      // Every token this application signs carries `iat` — the signer sets it and jwt.config.ts
+      // declares it. One that arrives without it cannot be placed relative to the account’s
+      // credential cutoff, so it is refused rather than exempted from the check.
+      throw unauthenticated();
+    }
+
+    const user = await this.users.findActiveByToken(claims.sub, claims.iat);
 
     if (user === null) {
       throw unauthenticated();

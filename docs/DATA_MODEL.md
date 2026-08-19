@@ -31,13 +31,24 @@ For all five: **the Prisma model and the migration exist** — `20260812160853_a
 ```mermaid
 erDiagram
   ORGANIZATION ||--o{ USER : employs
+  USER ||--o{ AUTH_SESSION : holds
   USER {
     string id
     string email
     string passwordHash
     string role
+    string status
+    datetime credentialsRevokedAt
     string organizationId
     datetime createdAt
+  }
+  AUTH_SESSION {
+    string id
+    string userId
+    string tokenHash
+    datetime createdAt
+    datetime expiresAt
+    datetime revokedAt
   }
   ORGANIZATION {
     string id
@@ -374,6 +385,26 @@ erDiagram
 - `ORGANIZATION` represents a customer's company. `USER.organizationId` is nullable: internal staff (Admin, Content Manager, Sales Expert) have none; Customer users belong to one. This is a B2B platform ([PROJECT_VISION.md](./PROJECT_VISION.md)) where purchasing/quoting/support decisions are made at the company level, not the individual level — see section 3 for why this was added now instead of when Customer Portal/CRM are built.
 - `STATUS_HISTORY` is a generic, polymorphic audit trail for status-driven entities. It backs Sample/Formulation request status changes today and is the anchor point the future Workflow module extends — see section 3.
 - Roles on `USER` correspond to the RBAC matrix in [SECURITY.md](./SECURITY.md).
+
+- **`USER.status` is `active` or `disabled`, and those are the only two values** — [ADR-012](./ADR/ADR-012-application-session-and-account-status.md). A PostgreSQL enum (`user_status`), `NOT NULL DEFAULT 'active'`, so a row written by any path — a raw `INSERT` included — is active unless it says otherwise. `suspended`, `locked`, `pending` and a `deleted` soft-delete state are deliberately **not** members: nothing on this platform distinguishes them, and an unused enum label reads as a lifecycle someone implemented. Deleting a `USER` row remains a real delete. **No endpoint writes this column** — changing an account's status is a database operation until a user-management gate builds the surface; `GET /admin/users` serves it read-only.
+
+- **`USER.credentialsRevokedAt` is the credential cutoff, and it is what makes disabling an account a revocation rather than a pause** — [ADR-012](./ADR/ADR-012-application-session-and-account-status.md) §7, migration `20260819130000_add_credential_revocation_boundary`. Nullable, and NULL on every account that has never been disabled.
+
+  **It is written by the database and by nothing else.** `users_credential_revocation_guard` (BEFORE UPDATE, row-level) stamps it with `clock_timestamp()` on every `active → disabled` transition and **refuses any UPDATE that would clear it or move it backwards**; `users_revoke_sessions_on_disable` (AFTER UPDATE, statement-level with transition tables, the ADR-011 convention) revokes that user's live `AUTH_SESSION` rows in the same transaction. Enforcement lives in the database because **there is no status-management endpoint** — every transition today is a direct `UPDATE`, so a rule held in a service would be enforced on none of them.
+
+  Consequence, stated so nobody has to discover it: **re-enabling a disabled account restores the ability to log in and nothing else.** Its previous refresh sessions stay revoked, and an access token minted before the disable is refused even though its 15 minutes have not elapsed — the guard requires `credentialsRevokedAt < to_timestamp(iat)`. Nullable rather than `NOT NULL DEFAULT now()` deliberately: a cutoff on every account would compare a database clock against an application-written `iat` on every request, where one second of skew would reject freshly issued tokens platform-wide.
+
+  It is **not** served by any endpoint, `GET /admin/users` included: it is authorization machinery, not staff-list information.
+
+- **`AUTH_SESSION` is the server-side half of a login**, and the entity [ADR-012](./ADR/ADR-012-application-session-and-account-status.md) added because logout and revocation need one — this document previously modelled no session or refresh-token entity, which is exactly why `POST /auth/refresh` and `POST /auth/logout` could not be built with the earlier schema. Migration `20260819120000_add_auth_session_and_user_status`.
+
+  **`tokenHash` is a SHA-256 digest of the refresh token, lowercase hex, unique — the raw token is never stored.** The unique index is what makes "the session for this token" a question with at most one answer, which is what rotation's conditional `UPDATE` depends on. `revokedAt` is set once, by rotation or by logout, and never cleared; a revoked row is retained rather than deleted, and there is no expiry sweep.
+
+  **Rows are revoked, never deleted** — `revokedAt` is set by rotation, by logout, and by the disable trigger above, and is never cleared. That is what leaves a disable auditable instead of leaving a hole, and it is why nothing sweeps this table (an open retention decision, see [SECURITY.md](./SECURITY.md#data-retention)).
+
+  **Deliberately minimal, in the same spirit as `SEGMENT`**: no `ipAddress`, `userAgent`, `deviceName`, `lastUsedAt`, `familyId` or `replacedById`. This is authentication state, not a device-management or analytics surface, and refresh-token family reuse detection is deferred rather than half-modelled. `ON DELETE CASCADE` from `USER`: sessions are that user's credentials, and `RESTRICT` would make deleting an account — the platform's strongest revocation — fail because the account had once logged in.
+
+  **This is not Payload's session table.** Payload keeps its own `users_sessions` in `sam_cms` and the two identity systems are unrelated ([ADR-006](./ADR/ADR-006-payload-admin-authentication.md)).
 
 ---
 

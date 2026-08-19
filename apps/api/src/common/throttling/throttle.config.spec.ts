@@ -1,5 +1,6 @@
 import { APP_GUARD, Reflector } from "@nestjs/core";
 import { ThrottlerGuard, ThrottlerStorageService } from "@nestjs/throttler";
+import { THROTTLER_SKIP } from "@nestjs/throttler/dist/throttler.constants";
 
 import { CategoriesController } from "../../modules/catalog/categories.controller";
 import { ProductsController } from "../../modules/catalog/products.controller";
@@ -349,5 +350,50 @@ describe("login rate limit", () => {
     const loginKey = generateThrottleKey(null, "203.0.113.25", "login");
 
     expect(formsKey).not.toBe(loginKey);
+  });
+});
+
+/**
+ * The two session endpoints ADR-012 added, and the reason neither is throttled.
+ *
+ * §Rate limits budgets seven endpoint groups and refresh is in none of them, so there is no
+ * documented policy to transcribe. Attaching login's 5-per-15-minutes would cap a legitimate
+ * session at five renewals per quarter hour across every tab a user has open — a limit on ordinary
+ * use rather than on abuse — and inventing a separate budget would be inventing contract. Neither
+ * endpoint is a guessing surface the way login is: there is no account to enumerate and no password
+ * to try, only a 256-bit random value that request volume does not bring within reach.
+ *
+ * Asserted rather than described, because "we chose not to" and "we forgot" look identical in a
+ * diff, and because attaching a guard here would silently narrow the two form endpoints too.
+ */
+describe("the session endpoints are outside both budgets", () => {
+  const handlerGuards = (handler: unknown): unknown[] =>
+    (Reflect.getMetadata("__guards__", handler as object) as unknown[] | undefined) ?? [];
+
+  it.each([
+    ["refresh", AuthController.prototype.refresh],
+    ["logout", AuthController.prototype.logout],
+  ])("POST /auth/%s carries no throttler", (_name, handler) => {
+    expect(handlerGuards(handler)).not.toContain(ThrottlerGuard);
+  });
+
+  it("leaves the login limit where it is — on login alone", () => {
+    expect(handlerGuards(AuthController.prototype.login)).toContain(ThrottlerGuard);
+  });
+
+  /**
+   * The class-level skip still applies to every handler on the controller, so neither new endpoint
+   * can reach the forms bucket even if a throttler were attached to it later.
+   */
+  it("keeps the whole auth controller out of the forms bucket", () => {
+    // `@SkipThrottle({ forms: true })` writes one key per throttler name, `THROTTLER:SKIP` with the
+    // name appended — read from the library's own constant rather than restated, so a rename
+    // upstream breaks this test instead of silently making it vacuous.
+    const skipped = Reflect.getMetadata(
+      `${THROTTLER_SKIP}${FORMS_THROTTLER_NAME}`,
+      AuthController,
+    ) as boolean | undefined;
+
+    expect(skipped).toBe(true);
   });
 });
