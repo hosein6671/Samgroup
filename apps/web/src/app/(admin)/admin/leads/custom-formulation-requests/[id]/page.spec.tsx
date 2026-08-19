@@ -14,17 +14,28 @@ import type { ReactNode } from "react";
  * rule they share is the one thing about them worth a duplicate assertion.
  */
 
-const { readAdminSession, resolveAdminAccess } = vi.hoisted(() => ({
-  readAdminSession: vi.fn(),
-  resolveAdminAccess: vi.fn(),
-}));
+const { readAdminSession, resolveAdminAccess, getAdminAccessToken, getLeadHistory } = vi.hoisted(
+  () => ({
+    readAdminSession: vi.fn(),
+    resolveAdminAccess: vi.fn(),
+    getAdminAccessToken: vi.fn(),
+    getLeadHistory: vi.fn(),
+  }),
+);
 const { getAdminCustomFormulationRequest } = vi.hoisted(() => ({
   getAdminCustomFormulationRequest: vi.fn(),
 }));
 const { signOut } = vi.hoisted(() => ({ signOut: vi.fn() }));
 
-vi.mock("@/features/admin/session/session", () => ({ readAdminSession, resolveAdminAccess }));
-vi.mock("@/features/admin/leads/leads-api", () => ({ getAdminCustomFormulationRequest }));
+vi.mock("@/features/admin/session/session", () => ({
+  readAdminSession,
+  resolveAdminAccess,
+  getAdminAccessToken,
+}));
+vi.mock("@/features/admin/leads/leads-api", () => ({
+  getAdminCustomFormulationRequest,
+  getLeadHistory,
+}));
 vi.mock("@/features/admin/actions", () => ({ signOut }));
 
 class RedirectSignal extends Error {
@@ -51,6 +62,7 @@ const DETAIL = {
   email: "ada@example.com",
   productOrApplication: "High-temperature chain oil",
   status: "new",
+  assigneeId: null,
   phone: null,
   requiredSpecifications: "ISO VG 220, drop point above 250 C",
   estimatedQuantity: null,
@@ -67,6 +79,12 @@ async function render(id = ID): Promise<ReactNode> {
 }
 
 beforeEach(() => {
+  /*
+   * The Workflow panel's two reads. A null token is the "no assignee directory" path — the panel
+   * still renders — and an empty history is the normal state of a lead nobody has touched.
+   */
+  getAdminAccessToken.mockResolvedValue(null);
+  getLeadHistory.mockResolvedValue({ state: "ok", value: [] });
   readAdminSession.mockResolvedValue({ state: "authenticated", user: ADMIN });
   resolveAdminAccess.mockReturnValue({ state: "authorized", user: ADMIN });
   getAdminCustomFormulationRequest.mockResolvedValue({ state: "ok", value: DETAIL });

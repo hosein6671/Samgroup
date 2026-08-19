@@ -128,6 +128,20 @@ const TEXT_PAIRS: [where: string, foreground: string, background: string][] = [
   ["submit button hovered", "--color-text-on-accent", "--color-accent-hover"],
   ["sign out (.ad-signout)", "--color-text-secondary", "--color-surface-sunken"],
   ["module nav link (.ad-nav-link)", "--color-text-primary", "--color-surface-raised"],
+  ["workflow status/assignee value", "--color-text-primary", "--color-surface-raised"],
+  ["workflow select text (.ad-select)", "--color-text-primary", "--color-surface-canvas"],
+  ["workflow submit (.ad-workflow-submit)", "--color-text-on-accent", "--color-accent-default"],
+  ["workflow feedback (.ad-feedback)", "--color-text-secondary", "--color-surface-raised"],
+  ["workflow failure (.ad-feedback--bad)", "--color-text-primary", "--color-surface-raised"],
+  ["history entry (.ad-history-what)", "--color-text-primary", "--color-surface-raised"],
+  ["history actor/time (.ad-history-meta)", "--color-text-secondary", "--color-surface-raised"],
+  ["history note (.ad-history-note)", "--color-text-secondary", "--color-surface-raised"],
+  ["history heading (.ad-history-title)", "--color-text-tertiary", "--color-surface-raised"],
+  [
+    "disabled-assignee mark (.ad-inactive-mark)",
+    "--color-text-secondary",
+    "--color-surface-raised",
+  ],
 ];
 
 /**
@@ -145,6 +159,9 @@ const COMPONENT_PAIRS: [where: string, foreground: string, background: string][]
   ["filter chip boundary", "--color-border-strong", "--color-surface-sunken"],
   ["selected chip boundary", "--color-border-accent", "--color-surface-sunken"],
   ["pager step boundary", "--color-border-strong", "--color-surface-sunken"],
+  ["workflow select boundary", "--color-border-strong", "--color-surface-canvas"],
+  ["invalid select boundary", "--color-border-accent", "--color-surface-canvas"],
+  ["history entry rule (.ad-history-item)", "--color-border-strong", "--color-surface-raised"],
   ["focus ring on the shell", "--color-focus-ring", "--color-surface-sunken"],
   ["focus ring on a panel", "--color-focus-ring", "--color-surface-raised"],
   ["focus ring on an inset row", "--color-focus-ring", "--color-surface-inset"],

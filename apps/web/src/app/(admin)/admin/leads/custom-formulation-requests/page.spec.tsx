@@ -50,6 +50,7 @@ const REQUEST = {
   email: "ada@example.com",
   productOrApplication: "High-temperature chain oil",
   status: "new",
+  assigneeId: null,
 };
 
 async function render(searchParams: Record<string, string> = {}): Promise<ReactNode> {

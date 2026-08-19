@@ -179,6 +179,8 @@ const ADMIN_FORMULATION_LIST_SELECT = {
   email: true,
   productOrApplication: true,
   status: true,
+  /** The current owner — see the note on the inquiry list select. */
+  assignedToId: true,
 } as const satisfies Prisma.CustomFormulationRequestSelect;
 
 /**
@@ -214,5 +216,6 @@ function toAdminFormulationListItem(
     email: row.email,
     productOrApplication: row.productOrApplication,
     status: row.status,
+    assigneeId: row.assignedToId,
   };
 }

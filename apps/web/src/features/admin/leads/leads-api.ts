@@ -1,6 +1,6 @@
 import "server-only";
 
-import { apiGet } from "@/lib/api-client";
+import { apiGet, apiPatch } from "@/lib/api-client";
 
 import { getAdminAccessToken } from "../session/session";
 
@@ -11,6 +11,9 @@ import type {
   AdminInquiryDetailResponse,
   AdminInquiryListItemResponse,
   AdminInquiryType,
+  LeadHistoryEntry,
+  LeadStatus,
+  LeadWorkflowState,
 } from "@sam-group/types";
 
 /**
@@ -210,4 +213,96 @@ export async function getAdminCustomFormulationRequest(
   );
 
   return result.state === "ok" ? { state: "ok", value: result.value.data } : result;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Workflow — history reads, and the two mutations                           */
+/* -------------------------------------------------------------------------- */
+
+const CONFLICT = 409;
+const BAD_REQUEST = 400;
+
+/**
+ * What a workflow mutation produced.
+ *
+ * `conflict` is the branch this whole gate turns on: it means the API refused the write because
+ * the lead moved under the operator, and it is neither an error in what they asked for nor a
+ * problem with their session. Folding it into `unavailable` would tell them to try again later
+ * when the correct advice is to reload and look at the new state; folding it into `invalid` would
+ * blame their input for someone else's edit.
+ */
+export type LeadMutationResult =
+  | { readonly state: "ok"; readonly value: LeadWorkflowState }
+  | { readonly state: "unauthenticated" }
+  | { readonly state: "forbidden" }
+  | { readonly state: "not-found" }
+  | { readonly state: "conflict" }
+  | { readonly state: "invalid"; readonly issue: string | null }
+  | { readonly state: "unavailable" };
+
+/**
+ * One authenticated PATCH, mapped onto the mutation taxonomy.
+ *
+ * **Not retried, ever.** A workflow mutation is compare-and-set: a retry after a timeout would
+ * carry a `from` that may already have been consumed by the first attempt, and the second attempt
+ * would report a conflict for a change that actually succeeded. The operator reloads and decides.
+ */
+async function mutateAdmin(path: string, body: unknown): Promise<LeadMutationResult> {
+  const accessToken = await getAdminAccessToken();
+
+  if (accessToken === null) {
+    return { state: "unauthenticated" };
+  }
+
+  const result = await apiPatch<LeadWorkflowState>(path, body, { accessToken });
+
+  if (result.ok) {
+    return { state: "ok", value: result.data };
+  }
+
+  if (result.reason === "http") {
+    if (result.status === UNAUTHORIZED) return { state: "unauthenticated" };
+    if (result.status === FORBIDDEN) return { state: "forbidden" };
+    if (result.status === NOT_FOUND) return { state: "not-found" };
+    if (result.status === CONFLICT) return { state: "conflict" };
+
+    if (result.status === BAD_REQUEST) {
+      // The API's field-level issue, when it gave one. It is API-authored text about the request
+      // shape — never a lead value and never a staff identity — so it is safe to surface.
+      return { state: "invalid", issue: result.details?.[0]?.issue ?? null };
+    }
+  }
+
+  reportFailure(path, result);
+
+  return { state: "unavailable" };
+}
+
+export async function getLeadHistory(
+  kind: "inquiries" | "custom-formulation-requests",
+  id: string,
+): Promise<LeadReadResult<readonly LeadHistoryEntry[]>> {
+  const result = await readAdmin<LeadHistoryEntry[]>(
+    `/admin/${kind}/${encodeURIComponent(id)}/history`,
+  );
+
+  return result.state === "ok" ? { state: "ok", value: result.value.data } : result;
+}
+
+/** `PATCH /admin/{kind}/:id/status` — `from` is the compare-and-set predicate, not decoration. */
+export async function changeLeadStatus(
+  kind: "inquiries" | "custom-formulation-requests",
+  id: string,
+  body: { from: LeadStatus; to: LeadStatus; note?: string },
+): Promise<LeadMutationResult> {
+  return mutateAdmin(`/admin/${kind}/${encodeURIComponent(id)}/status`, body);
+}
+
+/** `PATCH /admin/{kind}/:id/assignment` — Admin only; NestJS refuses anyone else. */
+export async function changeLeadAssignment(
+  kind: "inquiries" | "custom-formulation-requests",
+  id: string,
+  body: { fromAssigneeId: string | null; assigneeId: string | null },
+): Promise<LeadMutationResult> {
+  return mutateAdmin(`/admin/${kind}/${encodeURIComponent(id)}/assignment`, body);
 }

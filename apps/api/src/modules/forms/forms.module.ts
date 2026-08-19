@@ -11,6 +11,11 @@ import { CustomFormulationRequestsService } from "./custom-formulation-requests.
 import { InquiriesController } from "./inquiries.controller";
 import { InquiriesService } from "./inquiries.service";
 import { LeadNotificationService } from "./notification/lead-notification.service";
+import {
+  AdminCustomFormulationWorkflowController,
+  AdminInquiryWorkflowController,
+} from "./workflow/lead-workflow.controller";
+import { LeadWorkflowService } from "./workflow/lead-workflow.service";
 import { SmtpMailer } from "./notification/smtp.mailer";
 
 /**
@@ -83,11 +88,14 @@ import { SmtpMailer } from "./notification/smtp.mailer";
     CustomFormulationRequestsController,
     AdminInquiriesController,
     AdminCustomFormulationRequestsController,
+    AdminInquiryWorkflowController,
+    AdminCustomFormulationWorkflowController,
   ],
   providers: [
     InquiriesService,
     CustomFormulationRequestsService,
     LeadNotificationService,
+    LeadWorkflowService,
     SmtpMailer,
   ],
 })

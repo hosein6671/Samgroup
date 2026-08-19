@@ -196,6 +196,9 @@ model User {
   downloadRequestsAssigned        DownloadRequest[]
   blogPosts                       BlogPost[]
   statusChanges                   StatusHistory[]
+  assignmentChangesMade           LeadAssignmentHistory[]    @relation("AssignmentHistoryActor")
+  assignmentsHandedOver           LeadAssignmentHistory[]    @relation("AssignmentHistoryFrom")
+  assignmentsReceived             LeadAssignmentHistory[]    @relation("AssignmentHistoryTo")
 
   @@index([organizationId])
   @@map("users")
@@ -574,6 +577,22 @@ model Inquiry {
   /// any update where the value IS DISTINCT FROM the stored one is rejected,
   /// NULL to a revision included. Every other column stays updateable.
   privacyPolicyVersion   String?     @map("privacy_policy_version")
+  /// The lead's workflow state — one of exactly `new`, `in_progress`, `closed`.
+  ///
+  /// **Constrained by a database CHECK that Prisma does not model** (migration
+  /// 20260820120000_add_lead_workflow): the column stays `String` rather than becoming a
+  /// PostgreSQL enum, because a three-value vocabulary does not justify the cost of
+  /// ALTER TYPE on every future change, and the CHECK gives the same integrity. Application
+  /// validation exists as well, for message quality — the constraint is the authority.
+  ///
+  /// `new` = accepted and persisted, no work begun. `in_progress` = work has begun.
+  /// `closed` = no further work intended, and **reopenable** to `in_progress`. Ownership is
+  /// NOT a status: who holds the lead is `assignedToId`, which is why there is no
+  /// `assigned` member here to disagree with it.
+  ///
+  /// Transitions are enforced in the Forms module and recorded in `StatusHistory`. The
+  /// CHECK constrains the vocabulary, not the graph — a database constraint cannot see the
+  /// previous value, so `closed → new` is refused by the service, not by Postgres.
   status                 String
   createdAt              DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -631,6 +650,22 @@ model CustomFormulationRequest {
   /// any update where the value IS DISTINCT FROM the stored one is rejected,
   /// NULL to a revision included. Every other column stays updateable.
   privacyPolicyVersion   String?  @map("privacy_policy_version")
+  /// The lead's workflow state — one of exactly `new`, `in_progress`, `closed`.
+  ///
+  /// **Constrained by a database CHECK that Prisma does not model** (migration
+  /// 20260820120000_add_lead_workflow): the column stays `String` rather than becoming a
+  /// PostgreSQL enum, because a three-value vocabulary does not justify the cost of
+  /// ALTER TYPE on every future change, and the CHECK gives the same integrity. Application
+  /// validation exists as well, for message quality — the constraint is the authority.
+  ///
+  /// `new` = accepted and persisted, no work begun. `in_progress` = work has begun.
+  /// `closed` = no further work intended, and **reopenable** to `in_progress`. Ownership is
+  /// NOT a status: who holds the lead is `assignedToId`, which is why there is no
+  /// `assigned` member here to disagree with it.
+  ///
+  /// Transitions are enforced in the Forms module and recorded in `StatusHistory`. The
+  /// CHECK constrains the vocabulary, not the graph — a database constraint cannot see the
+  /// previous value, so `closed → new` is refused by the service, not by Postgres.
   status                 String
   createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -864,6 +899,22 @@ model StatusHistory {
   fromStatus  String?  @map("from_status")
   toStatus    String   @map("to_status")
   changedById String?  @map("changed_by_id") @db.Uuid
+  /// Who acted, as text, captured at write time — and never updated afterwards.
+  ///
+  /// `changedById` is `ON DELETE SET NULL`, and deleting a `User` row is this platform's
+  /// strongest credential revocation (ADR-012 §7) rather than an exceptional event. Without
+  /// this column, off-boarding a member of staff silently anonymises every audit row they
+  /// ever wrote — the trail survives and stops naming anyone. Measured, not theorised: a
+  /// DELETE against a user with history leaves the row in place with a NULL actor.
+  ///
+  /// So the FK keeps the live link while it exists, and this keeps the record true after it
+  /// does not. Email is the whole snapshot: it is already the human-readable operator
+  /// identity everywhere in this application, and no password, token, role or profile field
+  /// belongs in an audit row.
+  ///
+  /// Nullable because rows written before this column existed have nothing to record, and
+  /// because a future system actor may have no email at all.
+  changedByEmailSnapshot String? @map("changed_by_email_snapshot")
   changedAt   DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
   note        String?
 
@@ -873,4 +924,61 @@ model StatusHistory {
   @@index([changedById])
   @@index([changedAt])
   @@map("status_history")
+}
+
+/// Who owned a lead, and who changed that — the assignment counterpart to `StatusHistory`.
+///
+/// ── Why this is a separate table and not more columns on `StatusHistory` ────
+///
+/// `StatusHistory.toStatus` is NOT NULL, so an assignment-only row cannot be written there
+/// without making a shipped column nullable — on a **polymorphic table `ContentTranslation`
+/// also uses**. Widening it would push lead-specific assignee columns onto a translation
+/// audit trail and change the meaning of a table two unrelated features depend on. One
+/// narrow table is the smaller change, and it leaves `StatusHistory` exactly as documented.
+///
+/// ── Polymorphic in the same shape, and for the same reason ──────────────────
+///
+/// `entityType`/`entityId` with no foreign key to the parent, matching `StatusHistory`,
+/// `SeoMeta` and `Specification`: one table cannot hold an FK to two different parents.
+/// `entityType` is `Inquiry` or `CustomFormulationRequest` and nothing else — the two lead
+/// kinds with an assignment surface. `DistributorApplication` and `DownloadRequest` carry
+/// `assignedToId` too and will reuse this table when they get endpoints; no schema change
+/// will be needed for them.
+///
+/// ── Both ends of the handover are snapshotted ───────────────────────────────
+///
+/// An A → B reassignment must stay readable when either A or B is later deleted, so the
+/// previous owner, the new owner and the actor are each recorded as an id **and** as text.
+/// See `StatusHistory.changedByEmailSnapshot` for why the FK alone is not enough.
+///
+/// A cleared assignment is `toAssigneeId = NULL` with a NULL snapshot — the absence is the
+/// record, and there is no sentinel value for it.
+model LeadAssignmentHistory {
+  id         String @id @default(uuid()) @db.Uuid
+  entityType String @map("entity_type")
+  entityId   String @map("entity_id") @db.Uuid
+
+  /// The owner before this change. NULL means the lead was unassigned.
+  fromAssigneeId            String? @map("from_assignee_id") @db.Uuid
+  fromAssigneeEmailSnapshot String? @map("from_assignee_email_snapshot")
+
+  /// The owner after this change. NULL means the assignment was cleared.
+  toAssigneeId            String? @map("to_assignee_id") @db.Uuid
+  toAssigneeEmailSnapshot String? @map("to_assignee_email_snapshot")
+
+  /// The Admin who performed the change. Only Admin may assign.
+  changedById            String? @map("changed_by_id") @db.Uuid
+  changedByEmailSnapshot String? @map("changed_by_email_snapshot")
+
+  changedAt DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+  note      String?
+
+  fromAssignee User? @relation("AssignmentHistoryFrom", fields: [fromAssigneeId], references: [id], onDelete: SetNull)
+  toAssignee   User? @relation("AssignmentHistoryTo", fields: [toAssigneeId], references: [id], onDelete: SetNull)
+  changedBy    User? @relation("AssignmentHistoryActor", fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([changedById])
+  @@index([changedAt])
+  @@map("lead_assignment_history")
 }

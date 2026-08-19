@@ -57,6 +57,7 @@ const INQUIRY = {
   email: "ada@example.com",
   relatedProductId: null,
   status: "new",
+  assigneeId: null,
 };
 
 const INQUIRY_DETAIL = {
@@ -81,6 +82,7 @@ const REQUEST = {
   email: "ada@example.com",
   productOrApplication: "High-temperature chain oil",
   status: "new",
+  assigneeId: null,
 };
 
 const REQUEST_DETAIL = {
@@ -251,7 +253,16 @@ describe("the inbox table", () => {
       .filter((header) => header.props.scope === "col")
       .map((header) => visibleTextOf(header.props.children as ReactNode));
 
-    expect(columns).toEqual(["Submitted", "Type", "Name", "Company", "Country", "Email", "Status"]);
+    expect(columns).toEqual([
+      "Submitted",
+      "Type",
+      "Name",
+      "Company",
+      "Country",
+      "Email",
+      "Status",
+      "Assigned",
+    ]);
   });
 
   it("makes the name cell the row header, so cells are announced with their row", () => {

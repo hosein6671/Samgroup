@@ -272,6 +272,16 @@ const ADMIN_INQUIRY_LIST_SELECT = {
   email: true,
   relatedProductId: true,
   status: true,
+  /*
+   * The current owner. Added by the workflow gate (ADR-013): the Admin detail view renders who
+   * holds the lead, and the assignment control sends this value back as its compare-and-set
+   * predicate — a client that could not read it could not safely change it.
+   *
+   * Served as an **id**, not a name. Resolving it would mean Forms reading `users`, which the
+   * module boundary forbids; the Admin surface resolves ids to people through the Admin-only
+   * `GET /admin/users` it already has. It is not a filter and no list endpoint accepts it.
+   */
+  assignedToId: true,
 } as const satisfies Prisma.InquirySelect;
 
 /** The detail projection — the list's columns plus the submission body. */
@@ -306,5 +316,6 @@ function toAdminInquiryListItem(row: AdminInquiryListRow): AdminInquiryListItemR
     email: row.email,
     relatedProductId: row.relatedProductId,
     status: row.status,
+    assigneeId: row.assignedToId,
   };
 }

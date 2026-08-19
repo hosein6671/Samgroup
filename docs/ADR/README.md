@@ -16,6 +16,7 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-010](./ADR-010-products-slug-namespace-and-collision-policy.md) | Product Family and Product Detail share one `products/` slug namespace; Family precedence, reserved slugs, and a symmetric collision rule | Accepted |
 | [ADR-011](./ADR-011-products-slug-namespace-enforcement.md)          | A shared, database-maintained slug claim registry enforces that namespace; ADR-010 §6's mechanism deferral is closed                      | Accepted |
 | [ADR-012](./ADR-012-application-session-and-account-status.md)       | Refresh sessions in `sam_platform` with rotation; `active`/`disabled` account status; `apps/web` owns the browser cookie                  | Accepted |
+| [ADR-013](./ADR-013-lead-assignment-and-status-workflow.md)          | Lead assignment and status workflow                                                                                                       | Accepted | 20 August 2026 |
 
 These twelve, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 

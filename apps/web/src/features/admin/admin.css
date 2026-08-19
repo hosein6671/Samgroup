@@ -664,3 +664,157 @@
   display: inline-block;
   padding-block: 4px;
 }
+
+/* ── Lead workflow ─────────────────────────────────────────────────────────
+ *
+ * Every colour resolves to a token, and every interactive boundary uses
+ * `--color-border-strong` for the same WCAG 2.2 §1.4.11 reason the inputs do:
+ * the hairline is 1.1:1 against these surfaces and is not a perceivable edge.
+ * No animation is introduced here.
+ */
+
+.ad-workflow-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  margin: 20px 0 0;
+}
+
+.ad-workflow-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  min-width: 260px;
+}
+
+/* The label sits on its own line above the control, so a 200% zoom or a narrow
+ * viewport never puts a label and its field on opposite sides of a wrap. */
+.ad-workflow-form .ad-label {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.ad-select {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+  background: var(--color-surface-canvas);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.ad-select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* A field the live region has reported a problem for. The border is a second
+ * signal beside the message — never the only one, since a border colour alone
+ * would not reach a screen reader or survive a monochrome display. */
+.ad-select[aria-invalid="true"] {
+  border-color: var(--color-text-accent);
+  border-width: 2px;
+}
+
+.ad-workflow-submit {
+  min-height: 40px;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--color-text-on-accent);
+  background: var(--color-accent-default);
+  border: 1px solid var(--color-accent-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.ad-workflow-submit:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.ad-workflow-submit:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.ad-workflow-submit:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* The live region. It takes the full row so an announcement never squeezes the
+ * control it describes off the line. */
+.ad-feedback {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-secondary);
+}
+
+.ad-feedback--bad {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* "account disabled" beside an assignee — a phrase, not a dot. */
+.ad-inactive-mark {
+  color: var(--color-text-secondary);
+}
+
+.ad-history {
+  margin: 24px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.ad-history-title {
+  margin: 0 0 12px;
+  font-size: var(--text-technical);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.ad-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ad-history-item {
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--color-border-strong);
+}
+
+.ad-history-what {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+
+.ad-history-meta {
+  margin: 2px 0 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.ad-history-note {
+  margin: 6px 0 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+}
+
+.ad-cell-assigned {
+  white-space: nowrap;
+}

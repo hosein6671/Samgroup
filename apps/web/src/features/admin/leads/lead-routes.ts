@@ -47,3 +47,17 @@ export function inquiryDetailPath(id: string): string {
 export function customFormulationRequestDetailPath(id: string): string {
   return `${CUSTOM_FORMULATION_REQUESTS_PATH}/${encodeURIComponent(id)}`;
 }
+
+/**
+ * The two lead sections, keyed by the URL segment the API and the frontend share.
+ *
+ * One vocabulary for both tiers: the same string is the API path segment
+ * (`/admin/inquiries`) and the frontend section (`/admin/leads/inquiries`), so a workflow action
+ * carrying a section can build both without a translation table that could disagree with itself.
+ */
+export type LeadSectionKey = "inquiries" | "custom-formulation-requests";
+
+export const LEAD_SECTION_PATH: Readonly<Record<LeadSectionKey, string>> = {
+  inquiries: INQUIRIES_PATH,
+  "custom-formulation-requests": CUSTOM_FORMULATION_REQUESTS_PATH,
+};

@@ -10,6 +10,8 @@ import {
 import { InquiryDetail } from "@/features/admin/leads/inquiry-views";
 import { INQUIRIES_PATH } from "@/features/admin/leads/lead-routes";
 import { getAdminInquiry } from "@/features/admin/leads/leads-api";
+import { resolveWorkflowPanel } from "@/features/admin/leads/resolve-workflow";
+import { WorkflowPanel } from "@/features/admin/leads/workflow-panel";
 import { requireAdminAccess } from "@/features/admin/session/require-admin";
 
 import type { Metadata } from "next";
@@ -73,8 +75,38 @@ export default async function AdminInquiryDetailPage({
     redirect(SESSION_END_PATH);
   }
 
+  /*
+   * The Workflow section is assembled only once the lead itself resolved. Fetching it for a lead
+   * that answered 404 or an outage would be a request for a record the caller cannot have, and the
+   * page renders the lead's own failure state instead.
+   */
+  const workflow =
+    result.state === "ok"
+      ? await resolveWorkflowPanel({
+          section: "inquiries",
+          id: result.value.id,
+          user: access.user,
+          status: result.value.status,
+          assigneeId: result.value.assigneeId,
+        })
+      : null;
+
   return (
     <InboxFrame title="Inquiry" user={access.user} section="inquiries">
+      {result.state === "ok" && workflow !== null ? (
+        <WorkflowPanel
+          section={workflow.section}
+          id={result.value.id}
+          status={workflow.status}
+          assigneeId={workflow.assigneeId}
+          assigneeLabel={workflow.assigneeLabel}
+          assigneeIsInactive={workflow.assigneeIsInactive}
+          canAssign={workflow.canAssign}
+          canChangeStatus={workflow.canChangeStatus}
+          assigneeOptions={workflow.assigneeOptions}
+          history={workflow.history}
+        />
+      ) : null}
       {result.state === "ok" ? <InquiryDetail inquiry={result.value} /> : null}
       {result.state === "forbidden" ? <InboxForbidden /> : null}
       {result.state === "unavailable" ? <InboxUnavailable /> : null}

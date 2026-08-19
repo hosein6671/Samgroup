@@ -280,11 +280,19 @@ describe("InquiriesService.findAllForAdmin", () => {
         "lastName",
         "relatedProductId",
         "status",
+        "assignedToId",
       ].sort(),
     );
   });
 
-  it("never selects userId, assignedToId or attachmentMediaId", async () => {
+  /**
+   * `assignedToId` left this list when the workflow gate published it as `assigneeId`: the detail
+   * view renders the owner and the assignment control sends the value back as its compare-and-set
+   * predicate, so withholding it would make a safe write impossible (ADR-013). The other two stay
+   * out — `userId` is structurally NULL on every row, and `attachmentMediaId` is a handle to an
+   * object store with no read route behind it.
+   */
+  it("never selects userId or attachmentMediaId", async () => {
     const { service, findMany, findFirst } = await inquiryHarness();
 
     await service.findAllForAdmin({}, NO_SCOPE);
@@ -292,9 +300,19 @@ describe("InquiriesService.findAllForAdmin", () => {
 
     for (const call of [findMany.mock.calls[0][0], findFirst.mock.calls[0][0]]) {
       expect(call.select).not.toHaveProperty("userId");
-      expect(call.select).not.toHaveProperty("assignedToId");
       expect(call.select).not.toHaveProperty("attachmentMediaId");
     }
+  });
+
+  it("publishes the owner as assigneeId, an id rather than a name", async () => {
+    const { service, findMany } = await inquiryHarness();
+
+    const { rows } = await service.findAllForAdmin({}, NO_SCOPE);
+
+    expect(findMany.mock.calls[0][0].select).toHaveProperty("assignedToId", true);
+    expect(rows[0]).toHaveProperty("assigneeId");
+    // An id, never resolved to an email or a name — Forms cannot read `users`.
+    expect(rows[0]).not.toHaveProperty("assigneeEmail");
   });
 
   it("renders createdAt as ISO 8601 and inquiryType as its wire value", async () => {
@@ -434,6 +452,7 @@ describe("CustomFormulationRequestsService.findAllForAdmin", () => {
         "industry",
         "productOrApplication",
         "status",
+        "assignedToId",
       ].sort(),
     );
   });

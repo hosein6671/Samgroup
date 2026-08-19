@@ -8,11 +8,13 @@ import {
   SubmittedAt,
 } from "./lead-fields";
 import { customFormulationRequestDetailPath } from "./lead-routes";
+import { statusLabel } from "./workflow-vocabulary";
 
 import type {
   AdminCustomFormulationRequestDetailResponse,
   AdminCustomFormulationRequestListItemResponse,
 } from "@sam-group/types";
+import type { LeadStatus } from "@sam-group/types";
 import type { ReactNode } from "react";
 
 /**
@@ -61,6 +63,7 @@ export function FormulationTable({
             <th scope="col">Country</th>
             <th scope="col">Email</th>
             <th scope="col">Status</th>
+            <th scope="col">Assigned</th>
           </tr>
         </thead>
         <tbody>
@@ -79,7 +82,13 @@ export function FormulationTable({
               <td>{item.industry}</td>
               <td>{item.country}</td>
               <td className="ad-cell-email">{item.email}</td>
-              <td className="ad-cell-status">{item.status}</td>
+              <td className="ad-cell-status">{statusLabel(item.status)}</td>
+              {/*
+               * Whether the lead has an owner, as a word. The owner's *name* is not resolved here:
+               * a list render would need a staff read per page to do it, and an inbox is scanned
+               * for "is anyone on this?" rather than for who. The detail view names the person.
+               */}
+              <td className="ad-cell-assigned">{item.assigneeId === null ? "No" : "Yes"}</td>
             </tr>
           ))}
         </tbody>
@@ -98,7 +107,6 @@ export function FormulationDetail({
     <div className="ad-detail">
       <DetailGroup title="Submission">
         <DetailTimeField label="Received" iso={request.createdAt} />
-        <DetailField label="Status" value={request.status} />
         <DetailField label="Reference" value={request.id} />
       </DetailGroup>
 

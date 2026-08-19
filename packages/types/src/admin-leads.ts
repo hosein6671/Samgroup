@@ -52,6 +52,7 @@ export type AdminInquiryListItemResponse = {
   /** The product whose CTA produced the submission, as an id — never a resolved name. */
   relatedProductId: string | null;
   status: string;
+  assigneeId: string | null;
 };
 
 export type AdminInquiryDetailResponse = AdminInquiryListItemResponse & {
@@ -76,6 +77,7 @@ export type AdminCustomFormulationRequestListItemResponse = {
   email: string;
   productOrApplication: string;
   status: string;
+  assigneeId: string | null;
 };
 
 export type AdminCustomFormulationRequestDetailResponse =
@@ -90,3 +92,47 @@ export type AdminCustomFormulationRequestDetailResponse =
     consentGiven: boolean;
     privacyPolicyVersion: string | null;
   };
+
+/**
+ * The workflow vocabulary, as it appears on the wire — ADR-013.
+ *
+ * Three values and no more. `assigned` is deliberately absent: ownership is `assigneeId`, and a
+ * status member saying the same thing would be a second source of truth able to disagree with the
+ * first. Transitions are the server's to enforce; this type only names the states.
+ */
+export type LeadStatus = "new" | "in_progress" | "closed";
+
+/** What a workflow mutation answers with — the authoritative post-state, and nothing else. */
+export type LeadWorkflowState = {
+  status: LeadStatus;
+  assigneeId: string | null;
+};
+
+/**
+ * One entry of a lead's combined history, newest first.
+ *
+ * **Identity is carried as an email snapshot, never as a user id.** The snapshot is written at
+ * mutation time and never updated, so it still names a person after their account is deleted —
+ * which is the whole reason the column exists. `null` means the row predates the snapshot columns
+ * or the actor was a system with no address; it never means "hidden".
+ */
+export type LeadHistoryEntry =
+  | {
+      kind: "status";
+      /** ISO 8601, server clock. */
+      at: string;
+      actorEmail: string | null;
+      fromStatus: string | null;
+      toStatus: string;
+      note: string | null;
+    }
+  | {
+      kind: "assignment";
+      at: string;
+      actorEmail: string | null;
+      /** `null` on the first assignment — there was no previous owner. */
+      fromAssigneeEmail: string | null;
+      /** `null` when the assignment was cleared. */
+      toAssigneeEmail: string | null;
+      note: string | null;
+    };

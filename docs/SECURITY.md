@@ -107,6 +107,19 @@ This matrix is the source of truth for RBAC guards in NestJS. Update it whenever
 
 **On the Job Applications column: Admin-only, deliberately.** CVs and cover letters are the most sensitive personal data the platform holds, and a job application is not a sales lead. Routing it into a Sales Expert's queue would expose applicant personal data to a team with no business need for it — so Sales Expert and Content Manager both get **none**, not read. This is why `JobApplication` carries no `assignedToId` in [DATA_MODEL.md](./DATA_MODEL.md), unlike every other submission entity. If a dedicated HR/Recruiter role is introduced later, it gets its own row here rather than widening any existing one.
 
+**The lead workflow makes that row operational** ([ADR-013](./ADR/ADR-013-lead-assignment-and-status-workflow.md)). Within it:
+
+| Capability                | Admin       | Content Manager | Sales Expert             | Customer |
+| ------------------------- | ----------- | --------------- | ------------------------ | -------- |
+| read lead                 | all         | all             | **own assigned only**    | none     |
+| assign · reassign · clear | ✅          | ❌              | ❌                       | ❌       |
+| change status · reopen    | ✅ any lead | ❌              | ✅ **own assigned only** | ❌       |
+| read history              | ✅          | **❌**          | ✅ own                   | ❌       |
+
+Three things worth stating rather than inferring. **Only Admin assigns**, and only to an **active Sales Expert** — Admin is not itself an eligible assignee under the single-role model. **A Sales Expert may not reassign**, including away from themselves: working a lead and redistributing ownership are different acts. And **Content Manager is excluded from history** even though they may read leads, because history records which member of staff did what and when — employee activity data rather than lead data.
+
+Status is `new` · `in_progress` · `closed`, with `closed` reopenable to `in_progress` and never back to `new`. Every successful mutation writes one audit row in the same transaction as the change; a rejected one writes none. **Actor and assignee identity is snapshotted as text at write time** so the trail survives the physical `User` deletion [ADR-012](./ADR/ADR-012-application-session-and-account-status.md) keeps as the strongest revocation — the foreign keys remain `ON DELETE SET NULL` and were not weakened.
+
 **"Forms & Leads"** covers Inquiry (including Sample Requests), Custom Formulation Request, Distributor Application, and Download Request — the lead-bearing submissions Sales Expert works. Job Applications and Newsletter Subscriptions are deliberately excluded from that column.
 
 ---
@@ -325,6 +338,7 @@ Entities in scope, in rough order of sensitivity:
 
   **Deliberately not built:** no consent-history table — one immutable value per submission is the whole requirement; no index on the column — it is per-row audit evidence, not a query axis; and no `retentionExpiresAt`.
 
+- **Lead workflow history is now in scope, and its deletion behaviour is an open decision.** `StatusHistory` and `LeadAssignmentHistory` record which member of staff changed a lead and when — **employee** personal data, which this table did not previously have to consider — and they hold an email snapshot that deliberately outlives the `User` row. **Neither has a foreign key to its lead** (both are polymorphic), so nothing cascades: deleting a lead today would leave orphan history behind. Whichever gate implements lead deletion or a retention purge **must handle both tables in the same transaction, or under an approved rule that says why they survive** — it may not leave the behaviour to the absence of a constraint. No duration is invented here; the periods remain blocked on legal input with the rest of this section.
 - Deletion must be a real capability, not a manual database task — a data-subject deletion request has a legal response deadline.
 - A `retentionExpiresAt` field (or an equivalent scheduled purge) may be added to these entities once concrete periods exist; deliberately not added to [DATA_MODEL.md](./DATA_MODEL.md) yet, since guessing a period is worse than leaving the field out.
 

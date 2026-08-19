@@ -285,6 +285,29 @@ export async function apiPost<T>(
 }
 
 /**
+ * One PATCH against the API — the workflow mutations, issued only from Server Actions.
+ *
+ * Separate from `apiPost` because the verb is part of the contract rather than an implementation
+ * detail: `PATCH /admin/{leads}/:id/status` and `.../assignment` are narrow sub-resource commands
+ * (ADR-013), and a client that could reach them with POST would be reaching a route that does not
+ * exist. Everything else is `apiPost`'s — same origin, same timeout, same `no-store`, same failure
+ * taxonomy — so a 409 arrives as `{ reason: "http", status: 409 }` a caller already knows how to
+ * read, and `details` still carries the field-level issue behind a 400.
+ *
+ * **Not retried, and the reason is sharper here than for a POST.** These mutations are
+ * compare-and-set: a retry after a timeout would resend a `from` the first attempt may already
+ * have consumed, and the second attempt would report a conflict for a change that succeeded. The
+ * operator reloads and sees the truth.
+ */
+export async function apiPatch<T>(
+  path: string,
+  body: unknown,
+  options?: RequestOptions,
+): Promise<ApiResult<T>> {
+  return requestEnvelope<T>("PATCH", path, undefined, body, options);
+}
+
+/**
  * One POST against an endpoint contracted to answer **204 No Content**.
  *
  * Separate from `apiPost` rather than a flag on it, because the two disagree about what a valid
@@ -319,6 +342,9 @@ export async function apiPostNoContent(
   return { ok: true };
 }
 
+/** The verbs this client issues. No DELETE: nothing in `apps/web` deletes through the API. */
+type HttpMethod = "GET" | "POST" | "PATCH";
+
 /**
  * What one attempt at reaching the API produced, before anything is read from it.
  *
@@ -331,10 +357,10 @@ type Transport =
   | { readonly kind: "unreachable"; readonly detail: string };
 
 /** The request headers, assembled per call. `Authorization` appears only when a token was passed. */
-function composeHeaders(method: "GET" | "POST", options: RequestOptions | undefined): HeadersInit {
+function composeHeaders(method: HttpMethod, options: RequestOptions | undefined): HeadersInit {
   const headers: Record<string, string> = { accept: "application/json" };
 
-  if (method === "POST") {
+  if (method !== "GET") {
     headers["content-type"] = "application/json";
   }
 
@@ -351,7 +377,7 @@ function composeHeaders(method: "GET" | "POST", options: RequestOptions | undefi
 }
 
 async function send(
-  method: "GET" | "POST",
+  method: HttpMethod,
   path: string,
   query: Readonly<Record<string, string>> | undefined,
   body: unknown,
@@ -371,7 +397,7 @@ async function send(
       // must never be cached at all, so this is now load-bearing rather than merely explicit.
       cache: "no-store",
       headers: composeHeaders(method, options),
-      body: method === "POST" ? JSON.stringify(body) : undefined,
+      body: method === "GET" ? undefined : JSON.stringify(body),
       // Node 18+ and every runtime this app targets; it needs no AbortController plumbing.
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
@@ -394,7 +420,7 @@ async function readJsonBody(response: Response): Promise<unknown> {
 }
 
 async function requestEnvelope<T>(
-  method: "GET" | "POST",
+  method: HttpMethod,
   path: string,
   query: Readonly<Record<string, string>> | undefined,
   body: unknown,

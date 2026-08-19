@@ -15,15 +15,23 @@ import type { ReactNode } from "react";
  * is higher here: an operator told that a submission does not exist stops chasing it.
  */
 
-const { readAdminSession, resolveAdminAccess } = vi.hoisted(() => ({
-  readAdminSession: vi.fn(),
-  resolveAdminAccess: vi.fn(),
-}));
+const { readAdminSession, resolveAdminAccess, getAdminAccessToken, getLeadHistory } = vi.hoisted(
+  () => ({
+    readAdminSession: vi.fn(),
+    resolveAdminAccess: vi.fn(),
+    getAdminAccessToken: vi.fn(),
+    getLeadHistory: vi.fn(),
+  }),
+);
 const { getAdminInquiry } = vi.hoisted(() => ({ getAdminInquiry: vi.fn() }));
 const { signOut } = vi.hoisted(() => ({ signOut: vi.fn() }));
 
-vi.mock("@/features/admin/session/session", () => ({ readAdminSession, resolveAdminAccess }));
-vi.mock("@/features/admin/leads/leads-api", () => ({ getAdminInquiry }));
+vi.mock("@/features/admin/session/session", () => ({
+  readAdminSession,
+  resolveAdminAccess,
+  getAdminAccessToken,
+}));
+vi.mock("@/features/admin/leads/leads-api", () => ({ getAdminInquiry, getLeadHistory }));
 vi.mock("@/features/admin/actions", () => ({ signOut }));
 
 class RedirectSignal extends Error {
@@ -52,6 +60,7 @@ const DETAIL = {
   email: "ada@example.com",
   relatedProductId: null,
   status: "new",
+  assigneeId: null,
   phone: null,
   industry: "Manufacturing",
   productsOfInterest: ["Base oils"],
@@ -68,6 +77,12 @@ async function render(id = ID): Promise<ReactNode> {
 }
 
 beforeEach(() => {
+  /*
+   * The Workflow panel's two reads. A null token is the "no assignee directory" path — the panel
+   * still renders — and an empty history is the normal state of a lead nobody has touched.
+   */
+  getAdminAccessToken.mockResolvedValue(null);
+  getLeadHistory.mockResolvedValue({ state: "ok", value: [] });
   readAdminSession.mockResolvedValue({ state: "authenticated", user: ADMIN });
   resolveAdminAccess.mockReturnValue({ state: "authorized", user: ADMIN });
   getAdminInquiry.mockResolvedValue({ state: "ok", value: DETAIL });

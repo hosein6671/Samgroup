@@ -54,6 +54,7 @@ const INQUIRY = {
   email: "ada@example.com",
   relatedProductId: null,
   status: "new",
+  assigneeId: null,
 };
 
 async function render(searchParams: Record<string, string> = {}): Promise<ReactNode> {

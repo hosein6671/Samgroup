@@ -12,9 +12,11 @@ import {
 import { inboxFilterHref } from "./lead-query";
 import { INQUIRIES_PATH, inquiryDetailPath } from "./lead-routes";
 import { inquiryTypeLabel } from "./lead-vocabulary";
+import { statusLabel } from "./workflow-vocabulary";
 
 import type { InboxQuery } from "./lead-query";
 import type { AdminInquiryDetailResponse, AdminInquiryListItemResponse } from "@sam-group/types";
+import type { LeadStatus } from "@sam-group/types";
 import type { ReactNode } from "react";
 
 /**
@@ -120,6 +122,7 @@ export function InquiryTable({
             <th scope="col">Country</th>
             <th scope="col">Email</th>
             <th scope="col">Status</th>
+            <th scope="col">Assigned</th>
           </tr>
         </thead>
         <tbody>
@@ -138,7 +141,13 @@ export function InquiryTable({
               <td>{item.companyName}</td>
               <td>{item.country}</td>
               <td className="ad-cell-email">{item.email}</td>
-              <td className="ad-cell-status">{item.status}</td>
+              <td className="ad-cell-status">{statusLabel(item.status)}</td>
+              {/*
+               * Whether the lead has an owner, as a word. The owner's *name* is not resolved here:
+               * a list render would need a staff read per page to do it, and an inbox is scanned
+               * for "is anyone on this?" rather than for who. The detail view names the person.
+               */}
+              <td className="ad-cell-assigned">{item.assigneeId === null ? "No" : "Yes"}</td>
             </tr>
           ))}
         </tbody>
@@ -173,7 +182,6 @@ export function InquiryDetail({
       <DetailGroup title="Submission">
         <DetailTimeField label="Received" iso={inquiry.createdAt} />
         <DetailField label="Type" value={inquiryTypeLabel(inquiry.inquiryType)} />
-        <DetailField label="Status" value={inquiry.status} />
         <DetailField label="Reference" value={inquiry.id} />
       </DetailGroup>
 

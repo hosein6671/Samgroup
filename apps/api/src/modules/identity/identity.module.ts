@@ -7,6 +7,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
 import { AdminUsersController } from "./admin-users.controller";
 import { AuthController } from "./auth.controller";
 import { AccessTokenVerifier } from "./access-token-verifier";
+import { AssignableStaffDirectory } from "./assignable-staff.directory";
 import { AuthService } from "./auth.service";
 import { AuthSessionsService } from "./auth-sessions.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
@@ -64,6 +65,7 @@ import { ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM } from "./jwt.config";
     UsersService,
     PasswordService,
     AccessTokenVerifier,
+    AssignableStaffDirectory,
     JwtAuthGuard,
     RolesGuard,
   ],
@@ -92,12 +94,21 @@ import { ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM } from "./jwt.config";
    *
    * ── What stays inside ──────────────────────────────────────────────────────
    *
+   * ── The fourth entry, added by the lead workflow gate ──────────────────────
+   *
+   * `AssignableStaffDirectory` answers one question about a *third party* — may this user be given
+   * a lead? — as a boolean. Forms needs it to reject an ineligible assignee before writing
+   * `assigned_to_id`, and the alternative was Forms querying `users`, which is precisely what this
+   * module's boundary exists to prevent. It is the same shape as the first: one method, no row
+   * returned, nothing mutable. Widening `AccessTokenVerifier` to cover it would have conflated
+   * "who is this request" with "is that person eligible", which are different questions.
+   *
    * `UsersService`, `AuthSessionsService`, `AuthService`, `PasswordService` and `JwtModule` are
    * **not** exported. `User` and `AuthSession` are this module's entities and every route that
    * reads or writes them lives here; a second notion of "logged in", or a second reader of
    * `users`, is exactly what the modular-monolith rule exists to prevent. `identity.module.spec.ts`
    * asserts all of this against the real metadata and against the source of every other module.
    */
-  exports: [JwtAuthGuard, RolesGuard, AccessTokenVerifier],
+  exports: [JwtAuthGuard, RolesGuard, AccessTokenVerifier, AssignableStaffDirectory],
 })
 export class IdentityModule {}

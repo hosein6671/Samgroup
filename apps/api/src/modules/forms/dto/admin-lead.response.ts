@@ -18,10 +18,11 @@ import type { InquiryTypeValue } from "./create-inquiry.dto";
  * carried one; returning a column that is structurally null is noise that invites a UI to render
  * a field nobody can populate.
  *
- * `assignedToId` — the scoping key. It is read by the server to constrain a Sales Expert's query
- * (see `lead-scope.ts`) and is not published: this gate builds no assignment action, so the value
- * would be an unactionable internal id, and exposing who a lead is routed to is workflow state
- * that belongs with the assignment gate that creates it.
+ * `userId` was joined by `assignedToId` in that list until the workflow gate. **`assigneeId` is
+ * now published** (ADR-013): the detail view renders the current owner and the assignment control
+ * sends the value back as its compare-and-set predicate, so a response that withheld it would make
+ * a safe write impossible. It stays an **id** — Forms cannot resolve a name without reading
+ * `users`, and the Admin surface resolves it through `GET /admin/users` instead.
  *
  * `attachmentMediaId` — no upload endpoint exists (`POST /media/upload` is contracted and
  * unbuilt), so the column is null on every row. It is also a handle to an object-store record
@@ -54,8 +55,10 @@ export type AdminInquiryListItemResponse = {
    * than a name lookup. Enrichment is a later decision, not a projection detail.
    */
   relatedProductId: string | null;
-  /** Ingestion state, and the only value in the vocabulary — see `submission-status.ts`. */
+  /** Workflow state: `new`, `in_progress` or `closed` — see `workflow/lead-status.ts`. */
   status: string;
+  /** The owning Sales Expert, or `null` when unassigned. An id; the Admin UI resolves the name. */
+  assigneeId: string | null;
 };
 
 /** `GET /admin/inquiries/:id` — the full submission, as submitted. */
@@ -89,6 +92,7 @@ export type AdminCustomFormulationRequestListItemResponse = {
   /** Free text from the requester, not a catalog reference — there is no product yet. */
   productOrApplication: string;
   status: string;
+  assigneeId: string | null;
 };
 
 /** `GET /admin/custom-formulation-requests/:id`. */

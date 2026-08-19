@@ -7,6 +7,9 @@ export type {
   AdminInquiryDetailResponse,
   AdminInquiryListItemResponse,
   AdminInquiryType,
+  LeadHistoryEntry,
+  LeadStatus,
+  LeadWorkflowState,
 } from "./admin-leads";
 export type {
   ApiErrorCode,

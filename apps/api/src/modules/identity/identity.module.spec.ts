@@ -6,6 +6,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { PrismaModule } from "../../prisma/prisma.module";
 
 import { AccessTokenVerifier } from "./access-token-verifier";
+import { AssignableStaffDirectory } from "./assignable-staff.directory";
 import { AuthService } from "./auth.service";
 import { AuthSessionsService } from "./auth-sessions.service";
 import { IdentityModule } from "./identity.module";
@@ -97,8 +98,21 @@ describe("what IdentityModule publishes", () => {
     expect(moduleMetadata("exports")).toContain(AccessTokenVerifier);
   });
 
-  it("publishes exactly three things and nothing else", () => {
-    expect(moduleMetadata("exports")).toEqual([JwtAuthGuard, RolesGuard, AccessTokenVerifier]);
+  /**
+   * The eligibility contract Forms needs to reject an ineligible assignee. It is exported because
+   * the alternative was Forms querying `users` — the exact thing the block below forbids.
+   */
+  it("publishes the assignee-eligibility contract", () => {
+    expect(moduleMetadata("exports")).toContain(AssignableStaffDirectory);
+  });
+
+  it("publishes exactly four things and nothing else", () => {
+    expect(moduleMetadata("exports")).toEqual([
+      JwtAuthGuard,
+      RolesGuard,
+      AccessTokenVerifier,
+      AssignableStaffDirectory,
+    ]);
   });
 });
 
@@ -130,6 +144,7 @@ describe("what IdentityModule keeps to itself", () => {
       AuthSessionsService,
       PasswordService,
       AccessTokenVerifier,
+      AssignableStaffDirectory,
     ]) {
       expect(providers).toContain(provider);
     }
