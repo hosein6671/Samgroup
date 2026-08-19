@@ -129,11 +129,48 @@ describe("authenticated admin", () => {
 
     const { text } = await renderAdmin();
 
-    expect(text).toContain("Administration modules are not built yet");
+    expect(text).toContain("The lead inbox is the only operational module built so far");
+  });
+
+  /**
+   * The navigation into the lead inbox. Links only — the shell still issues no `/admin/*` request,
+   * so there is no count, no preview row and no protected payload on this page.
+   */
+  it("points a refused lead role at the inbox it may open, and a Customer at nothing", async () => {
+    for (const role of ["content_manager", "sales_expert"]) {
+      readAdminSession.mockResolvedValue({ state: "authenticated", user: { ...ADMIN, role } });
+
+      expect((await renderAdmin()).text).toContain("/admin/leads/inquiries");
+    }
+
+    readAdminSession.mockResolvedValue({
+      state: "authenticated",
+      user: { ...ADMIN, role: "customer" },
+    });
+
+    const { text } = await renderAdmin();
+
+    expect(text).toContain("Access denied");
+    expect(text).not.toContain("/admin/leads/inquiries");
+  });
+
+  it("links to both lead inboxes", async () => {
+    readAdminSession.mockResolvedValue({ state: "authenticated", user: ADMIN });
+
+    const { text } = await renderAdmin();
+
+    expect(text).toContain("/admin/leads/inquiries");
+    expect(text).toContain("/admin/leads/custom-formulation-requests");
   });
 });
 
 describe("authenticated non-admin", () => {
+  /**
+   * `/admin` itself stays Admin-only. The three refused roles are not refused identically, and that
+   * is the correction this gate made: a Content Manager or Sales Expert is entitled to the lead
+   * inbox, so the refusal points them at it. A Customer belongs to no area and is offered nothing
+   * but the way out.
+   */
   it("renders a distinct access-denied state rather than a login redirect", async () => {
     for (const role of ["content_manager", "sales_expert", "customer"]) {
       readAdminSession.mockResolvedValue({
@@ -144,7 +181,9 @@ describe("authenticated non-admin", () => {
       const { text } = await renderAdmin();
 
       expect(text).toContain("Access denied");
-      expect(text).not.toContain("Administration modules are not built yet");
+      expect(text).not.toContain("The lead inbox is the only operational module built so far");
+      // The shell's own module navigation is not rendered for a role it refuses.
+      expect(text).not.toContain("Custom formulation requests");
     }
   });
 

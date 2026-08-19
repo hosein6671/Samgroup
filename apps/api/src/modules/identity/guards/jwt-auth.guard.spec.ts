@@ -5,6 +5,7 @@ import { AUTHENTICATED_USER } from "../authenticated-user";
 import { JWT_ALGORITHM } from "../jwt.config";
 import { UserRole } from "../../../prisma/generated/client";
 
+import { AccessTokenVerifier } from "../access-token-verifier";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 
 import type { ApiException } from "../../../common/http/api.exception";
@@ -17,6 +18,12 @@ import type { ExecutionContext } from "@nestjs/common";
  *
  * Every rejection case is checked for the same status, the same code and the same message: an
  * expired token and a forged one must be indistinguishable to the caller.
+ *
+ * The guard is built over a **real** `AccessTokenVerifier` rather than a stub of one. The two are
+ * one decision split across two files for a module-boundary reason (see either file), so testing
+ * the guard against a faked boundary would leave the actual verification untested and would pass
+ * even if the split had been made wrong. Nothing below changed when it was introduced except this
+ * construction line.
  */
 
 const SECRET = "test-signing-secret-at-least-32-characters-long";
@@ -70,7 +77,7 @@ async function expectUnauthenticated(
 
 describe("JwtAuthGuard", () => {
   it("accepts a valid token and attaches the live user", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
     const { context, request } = makeContext(bearer(token));
 
@@ -79,19 +86,19 @@ describe("JwtAuthGuard", () => {
   });
 
   it("rejects a request with no Authorization header", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
 
     await expectUnauthenticated(guard, {});
   });
 
   it("rejects a malformed token", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
 
     await expectUnauthenticated(guard, bearer("not-a-jwt"));
   });
 
   it("rejects an expired token", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     // Issued in the past and already expired, rather than waiting out a real TTL.
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: -1 });
 
@@ -99,7 +106,7 @@ describe("JwtAuthGuard", () => {
   });
 
   it("rejects a token signed with the wrong key", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const forged = new JwtService({ secret: OTHER_SECRET }).sign(
       { sub: USER_ID },
       { algorithm: JWT_ALGORITHM, expiresIn: 900 },
@@ -113,7 +120,7 @@ describe("JwtAuthGuard", () => {
    * assembled by hand — which is exactly how an attacker would produce one.
    */
   it("rejects an unsigned token claiming `alg: none`", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const encode = (value: object): string =>
       Buffer.from(JSON.stringify(value)).toString("base64url");
     const unsigned = `${encode({ alg: "none", typ: "JWT" })}.${encode({
@@ -125,7 +132,7 @@ describe("JwtAuthGuard", () => {
   });
 
   it("rejects a token with no `sub` claim", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const token = jwt.sign({ role: "admin" }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
 
     await expectUnauthenticated(guard, bearer(token));
@@ -136,7 +143,7 @@ describe("JwtAuthGuard", () => {
    * whose user no longer exists is rejected on the very next request, not 15 minutes later.
    */
   it("rejects a valid token whose user has been deleted", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers(null)));
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
 
     await expectUnauthenticated(guard, bearer(token));
@@ -149,7 +156,7 @@ describe("JwtAuthGuard", () => {
    * own. The token itself is untouched and still verifies; what changed is the row behind it.
    */
   it("rejects a valid token whose user has been disabled", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers(null)));
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
 
     await expectUnauthenticated(guard, bearer(token));
@@ -160,7 +167,7 @@ describe("JwtAuthGuard", () => {
    * claim must not survive a disabled account — the guard reads the row and ignores the claim.
    */
   it("ignores a status claim smuggled into the token", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers(null)));
     const token = jwt.sign(
       { sub: USER_ID, status: "active", role: "admin" },
       { algorithm: JWT_ALGORITHM, expiresIn: 900 },
@@ -177,7 +184,7 @@ describe("JwtAuthGuard", () => {
    */
   it("passes the token's own iat to the account lookup, not the current time", async () => {
     const users = makeUsers();
-    const guard = new JwtAuthGuard(jwt, users);
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, users));
     // A few seconds in the past, not an arbitrary constant: jsonwebtoken derives `exp` from
     // whatever `iat` it is given, so a fixed historical value would sign an already-expired token
     // and the guard would reject it before the lookup was ever reached.
@@ -200,7 +207,7 @@ describe("JwtAuthGuard", () => {
    * account, which is why all three are one 401 here.
    */
   it("rejects a token the account lookup refuses on the cutoff", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers(null));
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers(null)));
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
 
     await expectUnauthenticated(guard, bearer(token));
@@ -213,7 +220,7 @@ describe("JwtAuthGuard", () => {
    */
   it("rejects a token with no iat rather than skipping the cutoff check", async () => {
     const users = makeUsers();
-    const guard = new JwtAuthGuard(jwt, users);
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, users));
     // `noTimestamp` is jsonwebtoken's switch for omitting `iat`.
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, noTimestamp: true });
 
@@ -224,7 +231,7 @@ describe("JwtAuthGuard", () => {
   });
 
   it("does not accept a token outside the Bearer scheme", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
 
     // A bare token, a Basic credential, and a cookie are all "no token" to this guard.
@@ -234,7 +241,7 @@ describe("JwtAuthGuard", () => {
   });
 
   it("accepts the scheme case-insensitively, as RFC 7235 requires", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const token = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: 900 });
     const { context } = makeContext({ authorization: `bEaReR ${token}` });
 
@@ -246,7 +253,7 @@ describe("JwtAuthGuard", () => {
    * from "deleted user" learns something about the account behind the token.
    */
   it("answers every failure with one identical message", async () => {
-    const guard = new JwtAuthGuard(jwt, makeUsers());
+    const guard = new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers()));
     const expired = jwt.sign({ sub: USER_ID }, { algorithm: JWT_ALGORITHM, expiresIn: -1 });
     const forged = new JwtService({ secret: OTHER_SECRET }).sign(
       { sub: USER_ID },
@@ -259,7 +266,12 @@ describe("JwtAuthGuard", () => {
       (await expectUnauthenticated(guard, bearer("garbage"))).message,
       (await expectUnauthenticated(guard, bearer(expired))).message,
       (await expectUnauthenticated(guard, bearer(forged))).message,
-      (await expectUnauthenticated(new JwtAuthGuard(jwt, makeUsers(null)), bearer(valid))).message,
+      (
+        await expectUnauthenticated(
+          new JwtAuthGuard(new AccessTokenVerifier(jwt, makeUsers(null))),
+          bearer(valid),
+        )
+      ).message,
     ];
 
     expect(new Set(messages).size).toBe(1);

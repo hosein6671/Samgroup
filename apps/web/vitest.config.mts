@@ -38,7 +38,11 @@ import { defineConfig } from "vitest/config";
  * It has to be the `oxc` key rather than `esbuild`: Vitest 4 ignores esbuild options entirely and
  * says so at startup.
  *
- * ── Two aliases ─────────────────────────────────────────────────────────────
+ * ── Three aliases ───────────────────────────────────────────────────────────
+ *
+ * `@test/*` points at this directory's `test/` folder, which holds helpers shared between specs
+ * and is outside `include` so nothing there is collected as a suite. It exists so a spec six
+ * directories deep under `app/` does not import a helper through a chain of `../`.
  *
  * `@/*` mirrors the tsconfig path mapping. `server-only` is aliased to an empty module because Next
  * resolves that specifier through its own webpack alias rather than through `node_modules` — the
@@ -50,6 +54,7 @@ export default defineConfig({
   oxc: { jsx: { runtime: "automatic" } },
   resolve: {
     alias: {
+      "@test": fileURLToPath(new URL("./test", import.meta.url)),
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "server-only": fileURLToPath(new URL("./test/server-only-stub.ts", import.meta.url)),
     },

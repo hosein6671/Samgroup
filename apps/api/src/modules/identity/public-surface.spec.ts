@@ -1,6 +1,8 @@
 import { GUARDS_METADATA } from "@nestjs/common/constants";
 import { APP_GUARD } from "@nestjs/core";
 
+import { AdminCustomFormulationRequestsController } from "../forms/admin-custom-formulation-requests.controller";
+import { AdminInquiriesController } from "../forms/admin-inquiries.controller";
 import { BlogPostsController } from "../blog/blog-posts.controller";
 import { CategoriesController } from "../catalog/categories.controller";
 import { ContentPagesController } from "../content/content-pages.controller";
@@ -152,5 +154,19 @@ describe("the protected surface is protected by declaration", () => {
     // Order matters: RolesGuard reads what JwtAuthGuard wrote, so a reversed list would answer 401
     // for an Admin with a perfectly valid token.
     expect(classGuards(AdminUsersController)).toEqual([JwtAuthGuard, RolesGuard]);
+  });
+
+  /**
+   * The Admin lead inbox. These two live in the Forms module — `/admin/*` is a URL namespace, not a
+   * module, and `Inquiry` and `CustomFormulationRequest` belong to Forms — so they are the first
+   * protected endpoints outside Identity. Their guards are asserted here as well as in their own
+   * spec, because this file is the one place that answers "what on this platform is authenticated"
+   * in a single list.
+   */
+  it.each([
+    ["/admin/inquiries", AdminInquiriesController],
+    ["/admin/custom-formulation-requests", AdminCustomFormulationRequestsController],
+  ])("gates %s on authentication AND role, in that order", (_path, controller) => {
+    expect(classGuards(controller)).toEqual([JwtAuthGuard, RolesGuard]);
   });
 });

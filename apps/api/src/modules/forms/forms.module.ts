@@ -2,7 +2,10 @@ import { Module } from "@nestjs/common";
 
 import { PrismaModule } from "../../prisma/prisma.module";
 import { CatalogModule } from "../catalog/catalog.module";
+import { IdentityModule } from "../identity/identity.module";
 
+import { AdminCustomFormulationRequestsController } from "./admin-custom-formulation-requests.controller";
+import { AdminInquiriesController } from "./admin-inquiries.controller";
 import { CustomFormulationRequestsController } from "./custom-formulation-requests.controller";
 import { CustomFormulationRequestsService } from "./custom-formulation-requests.service";
 import { InquiriesController } from "./inquiries.controller";
@@ -34,6 +37,26 @@ import { SmtpMailer } from "./notification/smtp.mailer";
  * submit an inquiry. Exporting ahead of a consumer is the same mistake `CatalogModule`'s own note
  * warns about.
  *
+ * ── Why it imports IdentityModule ──────────────────────────────────────────
+ *
+ * For `JwtAuthGuard` and `RolesGuard`, and for nothing else. Those two are the only things
+ * Identity exports — `UsersService` and `AuthSessionsService` are deliberately withheld, so this
+ * import grants no way to read `users` or `auth_sessions`. The Admin read endpoints get their
+ * authentication and their role check from the module that owns identity, and their data from the
+ * module that owns the table; neither reaches into the other's repository.
+ *
+ * ── Why the Admin lead reads live here rather than in an Admin module ───────
+ *
+ * `/admin/*` is a URL namespace, not a module. `Inquiry` and `CustomFormulationRequest` belong to
+ * Forms (ARCHITECTURE.md §Modules), so an "Admin" module querying `inquiries` would be exactly the
+ * cross-module repository access the modular-monolith rule forbids and would give both tables two
+ * owners. `GET /admin/users` sits inside Identity for the same reason and records the same
+ * argument.
+ *
+ * Both Admin controllers are **read-only**: list and detail. §2.10 contracts the group as "list,
+ * read, assign, status"; assignment and status lifecycle are a separate gate and there is no
+ * approved status vocabulary to operate — see `submission-status.ts`.
+ *
  * ── Internal notification, and nothing the submitter can see ────────────────
  *
  * A successful submission writes one row, then attempts one internal email to the mailbox named by
@@ -54,8 +77,13 @@ import { SmtpMailer } from "./notification/smtp.mailer";
  *    unintended.
  */
 @Module({
-  imports: [PrismaModule, CatalogModule],
-  controllers: [InquiriesController, CustomFormulationRequestsController],
+  imports: [PrismaModule, CatalogModule, IdentityModule],
+  controllers: [
+    InquiriesController,
+    CustomFormulationRequestsController,
+    AdminInquiriesController,
+    AdminCustomFormulationRequestsController,
+  ],
   providers: [
     InquiriesService,
     CustomFormulationRequestsService,

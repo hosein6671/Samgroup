@@ -6,6 +6,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
 
 import { AdminUsersController } from "./admin-users.controller";
 import { AuthController } from "./auth.controller";
+import { AccessTokenVerifier } from "./access-token-verifier";
 import { AuthService } from "./auth.service";
 import { AuthSessionsService } from "./auth-sessions.service";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
@@ -62,16 +63,41 @@ import { ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM } from "./jwt.config";
     AuthSessionsService,
     UsersService,
     PasswordService,
+    AccessTokenVerifier,
     JwtAuthGuard,
     RolesGuard,
   ],
   /*
-   * Exported so a later module can protect its own routes with `@UseGuards(JwtAuthGuard)` without
-   * duplicating identity logic. `UsersService` and `AuthSessionsService` are deliberately NOT
-   * exported: no other module has a reason to read `users` or `auth_sessions`, and exporting
-   * either now would invite one to. A session table reachable from outside Identity is how a
-   * second, disagreeing notion of "logged in" gets built.
+   * The module's published surface: two guards, and the one capability they need.
+   *
+   * ── Why the third entry is here, and why it is not `UsersService` ──────────
+   *
+   * **Nest constructs a class-referenced enhancer in the module that declares the controller, not
+   * in the module that exported it.** `DependenciesScanner` inserts every class named in
+   * `@UseGuards()` into the *host* module's injectables, so `FormsModule` builds its own
+   * `JwtAuthGuard` and whatever that guard injects has to resolve there. Exporting the guard class
+   * alone is not enough to make it usable — a fact no unit test catches, because a controller spec
+   * overrides the guard, so the application boots green in tests and fails at startup with
+   * `Nest can't resolve dependencies of the JwtAuthGuard`. Measured from a real boot, not theorised.
+   *
+   * The first answer was to export `JwtModule` and `UsersService` as well. That was wrong: it
+   * handed every consuming module the `users` repository — `findCredentialsByEmail` (the password
+   * hash) and `listAll` (the whole staff table) — to solve a wiring problem. Nobody had to *use*
+   * it for the boundary to be gone.
+   *
+   * `AccessTokenVerifier` replaces both. It is the entire authentication capability the platform
+   * shares, as one method: an `Authorization` header value in, the live authenticated user or
+   * `null` out. It exposes no Prisma, no repository, no lookup by id or email, no password check,
+   * no token minting and no session mutation — see its own file.
+   *
+   * ── What stays inside ──────────────────────────────────────────────────────
+   *
+   * `UsersService`, `AuthSessionsService`, `AuthService`, `PasswordService` and `JwtModule` are
+   * **not** exported. `User` and `AuthSession` are this module's entities and every route that
+   * reads or writes them lives here; a second notion of "logged in", or a second reader of
+   * `users`, is exactly what the modular-monolith rule exists to prevent. `identity.module.spec.ts`
+   * asserts all of this against the real metadata and against the source of every other module.
    */
-  exports: [JwtAuthGuard, RolesGuard],
+  exports: [JwtAuthGuard, RolesGuard, AccessTokenVerifier],
 })
 export class IdentityModule {}

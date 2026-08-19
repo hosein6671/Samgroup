@@ -169,9 +169,9 @@ Per-role admin access follows the matrix directly: **Admin** — full. **Content
 
 **Job applications remain Admin-only inside the dashboard too** — there is no admin route, list view, or assignment action exposing them to any other role, which is the UI-level counterpart of `JobApplication` carrying no `assignedToId`.
 
-### Implementation status — the session shell is built; the modules are not
+### Implementation status — the session shell and the first operational module
 
-**Built:** `/login`, `/admin`, the middleware session check, and the two browser cookies. The route architecture is unchanged ([FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §1: an `(admin)` group outside `[locale]`); §2a of that document is the implementation record and the fuller description of what follows.
+**Built:** `/login`, `/admin`, the middleware session check, the two browser cookies, and — since 19 August 2026 — the **Admin lead inbox** (see below). The route architecture is unchanged ([FRONTEND_ARCHITECTURE.md](./frontend/FRONTEND_ARCHITECTURE.md) §1: an `(admin)` group outside `[locale]`); §2a of that document is the implementation record and the fuller description of what follows.
 
 **The cookies this section left unfixed are now fixed**, by the tier that issues them:
 
@@ -240,6 +240,59 @@ The admin area sits outside the localized public route tree, is excluded from `s
 - **The message is plain text with no HTML part**, so submitted markup can never be executable in a reader's mail client.
 - **Logs carry the submission id and nothing else about the lead** — no name, company, email address, message body, or recipient mailbox. The id resolves to the full record in `sam_platform`, which is the access-controlled place it belongs, keeping the "no sensitive personal data in URLs or logs" rule below true of this path too.
 - **No delivery state is persisted**, so the notification creates no second copy of lead data and nothing additional to retain or purge.
+
+### The Admin lead inbox — read-only, and what that guarantees
+
+Implemented 19 August 2026: `/admin/leads/inquiries` and `/admin/leads/custom-formulation-requests` in `apps/web`, over `GET /admin/inquiries` and `GET /admin/custom-formulation-requests` in `apps/api`. Contract detail is in [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §2.10; the security properties are these.
+
+**Roles come from the matrix above, unchanged.** The "Forms & Leads" column governs: **Admin** (all), **Content Manager** (read), **Sales Expert** (own leads only). NestJS enforces it in `RolesGuard`; `Customer` is refused **403**, an absent or unusable token **401**, and the 403 message names neither the caller's role nor the permitted ones.
+
+**Scoping is server-derived, as rule 2 of [RBAC integration](#rbac-integration) requires.** A Sales Expert's queries carry `assignedToId = <their own id>`, taken from the authenticated caller. Neither list DTO declares an `assignedToId` parameter, so a client-supplied one is answered **400** naming the property rather than honoured or ignored. **No assignment endpoint exists**, so no lead is assigned to anyone and a Sales Expert's inbox is legitimately empty — that is the truthful rendering of the data, not a defect.
+
+**The Admin Dashboard is authorized per area, not per surface.** `apps/web` applies the same matrix the API does, one route group at a time:
+
+| Area        | Path              | Roles admitted                           |
+| ----------- | ----------------- | ---------------------------------------- |
+| Admin shell | `/admin`          | **Admin only**                           |
+| Lead inbox  | `/admin/leads/**` | **Admin, Content Manager, Sales Expert** |
+
+The two lists are separate on purpose. The lead inbox had to admit Content Manager and Sales Expert — this matrix grants them read — and nothing on the shell is meant for either role yet, so widening one to accommodate the other would have handed two roles a page built for a third. A Customer is refused in both, and the refusal at `/admin` points a Content Manager or Sales Expert at the inbox they may open rather than leaving them at a dead end. **Every future module gets its own row here and its own `@Roles()` in NestJS — never a blanket `/admin/*` rule.**
+
+**Entry is all the frontend decides.** Which _records_ a role sees is NestJS's, derived from the authenticated caller: `apps/web` sends no `assignedToId`, offers no control that could select another user's queue, and has no URL spelling for one. **An authorized Sales Expert with nothing assigned sees the ordinary empty state, not a refusal** — an empty queue is the truthful rendering of a successful read, and the wording is asserted by test to say so.
+
+Navigation visibility follows the same area rules, so nobody is offered a link to a page that will refuse them — and a Customer, whom no area admits, is shown no navigation at all. That is an affordance; the boundary remains the NestJS guard.
+
+**Read-only, and no lifecycle.** No admin endpoint writes: no status transition, no assignment, no notes, no tags, no delete, no export. `status` remains the initial ingestion state `new`, with no authorized transition and no second value.
+
+**Personal data handling.** These are the most sensitive records the platform holds (see [Personal Data Retention](#personal-data-retention) below), so:
+
+- Responses are **explicit projections**, never whole rows. `userId`, `assignedToId` and `attachmentMediaId` are omitted everywhere; free-text bodies (`message`, `requiredSpecifications`) appear only on a detail response, never in a list of 25.
+- `limit` is **bounded at 100**, so no single request can extract the lead table. Bulk export is a separate, unbuilt capability.
+- `Cache-Control: no-store` on every response, and `apps/web` fetches with `cache: "no-store"` and renders these routes dynamically.
+- **No submission content is logged.** The frontend's one failure diagnostic carries an endpoint and a failure class; no name, email, message or specification reaches a log line.
+- **The session cookies are `HttpOnly`, proven on the wire.** `Set-Cookie` from the middleware refresh carries `HttpOnly; Secure; SameSite=strict` for both `sam_admin_access` and `sam_admin_refresh`, and a browser holding a live session can read neither through `document.cookie`.
+- The access token is read from an HttpOnly cookie **server-side only** and forwarded on the internal hop. It never reaches a browser bundle, the DOM, or a URL; there are no browser→NestJS requests on this surface.
+- **An outage is never rendered as a missing record.** A definitive API 404 renders "not found"; a 5xx, timeout or transport failure renders "temporarily unavailable" and touches no cookie. A 401 clears the stale credentials through the session-end handler; a 403 does not.
+
+### The Identity module's exported boundary
+
+**One capability leaves the Identity & Access module: `AccessTokenVerifier`.** An `Authorization`
+header value goes in; the live authenticated user, or `null`, comes out — verify the signature with
+the algorithm pinned, require `sub` and `iat`, then resolve the user through the active-status and
+credential-revocation gate. That plus the two guards is the whole of what `IdentityModule` exports.
+
+**`UsersService`, `AuthSessionsService`, `AuthService`, `PasswordService` and `JwtModule` are not
+exported**, and no module outside `modules/identity/` may name any of them, inject a `JwtService`,
+or query `users` for itself. Architecture tests assert both halves — the module's own export
+metadata, and the source of every other module.
+
+Why the narrow class exists at all is a Nest mechanic worth recording, because it is not obvious and
+no unit test catches it: **a class named in `@UseGuards()` is constructed in the module that declares
+the controller**, not in the module that exported it. So whatever the guard injects must resolve in
+every module that protects a route. The first attempt satisfied that by exporting `JwtModule` and
+`UsersService` — which handed every consuming module the password-hash lookup and the staff table in
+order to solve a wiring problem. `AccessTokenVerifier` is the correction: it exposes no Prisma, no
+repository, no lookup by id or email, no password check, no token minting and no session mutation.
 
 ---
 

@@ -130,7 +130,72 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
 **CSRF and caching.** Login and logout are Server Actions: POST-only to an unguessable action id, origin-checked by Next, and both cookies are `SameSite=Strict`. **Future Admin mutations must preserve both properties** — Server Actions or same-origin-checked handlers, never a handler accepting a cross-origin POST. Every Admin route is `force-dynamic` with `revalidate = 0`, and every protected API call is `cache: "no-store"`; no identity, role or auth result is ever cached or prerendered.
 
-**Not built, and deferred to their own gates:** every Admin module (lead inbox, catalog, blog, users, locales, redirects, translations), password reset/change, MFA/SSO, self-registration, any status- or role-management surface, session-management UI, and refresh-token family reuse detection.
+**Not built, and deferred to their own gates:** the remaining Admin modules (catalog, blog, users, locales, redirects, translations), password reset/change, MFA/SSO, self-registration, any status- or role-management surface, session-management UI, and refresh-token family reuse detection.
+
+### 2b. Admin Lead Inbox — [SHIPPED]
+
+The first operational Admin module, 19 August 2026. Read-only.
+
+**Routes, under the frozen `leads/` segment** of the §1 tree — the tree gives one segment to all four lead-bearing submissions rather than one per entity, so these are `/admin/leads/...` and not `/admin/inquiries`, even though the **API** paths are `/admin/inquiries` and `/admin/custom-formulation-requests` (API_CONTRACT_FINAL §2.10 names those). A REST resource and a screen in a tool are allowed to differ; the tree is the authority for the second.
+
+| Route                                           | Renders                                          |
+| ----------------------------------------------- | ------------------------------------------------ |
+| `/admin/leads/inquiries`                        | paged list, with an `?inquiryType=` filter strip |
+| `/admin/leads/inquiries/[id]`                   | one submission, grouped for follow-up            |
+| `/admin/leads/custom-formulation-requests`      | paged list, no filter                            |
+| `/admin/leads/custom-formulation-requests/[id]` | one request                                      |
+
+There is **no page at the bare `/admin/leads`**: two links on the shell is the whole of the navigation this module needs, and a landing page above them would be the beginning of a dashboard. `isAdminSurfacePath` already matches these by prefix, so middleware short-circuits them before locale resolution and no middleware change was needed. The two unbuilt siblings — distributor applications, download requests — have no entity written by any endpoint yet and get no placeholder route.
+
+**BFF only.** Browser → `apps/web` Server Component → NestJS. The access token is read from its HttpOnly cookie inside a `server-only` module and attached as `Authorization: Bearer` on the internal hop; it is never a prop, never in the markup, and never reachable from a browser. No route in this tree is a Client Component. Verified against a production build: the rendered HTML contains no token, no `Bearer`, no cookie name, no API origin and no `/api/v1`, and a browser loading the inbox issues requests to the `apps/web` origin only.
+
+**Five outcomes per read, and collapsing any two would be a bug.**
+
+| API answer                            | What renders                                                     |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| 2xx                                   | the list (or "No inquiries yet.") / the record                   |
+| **401**                               | redirect to `/admin/session/end`, which clears both cookies      |
+| **403**                               | "Access denied" — no cookie touched, no login redirect           |
+| **404** (detail only)                 | "Not found", with a link back to the inbox                       |
+| 5xx, timeout, transport, non-envelope | "Temporarily unavailable" — **never** a 404 and never a sign-out |
+
+The last row is the load-bearing one: **infrastructure failure must never become a missing record.** [ADR-010](../ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §7 fixes that for public content, and a lead exists exactly once, so the cost of getting it wrong is higher here — an operator told a submission does not exist stops chasing it.
+
+**Authorization is per area.** `resolveAdminAccess(session, area)` reads a role list per route group, declared in `features/admin/session/admin-areas.ts`:
+
+| Area    | Path              | Roles                                |
+| ------- | ----------------- | ------------------------------------ |
+| `shell` | `/admin`          | Admin                                |
+| `leads` | `/admin/leads/**` | Admin, Content Manager, Sales Expert |
+
+It is an **allow-list**, so an unknown role is refused everywhere, and the default argument is `shell` — an unqualified call cannot accidentally widen a page. The two lists are separate on purpose: the inbox had to admit Content Manager and Sales Expert, per [SECURITY.md](../SECURITY.md#rbac-permission-matrix)'s "Forms & Leads" row, and nothing on the shell is meant for either role yet.
+
+**Entry is all it decides.** Record scoping is NestJS's, from the authenticated caller — `apps/web` sends no `assignedToId` and has no URL spelling for one — so an authorized Sales Expert with no assigned leads sees the ordinary **empty state**, not a refusal. Navigation follows the same area rules, so a Content Manager is not offered a link to `/admin`, and a Customer, whom no area admits, is shown no navigation at all.
+
+**Query vocabulary is read strictly and never proxied.** `page` is parsed and bounded, `inquiryType` matched against the closed list, and anything unrecognised is dropped rather than forwarded — so a hand-edited URL renders page 1 instead of a 400 an operator would read as an outage. Pagination links are built from the parsed query, so nothing the parser refused survives a click. Page size is fixed at 25 by the page, not by the URL. There is **no URL spelling of `assignedToId`**: lead scoping is the server's, per SECURITY.md §RBAC integration.
+
+**Dynamic and uncached.** Every route is `force-dynamic` with `revalidate = 0`, every fetch is `cache: "no-store"`, and the API answers `Cache-Control: no-store`.
+
+**Read-only, and no fabricated content.** No write action of any kind — no status change, assignment, note, tag, delete or export. An empty inbox says so plainly; no sample rows and no metrics are invented to fill it.
+
+### 2c. Admin accessibility — target: WCAG 2.2 AA
+
+**Frozen for the whole Admin UI**, not just this module: `/login`, `/admin`, every `/admin/leads/**` route, and each of the empty, forbidden, not-found and unavailable states.
+
+- **Landmarks and headings.** One `<main id="main-content">` per page — the target of the skip link the `(admin)` root layout already renders, which appears on focus and is the first control Tab reaches. Every `<nav>` carries an accessible name ("Admin modules", "Filter inquiries by type", "Pagination"). One `<h1>` naming the screen, every state a `<h2>`, every detail group a `<section>` with its own `<h2>` and `aria-labelledby`. No level is skipped, and no native landmark is given a redundant `role`.
+- **Titles.** Each route sets its own `metadata.title` naming the screen; the group's `noindex, nofollow, nocache, noarchive` is inherited untouched.
+- **Tables.** Real `<table>` markup with a visually-hidden `<caption>`, `scope="col"` on every column header and `scope="row"` on the record name. One real link per row — **no clickable row, no clickable `<div>`, no `onClick` anywhere on the surface** — whose accessible name says what it opens ("View inquiry from …") while its visible text stays the record's own. The wide table scrolls **inside its own container**, which carries `tabIndex={0}` and a name so it is scrollable without a pointer; the page body never scrolls sideways.
+- **Pagination.** A named `<nav>` around an ordered list: Previous, windowed page numbers each labelled "Page N", Next. The current page carries `aria-current="page"` plus a fill, a border and a weight change. At a boundary, Previous/Next are inert `<span>`s rather than fake disabled links, so a keyboard user never lands on a control that does nothing. Arrows are `aria-hidden`. Hrefs are built from the parsed query, so only recognised parameters survive a click.
+- **Dates** render as `<time dateTime>`, carrying the ISO instant beside the human UTC stamp.
+- **Status** is text. Nothing on this surface carries meaning by colour, icon or position alone — it has no icons at all.
+- **The login form** keeps programmatically associated labels, `autocomplete="username"` / `"current-password"`, and a `role="alert"` banner that is _inserted_ on failure so it announces. Nothing else is a live region, and no submitted value is echoed back.
+- **Contrast**, measured against the generated tokens: text ≥ 4.5:1 (lowest 4.62:1), interface components ≥ 3:1. Two component-level corrections were made with existing tokens — interactive boundaries moved from `--color-border-hairline` (1.1:1) to `--color-border-strong` (3.25–3.48:1), and the record link gained vertical padding to meet the 24×24 target minimum. **No palette value was added or changed.** Decorative container edges keep the hairline: §1.4.11 does not cover them.
+- **Focus** is a 2px `--color-focus-ring` outline at a non-zero offset on every focusable control, so the ring paints on the surface behind rather than on the control — which is what keeps it visible on the accent-filled button. Nothing removes an outline.
+- **Reflow**, verified at 1280px, 375px, and the 640×512 viewport a 1280×1024 window has at 200% zoom: no page-level horizontal scrolling, no clipped control, no overlap, every target ≥ 24×24.
+- **Motion.** No animation was added; the transitions here are already zeroed by the design system's `prefers-reduced-motion` block.
+- **Language.** Admin stays `lang="en" dir="ltr"` outside locale routing. No Admin translation was invented.
+
+Automated coverage runs in the existing Vitest stack — semantic assertions on the returned trees, plus a contrast suite that reads the real token file — and **no accessibility dependency was added**. What markup cannot decide (focus order, focus visibility, reflow, the accessibility tree itself) was verified in a browser.
 
 - `generateStaticParams` for the `[locale]` segment calls `GET /api/v1/locales` at build time — the route tree is generated from the `Locale` table, not a hardcoded `['en','fa','ar']` array, so a new locale needs no route code change (per [i18n strategy §1](../i18n/INTERNATIONALIZATION_STRATEGY.md#1-url-strategy)).
 - `app/[locale]/layout.tsx` sets `<html lang={locale} dir={direction}>` from that same locale data — `direction` travels with the locale record, never inferred client-side.

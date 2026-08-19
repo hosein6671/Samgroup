@@ -353,7 +353,29 @@ The Admin Dashboard lives inside `apps/web` as a separate application area (appr
 - **`/admin/job-applications` has no assignment endpoint at all.** `JobApplication` carries no `assignedToId` by design; there is no route to put a CV in a Sales queue, which is the API-level expression of that decision.
 - **Nothing under `/admin/*` touches `sam_cms`.** Payload content is edited in Payload's own admin UI — see §2.11.
 
-**Implementation status — one endpoint of one group.** `GET /admin/users` is live, as **list only**: it answers `data: [{ id, email, role }]` with `meta.total`, `Cache-Control: no-store`, and **Admin alone** — every other role receives **403 `FORBIDDEN`** with a message naming neither the caller's role nor the required one. It exists as the authorization proof for the auth foundation and is a real contracted endpoint rather than a scaffold; the rest of the Users group (create, update, **role assignment**) and every other group in the table above are unbuilt. Role assignment in particular is privilege management and needs its own gate.
+**Implementation status — the Users list, and the read half of the Leads group.**
+
+`GET /admin/users` is live, as **list only**: it answers `data: [{ id, email, role, status }]` with `meta.total`, `Cache-Control: no-store`, and **Admin alone** — every other role receives **403 `FORBIDDEN`** with a message naming neither the caller's role nor the required one. The rest of the Users group (create, update, **role assignment**) is unbuilt; role assignment in particular is privilege management and needs its own gate.
+
+**The Leads group is live for `Inquiry` and `CustomFormulationRequest`, read-only** — 19 August 2026. Four endpoints:
+
+| Method | Path                                     | Answers                                             |
+| ------ | ---------------------------------------- | --------------------------------------------------- |
+| GET    | `/admin/inquiries`                       | a page of lead rows, `meta: { total, page, limit }` |
+| GET    | `/admin/inquiries/:id`                   | one submission, or 404                              |
+| GET    | `/admin/custom-formulation-requests`     | a page of request rows, same `meta`                 |
+| GET    | `/admin/custom-formulation-requests/:id` | one request, or 404                                 |
+
+- **Roles: Admin, Content Manager, Sales Expert** — the "Forms & Leads" row of [SECURITY.md](./SECURITY.md#rbac-permission-matrix) applied unchanged. `Customer` receives **403**; no token receives **401**. **Sales Expert is scoped server-side** to `assignedToId = <their own id>`, derived from the authenticated caller; no endpoint accepts an `assignedToId` parameter, and sending one is answered **400 `VALIDATION_ERROR`** naming it. **No lead is assigned to anyone today** — there is no assignment endpoint — so a Sales Expert's list is legitimately empty.
+- **Read-only, and that is the whole of it.** The group is contracted as "list, read, assign, status"; **assign and status are unbuilt**. There is no `PATCH`, `POST` or `DELETE` under either path, no assignment, no notes, no tags and no export. `status` is served as stored and remains the **initial ingestion state `new`** with no authorized transition and no second value — a lifecycle is a separate gate, together with the `StatusHistory` audit trail [DATA_MODEL.md](./DATA_MODEL.md) §2 anchors for it.
+- **Pagination**: `?page` (≥1, default 1) and `?limit` (1–100, default 25), per §Pagination & Filtering in [API_DESIGN.md](./API_DESIGN.md). `?sort=-createdAt` (default) or `createdAt`; **`id` is applied as a secondary key in the same direction**, so page boundaries are deterministic when timestamps tie. The count and the page are read in one transaction, so `meta.total` describes the snapshot the rows came from. A page past the end is an empty array with the real `total`, not a 404.
+- **Filters**: `/admin/inquiries` accepts `?inquiryType=`, restricted to the same seven values `POST /inquiries` accepts. **No other filter exists on either endpoint** — no `q`, no date range, no `status`, no country facet — and `forbidNonWhitelisted` answers **400** naming any undeclared parameter rather than ignoring it. `/admin/custom-formulation-requests` accepts no filter at all: the entity has no enumerated column.
+- **Projections are explicit, and the list is narrower than the detail.** The list omits every free-text body (`message`, `requiredSpecifications`) — those appear only on the detail response. **`userId`, `assignedToId` and `attachmentMediaId` are omitted from every response**, list and detail alike. `relatedProductId` is served as an id and is never resolved to a product name.
+- **`:id` is validated as a UUID** before any query runs; a malformed segment is **400** naming `id`, never a 500. A row outside the caller's scope is **404, not 403** — a 403 would confirm that an id names a real record.
+- `Cache-Control: no-store` on all four, as on every `/admin/*` response.
+- **The Admin Dashboard mirrors these three roles** at `/admin/leads/**`, while `/admin` itself stays Admin-only — authorization per area, not per surface ([SECURITY.md](./SECURITY.md#admin-dashboard-access)). The UI decides entry only; record scoping stays here.
+
+Every other group in the table above — Catalog, Blog, Job applications, Newsletter, Locales, Redirects, SEO, Translations — is unbuilt, as are `/admin/distributor-applications` and `/admin/download-requests`, whose entities have no write path yet.
 
 ### 2.11 What the Admin Dashboard does _not_ manage
 

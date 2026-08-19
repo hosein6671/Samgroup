@@ -3,10 +3,12 @@ import "server-only";
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
 
+import { roleMayEnter } from "./admin-areas";
 import { ACCESS_COOKIE } from "./cookie-contract";
 import { SESSION_SIGNAL_HEADER, SESSION_SIGNAL_UNAVAILABLE } from "./session-signal";
-import { ADMIN_ROLE, me } from "./auth-api";
+import { me } from "./auth-api";
 
+import type { AdminArea } from "./admin-areas";
 import type { AuthUser } from "./auth-api";
 
 /**
@@ -138,23 +140,37 @@ export type AdminAccess =
   | { readonly state: "unavailable" };
 
 /**
- * Whether the authenticated caller may use the Admin surface.
+ * Whether the authenticated caller may **enter** an area of the Admin surface.
+ *
+ * ── Per area, not per surface ───────────────────────────────────────────────
+ *
+ * `area` defaults to `"shell"`, which is `/admin` and is Admin-only. `/admin/leads/**` passes
+ * `"leads"` and admits Admin, Content Manager and Sales Expert — SECURITY.md's "Forms & Leads"
+ * row. The lists live in `admin-areas.ts`; this function only applies them.
+ *
+ * The two are deliberately not one list. Widening `/admin` because `/admin/leads` had to widen
+ * would grant a Content Manager a shell built for a role that can do things they cannot.
  *
  * ── The role comes from the server, on this request ─────────────────────────
  *
- * `user.role` is whatever `GET /auth/me` just re-read out of `sam_platform`. It is not decoded from
- * the token — the access token carries `sub`, `iat` and `exp` and no role claim exists to decode —
- * and it is not remembered from login. A role change or an account disable therefore takes effect
- * on the very next Admin request.
+ * `user.role` is whatever `GET /auth/me` just re-read out of `sam_platform`. It is not decoded
+ * from the token — the access token carries `sub`, `iat` and `exp` and no role claim exists to
+ * decode — and it is not remembered from login. A role change or an account disable therefore takes
+ * effect on the very next Admin request.
  *
  * ── And it is not the real enforcement either ───────────────────────────────
  *
  * SECURITY.md §RBAC integration: "UI hiding is not authorization." This check decides what to
  * render. **Every `/api/v1/admin/*` request is independently authorized by a NestJS guard**, on the
- * assumption that the caller crafted it by hand — which is why the shell in this gate deliberately
- * fetches no admin data: there is nothing here whose safety depends on this function being right.
+ * assumption that the caller crafted it by hand — so a page reaching data it should not have is
+ * refused by the API regardless of what this returns.
+ *
+ * **It never decides which records a page shows.** A Sales Expert is scoped to their own leads by
+ * NestJS, from the authenticated caller; `apps/web` sends no `assignedToId` and has no way to ask
+ * for anyone else's. An authorized Sales Expert with nothing assigned sees an empty inbox, which is
+ * a successful read, not a refusal.
  */
-export function resolveAdminAccess(session: AdminSession): AdminAccess {
+export function resolveAdminAccess(session: AdminSession, area: AdminArea = "shell"): AdminAccess {
   if (session.state === "unavailable") {
     return { state: "unavailable" };
   }
@@ -163,7 +179,7 @@ export function resolveAdminAccess(session: AdminSession): AdminAccess {
     throw new Error("resolveAdminAccess requires a resolved session");
   }
 
-  return session.user.role === ADMIN_ROLE
+  return roleMayEnter(session.user.role, area)
     ? { state: "authorized", user: session.user }
     : { state: "forbidden", user: session.user };
 }

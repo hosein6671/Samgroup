@@ -2,6 +2,13 @@
 // Types only — never a runtime value; ./seo.ts explains why that constraint is structural
 // rather than stylistic.
 export type {
+  AdminCustomFormulationRequestDetailResponse,
+  AdminCustomFormulationRequestListItemResponse,
+  AdminInquiryDetailResponse,
+  AdminInquiryListItemResponse,
+  AdminInquiryType,
+} from "./admin-leads";
+export type {
   ApiErrorCode,
   ApiErrorDetail,
   ApiErrorResponse,
