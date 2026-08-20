@@ -4,7 +4,7 @@ import "../home/flagship.css";
 import "./insights.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
 
 import { insightsHref } from "./insights-query";
@@ -49,17 +49,19 @@ import type { BlogPostDetailResponse } from "@sam-group/types";
 export function PostTemplate({
   post,
   locale,
+  locales,
   localeFallback,
 }: {
   readonly post: BlogPostDetailResponse;
   /** The active locale segment, used to compose the breadcrumb's links and to format the date. */
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /** The API's `meta.localeFallback`, surfaced as a notice. */
   readonly localeFallback: boolean;
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <article>
@@ -145,7 +147,7 @@ export function PostTemplate({
         </article>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

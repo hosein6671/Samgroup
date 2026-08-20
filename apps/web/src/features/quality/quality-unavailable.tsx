@@ -2,7 +2,7 @@ import "../home/flagship.css";
 import "./quality.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
 
 import type { ReactNode } from "react";
@@ -35,14 +35,16 @@ import type { ReactNode } from "react";
  */
 export function QualityUnavailable({
   locale,
+  locales,
   reason,
 }: {
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   readonly reason: "not-configured" | "service";
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <section className="fs-sec qc-unavailable" data-surface="midnight">
@@ -73,7 +75,7 @@ export function QualityUnavailable({
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

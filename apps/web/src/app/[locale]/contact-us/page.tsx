@@ -9,6 +9,7 @@ import {
   SAMPLE_INQUIRY_TYPE,
   isInquiryType,
 } from "@/features/forms/inquiry-vocabulary";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The Contact Us route — `/{locale}/contact-us`.
@@ -65,6 +66,7 @@ export default async function ContactUsPage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
+  const locales = await getActiveLocales();
 
   const requestedType = single(query.type);
   const inquiryType = isInquiryType(requestedType)
@@ -75,6 +77,8 @@ export default async function ContactUsPage({
 
   return (
     <ContactTemplate
+      locales={locales}
+      locale={locale}
       copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}
       inquiryType={inquiryType}
       product={product}

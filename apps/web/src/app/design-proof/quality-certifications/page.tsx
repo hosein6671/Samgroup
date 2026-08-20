@@ -4,6 +4,7 @@ import { getQualityCertificationsContent } from "@/lib/content";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { getActiveLocales } from "@/lib/locales";
 
 /** The proof tree sits outside `[locale]`, so it renders the default locale. */
 const PROOF_LOCALE = "en";
@@ -34,15 +35,17 @@ export const metadata: Metadata = {
 };
 
 export default async function QualityCertificationsProofPage(): Promise<ReactNode> {
+  const locales = await getActiveLocales();
   const result = await getQualityCertificationsContent(PROOF_LOCALE);
 
   if (result.ok) {
     // The proof route asks for the default locale, so a fallback cannot arise here.
-    return <QualityExperience content={result.content} locale={PROOF_LOCALE} />;
+    return <QualityExperience locales={locales} content={result.content} locale={PROOF_LOCALE} />;
   }
 
   return (
     <QualityUnavailable
+      locales={locales}
       locale={PROOF_LOCALE}
       reason={result.reason === "not-configured" ? "not-configured" : "service"}
     />

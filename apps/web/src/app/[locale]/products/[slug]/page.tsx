@@ -10,6 +10,7 @@ import { ProductUnavailable } from "@/features/products/detail/product-unavailab
 import { resolveProduct } from "@/features/products/detail/resolve-product-page";
 import { isReservedProductSlug } from "@/features/products/reserved-slugs";
 import { getProductsByCategory } from "@/lib/products";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The shared Product namespace route — `/{locale}/products/{slug}`.
@@ -204,6 +205,8 @@ export default async function ProductFamilyPage({
 }): Promise<ReactNode> {
   const [{ locale, slug }, query] = await Promise.all([params, searchParams]);
 
+  const locales = await getActiveLocales();
+
   /*
    * ── 1. Reserved ───────────────────────────────────────────────────────────
    *
@@ -254,6 +257,7 @@ export default async function ProductFamilyPage({
 
     return (
       <ProductCategoryTemplate
+        locales={locales}
         content={page.content}
         family={page.family}
         locale={locale}
@@ -280,6 +284,7 @@ export default async function ProductFamilyPage({
   if (result.ok) {
     return (
       <ProductDetailTemplate
+        locales={locales}
         product={result.record}
         locale={locale}
         localeFallback={result.localeFallback}
@@ -306,5 +311,5 @@ export default async function ProductFamilyPage({
         : `the API answered, but not with a product (HTTP ${String(result.status)})`),
   );
 
-  return <ProductUnavailable locale={locale} />;
+  return <ProductUnavailable locales={locales} locale={locale} />;
 }

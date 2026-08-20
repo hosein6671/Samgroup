@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { ACTIVE_LOCALES } from "@test/active-locales";
+
 import { accessibleName, elementsOf, findLinks, findTags, textOf } from "@test/element-tree";
 
 import { AboutExperience } from "./about-experience";
@@ -86,7 +88,7 @@ const VERIFICATION_CONTENT: AboutUsContent = {
 };
 
 function render(content: AboutUsContent = VERIFICATION_CONTENT, locale = "en"): ReactNode {
-  return AboutExperience({ content, locale });
+  return AboutExperience({ content, locale, locales: ACTIVE_LOCALES });
 }
 
 describe("the About page renders what the CMS served", () => {
@@ -221,20 +223,24 @@ describe("accessibility of the rendered page", () => {
 
 describe("the unavailable states", () => {
   it("says the page is unpublished without claiming it does not exist", () => {
-    const text = textOf(AboutUnavailable({ locale: "en", reason: "not-configured" }));
+    const text = textOf(
+      AboutUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "not-configured" }),
+    );
 
     expect(text).toContain("has not been published");
     expect(text.toLowerCase()).not.toContain("not found");
   });
 
   it("says a service condition is temporary", () => {
-    const text = textOf(AboutUnavailable({ locale: "ar", reason: "service" }));
+    const text = textOf(
+      AboutUnavailable({ locale: "ar", locales: ACTIVE_LOCALES, reason: "service" }),
+    );
 
     expect(text).toContain("temporary service condition");
   });
 
   it("keeps one h1 and a route out of the page", () => {
-    const tree = AboutUnavailable({ locale: "en", reason: "service" });
+    const tree = AboutUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "service" });
 
     expect(findTags(tree, "h1")).toHaveLength(1);
     expect(findLinks(tree).map((link) => link.props.href)).toContain("/en/products");
@@ -263,6 +269,7 @@ describe("locale fallback annotation", () => {
     const tree = AboutExperience({
       content: VERIFICATION_CONTENT,
       locale: "ar",
+      locales: ACTIVE_LOCALES,
       fallbackLocale: { code: "en", direction: "ltr" },
     });
 
@@ -277,6 +284,7 @@ describe("locale fallback annotation", () => {
     const tree = AboutExperience({
       content: VERIFICATION_CONTENT,
       locale: "ar",
+      locales: ACTIVE_LOCALES,
       fallbackLocale: { code: "en", direction: "ltr" },
     });
 
@@ -301,7 +309,7 @@ describe("the unpublished and unavailable states are accessible pages", () => {
   ];
 
   it.each(states)("$reason: one h1, a landmark, and a route out", ({ reason, phrase }) => {
-    const tree = AboutUnavailable({ locale: "en", reason });
+    const tree = AboutUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason });
 
     expect(findTags(tree, "h1")).toHaveLength(1);
     expect(findTags(tree, "main")[0]?.props.id).toBe("main-content");
@@ -312,14 +320,20 @@ describe("the unpublished and unavailable states are accessible pages", () => {
   });
 
   it.each(states)("$reason: every link has an accessible name", ({ reason }) => {
-    for (const link of findLinks(AboutUnavailable({ locale: "en", reason }))) {
+    for (const link of findLinks(
+      AboutUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason }),
+    )) {
       expect(textOf(link.props.children as ReactNode).trim().length).toBeGreaterThan(0);
     }
   });
 
   it("keeps the two states distinguishable in text", () => {
-    const unpublished = textOf(AboutUnavailable({ locale: "en", reason: "not-configured" }));
-    const unavailable = textOf(AboutUnavailable({ locale: "en", reason: "service" }));
+    const unpublished = textOf(
+      AboutUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "not-configured" }),
+    );
+    const unavailable = textOf(
+      AboutUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "service" }),
+    );
 
     expect(unpublished).not.toEqual(unavailable);
     expect(unpublished).not.toContain("temporary service condition");

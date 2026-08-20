@@ -11,7 +11,7 @@ import "../forms/forms.css";
 import "./contact.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { ContactHero } from "./sections/hero";
 import { InquirySection } from "./sections/inquiry-section";
@@ -37,18 +37,23 @@ import type { ProductContext } from "@/features/forms/inquiry-form";
 export function ContactTemplate({
   copy,
   inquiryType,
+  locale,
+  locales,
   lockInquiryType = false,
   product = null,
 }: {
   readonly copy: FormHeading;
   readonly inquiryType: string;
+  /** The route locale segment, forwarded to the shared chrome — see `SiteNavProps`. */
+  readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   readonly lockInquiryType?: boolean;
   /** Resolved by the route from `?product=`, or null when the form was opened without one. */
   readonly product?: ProductContext | null;
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <ContactHero />
@@ -61,7 +66,7 @@ export function ContactTemplate({
         />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

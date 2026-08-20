@@ -13,7 +13,7 @@ import "../forms/forms.css";
 import "./solutions.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { CustomRequestForm } from "./sections/custom-request-form";
 import { CustomizationProcess } from "./sections/customization-process";
@@ -54,10 +54,12 @@ import type { ReactNode } from "react";
 export function SolutionsExperience({
   content,
   locale,
+  locales,
   fallbackLocale = null,
 }: {
   readonly content: CustomizedSolutionsContent;
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /**
    * The locale the CMS actually served, when it is not the one that was asked for.
    *
@@ -68,7 +70,7 @@ export function SolutionsExperience({
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       {/*
        * ── The route locale is not changed by a fallback ─────────────────────
@@ -104,7 +106,7 @@ export function SolutionsExperience({
         <CustomRequestForm />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

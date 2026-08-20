@@ -39,10 +39,11 @@ import "../globals.css";
 /**
  * The route set, generated from the `Locale` table by way of `GET /api/v1/locales`.
  *
- * **Never a hardcoded `['en','fa','ar']`**, and never the `LOCALES` fixture in `site-routes.ts`.
- * The locale list is data and adding a language must not require a code change
+ * **Never a hardcoded `['en','fa','ar']`, and never a static fixture** — `site-routes.ts` used to
+ * carry one for the language switcher, and it was deleted rather than reused when that switcher
+ * started navigating. The locale list is data and adding a language must not require a code change
  * (PROJECT_HANDOFF §6.9), so the route tree is generated from the same table every other consumer
- * reads.
+ * reads, this layout and the switcher included.
  *
  * **This throws rather than degrading.** `getActiveLocales` fails loudly for a missing
  * `API_INTERNAL_URL`, an unreachable API, a non-2xx, a malformed payload, an empty set, or a set

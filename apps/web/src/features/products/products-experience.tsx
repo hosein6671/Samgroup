@@ -16,7 +16,7 @@ import "../home/flagship.css";
 import "./products.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { ClosingCta } from "./sections/closing-cta";
 import { Documentation } from "./sections/documentation";
@@ -52,10 +52,10 @@ import { ProductRegister } from "./sections/register";
  * unchanged plus swapping `products-data.ts` from fixtures to `GET /api/v1/categories`. The
  * components take the same shapes either way.
  */
-export function ProductsExperience(): ReactNode {
+export function ProductsExperience({ locale, locales }: SiteNavProps): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <ProductsHero />
@@ -65,7 +65,7 @@ export function ProductsExperience(): ReactNode {
         <ClosingCta />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

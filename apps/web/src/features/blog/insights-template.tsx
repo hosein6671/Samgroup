@@ -11,7 +11,7 @@ import "../home/flagship.css";
 import "./insights.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { InsightsHero } from "./sections/hero";
 import { InsightsList, InsightsListSkeleton } from "./sections/list";
@@ -43,16 +43,18 @@ import type { BlogPostListResult } from "@/lib/blog";
 export function InsightsTemplate({
   posts,
   locale,
+  locales,
   query,
 }: {
   /** Started by the route and deliberately not awaited there — see the note above. */
   readonly posts: Promise<BlogPostListResult>;
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   readonly query: InsightsQuery;
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <InsightsHero />
@@ -62,7 +64,7 @@ export function InsightsTemplate({
         </Suspense>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

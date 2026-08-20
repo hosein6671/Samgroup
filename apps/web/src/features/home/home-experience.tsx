@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./flagship.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { BootCurtain, PointerRing, ScrollProgress } from "./chrome/site-chrome";
 import { RevealEngine } from "./motion/reveal-engine";
@@ -60,7 +60,7 @@ import { Why } from "./sections/why";
  * plus swapping `home-data.ts` from fixtures to a Payload fetch and a catalog read — the
  * components take the same shapes either way.
  */
-export function HomeExperience(): ReactNode {
+export function HomeExperience({ locale, locales }: SiteNavProps): ReactNode {
   return (
     <div id="flagship-root" data-brand="flagship">
       <BootCurtain />
@@ -68,7 +68,7 @@ export function HomeExperience(): ReactNode {
       <PointerRing />
       <RevealEngine />
 
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         {/*
@@ -89,7 +89,7 @@ export function HomeExperience(): ReactNode {
         <Partnership />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

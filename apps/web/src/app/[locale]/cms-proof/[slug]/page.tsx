@@ -7,6 +7,7 @@ import { getContentPage } from "@/lib/content";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The CMS content proof — `/{locale}/cms-proof/{slug}`.
@@ -170,6 +171,7 @@ export default async function CmsProofPage({
   readonly params: Promise<{ locale: string; slug: string }>;
 }): Promise<ReactNode> {
   const { locale, slug } = await params;
+  const locales = await getActiveLocales();
 
   /*
    * No `Suspense` boundary, for the reason the article route gives: the fetch decides whether the
@@ -179,7 +181,12 @@ export default async function CmsProofPage({
 
   if (result.ok) {
     return (
-      <CmsPageTemplate page={result.page} locale={locale} localeFallback={result.localeFallback} />
+      <CmsPageTemplate
+        locales={locales}
+        page={result.page}
+        locale={locale}
+        localeFallback={result.localeFallback}
+      />
     );
   }
 
@@ -201,5 +208,5 @@ export default async function CmsProofPage({
           : `the platform API answered, but not with a page (HTTP ${String(result.status)})`),
   );
 
-  return <CmsPageUnavailable locale={locale} />;
+  return <CmsPageUnavailable locales={locales} locale={locale} />;
 }

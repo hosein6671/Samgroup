@@ -97,6 +97,7 @@ export default async function CustomizedSolutionsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
+  const locales = await getActiveLocales();
   const result = await resolveSolutions(locale);
 
   if (result.ok) {
@@ -109,6 +110,7 @@ export default async function CustomizedSolutionsPage({
 
     return (
       <SolutionsExperience
+        locales={locales}
         content={result.content}
         locale={locale}
         fallbackLocale={served === null ? null : { code: served.code, direction: served.direction }}
@@ -117,7 +119,7 @@ export default async function CustomizedSolutionsPage({
   }
 
   if (result.reason === "not-configured") {
-    return <SolutionsUnavailable locale={locale} reason="not-configured" />;
+    return <SolutionsUnavailable locales={locales} locale={locale} reason="not-configured" />;
   }
 
   console.warn(
@@ -129,5 +131,5 @@ export default async function CustomizedSolutionsPage({
           : `the platform API answered, but not with page content (HTTP ${String(result.status)})`),
   );
 
-  return <SolutionsUnavailable locale={locale} reason="service" />;
+  return <SolutionsUnavailable locales={locales} locale={locale} reason="service" />;
 }

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { InsightsTemplate } from "@/features/blog/insights-template";
 import { readInsightsQuery } from "@/features/blog/insights-query";
 import { getBlogPosts } from "@/lib/blog";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The Insights index — `/{locale}/insights`.
@@ -43,6 +44,7 @@ export default async function InsightsPage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, rawQuery] = await Promise.all([params, searchParams]);
+  const locales = await getActiveLocales();
   const query = readInsightsQuery(rawQuery);
 
   /*
@@ -60,5 +62,5 @@ export default async function InsightsPage({
     page: query.page,
   });
 
-  return <InsightsTemplate posts={posts} locale={locale} query={query} />;
+  return <InsightsTemplate locales={locales} posts={posts} locale={locale} query={query} />;
 }

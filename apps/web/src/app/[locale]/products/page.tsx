@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { ProductsExperience } from "@/features/products/products-experience";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The Products landing page, on its canonical route — `/{locale}/products`.
@@ -57,6 +58,15 @@ export const metadata: Metadata = {
     "Base oils, lubricant additives, engine oils, industrial and marine lubricants, antifreeze and coolants — six product families from Sam Group.",
 };
 
-export default function ProductsPage(): ReactNode {
-  return <ProductsExperience />;
+/** `async` for the same reason `app/[locale]/page.tsx` is — see the note there. */
+export default async function ProductsPage({
+  params,
+}: {
+  // A Promise in Next 15 — awaited below rather than destructured in the signature.
+  readonly params: Promise<{ locale: string }>;
+}): Promise<ReactNode> {
+  const { locale } = await params;
+  const locales = await getActiveLocales();
+
+  return <ProductsExperience locale={locale} locales={locales} />;
 }

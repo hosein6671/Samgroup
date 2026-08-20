@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { ProductFinderTemplate } from "@/features/products/finder/finder-template";
 import { readFinderQuery } from "@/features/products/finder/finder-query";
 import { getProducts } from "@/lib/products";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The Product Finder route — `/{locale}/products/finder`.
@@ -83,6 +84,7 @@ export default async function ProductFinderPage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, rawQuery] = await Promise.all([params, searchParams]);
+  const locales = await getActiveLocales();
 
   const query = readFinderQuery(rawQuery);
 
@@ -102,5 +104,7 @@ export default async function ProductFinderPage({
     segment: query.segment ?? undefined,
   });
 
-  return <ProductFinderTemplate locale={locale} query={query} products={products} />;
+  return (
+    <ProductFinderTemplate locales={locales} locale={locale} query={query} products={products} />
+  );
 }

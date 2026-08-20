@@ -15,7 +15,7 @@ import "../home/flagship.css";
 import "./quality.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { QualityApproach } from "./sections/approach";
 import { QualityCertifications } from "./sections/certifications";
@@ -77,10 +77,12 @@ import type { ReactNode } from "react";
 export function QualityExperience({
   content,
   locale,
+  locales,
   fallbackLocale = null,
 }: {
   readonly content: QualityCertificationsContent;
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /**
    * The locale the CMS actually served, when it is not the one that was asked for.
    *
@@ -92,7 +94,7 @@ export function QualityExperience({
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       {/*
        * ── The route locale is not changed by a fallback ─────────────────────
@@ -140,7 +142,7 @@ export function QualityExperience({
         )}
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

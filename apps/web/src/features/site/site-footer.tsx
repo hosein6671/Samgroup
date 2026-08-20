@@ -1,7 +1,8 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { LogoMark } from "./logo-mark";
-import { FOOTER_COLUMNS, ROUTES } from "./site-routes";
+import { ROUTES, footerColumnsFor, localeHref } from "./site-routes";
 
 /**
  * The footer. A Server Component — there is nothing here that needs the client.
@@ -28,15 +29,40 @@ import { FOOTER_COLUMNS, ROUTES } from "./site-routes";
  *
  * What remains is brand-level and claim-free: the mark, the name, the navigation columns, and the
  * copyright line.
+ *
+ * ── What NAV-1 changed ─────────────────────────────────────────────────────
+ *
+ * **Every link is locale-prefixed**, through the one resolver in `site-routes.ts`, so the footer
+ * keeps a reader in the language they are reading. It rendered locale-less paths before, which
+ * `middleware.ts` then re-negotiated from `Accept-Language` — the same defect the header had.
+ *
+ * **Two dead anchors are gone.** The brand mark pointed at `#top`, an id that exists only inside
+ * the homepage hero, so on the other thirteen routes it went nowhere; it is the locale's home page
+ * now. The Products column pointed five links at `#products`, an id that exists on two unrelated
+ * sections and on no other route — that column is the six canonical families, resolved from
+ * `PRODUCT_CATEGORIES` by `footerColumnsFor`.
  */
-export function SiteFooter(): ReactNode {
+export function SiteFooter({
+  locale,
+}: {
+  /** The route's locale segment, resolved on the server. The footer never negotiates one. */
+  readonly locale: string;
+}): ReactNode {
+  const columns = footerColumnsFor(locale);
+  const homeHref = localeHref(locale, ROUTES.home);
+
   return (
     <footer className="fs-footer" data-surface="midnight">
       <div className="fs-wrap">
         <div className="fs-fgrid">
           <div className="fs-fcol">
-            <a
-              href="#top"
+            {/*
+             * `#top` stood here and resolved only on the homepage. A brand mark in a footer means
+             * "the front page", so it says that: the locale's home route, which exists in every
+             * locale. No id was invented on thirteen pages to keep a fragment working.
+             */}
+            <Link
+              href={homeHref}
               className="fs-logo"
               aria-label="Sam Group — home"
               style={{ marginBottom: 18 }}
@@ -46,7 +72,7 @@ export function SiteFooter(): ReactNode {
                 <span className="fs-logo-txt">SAM GROUP</span>
                 <span className="fs-logo-sub">Petroleum Engineering</span>
               </span>
-            </a>
+            </Link>
             {/*
              * Names the range and stops. The previous sentence closed with "engineered, tested and
              * shipped from our own complexes" — a production, testing and logistics claim, and the
@@ -60,13 +86,13 @@ export function SiteFooter(): ReactNode {
             </p>
           </div>
 
-          {FOOTER_COLUMNS.map((col) => (
+          {columns.map((col) => (
             <div className="fs-fcol" key={col.heading}>
               <h2>{col.heading}</h2>
               {col.links.map((link) => (
-                <a href={link.href} key={link.label}>
+                <Link href={link.href} key={link.label}>
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           ))}
@@ -79,7 +105,7 @@ export function SiteFooter(): ReactNode {
            */}
           <div className="fs-fcol">
             <h2>Contact</h2>
-            <a href={ROUTES.contactUs}>Contact Us</a>
+            <Link href={localeHref(locale, ROUTES.contactUs)}>Contact Us</Link>
           </div>
         </div>
 

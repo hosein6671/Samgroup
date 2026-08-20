@@ -5,6 +5,7 @@ import { FORM_HEADINGS } from "@/features/contact/contact-data";
 import { ContactTemplate } from "@/features/contact/contact-template";
 import { resolveProductContext, single } from "@/features/contact/resolve-product-context";
 import { QUOTE_INQUIRY_TYPE } from "@/features/forms/inquiry-vocabulary";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The Request a Quote route — `/{locale}/contact-us/request-a-quote`.
@@ -38,11 +39,14 @@ export default async function RequestAQuotePage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
+  const locales = await getActiveLocales();
 
   const product = await resolveProductContext(single(query.product), locale);
 
   return (
     <ContactTemplate
+      locales={locales}
+      locale={locale}
       copy={FORM_HEADINGS.quote}
       inquiryType={QUOTE_INQUIRY_TYPE}
       lockInquiryType

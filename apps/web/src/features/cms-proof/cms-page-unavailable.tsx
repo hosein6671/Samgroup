@@ -4,7 +4,7 @@ import "../home/flagship.css";
 import "./cms-proof.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
 
 /**
@@ -37,10 +37,10 @@ import { ROUTES } from "@/features/site/site-routes";
  * Component `error.tsx` boundary. The whole `[locale]` tree is `robots: noindex, nofollow`, so no
  * crawler is interpreting these responses yet; revisiting it belongs with the SEO launch gate.
  */
-export function CmsPageUnavailable({ locale }: { readonly locale: string }): ReactNode {
+export function CmsPageUnavailable({ locale, locales }: SiteNavProps): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <section className="fs-sec cms-unavailable" data-surface="midnight">
@@ -66,7 +66,7 @@ export function CmsPageUnavailable({ locale }: { readonly locale: string }): Rea
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

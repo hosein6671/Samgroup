@@ -2,7 +2,7 @@ import "../home/flagship.css";
 import "./about.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { AboutClosing } from "./sections/closing";
 import { AboutExpertise } from "./sections/expertise";
@@ -45,10 +45,12 @@ import type { ReactNode } from "react";
 export function AboutExperience({
   content,
   locale,
+  locales,
   fallbackLocale = null,
 }: {
   readonly content: AboutUsContent;
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /**
    * The locale the CMS actually served, when it is not the one that was asked for.
    *
@@ -60,7 +62,7 @@ export function AboutExperience({
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       {/*
        * ── The route locale is not changed by a fallback ─────────────────────
@@ -99,7 +101,7 @@ export function AboutExperience({
         {content.closing !== null && <AboutClosing closing={content.closing} locale={locale} />}
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

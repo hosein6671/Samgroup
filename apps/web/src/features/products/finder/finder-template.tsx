@@ -16,7 +16,7 @@ import "../product-list.css";
 import "./finder.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { FinderFilters } from "./sections/filters";
 import { FinderHero } from "./sections/hero";
@@ -63,11 +63,13 @@ import type { ProductListResult } from "@/lib/products";
  */
 export function ProductFinderTemplate({
   locale,
+  locales,
   query,
   products,
 }: {
   /** The active locale segment. Half of every link this page emits. */
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /** The normalized filter state, exactly as the route read it off the URL. */
   readonly query: FinderQuery;
   /** Created by the route and deliberately un-awaited — see the boundary note above. */
@@ -75,7 +77,7 @@ export function ProductFinderTemplate({
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <FinderHero locale={locale} />
@@ -96,7 +98,7 @@ export function ProductFinderTemplate({
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

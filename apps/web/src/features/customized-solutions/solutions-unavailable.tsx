@@ -4,7 +4,7 @@ import "../forms/forms.css";
 import "./solutions.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
 
 import { CustomRequestForm } from "./sections/custom-request-form";
@@ -38,14 +38,16 @@ import type { ReactNode } from "react";
  */
 export function SolutionsUnavailable({
   locale,
+  locales,
   reason,
 }: {
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   readonly reason: "not-configured" | "service";
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <section className="fs-sec cs-unavailable" data-surface="midnight">
@@ -81,7 +83,7 @@ export function SolutionsUnavailable({
         <CustomRequestForm />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

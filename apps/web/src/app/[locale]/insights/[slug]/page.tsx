@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { PostTemplate } from "@/features/blog/post-template";
 import { PostUnavailable } from "@/features/blog/post-unavailable";
 import { resolvePost } from "@/features/blog/resolve-post";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * One article — `/{locale}/insights/{post-slug}`.
@@ -77,6 +78,7 @@ export default async function InsightPostPage({
   readonly params: Promise<{ locale: string; slug: string }>;
 }): Promise<ReactNode> {
   const { locale, slug } = await params;
+  const locales = await getActiveLocales();
 
   /*
    * There is no `Suspense` boundary around this. A boundary streams a *part* of a page while the
@@ -88,7 +90,12 @@ export default async function InsightPostPage({
 
   if (result.ok) {
     return (
-      <PostTemplate post={result.record} locale={locale} localeFallback={result.localeFallback} />
+      <PostTemplate
+        locales={locales}
+        post={result.record}
+        locale={locale}
+        localeFallback={result.localeFallback}
+      />
     );
   }
 
@@ -107,5 +114,5 @@ export default async function InsightPostPage({
         : `the API answered, but not with a post (HTTP ${String(result.status)})`),
   );
 
-  return <PostUnavailable locale={locale} />;
+  return <PostUnavailable locales={locales} locale={locale} />;
 }

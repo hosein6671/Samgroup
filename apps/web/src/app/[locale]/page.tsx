@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { HomeExperience } from "@/features/home/home-experience";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The Sam Group flagship homepage, on its canonical route.
@@ -36,6 +37,23 @@ export const metadata: Metadata = {
     "Sam Group delivers advanced petroleum products, lubricants, base oils and industrial solutions engineered for global industries.",
 };
 
-export default function HomePage(): ReactNode {
-  return <HomeExperience />;
+/**
+ * The two values the shared chrome needs, and the reason this page became `async`.
+ *
+ * `HomeExperience` renders `SiteNav`/`SiteFooter`, and NAV-1 made both of those take the route's
+ * locale and the active locale set rather than guessing. The locale is this route's own segment;
+ * the set is `GET /locales` through the same memoized reader `app/[locale]/layout.tsx` already
+ * awaits on every render, so this adds no request — it reads a promise that is already resolved
+ * by the time this component runs.
+ */
+export default async function HomePage({
+  params,
+}: {
+  // A Promise in Next 15 — awaited below rather than destructured in the signature.
+  readonly params: Promise<{ locale: string }>;
+}): Promise<ReactNode> {
+  const { locale } = await params;
+  const locales = await getActiveLocales();
+
+  return <HomeExperience locale={locale} locales={locales} />;
 }

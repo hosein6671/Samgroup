@@ -7,6 +7,7 @@ import { getContentPage } from "@/lib/content";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { getActiveLocales } from "@/lib/locales";
 
 /**
  * The canonical Privacy Policy — `/{locale}/privacy-policy`.
@@ -178,6 +179,7 @@ export default async function PrivacyPolicyPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
+  const locales = await getActiveLocales();
 
   /*
    * No `Suspense` boundary, for the reason the article and CMS proof routes give: the fetch decides
@@ -189,6 +191,7 @@ export default async function PrivacyPolicyPage({
   if (result.ok) {
     return (
       <LegalPageTemplate
+        locales={locales}
         page={result.page}
         locale={locale}
         localeFallback={result.localeFallback}
@@ -214,5 +217,5 @@ export default async function PrivacyPolicyPage({
           : `the platform API answered, but not with a page (HTTP ${String(result.status)})`),
   );
 
-  return <LegalPageUnavailable locale={locale} />;
+  return <LegalPageUnavailable locales={locales} locale={locale} />;
 }

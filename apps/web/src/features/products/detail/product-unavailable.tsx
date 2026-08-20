@@ -5,7 +5,7 @@ import "../products.css";
 import "./product-detail.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { Arrow } from "@/features/site/logo-mark";
 import { ROUTES } from "@/features/site/site-routes";
 
@@ -46,10 +46,10 @@ import { ROUTES } from "@/features/site/site-routes";
  * crawler is interpreting these responses yet. Revisiting it belongs with the SEO launch gate,
  * which is when the status code starts to mean something to anyone.
  */
-export function ProductUnavailable({ locale }: { readonly locale: string }): ReactNode {
+export function ProductUnavailable({ locale, locales }: SiteNavProps): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <section className="fs-sec pd-unavailable" data-surface="midnight">
@@ -79,7 +79,7 @@ export function ProductUnavailable({ locale }: { readonly locale: string }): Rea
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

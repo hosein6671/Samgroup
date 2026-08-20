@@ -4,7 +4,7 @@ import "../home/flagship.css";
 import "./insights.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { Arrow } from "@/features/site/logo-mark";
 import { ROUTES } from "@/features/site/site-routes";
 
@@ -39,10 +39,10 @@ import { ROUTES } from "@/features/site/site-routes";
  * `robots: noindex, nofollow`, so no crawler is interpreting these responses yet; revisiting it
  * belongs with the SEO launch gate.
  */
-export function PostUnavailable({ locale }: { readonly locale: string }): ReactNode {
+export function PostUnavailable({ locale, locales }: SiteNavProps): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <section className="fs-sec in-unavailable" data-surface="midnight">
@@ -72,7 +72,7 @@ export function PostUnavailable({ locale }: { readonly locale: string }): ReactN
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

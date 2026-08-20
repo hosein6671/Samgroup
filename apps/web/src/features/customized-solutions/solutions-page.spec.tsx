@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { ACTIVE_LOCALES } from "@test/active-locales";
+
 import { accessibleName, elementsOf, findLinks, findTags, textOf } from "@test/element-tree";
 
 import { CustomRequestForm } from "./sections/custom-request-form";
@@ -71,7 +73,7 @@ function render(
   content: CustomizedSolutionsContent = VERIFICATION_CONTENT,
   locale = "en",
 ): ReactNode {
-  return SolutionsExperience({ content, locale });
+  return SolutionsExperience({ content, locale, locales: ACTIVE_LOCALES });
 }
 
 /** The anchor the request action must always point at — this page's, declared in code. */
@@ -226,7 +228,12 @@ describe("the form is code-owned, not content", () => {
 
   it("renders in both failure states, because it does not depend on the CMS", () => {
     for (const reason of ["not-configured", "service"] as const) {
-      expect(mounts(SolutionsUnavailable({ locale: "en", reason }), CustomRequestForm)).toBe(true);
+      expect(
+        mounts(
+          SolutionsUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason }),
+          CustomRequestForm,
+        ),
+      ).toBe(true);
     }
   });
 });
@@ -263,6 +270,7 @@ describe("locale fallback annotation", () => {
     const tree = SolutionsExperience({
       content: VERIFICATION_CONTENT,
       locale: "ar",
+      locales: ACTIVE_LOCALES,
       fallbackLocale: { code: "en", direction: "ltr" },
     });
 
@@ -277,6 +285,7 @@ describe("locale fallback annotation", () => {
     const tree = SolutionsExperience({
       content: VERIFICATION_CONTENT,
       locale: "ar",
+      locales: ACTIVE_LOCALES,
       fallbackLocale: { code: "en", direction: "ltr" },
     });
 
@@ -334,7 +343,7 @@ describe("the unpublished and unavailable states", () => {
   ];
 
   it.each(states)("$reason: one h1, a landmark, and a way forward", ({ reason, phrase }) => {
-    const tree = SolutionsUnavailable({ locale: "en", reason });
+    const tree = SolutionsUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason });
 
     expect(findTags(tree, "h1")).toHaveLength(1);
     expect(findTags(tree, "main")[0]?.props.id).toBe("main-content");
@@ -344,15 +353,19 @@ describe("the unpublished and unavailable states", () => {
 
   it("says the form still works, so a reader is not turned away", () => {
     for (const { reason } of states) {
-      expect(textOf(SolutionsUnavailable({ locale: "en", reason }))).toContain(
-        "request form below is unaffected",
-      );
+      expect(
+        textOf(SolutionsUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason })),
+      ).toContain("request form below is unaffected");
     }
   });
 
   it("keeps the two states distinguishable in text", () => {
-    const unpublished = textOf(SolutionsUnavailable({ locale: "en", reason: "not-configured" }));
-    const unavailable = textOf(SolutionsUnavailable({ locale: "en", reason: "service" }));
+    const unpublished = textOf(
+      SolutionsUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "not-configured" }),
+    );
+    const unavailable = textOf(
+      SolutionsUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "service" }),
+    );
 
     expect(unpublished).not.toEqual(unavailable);
     expect(unpublished).not.toContain("temporary service condition");

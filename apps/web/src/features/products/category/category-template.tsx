@@ -28,7 +28,7 @@ import "../product-list.css";
 import "./category.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import type { ProductListResult } from "@/lib/products";
 
@@ -138,6 +138,7 @@ export function ProductCategoryTemplate({
   content,
   family,
   locale,
+  locales,
   products,
   activeSegment,
 }: {
@@ -150,6 +151,7 @@ export function ProductCategoryTemplate({
   readonly family: ProductFamily;
   /** The active locale segment. Half of every filter link the catalog section emits. */
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /** Created by the route and deliberately un-awaited — see the boundary note above. */
   readonly products: Promise<ProductListResult>;
   /** The normalized `?segment=` value, or `null` for the unfiltered view. */
@@ -170,7 +172,7 @@ export function ProductCategoryTemplate({
 
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <CategoryHero {...props} />
@@ -191,7 +193,7 @@ export function ProductCategoryTemplate({
         <ClosingCta />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

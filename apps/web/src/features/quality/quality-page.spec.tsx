@@ -3,6 +3,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { ACTIVE_LOCALES } from "@test/active-locales";
+
 import { accessibleName, elementsOf, findLinks, findTags, textOf } from "@test/element-tree";
 
 import { QualityExperience } from "./quality-experience";
@@ -121,7 +123,7 @@ function render(
   content: QualityCertificationsContent = VERIFICATION_CONTENT,
   locale = "en",
 ): ReactNode {
-  return QualityExperience({ content, locale });
+  return QualityExperience({ content, locale, locales: ACTIVE_LOCALES });
 }
 
 describe("the Quality page renders what the CMS served", () => {
@@ -444,6 +446,7 @@ describe("the locale fallback annotation", () => {
     const tree = QualityExperience({
       content: VERIFICATION_CONTENT,
       locale: "ar",
+      locales: ACTIVE_LOCALES,
       fallbackLocale: { code: "en", direction: "ltr" },
     });
     const main = findTags(tree, "main")[0];
@@ -464,14 +467,18 @@ describe("the locale fallback annotation", () => {
 
 describe("the unavailable states", () => {
   it("says the page is unpublished without claiming it does not exist", () => {
-    const text = textOf(QualityUnavailable({ locale: "en", reason: "not-configured" }));
+    const text = textOf(
+      QualityUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "not-configured" }),
+    );
 
     expect(text).toContain("has not been published");
     expect(text.toLowerCase()).not.toContain("not found");
   });
 
   it("says a service condition is temporary", () => {
-    const text = textOf(QualityUnavailable({ locale: "ar", reason: "service" }));
+    const text = textOf(
+      QualityUnavailable({ locale: "ar", locales: ACTIVE_LOCALES, reason: "service" }),
+    );
 
     expect(text).toContain("temporary service condition");
   });
@@ -485,9 +492,9 @@ describe("the unavailable states", () => {
    */
   it("claims nothing about certifications, testing, standards or accreditation", () => {
     for (const reason of ["not-configured", "service"] as const) {
-      const inner = elementsOf(QualityUnavailable({ locale: "en", reason })).find(
-        (element) => element.props.className === "fs-wrap qc-unavailable-inner",
-      );
+      const inner = elementsOf(
+        QualityUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason }),
+      ).find((element) => element.props.className === "fs-wrap qc-unavailable-inner");
       const text = textOf(inner as unknown as ReactNode).toLowerCase();
 
       for (const forbidden of [
@@ -507,7 +514,7 @@ describe("the unavailable states", () => {
   });
 
   it("keeps one h1 and a route out of the page", () => {
-    const tree = QualityUnavailable({ locale: "en", reason: "service" });
+    const tree = QualityUnavailable({ locale: "en", locales: ACTIVE_LOCALES, reason: "service" });
 
     expect(findTags(tree, "h1")).toHaveLength(1);
     expect(findLinks(tree).map((link) => link.props.href)).toContain("/en/products");

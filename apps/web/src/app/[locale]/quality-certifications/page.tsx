@@ -123,6 +123,7 @@ export default async function QualityCertificationsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
+  const locales = await getActiveLocales();
   const result = await resolveQuality(locale);
 
   if (result.ok) {
@@ -135,6 +136,7 @@ export default async function QualityCertificationsPage({
 
     return (
       <QualityExperience
+        locales={locales}
         content={result.content}
         locale={locale}
         fallbackLocale={served === null ? null : { code: served.code, direction: served.direction }}
@@ -143,7 +145,7 @@ export default async function QualityCertificationsPage({
   }
 
   if (result.reason === "not-configured") {
-    return <QualityUnavailable locale={locale} reason="not-configured" />;
+    return <QualityUnavailable locales={locales} locale={locale} reason="not-configured" />;
   }
 
   console.warn(
@@ -155,5 +157,5 @@ export default async function QualityCertificationsPage({
           : `the platform API answered, but not with page content (HTTP ${String(result.status)})`),
   );
 
-  return <QualityUnavailable locale={locale} reason="service" />;
+  return <QualityUnavailable locales={locales} locale={locale} reason="service" />;
 }

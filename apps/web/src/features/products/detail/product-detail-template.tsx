@@ -11,7 +11,7 @@ import "../products.css";
 import "./product-detail.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { ClosingCta } from "../sections/closing-cta";
 
@@ -69,17 +69,19 @@ import type { ProductDetailResponse } from "@sam-group/types";
 export function ProductDetailTemplate({
   product,
   locale,
+  locales,
   localeFallback,
 }: {
   readonly product: ProductDetailResponse;
   /** The active locale segment, used to compose the breadcrumb's links. */
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /** The API's `meta.localeFallback`, passed through to the hero's notice. */
   readonly localeFallback: boolean;
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <ProductHero product={product} locale={locale} localeFallback={localeFallback} />
@@ -95,7 +97,7 @@ export function ProductDetailTemplate({
         <ClosingCta context={{ locale, productSlug: product.slug }} />
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

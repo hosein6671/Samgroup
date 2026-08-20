@@ -11,12 +11,13 @@
  * blog articles get localised slugs (PROJECT_HANDOFF §6.12). So these constants are correct
  * as-is once the `[locale]` prefix is added in front of them.
  *
- * **These routes do not resolve yet.** `apps/web` currently serves only the design proof; the
- * pages themselves are M3 work. Centralising them here means the header is already correct and
- * the lift is a prefix, not a rewrite.
+ * **The prefix is applied here and nowhere else.** Every constant below is the locale-less
+ * structural path; `localeHref` at the foot of this file is the one function that turns one into a
+ * URL, and `SiteNav`, `SiteFooter` and `contentRouteHref` all go through it. Two copies of a
+ * prefix rule is two places for `/en/en/products` to come from.
  */
 
-import type { ContentRouteKey, ProductFamilyKey } from "@sam-group/types";
+import type { ContentRouteKey, LocaleResponse, ProductFamilyKey } from "@sam-group/types";
 
 export const ROUTES = {
   home: "/",
@@ -149,34 +150,19 @@ export const SECONDARY_NAV: readonly NavItem[] = [
   { label: "Insights", href: ROUTES.insights },
 ] as const;
 
-/**
- * Launch locales — **a presentational fixture for the language switcher, and nothing else.**
+/*
+ * The `LOCALES` fixture that stood here is **deleted**, not relocated.
  *
- * **This is NOT the routing locale source.** That is `GET /api/v1/locales`, read through
- * `lib/locales.ts`, which generates the `[locale]` route set, sets `<html lang dir>` and drives
- * middleware negotiation. Nothing in the routing layer may read this constant, and it must never
- * be used as a fallback when the API is unavailable — a build with no locale source fails loudly
- * by decision.
+ * It was a `{ code, label, native, direction, isDefault }` shape-alike of the locale endpoint,
+ * kept alive by one consumer: the switcher, which was presentational and navigated nowhere. The
+ * switcher now navigates, and the moment it does, a second list of locales in code becomes a
+ * second answer to a question `lib/locales.ts` documents as having exactly one — `GET /locales`,
+ * read from the `Locale` table. A switcher offering a locale the table does not have would emit a
+ * URL `app/[locale]/layout.tsx` answers with a 404, from a build that reported success.
  *
- * It remains only because `site-nav.tsx`'s switcher still consumes it, and the switcher is
- * presentational (it marks the current locale and navigates nowhere). It is left unreshaped on
- * purpose: its fields are `label`/`native` where the endpoint serves `name`/`nativeName`, so this
- * is a shape-alike rather than a stale copy, and reconciling the two is the gate that makes the
- * switcher navigate.
+ * So the active set arrives as a prop, from the Server Component boundary, and nothing in this
+ * file holds a locale code. `localeHref` below takes one; it never sources one.
  */
-export type Locale = {
-  readonly code: string;
-  readonly label: string;
-  readonly native: string;
-  readonly direction: "ltr" | "rtl";
-  readonly isDefault: boolean;
-};
-
-export const LOCALES: readonly Locale[] = [
-  { code: "en", label: "English", native: "English", direction: "ltr", isDefault: true },
-  { code: "fa", label: "Persian", native: "فارسی", direction: "rtl", isDefault: false },
-  { code: "ar", label: "Arabic", native: "العربية", direction: "rtl", isDefault: false },
-] as const;
 
 /**
  * Footer navigation columns.
@@ -184,12 +170,26 @@ export const LOCALES: readonly Locale[] = [
  * Moved here verbatim from `features/home/home-data.ts` when the footer became site-level: it is
  * navigation data, the same category as `PRIMARY_NAV` above, not homepage editorial content.
  *
- * **The Products column's hrefs are homepage in-page anchors, and are unchanged.** On any page
- * other than the homepage they resolve to nothing, which is the same proof-stage state the header
- * is already in (every `ROUTES` entry above 404s today). Both are fixed by the same later work:
- * real routes. Do not paper over it by hardcoding a proof path here.
+ * ── The Products column now consumes `PRODUCT_CATEGORIES` ──────────────────
  *
- * ── The Company column now consumes `SECONDARY_NAV` ─────────────────────────
+ * It previously held five `#products` anchors labelled "Base oils", "Lubricants", "Industrial
+ * fluids", "Automotive" and "Specialty". Two problems, and the second is the worse one:
+ *
+ * - **The anchor was dead off the homepage, and ambiguous on it.** `id="products"` exists twice on
+ *   the platform — the homepage's ecosystem band and a Family page's catalog section — so one
+ *   href pointed at two unrelated sections and at nothing on the other twelve routes.
+ * - **Four of the five labels owned no route.** "Lubricants", "Industrial fluids", "Automotive"
+ *   and "Specialty" are not families; they are loose groupings that no canonical URL serves. Five
+ *   links to one anchor, four of them naming a destination that does not exist, is not navigation.
+ *
+ * The column now holds the **six frozen ADR-009 families**, with the labels and hrefs
+ * `PRODUCT_CATEGORIES` already publishes in the header mega menu and on the Products landing
+ * register. **No copy is invented and none is new to the platform** — this column is the third
+ * consumer of a list the site already renders twice, and it is one fewer place for a family's
+ * published name to drift. The homepage keeps its `#products` band; nothing now links to it from
+ * the footer, which is the point.
+ *
+ * ── The Company column consumes `SECONDARY_NAV` ─────────────────────────────
  *
  * It previously held four homepage anchors — Manufacturing, Research, Export network, Insights —
  * which worked on the homepage and resolved to nothing on all four other pages. It now holds the
@@ -209,13 +209,7 @@ export const FOOTER_COLUMNS: readonly {
 }[] = [
   {
     heading: "Products",
-    links: [
-      { href: "#products", label: "Base oils" },
-      { href: "#products", label: "Lubricants" },
-      { href: "#products", label: "Industrial fluids" },
-      { href: "#products", label: "Automotive" },
-      { href: "#products", label: "Specialty" },
-    ],
+    links: PRODUCT_CATEGORIES,
   },
   {
     heading: "Company",
@@ -253,7 +247,243 @@ const CONTENT_ROUTE_HREFS: Readonly<Record<ContentRouteKey, string>> = {
  * trailing slash — no key maps to it today, and the join below stays correct if one ever does.
  */
 export function contentRouteHref(locale: string, route: ContentRouteKey): string {
-  const path = CONTENT_ROUTE_HREFS[route];
+  return localeHref(locale, CONTENT_ROUTE_HREFS[route]);
+}
+
+/* ========================================================================== */
+/* LOCALE-AWARE INTERNAL HREFS                                                */
+/* ========================================================================== */
+
+/**
+ * The first path segment, or `""` for `/`.
+ *
+ * Stops at `/`, `?` **and** `#`, so `/products#documentation` reads `products` rather than
+ * `products#documentation` — which is what keeps the guard in `localeHref` from being fooled by a
+ * fragment, and what lets `structuralPathOf` recognise `/fa?x=1` as the `fa` home.
+ */
+function firstSegmentOf(path: string): string {
+  const rest = path.slice(1);
+  const end = rest.search(/[/?#]/);
+
+  return end === -1 ? rest : rest.slice(0, end);
+}
+
+/**
+ * Whether this application owns the address — i.e. whether prefixing it is even meaningful.
+ *
+ * A single leading `/` and nothing else. That excludes `https://…` and `mailto:` (no leading
+ * slash), protocol-relative `//cdn…` (a different origin wearing a path's clothes), and a bare
+ * `#fragment`, which is a position on the current page rather than a route.
+ */
+function isInternalPath(path: string): boolean {
+  return path.startsWith("/") && !path.startsWith("//");
+}
+
+/**
+ * One internal structural path, addressed in one locale — **the only prefix rule on the platform.**
+ *
+ * ── Why this exists ────────────────────────────────────────────────────────
+ *
+ * Every constant in this file is locale-less by design (PROJECT_HANDOFF §6.12: structural page URLs
+ * stay fixed English across locales). Until this gate, the header and footer rendered those
+ * constants raw, so `/fa/quality-certifications` → "About Us" emitted `/about-us`, which
+ * `middleware.ts` then re-negotiated from `Accept-Language` — and dropped the reader out of
+ * Persian. The route's locale is authoritative; this function is how a component says so.
+ *
+ * ── What it deliberately is not ────────────────────────────────────────────
+ *
+ * Not a router, not a link builder, not a place to put route logic. It takes a locale code the
+ * caller has already validated (the `[locale]` segment, or a record from `GET /locales`) and one
+ * path this file already owns, and returns a string.
+ *
+ * - **Idempotent.** A path already addressed in `locale` is returned untouched, so no composition
+ *   of callers can produce `/en/en/products`.
+ * - **Query and fragment survive**, because they are part of the path string and this only
+ *   prepends: `/products#documentation` → `/fa/products#documentation`.
+ * - **External addresses pass through unchanged**, so a caller cannot accidentally rewrite one.
+ * - **`ROUTES.home` is `/`**, which becomes `/${locale}` and never `/${locale}/` — a trailing
+ *   slash would be a second URL for one page.
+ */
+export function localeHref(locale: string, path: string): string {
+  if (!isInternalPath(path)) return path;
+  if (firstSegmentOf(path) === locale) return path;
 
   return path === "/" ? `/${locale}` : `/${locale}${path}`;
+}
+
+/**
+ * A pathname with its leading locale segment removed — the structural path the nav compares against.
+ *
+ * `localeCodes` is the **active set**, supplied by the caller from `GET /locales`. A first segment
+ * that is not in it is not a locale, so the pathname is returned whole: that is what happens on
+ * `/design-proof/*`, which is not locale-routed, and the honest result there is that no navigation
+ * item matches.
+ */
+export function structuralPathOf(pathname: string, localeCodes: readonly string[]): string {
+  const first = firstSegmentOf(pathname);
+
+  if (first === "" || !localeCodes.includes(first)) return pathname;
+
+  const rest = pathname.slice(first.length + 1);
+
+  return rest === "" ? ROUTES.home : rest;
+}
+
+/**
+ * Whether a primary-navigation destination is the page currently being read.
+ *
+ * Exact, with **one** descendant rule: `/products/{slug}` and `/products/finder` are read as being
+ * inside Products, so the Products item carries the state for the Family pages, the Product Detail
+ * pages and the Finder. Nothing else descends — `/contact-us/request-a-quote` is its own
+ * destination and does not light up Contact Us, because marking an ancestor of every nested route
+ * is how two unrelated items end up both claiming to be current.
+ *
+ * `ROUTES.home` is `/`, which would otherwise be a prefix of everything; it is exact by construction.
+ */
+export function isNavHrefActive(structuralPath: string, href: string): boolean {
+  if (href === ROUTES.home) return structuralPath === ROUTES.home;
+  if (structuralPath === href) return true;
+  if (href === ROUTES.products) return structuralPath.startsWith(`${ROUTES.products}/`);
+
+  return false;
+}
+
+/** A navigation destination as a component renders it: resolved address, resolved state. */
+export type ResolvedNavLink = {
+  readonly label: string;
+  readonly href: string;
+  /** True on at most one item of a set — the caller renders `aria-current="page"` from it. */
+  readonly current: boolean;
+  readonly mega?: true;
+};
+
+/**
+ * `PRIMARY_NAV`, addressed in one locale and marked against one path.
+ *
+ * The header maps over this rather than over `PRIMARY_NAV`, which is what keeps the prefix rule out
+ * of `site-nav.tsx` — and out of `site-footer.tsx`, which uses the sibling builders below.
+ */
+export function primaryNavLinks(
+  locale: string,
+  structuralPath: string,
+): readonly ResolvedNavLink[] {
+  return PRIMARY_NAV.map((item) => ({
+    label: item.label,
+    href: localeHref(locale, item.href),
+    current: isNavHrefActive(structuralPath, item.href),
+    ...(item.mega === true ? { mega: item.mega } : {}),
+  }));
+}
+
+/** The six families, addressed in one locale. Keys and labels are untouched — only the address. */
+export function productFamilyLinks(
+  locale: string,
+): readonly { readonly key: ProductFamilyKey; readonly label: string; readonly href: string }[] {
+  return PRODUCT_CATEGORIES.map((family) => ({
+    key: family.key,
+    label: family.label,
+    href: localeHref(locale, family.href),
+  }));
+}
+
+/** `FOOTER_COLUMNS`, addressed in one locale. */
+export function footerColumnsFor(locale: string): readonly {
+  readonly heading: string;
+  readonly links: readonly { readonly href: string; readonly label: string }[];
+}[] {
+  return FOOTER_COLUMNS.map((column) => ({
+    heading: column.heading,
+    links: column.links.map((link) => ({
+      href: localeHref(locale, link.href),
+      label: link.label,
+    })),
+  }));
+}
+
+/**
+ * The same page, in another locale.
+ *
+ * **Only the leading locale segment is replaced.** The structural path, the query string and any
+ * fragment travel unchanged, because switching language is not navigating somewhere else — a reader
+ * filtering the Finder at `/fa/products/finder?segment=marine` expects `/ar/products/finder?segment=marine`,
+ * not the Arabic homepage.
+ *
+ * `pathname` comes from `usePathname()` and `search` from `useSearchParams()`; neither carries a
+ * fragment, so the fragment branch exists for correctness of the function rather than for a case
+ * the header can currently produce.
+ *
+ * **The one case that cannot be answered structurally** is a pathname with no locale segment, which
+ * on this platform means the `/design-proof` tree. There is no locale-addressed equivalent of a
+ * proof URL and inventing one would be inventing a route, so the target is that locale's home —
+ * a page that always exists. No route-specific fallback table is consulted, and none exists.
+ */
+export function switchLocaleHref(
+  pathname: string,
+  search: string,
+  target: string,
+  localeCodes: readonly string[],
+): string {
+  const hashAt = pathname.indexOf("#");
+  const hash = hashAt === -1 ? "" : pathname.slice(hashAt);
+  const path = hashAt === -1 ? pathname : pathname.slice(0, hashAt);
+
+  const first = firstSegmentOf(path);
+
+  if (!localeCodes.includes(first)) return `/${target}`;
+
+  const trimmed = search.startsWith("?") ? search.slice(1) : search;
+  const query = trimmed === "" ? "" : `?${trimmed}`;
+
+  return `/${target}${path.slice(first.length + 1)}${query}${hash}`;
+}
+
+/** One entry of the language switcher, resolved against the current address. */
+export type LocaleChoice = {
+  readonly code: string;
+  /** The language's name in itself — the label a switcher shows. From `GET /locales`. */
+  readonly nativeName: string;
+  readonly direction: LocaleResponse["direction"];
+  readonly href: string;
+  readonly current: boolean;
+};
+
+/**
+ * The language switcher's entire model.
+ *
+ * `locales` is the **active set from `GET /locales`**, threaded in from the Server Component
+ * boundary. This function has no locale literal, no fixture and no default: it can only offer what
+ * the `Locale` table says exists, so the switcher cannot emit a URL `app/[locale]/layout.tsx`
+ * answers with a 404.
+ *
+ * ── The three parts of the current address ─────────────────────────────────
+ *
+ * `pathname` and `search` come from `usePathname()` and `useSearchParams()`. **Neither carries the
+ * fragment** — the hash is browser state that never reaches the server, so it has to be read on the
+ * client and passed in here (see `LanguageMenu` in `site-nav.tsx` for how, and why it is a state
+ * value rather than a render-time read).
+ *
+ * `hash` defaults to `""`, which is the honest value during a server render and during the first
+ * client render: the fragment is genuinely unknown at that point, and guessing one would be worse
+ * than omitting it. A bare `"#"` is treated as no fragment, and a value without the leading `#` is
+ * accepted — `switchLocaleHref` is then given the whole address and puts the query before the
+ * fragment.
+ */
+export function localeChoices(
+  locales: readonly LocaleResponse[],
+  locale: string,
+  pathname: string,
+  search: string,
+  hash = "",
+): readonly LocaleChoice[] {
+  const codes = locales.map((entry) => entry.code);
+  const fragment = hash === "" || hash === "#" ? "" : hash.startsWith("#") ? hash : `#${hash}`;
+  const address = `${pathname}${fragment}`;
+
+  return locales.map((entry) => ({
+    code: entry.code,
+    nativeName: entry.nativeName,
+    direction: entry.direction,
+    href: switchLocaleHref(address, search, entry.code, codes),
+    current: entry.code === locale,
+  }));
 }

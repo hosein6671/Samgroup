@@ -4,7 +4,7 @@ import "../home/flagship.css";
 import "./legal.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
-import { SiteNav } from "@/features/site/site-nav";
+import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import type { ContentPageResponse } from "@sam-group/types";
 
@@ -39,16 +39,18 @@ import type { ContentPageResponse } from "@sam-group/types";
 export function LegalPageTemplate({
   page,
   locale,
+  locales,
   localeFallback,
 }: {
   readonly page: ContentPageResponse;
   readonly locale: string;
+  readonly locales: SiteNavProps["locales"];
   /** The API's `meta.localeFallback`, surfaced as a notice rather than hidden. */
   readonly localeFallback: boolean;
 }): ReactNode {
   return (
     <div data-brand="flagship">
-      <SiteNav />
+      <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <article>
@@ -120,7 +122,7 @@ export function LegalPageTemplate({
         </article>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

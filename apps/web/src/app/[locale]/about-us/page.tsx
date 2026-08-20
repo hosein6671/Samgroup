@@ -112,6 +112,7 @@ export default async function AboutUsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
+  const locales = await getActiveLocales();
   const result = await resolveAboutUs(locale);
 
   if (result.ok) {
@@ -124,6 +125,7 @@ export default async function AboutUsPage({
 
     return (
       <AboutExperience
+        locales={locales}
         content={result.content}
         locale={locale}
         fallbackLocale={served === null ? null : { code: served.code, direction: served.direction }}
@@ -132,7 +134,7 @@ export default async function AboutUsPage({
   }
 
   if (result.reason === "not-configured") {
-    return <AboutUnavailable locale={locale} reason="not-configured" />;
+    return <AboutUnavailable locales={locales} locale={locale} reason="not-configured" />;
   }
 
   console.warn(
@@ -144,5 +146,5 @@ export default async function AboutUsPage({
           : `the platform API answered, but not with page content (HTTP ${String(result.status)})`),
   );
 
-  return <AboutUnavailable locale={locale} reason="service" />;
+  return <AboutUnavailable locales={locales} locale={locale} reason="service" />;
 }

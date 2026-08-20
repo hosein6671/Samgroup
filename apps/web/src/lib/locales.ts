@@ -14,10 +14,12 @@
  * page; it would generate a different site. Three specific fallbacks are ruled out by the approved
  * policy, and each has a distinct failure mode worth naming:
  *
- * - **`LOCALES` in `features/site/site-routes.ts`** — a switcher fixture whose shape is
- *   `{ code, label, native, ... }`, field-for-field different from the endpoint's
- *   `{ code, name, nativeName, ... }`. It is not a stale copy of the truth, it is a different
- *   thing that resembles it.
+ * - **A static locale fixture in the frontend.** One existed — `LOCALES` in
+ *   `features/site/site-routes.ts`, a switcher table whose shape was `{ code, label, native, ... }`,
+ *   field-for-field different from this endpoint's `{ code, name, nativeName, ... }`. It was never a
+ *   stale copy of the truth, it was a different thing that resembled it, and **it was deleted** when
+ *   the language switcher started navigating: a second list of locales in code is a second answer to
+ *   a question that has one. Nothing replaced it, and nothing may.
  * - **`["en"]`** — silently ships a single-locale site that looks entirely correct.
  * - **`[]`** — silently ships a site with zero pages, from a build that reported success.
  *

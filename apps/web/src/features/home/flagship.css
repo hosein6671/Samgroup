@@ -486,6 +486,20 @@
 .fs-nav-links a:hover::after {
   transform: scaleX(1);
 }
+/* The page you are on.
+ *
+ * The affordance is the underline being *drawn*, not its hue: a persistent rule under the label
+ * where the other items have none is a difference in shape and position, which is what WCAG 2.2
+ * 1.4.1 asks for. The brighter text alone would have been colour and nothing else. Applied from
+ * `aria-current="page"` so the visual state and the announced state cannot drift apart. */
+.fs-nav-links a[aria-current="page"],
+.fs-nav-trigger[aria-current="page"] {
+  color: #fff;
+}
+.fs-nav-links a[aria-current="page"]::after,
+.fs-nav-trigger[aria-current="page"]::after {
+  transform: scaleX(1);
+}
 
 /* ---------------------------------------------------------------- mega menu
  *
@@ -673,7 +687,10 @@
   visibility: visible;
   transform: none;
 }
-.fs-lang-menu button {
+/* `a`, not `button`: the entries are links to other URLs and are now written as such, so the
+   panel is a disclosure rather than a half-implemented ARIA menu. Same box, same metrics — the
+   40px min-height and 12px padding keep every entry past the 24×24 target minimum. */
+.fs-lang-menu a {
   display: flex;
   width: 100%;
   justify-content: space-between;
@@ -689,12 +706,12 @@
     background var(--t-micro),
     color var(--t-micro);
 }
-.fs-lang-menu button:hover,
-.fs-lang-menu button[aria-current="true"] {
+.fs-lang-menu a:hover,
+.fs-lang-menu a[aria-current="true"] {
   background: rgba(255, 255, 255, 0.07);
   color: #fff;
 }
-.fs-lang-menu button span {
+.fs-lang-menu a span {
   font-family: var(--font-technical);
   font-size: 10px;
   letter-spacing: 0.14em;
@@ -794,6 +811,15 @@
   color: rgba(238, 241, 246, 0.88);
   border-bottom: 1px solid var(--color-glass-border);
   cursor: pointer;
+}
+/* The page you are on, in the drawer. A gold rule down the leading edge plus an indent — shape
+   and position, not colour alone — declared with logical properties so it sits on the correct
+   side under `dir="rtl"` without a second rule. */
+.fs-drawer-link[aria-current="page"],
+.fs-drawer-toggle[aria-current="page"] {
+  color: #fff;
+  border-inline-start: 2px solid var(--fs-gold);
+  padding-inline-start: 12px;
 }
 /* Accordion: interpolates to intrinsic height, no JS measurement, no clipped copy. */
 .fs-drawer-panel {

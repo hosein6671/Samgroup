@@ -31,10 +31,11 @@ export const LOCALES_PATH = "/locales";
 /**
  * The cookie a returning visitor's explicit language choice is remembered in.
  *
- * `NEXT_LOCALE` is named by INTERNATIONALIZATION_STRATEGY.md §2's detection order. Nothing writes
- * it yet — the language switcher is still presentational — so today it only ever arrives from a
- * visitor who set it elsewhere. It is honored regardless, because the negotiation order is the
- * frozen part and the writer is a later gate.
+ * `NEXT_LOCALE` is named by INTERNATIONALIZATION_STRATEGY.md §2's detection order. **The writer is
+ * the language switcher**, and only on an explicit choice — see `rememberLocale` in
+ * `features/site/nav-behaviour.ts` for the attributes and for why ordinary navigation never writes
+ * it. Reading it stays confined to `middleware.ts`, and only for a locale-less structural path: a
+ * `/{locale}/…` URL states its own language and this cookie never overrides one.
  */
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
