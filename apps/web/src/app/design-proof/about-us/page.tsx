@@ -1,32 +1,50 @@
+import { AboutExperience } from "@/features/about/about-experience";
+import { AboutUnavailable } from "@/features/about/about-unavailable";
+import { getAboutUsContent } from "@/lib/content";
+
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { AboutExperience } from "@/features/about/about-experience";
+/** The proof tree sits outside `[locale]`, so it renders the default locale. */
+const PROOF_LOCALE = "en";
 
 /**
- * About Us, on the proof route.
+ * The About Us design proof — the same experience, on the transitional proof URL.
  *
- * It sits under `/design-proof` for the same reasons the homepage, the Products landing, the six
- * category pages and Customized Solutions do: locale routing does not exist, and the copy this
- * page carries belongs to the Payload `AboutUs` Global, which arrives in M2. Its real home is
- * `app/[locale]/about-us/page.tsx`.
+ * ── It reads the CMS too, and that is the point ─────────────────────────────
  *
- * **The canonical route is deliberately left pointing elsewhere.** `ROUTES.aboutUs` is
- * `/about-us`, and as of this page it is also the destination of the footer's Company column,
- * which now consumes `SECONDARY_NAV`. That link 404s, exactly as every other canonical route on
- * every proof page does. Repointing the canonical table at this proof path to make it resolve
- * would be faking the lift rather than doing it.
+ * This route rendered a fixture module until the CMS-1 cutover. Keeping that module alive here
+ * would have left the platform with two copies of one page's copy — the CMS's and a code one —
+ * diverging the moment an editor saved anything. So the proof route reads the same endpoint as the
+ * canonical route and shows exactly what a visitor would see, which is what a proof is for.
+ *
+ * The consequence is stated rather than hidden: while the CMS holds no published About Us document,
+ * this route renders the same "not published yet" state as the canonical one. There is no About Us
+ * copy anywhere in this repository to fall back to, deliberately — SITE_STRUCTURE §2's content is
+ * an editorial deliverable, and the design system itself is proved by the seven other proof routes.
+ *
+ * `noindex, nofollow` stays, and the route remains live until ADR-010 §9's order retires it. That
+ * retirement is its own gate, not a side effect of this one.
  */
 export const metadata: Metadata = {
   title: "About Us — Sam Group",
   description:
     "Sam Group produces its own range of petroleum products, lubricants and base oils in Iran, across six published product families.",
-  // A proof route, as with every page built so far. Indexing is enabled when this lifts to
-  // app/[locale]. `AboutPage` + `Organization` structured data (SITE_STRUCTURE §14) lands with the
-  // shared <JsonLd> component (FRONTEND_ARCHITECTURE §4), which does not exist yet.
   robots: { index: false, follow: false },
 };
 
-export default function AboutUsProofPage(): ReactNode {
-  return <AboutExperience />;
+export default async function AboutUsProofPage(): Promise<ReactNode> {
+  const result = await getAboutUsContent(PROOF_LOCALE);
+
+  if (result.ok) {
+    // The proof route asks for the default locale, so a fallback cannot arise here.
+    return <AboutExperience content={result.content} locale={PROOF_LOCALE} />;
+  }
+
+  return (
+    <AboutUnavailable
+      locale={PROOF_LOCALE}
+      reason={result.reason === "not-configured" ? "not-configured" : "service"}
+    />
+  );
 }

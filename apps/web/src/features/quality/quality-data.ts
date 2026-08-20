@@ -3,10 +3,14 @@
  *
  * ── What this module is ─────────────────────────────────────────────────────
  *
- * Same contract as `home-data.ts`, `products-data.ts`, `solutions-data.ts` and `about-data.ts`:
- * every export is the *shape* of a real fetch, so wiring this page up later is a swap of this
- * module rather than a rewrite of the components. A hardcoded repeating list in JSX is the one
- * pattern the project forbids outright (PROJECT_HANDOFF §6.7).
+ * Same contract as `home-data.ts`, `products-data.ts` and `solutions-data.ts`: every export is the
+ * *shape* of a real fetch, so wiring this page up later is a swap of this module rather than a
+ * rewrite of the components. A hardcoded repeating list in JSX is the one pattern the project
+ * forbids outright (PROJECT_HANDOFF §6.7).
+ *
+ * `about-data.ts` used to be the fourth name in that list. It is gone: the About page was cut over
+ * to the Payload `AboutUs` Global in CMS-1, and its fixture was deleted rather than kept as a
+ * fallback. That is the shape this module's own cutover will take.
  *
  * The shapes track the **Payload `QualityCertifications` Global** field-for-field
  * (`docs/content/PAYLOAD_CONTENT_ARCHITECTURE.md` §Quality & Certifications): `heroTitle`,

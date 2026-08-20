@@ -33,6 +33,20 @@ export type {
   ProductSpecificationResponse,
   ProductTypeResponse,
 } from "./catalog";
-export type { ContentPageResponse } from "./content";
+export type {
+  AboutUsClosing,
+  AboutUsContent,
+  AboutUsExpertise,
+  AboutUsHero,
+  AboutUsQualityStandards,
+  AboutUsResponse,
+  AboutUsWhoWeAre,
+  ContentCta,
+  ContentFigure,
+  ContentGlobalResponse,
+  ContentImage,
+  ContentPageResponse,
+  ContentRouteKey,
+} from "./content";
 export type { LocaleDirection, LocaleResponse } from "./locale";
 export type { SeoAlternate, SeoFields, SeoImage, TwitterCardType } from "./seo";

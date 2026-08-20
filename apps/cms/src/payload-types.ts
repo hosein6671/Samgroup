@@ -89,8 +89,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'fa' | 'ar') | ('en' | 'fa' | 'ar')[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'about-us': AboutUs;
+  };
+  globalsSelect: {
+    'about-us': AboutUsSelect<false> | AboutUsSelect<true>;
+  };
   locale: 'en' | 'fa' | 'ar';
   widgets: {
     collections: CollectionsWidget;
@@ -470,6 +474,331 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * The About Us page. Milestones, competitive advantages and team are deliberately not modelled — they have no approved content yet.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about-us".
+ */
+export interface AboutUs {
+  id: number;
+  hero: {
+    eyebrow?: string | null;
+    /**
+     * The page's H1. Required — a document with no heading is treated as unconfigured and is not served.
+     */
+    title: string;
+    supportingText?: string | null;
+    primaryCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+    secondaryCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+    /**
+     * Optional. The section renders without a figure when this is empty.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional caption shown under the image.
+     */
+    imageCaption?: string | null;
+  };
+  whoWeAre?: {
+    heading?: string | null;
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    bodyHtml?: string | null;
+    positions?:
+      | {
+          term: string;
+          note: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Optional. The section renders without a figure when this is empty.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional caption shown under the image.
+     */
+    imageCaption?: string | null;
+  };
+  expertise?: {
+    heading?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          name: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  qualityStandards?: {
+    heading?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          name: string;
+          /**
+           * Optional second line.
+           */
+          note?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    footnote?: string | null;
+    footnoteCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+    /**
+     * Optional. The section renders without a figure when this is empty.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional caption shown under the image.
+     */
+    imageCaption?: string | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    lead?: string | null;
+    primaryCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+    routes?:
+      | {
+          label: string;
+          route?:
+            ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    /**
+     * Shown when the page is shared. 1200×630 is the platform convention. Separate from any hero image on purpose.
+     */
+    socialImage?: (number | null) | Media;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Falls back to the social image above.
+     */
+    twitterImage?: (number | null) | Media;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+    /**
+     * Advanced. Replaces the automatically generated JSON-LD for this page. Leave empty to use the automatic output.
+     */
+    structuredDataOverride?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about-us_select".
+ */
+export interface AboutUsSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        supportingText?: T;
+        primaryCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+        secondaryCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+        image?: T;
+        imageCaption?: T;
+      };
+  whoWeAre?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        bodyHtml?: T;
+        positions?:
+          | T
+          | {
+              term?: T;
+              note?: T;
+              id?: T;
+            };
+        image?: T;
+        imageCaption?: T;
+      };
+  expertise?:
+    | T
+    | {
+        heading?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              name?: T;
+              id?: T;
+            };
+      };
+  qualityStandards?:
+    | T
+    | {
+        heading?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              name?: T;
+              note?: T;
+              id?: T;
+            };
+        footnote?: T;
+        footnoteCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+        image?: T;
+        imageCaption?: T;
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        lead?: T;
+        primaryCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+        routes?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        socialImage?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        twitterImage?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+        structuredDataOverride?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

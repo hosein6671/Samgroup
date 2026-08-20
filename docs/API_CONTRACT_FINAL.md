@@ -132,20 +132,21 @@ These two fill it in the shape §2.3 already fixes: same envelope, same `?locale
 
 ### 2.4 Content _(Payload, via NestJS)_
 
-| Method | Path                               | Auth | Purpose                                                                                                                                                    |
-| ------ | ---------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/content/globals/:name`           | P    | One Payload Global: `home`, `about-us`, `products-landing`, `customized-solutions`, `export-logistics`, `quality-certifications`, `contact-us`, `faq-page` |
-| GET    | `/content/pages/:slug`             | P    | Legal pages from the `Pages` collection                                                                                                                    |
-| GET    | `/content/product-categories/:key` | P    | `ProductCategoryContent` — editorial copy for a category page                                                                                              |
-| GET    | `/content/faq`                     | P    | `FaqEntries`; `?category=` filter. Feeds both `/faq` and per-product-page FAQ blocks from one source                                                       |
-| GET    | `/content/certifications`          | P    | **Published certifications only** — see §4                                                                                                                 |
-| GET    | `/content/job-openings`            | P    | Open vacancies                                                                                                                                             |
-| GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                      |
-| GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                          |
+| Method | Path                               | Auth | Purpose                                                                                                                                                                        |
+| ------ | ---------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/content/globals/:name`           | P    | One Payload Global: `home`, `about-us` (**built** — §2.4b), `products-landing`, `customized-solutions`, `export-logistics`, `quality-certifications`, `contact-us`, `faq-page` |
+| GET    | `/content/pages/:slug`             | P    | Legal pages from the `Pages` collection                                                                                                                                        |
+| GET    | `/content/product-categories/:key` | P    | `ProductCategoryContent` — editorial copy for a category page                                                                                                                  |
+| GET    | `/content/faq`                     | P    | `FaqEntries`; `?category=` filter. Feeds both `/faq` and per-product-page FAQ blocks from one source                                                                           |
+| GET    | `/content/certifications`          | P    | **Published certifications only** — see §4                                                                                                                                     |
+| GET    | `/content/job-openings`            | P    | Open vacancies                                                                                                                                                                 |
+| GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                                          |
+| GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                                              |
 
-#### 2.4a Implementation status — 16 August 2026
+#### 2.4a Implementation status — 16 August 2026, extended 20 August 2026
 
-**One of the eight paths is implemented, and no path was added, renamed or reshaped.**
+**Two of the eight paths are implemented, and no path was added, renamed or reshaped.**
+`GET /content/pages/:slug` is described below; `GET /content/globals/:name` is §2.4b.
 
 `GET /content/pages/:slug` is live, served by a new `ContentModule` in `apps/api`. It takes `?locale=`
 like every content-bearing endpoint (§3), answers in the standard envelope, and serves four fields:
@@ -228,7 +229,80 @@ two for an untranslated one.
 **optional**, and with either absent the Content endpoints answer 503 and log why rather than taking
 the whole API down with them.
 
-**The other seven paths are unbuilt** because the Globals and collections behind them do not exist.
+#### 2.4b `GET /content/globals/:name` — About Us only (20 August 2026)
+
+**One name answers: `about-us`.** The other seven that §2.4's table lists are separate gates, and an
+unimplemented name is a **404 here**, decided before any request reaches the CMS — the CMS is not a
+routing table and a typo must not surface as an upstream error. No alias and no second path exists.
+
+The response is a curated projection of the Payload `AboutUs` Global, not the document: a hero and
+four optional sections (`whoWeAre`, `expertise`, `qualityStandards`, `closing`), each `null` when the
+editor has written nothing for it, plus the shared `seo` record. **No id, no `_status`, no
+`globalType`, no timestamps, no rich-text AST, no media document** — allow-list projection, verified
+by a test that scans the serialized response rather than named properties.
+
+- **Calls to action carry a route _key_, never a URL.** `{ label, route }` where `route` is one of
+  `products`, `customized-solutions`, `quality-certifications`, `contact-us`, `request-a-quote`.
+  Structural page URLs stay fixed English and are locale-prefixed by `apps/web`
+  ([PROJECT_HANDOFF.md](./PROJECT_HANDOFF.md) §6.12), so the path a key resolves to is the
+  frontend's, exactly as absolutising a social image URL already is. An incomplete or unrecognised
+  action is dropped rather than served.
+- **A section photograph is `figure: { image: { url, alt, width, height }, caption }`**, or `null`.
+  Same four facts and the same origin-relative `url` as the SEO images.
+- **`seo.alternates` is always empty**, by decision: `/about-us` is a structural route whose URL is
+  identical in every locale, so its `hreflang` set is the `Locale` table rather than CMS translation
+  state. Deriving it from Payload would cost a third read to answer something the frontend knows.
+- **`whoWeAre.bodyHtml` is sanitized by the same function** every Content response is assembled by.
+
+**Locale handling differs from `/content/pages/:slug`, deliberately.** That route reads strictly
+first and falls back only if the strict read came back untranslated — correct for a two-field
+document, wrong for a thirty-field one, where a page translated in its hero but not its quality
+section would pass the strict test and then be served with every untranslated field **empty**. So the
+content read always has Payload's fallback on, and a second `depth=0` read with `fallback-locale=none`
+answers the only question fallback state is needed for: did the requested locale supply its own
+heading? `meta.localeFallback` reports that. The default locale costs one read, never two.
+
+**The response is an availability envelope, not the content alone.** `data` is
+`{ available: true, content: {…} }` or `{ available: false, content: null }` — because a recognised
+Global with nothing published is **not** a missing resource, and must not be reported as one:
+
+```json
+{ "data": { "available": false, "content": null }, "meta": {} }
+```
+
+Payload's own empty document (`{}`) never reaches a consumer. `available: false` is this API's
+statement about the resource; the CMS's raw answer stops at the Content module.
+
+**Three conditions, three answers, and they must stay distinguishable:**
+
+| Condition                                                                               | Answer                            |
+| --------------------------------------------------------------------------------------- | --------------------------------- |
+| A name other than `about-us`                                                            | 404 `NOT_FOUND`, no CMS call      |
+| CMS answered; the Global is unpublished, empty, or has no heading                       | **200**, `available: false`       |
+| CMS unconfigured, unreachable, timed out, 4xx/5xx, or a 2xx that is not a JSON document | 503 `UPSTREAM_UNAVAILABLE`        |
+| `?locale=` names an inactive locale                                                     | 400 `INVALID_LOCALE`, no CMS call |
+
+**`NOT_FOUND` is reserved for a Global this API does not serve at all.** Collapsing "nothing
+published yet" into it would make an editor's outstanding work indistinguishable from a name the
+platform has never heard of, and would hand `apps/web` a 404 it must then be trusted never to act on
+— for a structural corporate URL, acting on it would state that the company has no About page.
+
+`meta.localeFallback` is never reported for an unavailable response: it describes content that was
+served, and none was.
+
+`apps/web` maps the three to three: `available: false` → the "not published yet" state; 503 or an
+unreachable API → the "unavailable" state; a 404 → the "unavailable" state as well, because for a
+name the frontend hardcodes it can only mean a broken deployment. **All of them render HTTP 200, and
+none calls `notFound()`.**
+
+**Published-only, verified against a running CMS rather than assumed.** Payload gives Globals no
+default `readVersions` access rule, and `executeAccess` grants any authenticated identity when one is
+absent — so without an explicit rule the service credential could have read every draft through
+`/api/globals/about-us/versions`. The Global declares `readVersions: editorOnly`. Measured with a
+draft saved and nothing published: service read `{}`, service read with `?draft=true` `{}`,
+service `GET …/versions` **403**, anonymous read **403**, editor read returns the draft.
+
+**The other six paths are unbuilt** because the Globals and collections behind them do not exist.
 
 ### 2.5 Page Composition **[NEW DECISION]**
 
@@ -628,6 +702,6 @@ Never leak stack traces, ORM errors, or upstream messages in production. `messag
 ## Remaining Blockers Before Implementation
 
 1. **RESOLVED — Admin Dashboard lives inside `apps/web`** as a separate application area, no fourth app, communicating only through NestJS. Specified in §2.10/§2.11 above. **The follow-on question it raised — how staff reach Payload's admin UI — is also RESOLVED, 7 August 2026:** Payload Admin uses **separate authentication**. Editors sign in at `cms.<domain>/admin` with a Payload account held in `sam_cms`; NestJS does not manage Payload sessions; there is **no SSO bridge** and **no account syncing from `User`**; cookies are never shared between the two hosts. Payload maintains its own role model (minimum `Admin`, `Content Manager`) mirroring the CMS-facing RBAC rules, including the Admin-only certification publish gate. Recorded as [ADR-006](./ADR/ADR-006-payload-admin-authentication.md); `ARCHITECTURE.md` and `SECURITY.md` amended accordingly. **Accepted cost:** staff sign in twice — the §2.11 deep-linking mitigation makes the boundary navigable but does not remove the second login. **No longer blocks M2.**
-2. **Draft preview is unresolved.** Editors currently have no way to see an unpublished page before publishing — they publish blind, or publish-then-check on the live site. Standard fix is an authenticated preview path (Next.js draft mode + a NestJS endpoint honoring `draft=true` for authenticated Content Managers). Cheap now, awkward to retrofit once caching assumes published-only. Recommend deciding before M3.
+2. **DECIDED — draft preview is DEFERRED for Phase 1 (20 August 2026).** The question was open, and the CMS Editorial Operations gate is where it had to be answered rather than defaulted. The decision is that **no preview mechanism is built**: no Next.js draft mode, no preview token, no `draft=true` browser path, and no editor preview link. **Published public reads remain the only public content path**, and the API never sends `draft` to Payload. The cost is accepted and stated rather than mitigated: an editor sees an unpublished page only in Payload's own admin UI, and confirms it on the live site after publishing. Reopening this is a decision of its own, and it becomes more expensive once response caching assumes published-only.
 3. **Legal/content prerequisites**, unchanged and already tracked: Privacy Policy (every form's consent checkbox is inert without it), retention periods, and the `[TO CONFIRM]` content items in [SITE_STRUCTURE.md](./SITE_STRUCTURE.md#outstanding-confirmations-needed).
 4. **Email delivery is partially resolved.** **Internal lead notification is built** — SMTP via `nodemailer`, outside the persistence success path, described under §5 above. **The remaining three flows still have no mechanism**: newsletter double opt-in, acknowledgements to the buyer, and download links. What is missing for all of them, this one included, is **operational rather than architectural** — a production mailbox, a relay host and credential, and a sender domain with its deliverability records. Those are the client's to supply; until they are, notifications are skipped and logged, and no lead is lost.

@@ -16,6 +16,8 @@
  * the lift is a prefix, not a rewrite.
  */
 
+import type { ContentRouteKey } from "@sam-group/types";
+
 export const ROUTES = {
   home: "/",
   products: "/products",
@@ -170,3 +172,38 @@ export const FOOTER_COLUMNS: readonly {
     links: SECONDARY_NAV,
   },
 ];
+
+/* ------------------------------------------------ CMS-supplied destinations */
+
+/**
+ * Where a CMS route key points, and the only place that mapping exists.
+ *
+ * An editorial call to action in Payload carries a **key** (`products`) rather than a path
+ * (`/products`), because structural page URLs stay fixed English across locales and are owned by
+ * this file, not by a CMS text field (PROJECT_HANDOFF §6.12). The CMS chooses the destination from
+ * the site's own list; the site decides what that destination's URL is.
+ *
+ * The five keys are the ones the About Us Global offers. A key the CMS could never send is not
+ * listed, and a key this table does not know cannot be rendered — `contentRouteHref` has no
+ * fallback URL for exactly that reason.
+ */
+const CONTENT_ROUTE_HREFS: Readonly<Record<ContentRouteKey, string>> = {
+  products: ROUTES.products,
+  "customized-solutions": ROUTES.customizedSolutions,
+  "quality-certifications": ROUTES.qualityCertifications,
+  "contact-us": ROUTES.contactUs,
+  "request-a-quote": ROUTES.requestQuote,
+};
+
+/**
+ * A CMS route key as a locale-prefixed path.
+ *
+ * The prefix is applied here rather than stored anywhere: one route, one path, three URLs, and the
+ * locale is a request property. `ROUTES.home` is `/`, so the root case would otherwise produce a
+ * trailing slash — no key maps to it today, and the join below stays correct if one ever does.
+ */
+export function contentRouteHref(locale: string, route: ContentRouteKey): string {
+  const path = CONTENT_ROUTE_HREFS[route];
+
+  return path === "/" ? `/${locale}` : `/${locale}${path}`;
+}

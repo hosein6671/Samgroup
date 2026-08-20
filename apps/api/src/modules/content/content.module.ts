@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
+import { AboutUsService } from "./about-us.service";
+import { ContentGlobalsController } from "./content-globals.controller";
 import { ContentPagesController } from "./content-pages.controller";
 import { ContentPagesService } from "./content-pages.service";
 import { PayloadClient } from "./payload.client";
@@ -19,7 +21,7 @@ import { PayloadClient } from "./payload.client";
  */
 @Module({
   imports: [LocaleResolutionModule],
-  controllers: [ContentPagesController],
-  providers: [ContentPagesService, PayloadClient],
+  controllers: [ContentGlobalsController, ContentPagesController],
+  providers: [AboutUsService, ContentPagesService, PayloadClient],
 })
 export class ContentModule {}

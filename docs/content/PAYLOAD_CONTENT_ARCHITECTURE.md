@@ -375,8 +375,9 @@ which parts of it are built, and states plainly that most are not.
 
 ### Not built — and each is its own gate
 
-- **Every Global.** Home, About Us, Products Landing, Customized Solutions, Export & Logistics,
+- **Ten of the eleven Globals.** Home, Products Landing, Customized Solutions, Export & Logistics,
   Quality & Certifications, Contact Us, FAQ Page, Header, Footer and Settings do not exist.
+  **`AboutUs` does** — see "The About Us Global" below.
 - **`ProductCategoryContent`, `Certifications`, `JobOpenings`, `FaqEntries`** — none exists, so the
   `categoryKey` soft key to Prisma `Category`, the Admin-only certification publish gate and the
   shared FAQ collection are all still design only.
@@ -500,3 +501,134 @@ entity rather than about a language.
 **Still not implemented:** the seven company Globals, `ProductCategoryContent`, `Certifications`,
 `JobOpenings`, `FaqEntries`, and every canonical legal or Contact Us page. Those remain blocked on
 approved, legally reviewed content in three locales.
+
+## The About Us Global — built 20 August 2026 (CMS-1)
+
+The first company Global, and the first page on the platform whose editorial content is managed in
+Payload. The path it proves is the one every later Global will reuse: **Payload Global → NestJS
+Content module → `apps/web` page**, with the browser making no request to the CMS and `apps/web`
+holding no awareness that Payload exists ([ADR-003](../ADR/ADR-003-api-gateway.md)).
+
+### The schema is the page, and nothing more
+
+`apps/cms/src/globals/about-us.ts` models `hero`, `whoWeAre`, `expertise`, `qualityStandards`,
+`closing` and the shared `seoFields()` group. Every field is one the About page renders today.
+
+**`milestones`, `competitiveAdvantages` and `team` are deliberately absent**, though §About Us
+specifies all three. None has approved content — the timeline is marked an estimate end to end and
+named a launch blocker, the six advantages are named in no document, and the roster is blocked on
+photography. Modelling a field for content that cannot be written is how an empty repeater becomes a
+placeholder somebody eventually fills with a guess. Each is one field plus one section component on
+the day its copy is approved.
+
+Two things the page shows are **not** editorial content and stay in code:
+
+- **The six Product Families.** `Category` data in `sam_platform`, navigated from
+  `features/site/site-routes.ts`. Payload may never mirror a Prisma-owned entity
+  ([ADR-002](../ADR/ADR-002-two-databases.md)).
+- **Structural URLs.** A call to action carries a `label` and a **route key** — one of `products`,
+  `customized-solutions`, `quality-certifications`, `contact-us`, `request-a-quote` — never an href.
+  `apps/web` resolves the key and applies the locale prefix, so the URL of a structural page stays
+  owned by code in all three locales ([PROJECT_HANDOFF.md](../PROJECT_HANDOFF.md) §6.12).
+
+Section photographs are optional `upload` fields into the existing `Media` collection, with alt text
+read from the Media record rather than duplicated per usage. **`Media` remains image-only**;
+certificates, catalogues and other documents are a later, explicit media decision.
+
+### Published-only, established by measurement rather than by analogy
+
+The `Pages` collection's `publishedForService` rule was known to work for a collection. Globals were
+not assumed to behave the same way, and one difference turned out to matter:
+
+**Payload gives a Global no default `readVersions` access rule** (`globals/config/sanitize.js`), and
+`executeAccess` returns `true` for _any authenticated identity_ when an access function is absent. So
+a Global with drafts enabled and no explicit rule would have let the NestJS service credential read
+every draft through `/api/globals/about-us/versions` — the published-only contract leaking through the
+door beside the one it guards. `AboutUs` declares `readVersions: editorOnly`, and a test fails if the
+line is ever removed.
+
+The rest holds as it does for collections, for reasons read out of Payload 3.88 rather than inferred:
+a draft save skips `updateGlobal` entirely and writes only a version row, so the Global's own row
+always holds the last published state; `db.findGlobal` applies the access `Where` and answers `{}`
+when it does not match; and `?draft=true` cannot bypass it, because the same constraint is appended to
+the version query as `version._status equals published`, which no draft row can satisfy.
+
+Measured against a running CMS with a draft saved and nothing published: service read `{}`, service
+read with `?draft=true` `{}`, service `GET …/versions` **403**, anonymous read **403**, editor read
+returns the draft.
+
+### Draft/publish is on; preview is deferred
+
+`versions.drafts: true`, per §About Us's "human review required". **No preview mechanism exists** —
+no Next.js draft mode, no preview token, no `draft=true` browser path, no editor preview link. That
+is a Phase 1 decision, recorded in [API_CONTRACT_FINAL.md](../API_CONTRACT_FINAL.md) Remaining
+Blockers 2. An editor reviews unpublished work in Payload's own admin UI and confirms it on the live
+site after publishing.
+
+Note the wording that matters for an editor: **saving a draft does not unpublish a page.** Payload
+writes drafts to the versions table only, so the last published state stays live until the page is
+explicitly unpublished (a non-draft save with `_status: draft`), at which point the service read
+returns `{}` and the page falls to its "not published yet" state.
+
+### An empty CMS is a page state, never a 404
+
+`GET /content/globals/about-us` answers **200 with `{ available: false, content: null }`** when the
+Global is unpublished, empty or has no heading, and **503 `UPSTREAM_UNAVAILABLE`** when the CMS is
+unconfigured, unreachable or answers badly. `NOT_FOUND` is reserved for a Global _name_ the API does
+not serve, decided before any CMS call.
+
+The three are kept apart because they are three different facts: the platform serves no such
+resource; an editor has not published one yet; the CMS did not answer. Only the first is about the
+URL. Payload's raw `{}` never reaches a consumer — `available: false` is the API's own statement.
+
+`apps/web` renders a deliberate state for each — "not published yet" for the second, "unavailable"
+for the third and for a 404 (which, for a name the frontend hardcodes, can only mean a broken
+deployment) — and **HTTP 200 for all of them**. A canonical 404 on `/about-us` would state that the
+company has no About page, to a visitor and to a crawler that will act on it. This is
+[ADR-010](../ADR/ADR-010-products-slug-namespace-and-collision-policy.md) §7's rule held for a
+corporate route.
+
+Optional sections behave the same way one level down: a section the editor has written nothing for is
+`null` on the wire and is not rendered, so the page can be published a section at a time and never
+shows a heading over an empty band.
+
+### The fixture is gone, and no About Us copy exists anywhere
+
+`apps/web/src/features/about/about-data.ts` — the typed fixture the page rendered until this gate —
+**was deleted, not kept as a fallback.** Two sources of truth for one published page is precisely
+what the cutover policy exists to prevent, and a page that silently falls back to code would hide
+from everyone that the CMS is empty. `/design-proof/about-us` reads the same endpoint, so it shows
+what a visitor would see.
+
+**No fixture copy was seeded into `sam_cms`, and none may be.** Publishing the About Us page is an
+editorial act performed in the admin UI — the same rule the legal pages already carry. Verification
+content used to prove this gate was explicitly labelled as such and removed afterwards; `sam_cms`
+holds no `about_us` row today.
+
+### Still not implemented
+
+The ten remaining Globals, `ProductCategoryContent`, `Certifications`, `JobOpenings`, `FaqEntries`,
+and every canonical legal or Contact Us page. **Header, Footer, Settings and site navigation remain
+code-owned by decision**, not merely unbuilt: reading them from the CMS would put a content call in
+the root layout of every page on the site, and that is its own gate with its own caching and
+failure-mode questions.
+
+### A fallback changes the content's language, never the page's
+
+Payload's `fallback: true` serves the **default locale** — `en` — for a field nobody has translated.
+That is a fact about the content, and it must not be allowed to become a fact about the URL:
+`/ar/about-us` is an Arabic address whose document language is `ar` whether or not an editor has
+finished translating the page.
+
+So the two are separated, and each has a test that fails if they are ever conflated:
+
+- **`<html lang>`/`<html dir>` come from the route's `Locale` row and from nothing else** — not from
+  the content, not from the API response, not from the fallback flag (`app/[locale]/layout.tsx`,
+  asserted by `layout.spec.tsx`).
+- **The content that actually fell back is annotated where it sits.** `<main>` carries `lang` and
+  `dir` for the locale the CMS served, which is WCAG 2.2 AA 3.1.2 Language of Parts, and keeps a
+  left-to-right fallback readable inside a right-to-left document. A short `role="note"` says the
+  page has not been translated — the same thing the legal and blog templates already say.
+
+Note that the fallback target is **always the default locale**: an untranslated `ar` page is served
+in English, never in Persian. There is no locale chain, and none is to be invented.

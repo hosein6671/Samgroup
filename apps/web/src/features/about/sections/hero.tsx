@@ -1,124 +1,131 @@
+import { Arrow } from "@/features/site/logo-mark";
+import { contentRouteHref } from "@/features/site/site-routes";
+
+import type { AboutUsHero, ContentFigure } from "@sam-group/types";
 import type { ReactNode } from "react";
 
-import { Arrow } from "@/features/site/logo-mark";
-
-import { INTRO, MEDIA, type MediaSlot } from "../about-data";
-
 /**
- * 1 · Hero — SITE_STRUCTURE §2's "Hero Section", specified as "same as Home".
+ * The About Us hero — the page's `<h1>`, its lead, its two actions and its optional photograph.
  *
- * ── The right column ────────────────────────────────────────────────────────
+ * ── Every part but the heading is optional ──────────────────────────────────
  *
- * Every page built before this one puts an index in the hero's right column: the Products landing
- * a riser diagram, a category page a stratigraphic column, Customized Solutions a numbered
- * sequence. Each indexes the thing its page is about.
+ * The eyebrow, the lead, either action and the figure each render only when the CMS holds one. That
+ * is the approved cutover behaviour — a missing optional section renders absent rather than as an
+ * empty shell — and it is what lets an editor publish this page before every field is written. The
+ * heading is the exception: NestJS never serves this resource without one.
  *
- * This page is about the company, and the thing it is missing is a picture of it. So the right
- * column is the hero media slot — the same compositional weight, holding the commission for an
- * asset that does not exist yet rather than a diagram of five short sections. That is honest about
- * what an About page needs and what this one is waiting on.
+ * ── Destinations are resolved here, not stored ──────────────────────────────
  *
- * ── The copy claims three things ────────────────────────────────────────────
- *
- * Direct producer, production in Iran, six published families. `about-data.ts` records why there
- * is no fourth: everything else SITE_STRUCTURE §2 lists for this page is marked as an estimate or
- * is unwritten.
- *
- * ── Motion ──────────────────────────────────────────────────────────────────
- *
- * `reveal-fade-rise` from `packages/ui`'s `motion.css` — scroll-driven CSS, no JavaScript. The
- * homepage's `RevealEngine` stays homepage-only, as on the four pages before this.
+ * A CMS action carries a route *key*. `contentRouteHref` turns it into a locale-prefixed path, so
+ * the URL of `/products` stays owned by `site-routes.ts` in all three locales
+ * (PROJECT_HANDOFF §6.12).
  */
-export function AboutHero(): ReactNode {
+export function AboutHero({
+  hero,
+  locale,
+}: {
+  readonly hero: AboutUsHero;
+  readonly locale: string;
+}): ReactNode {
+  const hasActions = hero.primaryCta !== null || hero.secondaryCta !== null;
+
   return (
     <section className="ab-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
-
-      <div className="fs-wrap ab-hero-inner">
+      {/*
+       * `data-figure` drives the grid: two columns with a photograph, one without. Without it the
+       * copy would keep half the width and the page would carry a large empty column on a page whose
+       * imagery has not been uploaded yet.
+       */}
+      <div className="fs-wrap ab-hero-inner" data-figure={hero.figure === null ? "no" : "yes"}>
         <div className="ab-hero-copy reveal-fade-rise">
-          <p className="fs-eyebrow">{INTRO.eyebrow}</p>
-
-          <h1 className="fs-d1">{INTRO.heading}</h1>
-          <p className="fs-lead">{INTRO.lead}</p>
-
-          <div className="ab-hero-actions">
-            <a href={INTRO.primary.href} className="fs-btn fs-btn--gold">
-              {INTRO.primary.label}
-              <Arrow size={15} />
-            </a>
-            <a href={INTRO.secondary.href} className="fs-btn fs-btn--glass">
-              {INTRO.secondary.label}
-            </a>
-          </div>
+          {hero.eyebrow !== null && <p className="fs-eyebrow">{hero.eyebrow}</p>}
+          <h1 className="fs-d1">{hero.title}</h1>
+          {hero.supportingText !== null && <p className="fs-lead">{hero.supportingText}</p>}
+          {hasActions && (
+            <div className="ab-hero-actions">
+              {hero.primaryCta !== null && (
+                <a
+                  href={contentRouteHref(locale, hero.primaryCta.route)}
+                  className="fs-btn fs-btn--gold"
+                >
+                  {hero.primaryCta.label}
+                  <Arrow size={15} />
+                </a>
+              )}
+              {hero.secondaryCta !== null && (
+                <a
+                  href={contentRouteHref(locale, hero.secondaryCta.route)}
+                  className="fs-btn fs-btn--glass"
+                >
+                  {hero.secondaryCta.label}
+                </a>
+              )}
+            </div>
+          )}
         </div>
-
-        <MediaFrame slot={MEDIA.hero} className="ab-hero-media reveal-fade-rise" ratio="portrait" />
+        {hero.figure !== null && (
+          <SectionFigure
+            figure={hero.figure}
+            className="ab-hero-media reveal-fade-rise"
+            ratio="portrait"
+          />
+        )}
       </div>
     </section>
   );
 }
 
 /**
- * A designed media slot: the frame this page reserves for an asset that does not exist yet.
+ * A section photograph, in the frame the page already had.
  *
- * ── Why it is drawn rather than left blank ──────────────────────────────────
+ * ── Why a plain `<img>` and not `next/image` ────────────────────────────────
  *
- * Three of this page's compositions need a photograph, and SITE_STRUCTURE's Outstanding
- * Confirmations lists facility, production and laboratory photography as a launch blocker. An
- * empty box would say the layout is unfinished. This says the *asset* is unfinished, and states
- * what has been commissioned: the intent, the caption the finished asset carries, and the alt text
- * it will inherit.
+ * Editorial media URLs are **origin-relative** (`/media/cms/<file>`) and served from this site's own
+ * origin by nginx, so there is no remote pattern to configure and nothing cross-origin to optimise.
+ * Adopting `next/image` here would mean choosing a loader and an optimisation topology for a
+ * deployment target that does not exist yet (DEVOPS.md's VPS is unacquired), which is a decision,
+ * not a detail. Intrinsic `width`/`height` come from the CMS record, so the layout does not shift
+ * while the file loads — the reason `next/image` is usually reached for.
  *
- * **Nothing here is an image.** No photograph, no illustration of a facility, no generated or
- * stock imagery — the project has none of those and inventing one would be inventing a building.
- * What is drawn is drafting-table furniture: a hairline frame, a finer blueprint field than the
- * section grounds use, gold registration marks at two opposite corners, and the pending state as
- * real text rather than as a visual cue only.
+ * ── Alt text comes from the Media record ────────────────────────────────────
  *
- * ── Where it lives ──────────────────────────────────────────────────────────
- *
- * In the hero file because the hero is the first section that renders one, and imported from here
- * by Who We Are and Quality & Standards. The same arrangement `ClosingCta` has on the Products
- * landing: it sits in the feature that first needed it, and moves up a level when a second page
- * does — not copied down, and not promoted speculatively inside a page task.
- *
- * ── Accessibility ───────────────────────────────────────────────────────────
- *
- * `<figure>`/`<figcaption>`, because that is what this is. The registration marks are
- * `aria-hidden`; the intent, the pending state and the caption are all real text, so a screen
- * reader is told the frame is empty and what it is for instead of being told nothing. `alt` is
- * carried in the data and applied to nothing — there is no `<img>` yet — and it is shown here as
- * part of the commission, which is the audience this page has today.
+ * Required and localized on the upload itself, which is the platform's single place for describing
+ * an image. An empty string is the correct fallback rather than invented text: it marks the image
+ * decorative to assistive technology instead of announcing a guess.
  */
-export function MediaFrame({
-  slot,
+export function SectionFigure({
+  figure,
   className,
   ratio = "landscape",
 }: {
-  readonly slot: MediaSlot;
+  readonly figure: ContentFigure;
   readonly className?: string;
   readonly ratio?: "landscape" | "portrait";
 }): ReactNode {
+  const { image, caption } = figure;
+
   return (
-    <figure className={className ? `ab-slot ${className}` : "ab-slot"} data-ratio={ratio}>
+    <figure
+      className={className === undefined ? "ab-slot" : `ab-slot ${className}`}
+      data-ratio={ratio}
+    >
       <div className="ab-slot-frame">
-        <div className="ab-grid" aria-hidden="true" />
-
-        <p className="ab-slot-intent">{slot.intent}</p>
-
-        <p className="ab-slot-state">
-          <span className="ab-slot-dot" aria-hidden="true" />
-          {slot.pending ? "Image pending" : "Image attached"}
-        </p>
+        <img
+          className="ab-slot-image"
+          src={image.url}
+          alt={image.alt ?? ""}
+          {...(image.width !== null && { width: image.width })}
+          {...(image.height !== null && { height: image.height })}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
-
-      <figcaption className="ab-slot-caption">
-        <span className="ab-slot-cap">{slot.caption}</span>
-        <span className="ab-slot-alt">
-          <b>Alt</b>
-          {slot.alt}
-        </span>
-      </figcaption>
+      {caption !== null && (
+        <figcaption className="ab-slot-caption">
+          <span className="ab-slot-cap">{caption}</span>
+        </figcaption>
+      )}
     </figure>
   );
 }

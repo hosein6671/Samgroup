@@ -1,19 +1,3 @@
-import type { ReactNode } from "react";
-
-/*
- * The flagship brand scope, imported for the fifth time on the platform.
- *
- * `flagship.css` declares `[data-brand="flagship"]` — palette, type scale, layout wrappers and
- * button vocabulary. It still lives under `features/home` because the approved scope of the chrome
- * extraction was the site-level *components*, deliberately not a CSS reorganisation, and every
- * page built since has repeated that note rather than moving the file. This one does the same.
- * Promoting it remains a one-line move plus five import updates, and it stays deferred rather than
- * done quietly inside a page task.
- *
- * **No second page stylesheet is imported.** Customized Solutions pulls in `products.css` for the
- * inert-form vocabulary it genuinely reuses; this page has no form and borrows no construction
- * from another page, so it imports the brand scope and its own file and nothing else.
- */
 import "../home/flagship.css";
 import "./about.css";
 
@@ -26,61 +10,93 @@ import { AboutHero } from "./sections/hero";
 import { AboutQualityStandards } from "./sections/quality-standards";
 import { AboutWhoWeAre } from "./sections/who-we-are";
 
+import type { AboutUsContent } from "@sam-group/types";
+import type { ReactNode } from "react";
+
 /**
  * The About Us page.
  *
- * ── Five sections of a specified eight ──────────────────────────────────────
+ * ── Content comes from the CMS, through NestJS, and from nowhere else ───────
  *
- * SITE_STRUCTURE §2 specifies: Hero → Who We Are → Company Milestones → Our Expertise → Our
- * Competitive Advantages → Quality & Standards → Our Team → Final CTA.
+ * This component took no props and read a fixture module until the CMS-1 gate. It now renders what
+ * `GET /api/v1/content/globals/about-us` served — the Payload `AboutUs` Global, projected by the
+ * Content module. `apps/web` never calls Payload and has no awareness it exists (ADR-003); nothing
+ * in this subtree imports a CMS client, a CMS type or a CMS URL.
  *
- * Five are built. The three omitted — Milestones, Competitive Advantages, Team — have no approved
- * content: the timeline is marked as an estimate end to end and named a launch blocker, the six
- * advantages are named in no document, and the team is blocked on photography with no roster.
- * `about-data.ts` records the reasoning per section and carries no field for any of them, and the
- * Who We Are section names all three on the page itself so a reviewer reads a short page as
- * unfinished rather than as complete.
+ * The one thing on the page that is **not** CMS content is the published range in Who We Are: the
+ * six Product Families are `Category` data in `sam_platform` and their navigation is code. Payload
+ * may never mirror a Prisma-owned entity (ADR-002).
  *
- * ── What this page is, and is not ───────────────────────────────────────────
+ * ── Sections render if they exist ───────────────────────────────────────────
  *
- * **Entirely server-rendered.** Not one component here carries `"use client"`. The expertise
- * register is an ordered list, the commitments are a list, the media slots are `<figure>`s, and
- * every reveal is the design system's scroll-driven CSS. The only client JavaScript on the page is
- * the header's, inherited from the shared chrome — the same budget the four pages before it hold.
+ * Four of the five are nullable, and a `null` section is simply not rendered. That is the approved
+ * cutover rule, and it is what lets this page be published a section at a time. It also means the
+ * page cannot render a heading over an empty band.
  *
- * **No GSAP, no new dependency, no client component, no shared architecture change.**
+ * Three sections SITE_STRUCTURE §2 specifies — Company Milestones, Competitive Advantages, Our
+ * Team — have no fields in the Global and no components here. Each is blocked on approved content,
+ * not on this gate.
  *
- * **Three media slots and no images.** The hero, Who We Are and Quality sections each reserve a
- * designed frame for a photograph the project does not have. Nothing is generated, nothing is
- * stock, and no facility is illustrated — `MediaFrame` in `sections/hero.tsx` explains what is
- * drawn instead and why.
+ * ── Still entirely server-rendered ──────────────────────────────────────────
  *
- * ── Rhythm ──────────────────────────────────────────────────────────────────
- *
- * Dark hero → light Who We Are → dark Expertise → light Quality → dark close. Alternating rather
- * than the category template's three anchors: each dark band carries a statement, each light band
- * carries the detail under it, and the page never puts two light sections next to each other
- * needing to be told apart by construction alone.
- *
- * ── Lift path ───────────────────────────────────────────────────────────────
- *
- * Same shape as the four pages before it. Moving this to `app/[locale]/about-us/page.tsx` is this
- * file unchanged plus swapping `about-data.ts` from fixtures to the Payload `AboutUs` Global
- * through NestJS. The components take the same shapes either way, because the fixture module is
- * written against that Global's field list — with one recorded exception, noted on `MediaSlot`:
- * two of the three media slots have no field in that Global yet.
+ * Not one component in this subtree carries `"use client"`. The only client JavaScript on the page
+ * is the shared header's, and every reveal is the design system's scroll-driven CSS.
  */
-export function AboutExperience(): ReactNode {
+export function AboutExperience({
+  content,
+  locale,
+  fallbackLocale = null,
+}: {
+  readonly content: AboutUsContent;
+  readonly locale: string;
+  /**
+   * The locale the CMS actually served, when it is not the one that was asked for.
+   *
+   * `null` whenever the requested locale is translated, which is the ordinary case. Non-null it
+   * carries the served locale's own `code` and `direction` — read from the `Locale` table, never
+   * inferred from the code.
+   */
+  readonly fallbackLocale?: { readonly code: string; readonly direction: "ltr" | "rtl" } | null;
+}): ReactNode {
   return (
     <div data-brand="flagship">
       <SiteNav />
 
-      <main id="main-content">
-        <AboutHero />
-        <AboutWhoWeAre />
-        <AboutExpertise />
-        <AboutQualityStandards />
-        <AboutClosing />
+      {/*
+       * ── The route locale is not changed by a fallback ─────────────────────
+       *
+       * `<html lang>`/`<html dir>` are set by `app/[locale]/layout.tsx` from the **route's** locale
+       * row, and a CMS fallback must never move them: `/ar/about-us` is an Arabic URL whose document
+       * language is `ar` whether or not an editor has translated the page yet. Changing it would
+       * change the page's language identity to work around missing content.
+       *
+       * What does change is this element. When the CMS served the default locale instead of the
+       * requested one, the content inside `<main>` genuinely is in that other language, so it is
+       * annotated here — WCAG 2.2 AA 3.1.2 Language of Parts — and `dir` travels with it so a
+       * left-to-right fallback reads correctly inside a right-to-left document. The header, the
+       * footer and the document itself keep the route's language and direction.
+       */}
+      <main
+        id="main-content"
+        {...(fallbackLocale !== null && {
+          lang: fallbackLocale.code,
+          dir: fallbackLocale.direction,
+        })}
+      >
+        {fallbackLocale !== null && (
+          <p className="ab-fallback-note" role="note">
+            This page has not been translated into this language. It is shown in the site&rsquo;s
+            default language.
+          </p>
+        )}
+
+        <AboutHero hero={content.hero} locale={locale} />
+        {content.whoWeAre !== null && <AboutWhoWeAre whoWeAre={content.whoWeAre} locale={locale} />}
+        {content.expertise !== null && <AboutExpertise expertise={content.expertise} />}
+        {content.qualityStandards !== null && (
+          <AboutQualityStandards qualityStandards={content.qualityStandards} locale={locale} />
+        )}
+        {content.closing !== null && <AboutClosing closing={content.closing} locale={locale} />}
       </main>
 
       <SiteFooter />

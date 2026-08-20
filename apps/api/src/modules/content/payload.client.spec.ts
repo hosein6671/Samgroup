@@ -166,3 +166,89 @@ describe("PayloadClient", () => {
     });
   });
 });
+
+/**
+ * The Global read — a second resource with a second shape, sharing one transport.
+ *
+ * `find` is unchanged by its existence and is covered above; these assert the parts that differ:
+ * the path, the empty-document contract, and that a body which is not a document is a failure
+ * rather than an empty page.
+ */
+describe("PayloadClient.findGlobal", () => {
+  beforeEach(() => {
+    jest.spyOn(Logger.prototype, "error").mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("targets Payload's globals path with the same service credential", async () => {
+    const { client, fetchMock } = await createHarness();
+    fetchMock.mockResolvedValue(jsonResponse(200, { hero: { title: "VERIFICATION" } }));
+
+    await client.findGlobal("about-us", { locale: "fa", depth: "1" });
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const headers = init.headers as Record<string, string>;
+
+    expect(url).toBe(`${ORIGIN}/api/globals/about-us?locale=fa&depth=1`);
+    expect(headers.authorization).toBe(`users API-Key ${API_KEY}`);
+  });
+
+  /**
+   * Payload answers `200 {}` for a Global that has never been published, and for one an access
+   * constraint excludes. Turning that into a failure here would make an unpublished page
+   * indistinguishable from a broken CMS one level up, where the difference decides what a visitor
+   * is told.
+   */
+  it("returns the empty document rather than throwing when nothing is published", async () => {
+    const { client, fetchMock } = await createHarness();
+    fetchMock.mockResolvedValue(jsonResponse(200, {}));
+
+    await expect(client.findGlobal("about-us", {})).resolves.toEqual({});
+  });
+
+  it("reports UPSTREAM_UNAVAILABLE when the connection fails", async () => {
+    const { client, fetchMock } = await createHarness();
+    fetchMock.mockRejectedValue(
+      Object.assign(new Error("failed"), { cause: { code: "ECONNREFUSED" } }),
+    );
+
+    await client.findGlobal("about-us", {}).then(() => {
+      throw new Error("the call resolved, but was expected to reject");
+    }, expectUnavailable);
+  });
+
+  it("reports UPSTREAM_UNAVAILABLE for a non-2xx answer, including 401 and 403", async () => {
+    for (const status of [401, 403, 500, 503]) {
+      const { client, fetchMock } = await createHarness();
+      fetchMock.mockResolvedValue(jsonResponse(status, { errors: [] }));
+
+      await client.findGlobal("about-us", {}).then(() => {
+        throw new Error("the call resolved, but was expected to reject");
+      }, expectUnavailable);
+    }
+  });
+
+  it("reports UPSTREAM_UNAVAILABLE for a 2xx body that is not a document", async () => {
+    for (const body of [[], "a string", 42, null]) {
+      const { client, fetchMock } = await createHarness();
+      fetchMock.mockResolvedValue(jsonResponse(200, body));
+
+      await client.findGlobal("about-us", {}).then(() => {
+        throw new Error("the call resolved, but was expected to reject");
+      }, expectUnavailable);
+    }
+  });
+
+  it("reports UPSTREAM_UNAVAILABLE when the CMS is not configured at all", async () => {
+    const { client, fetchMock } = await createHarness({});
+
+    await client.findGlobal("about-us", {}).then(() => {
+      throw new Error("the call resolved, but was expected to reject");
+    }, expectUnavailable);
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

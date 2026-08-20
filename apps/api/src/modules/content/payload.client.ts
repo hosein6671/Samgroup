@@ -69,6 +69,78 @@ export class PayloadClient {
     collection: string,
     query: Readonly<Record<string, string>>,
   ): Promise<PayloadFindResult> {
+    const body = await this.request(
+      `/api/${encodeURIComponent(collection)}`,
+      query,
+      `collection "${collection}"`,
+    );
+
+    if (!isRecord(body) || !Array.isArray(body.docs)) {
+      this.logger.error("Payload answered 2xx with a body that is not a find result.");
+
+      throw this.unavailable();
+    }
+
+    return { docs: body.docs.filter(isRecord) };
+  }
+
+  /**
+   * One read of a Payload Global.
+   *
+   * ── Why this is a second method and not a parameter ────────────────────────
+   *
+   * A Global is a different resource with a different shape: `/api/globals/<slug>` answers with the
+   * document itself, not with a `{ docs }` wrapper, so the two reads cannot share a return type
+   * without one of them lying about what it got. `find` is untouched by this method's existence.
+   *
+   * ── An empty object is a successful answer ─────────────────────────────────
+   *
+   * Verified in Payload 3.88 (`globals/operations/findOne.js` and
+   * `@payloadcms/drizzle/dist/findGlobal.js`): when a Global has never been published — or when the
+   * caller's access constraint excludes it — Payload answers **200 with `{}`**, not 404. So an
+   * empty record here means "no published document", which is a content state for the service above
+   * to interpret, exactly as an empty `docs` array is. It is never turned into a failure here.
+   *
+   * @param slug the Global slug, e.g. `about-us`.
+   * @param query already-decoded query parameters; encoding happens here.
+   *
+   * @throws ApiException UPSTREAM_UNAVAILABLE (503) for an unconfigured CMS, a transport failure, a
+   *   timeout, any non-2xx status, or a 2xx body that is not a JSON object. **Never throws
+   *   NOT_FOUND.**
+   */
+  async findGlobal(
+    slug: string,
+    query: Readonly<Record<string, string>>,
+  ): Promise<Record<string, unknown>> {
+    const body = await this.request(
+      `/api/globals/${encodeURIComponent(slug)}`,
+      query,
+      `global "${slug}"`,
+    );
+
+    if (!isRecord(body)) {
+      this.logger.error("Payload answered 2xx with a body that is not a global document.");
+
+      throw this.unavailable();
+    }
+
+    return body;
+  }
+
+  /**
+   * The transport half of a Payload read: configuration, request, status and JSON parsing.
+   *
+   * Shape validation deliberately stays with the caller — `find` and `findGlobal` expect different
+   * shapes, and a shared validator would have to accept both and therefore neither.
+   *
+   * @param subject how this read is described in a log line. Never the URL: it carries the CMS
+   *   origin.
+   */
+  private async request(
+    path: string,
+    query: Readonly<Record<string, string>>,
+    subject: string,
+  ): Promise<unknown> {
     if (!this.isConfigured()) {
       this.logger.error(
         "PAYLOAD_INTERNAL_URL and PAYLOAD_API_KEY are not both set; the Content module cannot reach the CMS.",
@@ -77,7 +149,7 @@ export class PayloadClient {
       throw this.unavailable();
     }
 
-    const url = `${this.origin()}/api/${encodeURIComponent(collection)}?${new URLSearchParams(query).toString()}`;
+    const url = `${this.origin()}${path}?${new URLSearchParams(query).toString()}`;
 
     let response: Response;
 
@@ -108,28 +180,18 @@ export class PayloadClient {
        * misconfiguration of this application, not a statement that the page does not exist, and
        * mapping it to 404 would publish "removed" for content that is merely unreachable.
        */
-      this.logger.error(`Payload answered ${response.status} for collection "${collection}".`);
+      this.logger.error(`Payload answered ${response.status} for ${subject}.`);
 
       throw this.unavailable();
     }
 
-    let body: unknown;
-
     try {
-      body = await response.json();
+      return (await response.json()) as unknown;
     } catch {
       this.logger.error(`Payload answered ${response.status} with a body that is not JSON.`);
 
       throw this.unavailable();
     }
-
-    if (!isRecord(body) || !Array.isArray(body.docs)) {
-      this.logger.error("Payload answered 2xx with a body that is not a find result.");
-
-      throw this.unavailable();
-    }
-
-    return { docs: body.docs.filter(isRecord) };
   }
 
   /** Trailing slashes stripped so composition cannot produce `//api/...`. */
