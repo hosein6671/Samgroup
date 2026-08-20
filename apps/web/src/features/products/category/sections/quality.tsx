@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 
-import { ACTION_HREF } from "../category-contract";
+import { actionHref } from "../category-contract";
 import type { SectionProps } from "../category-section";
 
 /**
@@ -29,7 +29,7 @@ import type { SectionProps } from "../category-section";
  * plainly that which tests are in-house is stated on Quality & Certifications and not here,
  * because §7 marks that split `[TO CONFIRM]`.
  */
-export function CategoryQuality({ content }: SectionProps): ReactNode {
+export function CategoryQuality({ content, locale }: SectionProps): ReactNode {
   const { quality } = content;
 
   return (
@@ -97,7 +97,7 @@ export function CategoryQuality({ content }: SectionProps): ReactNode {
 
               <p className="pc-tests-foot">
                 {quality.footnote}{" "}
-                <a href={ACTION_HREF[quality.footnoteLink.route]}>
+                <a href={actionHref(locale, quality.footnoteLink.route)}>
                   {quality.footnoteLink.label}
                   <Arrow size={13} />
                 </a>

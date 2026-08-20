@@ -85,8 +85,8 @@ export function HomeExperience({ locale, locales }: SiteNavProps): ReactNode {
         <Network />
         <Lab />
         <Journey />
-        <Insights />
-        <Partnership />
+        <Insights locale={locale} />
+        <Partnership locale={locale} />
       </main>
 
       <SiteFooter locale={locale} />

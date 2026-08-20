@@ -58,11 +58,11 @@ export function ProductsExperience({ locale, locales }: SiteNavProps): ReactNode
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        <ProductsHero />
-        <ProductRegister />
-        <FinderTeaser />
+        <ProductsHero locale={locale} />
+        <ProductRegister locale={locale} />
+        <FinderTeaser locale={locale} />
         <Documentation />
-        <ClosingCta />
+        <ClosingCta locale={locale} />
       </main>
 
       <SiteFooter locale={locale} />

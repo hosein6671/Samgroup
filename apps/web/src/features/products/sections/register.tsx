@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
+import { localeHref } from "@/features/site/site-routes";
 
 import { FAMILIES } from "../products-data";
 
@@ -23,7 +24,17 @@ import { FAMILIES } from "../products-data";
  * is CSS. The reveal is the design system's `reveal-stagger`, so this page adds nothing to the
  * first-load JavaScript budget.
  */
-export function ProductRegister(): ReactNode {
+/**
+ * `locale` is the route's own locale segment, threaded down from `ProductsExperience`.
+ *
+ * `FAMILIES[].href` stays what it is — the canonical, locale-less `/products/{slug}` this list
+ * already validates against the route table at module load. Prefixing it in the fixture would put
+ * per-request route state into static content and would need the six families three times over.
+ * The address is composed here, once, at render.
+ *
+ * The rail above is same-page `#family-*` fragments and is untouched.
+ */
+export function ProductRegister({ locale }: { readonly locale: string }): ReactNode {
   return (
     <section className="fs-sec pr-reg" id="families" data-surface="light">
       <div className="fs-wrap">
@@ -62,7 +73,7 @@ export function ProductRegister(): ReactNode {
                   {/* The heading's link covers the whole entry via a stretched pseudo-element,
                       so the row is one target with one accessible name rather than three. */}
                   <h3 className="pr-entry-title">
-                    <a href={family.href}>{family.name}</a>
+                    <a href={localeHref(locale, family.href)}>{family.name}</a>
                   </h3>
 
                   <p className="pr-entry-desc">{family.descriptor}</p>

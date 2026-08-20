@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { FAMILIES } from "../products-data";
 
@@ -15,7 +15,13 @@ import { FAMILIES } from "../products-data";
  *
  * The right column carries the product architecture — see `ProductArchitecture` below.
  */
-export function ProductsHero(): ReactNode {
+/**
+ * `locale` is the route's own locale segment, threaded down from `ProductsExperience`.
+ *
+ * The two hero actions are structural routes and were rendered raw. The grade index below them is
+ * same-page `#family-*` fragments, which carry no locale and are left exactly as they were.
+ */
+export function ProductsHero({ locale }: { readonly locale: string }): ReactNode {
   return (
     <section className="pr-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -31,11 +37,11 @@ export function ProductsHero(): ReactNode {
           </p>
 
           <div className="pr-hero-actions">
-            <a href={ROUTES.productFinder} className="fs-btn fs-btn--gold">
+            <a href={localeHref(locale, ROUTES.productFinder)} className="fs-btn fs-btn--gold">
               Open Product Finder
               <Arrow size={15} />
             </a>
-            <a href={ROUTES.requestQuote} className="fs-btn fs-btn--glass">
+            <a href={localeHref(locale, ROUTES.requestQuote)} className="fs-btn fs-btn--glass">
               Request a Quote
             </a>
           </div>

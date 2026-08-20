@@ -70,7 +70,24 @@
   color: var(--color-border-accent);
 }
 
+/*
+ * WCAG 2.2 AA, SC 2.5.8 Target Size (Minimum).
+ *
+ * 11px technical type gave these a 14px box. A breadcrumb is a standalone navigation target, not
+ * a word inside a sentence, so the "Inline" exception does not apply and 24px is required.
+ *
+ * Padding on an `inline-block` rather than `min-block-size` on an `inline-flex`, and the reason is
+ * the `ol` above: it aligns its items on `baseline`, and the current-page item is plain text with
+ * no box of its own. A centred flex box would put the links' baselines somewhere the plain item's
+ * is not, and the trail would step. Padding leaves each anchor's baseline exactly where it was and
+ * grows the box symmetrically around it, so the three items stay on one line and only the hit area
+ * changes. 14px + 2 x 5px = 24px; the widths were already 67-75px.
+ *
+ * `padding-block`, not `padding-top`/`padding-bottom`: this page renders in RTL too.
+ */
 .pd-crumbs a {
+  display: inline-block;
+  padding-block: 5px;
   color: var(--color-text-tertiary);
   text-decoration: none;
   transition: color 0.2s ease;

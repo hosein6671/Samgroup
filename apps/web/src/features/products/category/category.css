@@ -80,7 +80,26 @@
   margin-bottom: 22px;
 }
 
+/*
+ * WCAG 2.2 AA, SC 2.5.8 Target Size (Minimum).
+ *
+ * The trail's 11px technical type gave the link a 17.6px box. A breadcrumb is a standalone
+ * navigation target sitting in its own `nav` — it is not a word inside a sentence, so the
+ * "Inline" exception does not reach it, and it needs the full 24px. (The footnote link in
+ * `.pc-tests-foot` genuinely is inline in prose and is deliberately left at its line-height.)
+ *
+ * `inline-flex` + `min-block-size` rather than padding: `.pc-trail` is already a centred flex row,
+ * so the box grows symmetrically around the text and the separator and the current-page mark stay
+ * on the same centre line. Type size, colour and spacing are untouched — only the hit area moves,
+ * and only downward-and-upward within a row that gains 6.4px.
+ *
+ * `min-block-size`, not `min-height`: this page renders in RTL as well, and the logical property
+ * is the one that stays correct if the writing mode ever does.
+ */
 .pc-trail a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
   color: inherit;
   text-decoration: none;
   transition: color var(--t-micro) var(--e-micro);
@@ -1806,9 +1825,15 @@
   color: var(--color-text-tertiary);
 }
 
+/*
+ * SC 2.5.8: 16.8px tall before this. "Open" is the action on a document row, not a word in a
+ * sentence — an action-list entry is a standalone target however text-like it is drawn. The row
+ * is a grid whose other cells are taller, so the link grows inside space the row already has.
+ */
 .pc-doc-link {
   display: inline-flex;
   align-items: center;
+  min-block-size: 24px;
   gap: 7px;
   font-family: var(--font-technical);
   font-size: 10.5px;
@@ -1926,9 +1951,15 @@
   margin-top: 16px !important;
 }
 
+/*
+ * SC 2.5.8: 17.4px tall before this. Each of these is the only thing in its paragraph — a CTA
+ * closing an answer, with no prose around it — so it is a standalone target and the "Inline"
+ * exception does not apply. Nothing wraps: the link is a single-line inline-flex box.
+ */
 .pc-faq-link a {
   display: inline-flex;
   align-items: center;
+  min-block-size: 24px;
   gap: 8px;
   font-family: var(--font-technical);
   font-size: 10.5px;
@@ -1963,9 +1994,14 @@
   border-bottom: 1px solid var(--color-border-hairline);
 }
 
+/*
+ * SC 2.5.8: 16.8px tall before this. A section-header action beside a heading, not inline prose.
+ * `.pc-related-head` is a centred flex row, so the taller box stays on the eyebrow's centre line.
+ */
 .pc-related-all {
   display: inline-flex;
   align-items: center;
+  min-block-size: 24px;
   gap: 8px;
   font-family: var(--font-technical);
   font-size: 10.5px;

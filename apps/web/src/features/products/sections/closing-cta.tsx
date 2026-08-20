@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { CLOSING_ROUTES, type ClosingRoute } from "../products-data";
 
@@ -13,17 +13,24 @@ const HREF: Record<ClosingRoute["id"], string> = {
 };
 
 /**
- * The product a Product Detail page carries into the two inquiry routes.
+ * What this section needs from the page rendering it.
  *
- * Optional, and absent on the Products landing and the six Family pages — neither is about one
- * product, so neither has a product to preserve. Those two surfaces are unaffected by this prop's
- * existence: with no context, every href below is exactly the string it was before.
+ * ── Why `locale` is required and no longer bundled with the product ─────────
+ *
+ * It used to arrive inside an optional `ClosingContext` alongside `productSlug`, which made the
+ * locale optional in practice: the Products landing and the six Family pages passed nothing, and
+ * every href they rendered came out locale-less for `middleware.ts` to re-negotiate. Worse, even
+ * *with* a context the Finder route returned early and skipped the prefix entirely.
+ *
+ * Splitting them makes that unrepresentable. `locale` is a required prop, so no call site can omit
+ * it; `productSlug` stays optional, because the Products landing and the Family pages are not about
+ * one product and have none to carry.
  */
-export type ClosingContext = {
-  /** The active locale segment. Required alongside a product so the link is not locale-less. */
+export type ClosingCtaProps = {
+  /** The route's own locale segment, validated by `app/[locale]/layout.tsx`. */
   readonly locale: string;
   /** The product's own slug, as `GET /products/:slug` returned it in this locale. */
-  readonly productSlug: string;
+  readonly productSlug?: string;
 };
 
 /**
@@ -42,18 +49,25 @@ export type ClosingContext = {
  *
  * `finder` never carries a product. It is the "look at something else" route, and pre-filtering it
  * by the product the visitor is leaving would be the opposite of what it offers.
+ *
+ * ── The prefix is applied before the branch, not inside it ──────────────────
+ *
+ * `localeHref` runs on the first line, so every path this function can return is already addressed
+ * in the reader's locale — including the `finder` early return, which previously left the section's
+ * most-used route bare. The query is then appended to an address that is already correct, which is
+ * also why no branch below writes a `/${locale}` of its own.
  */
-function hrefFor(id: ClosingRoute["id"], context: ClosingContext | null): string {
-  const path = HREF[id];
+function hrefFor(id: ClosingRoute["id"], locale: string, productSlug?: string): string {
+  const path = localeHref(locale, HREF[id]);
 
-  if (context === null || id === "finder") {
+  if (productSlug === undefined || id === "finder") {
     return path;
   }
 
-  const product = `product=${encodeURIComponent(context.productSlug)}`;
+  const product = `product=${encodeURIComponent(productSlug)}`;
   const query = id === "sample" ? `type=sample_request&${product}` : product;
 
-  return `/${context.locale}${path}?${query}`;
+  return `${path}?${query}`;
 }
 
 /**
@@ -90,9 +104,7 @@ function hrefFor(id: ClosingRoute["id"], context: ClosingContext | null): string
  * feature for now because this is the only page that renders it; when the category pages arrive
  * it moves up a level rather than being copied down.
  */
-export function ClosingCta({
-  context = null,
-}: { readonly context?: ClosingContext | null } = {}): ReactNode {
+export function ClosingCta({ locale, productSlug }: ClosingCtaProps): ReactNode {
   return (
     <section className="fs-sec pr-close" data-surface="light">
       <div className="fs-wrap pr-close-grid">
@@ -105,7 +117,10 @@ export function ClosingCta({
           </p>
 
           <p className="pr-close-primary">
-            <a href={ROUTES.customizedSolutions} className="fs-btn fs-btn--gold">
+            <a
+              href={localeHref(locale, ROUTES.customizedSolutions)}
+              className="fs-btn fs-btn--gold"
+            >
               Request a custom solution
               <Arrow size={15} />
             </a>
@@ -121,7 +136,7 @@ export function ClosingCta({
           <ol className="pr-steps">
             {CLOSING_ROUTES.map((route, i) => (
               <li className="pr-step" key={route.id}>
-                <a href={hrefFor(route.id, context)}>
+                <a href={hrefFor(route.id, locale, productSlug)}>
                   <span className="pr-step-index">{String(i + 1).padStart(2, "0")}</span>
                   <span className="pr-step-body">
                     <b>{route.label}</b>

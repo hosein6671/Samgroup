@@ -94,7 +94,7 @@ export function ProductDetailTemplate({
           <ProductGallery images={product.images} productName={product.name} />
         )}
 
-        <ClosingCta context={{ locale, productSlug: product.slug }} />
+        <ClosingCta locale={locale} productSlug={product.slug} />
       </main>
 
       <SiteFooter locale={locale} />

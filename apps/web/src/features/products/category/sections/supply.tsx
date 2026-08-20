@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 
-import { ACTION_HREF } from "../category-contract";
+import { actionHref } from "../category-contract";
 import type { SectionProps } from "../category-section";
 
 /**
@@ -21,7 +21,7 @@ import type { SectionProps } from "../category-section";
  * peers: EXW through CIF is a sequence of increasing seller responsibility, and drawing it as
  * one is the same reasoning the frozen landing's closing staircase uses.
  */
-export function CategorySupply({ content }: SectionProps): ReactNode {
+export function CategorySupply({ content, locale }: SectionProps): ReactNode {
   const { supply } = content;
 
   return (
@@ -43,7 +43,7 @@ export function CategorySupply({ content }: SectionProps): ReactNode {
           <p className="pc-terms">{supply.terms}</p>
 
           <p className="pc-supply-link">
-            <a href={ACTION_HREF[supply.link.route]} className="fs-btn fs-btn--outline">
+            <a href={actionHref(locale, supply.link.route)} className="fs-btn fs-btn--outline">
               {supply.link.label}
               <Arrow size={15} />
             </a>

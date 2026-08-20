@@ -157,7 +157,7 @@ export function ProductCategoryTemplate({
   /** The normalized `?segment=` value, or `null` for the unfiltered view. */
   readonly activeSegment: string | null;
 }): ReactNode {
-  const props = { content, family } as const;
+  const props = { content, family, locale } as const;
   /*
    * The catalog section takes the family's canonical identifier rather than the fixture's or the
    * route's, and they are the same string by the invariant `products-data.ts` enforces at module
@@ -190,7 +190,7 @@ export function ProductCategoryTemplate({
         <CategoryDocumentation {...props} />
         <CategoryFaq {...props} />
         <CategoryRelated {...props} />
-        <ClosingCta />
+        <ClosingCta locale={locale} />
       </main>
 
       <SiteFooter locale={locale} />

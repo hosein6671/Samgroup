@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 /**
  * 8 · Editorial insights.
@@ -39,7 +39,14 @@ import { ROUTES } from "@/features/site/site-routes";
  * The "All articles" action also pointed at `#insights`, this section, rather than anywhere. It now
  * resolves to the real route.
  */
-export function Insights(): ReactNode {
+/**
+ * `locale` is the route's own locale segment, threaded down from `HomeExperience`.
+ *
+ * The one action on this section is a structural route, and it was rendered raw — so from `/fa`
+ * it left the reader's language to `middleware.ts` to guess. `ROUTES.insights` stays locale-less;
+ * `localeHref` applies the prefix here, as it does in the chrome.
+ */
+export function Insights({ locale }: { readonly locale: string }): ReactNode {
   return (
     <section className="fs-sec fs-insights" id="insights" data-surface="light">
       <div className="fs-wrap">
@@ -55,7 +62,7 @@ export function Insights(): ReactNode {
             </p>
           </div>
 
-          <a href={ROUTES.insights} className="fs-btn fs-btn--outline">
+          <a href={localeHref(locale, ROUTES.insights)} className="fs-btn fs-btn--outline">
             Read the insights
             <Arrow />
           </a>

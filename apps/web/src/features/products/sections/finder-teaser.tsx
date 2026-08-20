@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { FINDER_FACETS } from "../products-data";
 
@@ -32,7 +32,8 @@ function facetSentence(): string {
   return `${names.slice(0, -1).join(", ")} and ${last}`;
 }
 
-export function FinderTeaser(): ReactNode {
+/** `locale` is the route's own locale segment, threaded down from `ProductsExperience`. */
+export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode {
   return (
     <section className="fs-sec pr-finder" data-surface="light">
       {/* Texture the register does not have — the fourth cue in the seam; see products.css. */}
@@ -50,7 +51,7 @@ export function FinderTeaser(): ReactNode {
           </p>
 
           <div className="pr-finder-actions">
-            <a href={ROUTES.productFinder} className="fs-btn fs-btn--outline">
+            <a href={localeHref(locale, ROUTES.productFinder)} className="fs-btn fs-btn--outline">
               Open Product Finder
               <Arrow size={15} />
             </a>

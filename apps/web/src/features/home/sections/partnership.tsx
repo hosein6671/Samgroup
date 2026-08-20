@@ -3,7 +3,7 @@
 import { useRef, type ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { CTA_LINKS } from "../home-data";
 import { useCanvas } from "../motion/use-canvas";
@@ -39,7 +39,16 @@ import { useCanvas } from "../motion/use-canvas";
  * received" and nothing more. Promising one business day here while the form that actually stores
  * the lead promises nothing would have been the site contradicting itself.
  */
-export function Partnership(): ReactNode {
+/**
+ * `locale` is the route's own locale segment, threaded down from `HomeExperience`.
+ *
+ * The three `CTA_LINKS` destinations and the two panel actions are structural paths owned by
+ * `site-routes.ts`, and until now they were rendered raw. On `/fa` that emitted `/contact-us`,
+ * which `middleware.ts` re-negotiates from the cookie and `Accept-Language` — so a Persian reader
+ * could be answered in English. `localeHref` is the one prefix rule the header and footer already
+ * go through; the paths in `CTA_LINKS` stay locale-less, and the locale is applied here.
+ */
+export function Partnership({ locale }: { readonly locale: string }): ReactNode {
   const particles = useRef<
     { x: number; y: number; r: number; s: number; o: number; gold: boolean }[]
   >([]);
@@ -108,7 +117,7 @@ export function Partnership(): ReactNode {
 
           <div className="fs-cta-links">
             {CTA_LINKS.map((link) => (
-              <a className="fs-cta-link" href={link.href} key={link.title}>
+              <a className="fs-cta-link" href={localeHref(locale, link.href)} key={link.title}>
                 <b>{link.title}</b>
                 <span>{link.meta}</span>
               </a>
@@ -130,11 +139,11 @@ export function Partnership(): ReactNode {
             </p>
 
             <div className="fs-cta-actions" style={{ marginTop: 26 }}>
-              <a href={ROUTES.contactUs} className="fs-btn fs-btn--gold">
+              <a href={localeHref(locale, ROUTES.contactUs)} className="fs-btn fs-btn--gold">
                 Contact Us
                 <Arrow size={15} />
               </a>
-              <a href={ROUTES.requestQuote} className="fs-btn fs-btn--glass">
+              <a href={localeHref(locale, ROUTES.requestQuote)} className="fs-btn fs-btn--glass">
                 Request a quote
               </a>
             </div>

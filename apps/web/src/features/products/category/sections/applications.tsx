@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
+import { localeHref } from "@/features/site/site-routes";
 
 import { FAMILIES } from "../../products-data";
 import {
@@ -78,7 +79,7 @@ import type { SectionProps } from "../category-section";
  * `content.industries` is optional and no fixture supplies it, for the same reason the selection
  * mode exists. The block below renders only if one ever does.
  */
-export function CategoryApplications({ content, family }: SectionProps): ReactNode {
+export function CategoryApplications({ content, family, locale }: SectionProps): ReactNode {
   const { applications, industries } = content;
   if (!applications) return null;
 
@@ -94,7 +95,7 @@ export function CategoryApplications({ content, family }: SectionProps): ReactNo
         </header>
 
         {applications.mode === "downstream" ? (
-          <Manifold applications={applications} family={family} />
+          <Manifold applications={applications} family={family} locale={locale} />
         ) : (
           <SelectionSequence applications={applications} content={content} />
         )}
@@ -121,9 +122,12 @@ export function CategoryApplications({ content, family }: SectionProps): ReactNo
 function Manifold({
   applications,
   family,
+  locale,
 }: {
   readonly applications: DownstreamApplications;
   readonly family: SectionProps["family"];
+  /** Passed down rather than re-derived — the branches address real Family pages. */
+  readonly locale: SectionProps["locale"];
 }): ReactNode {
   return (
     <div className="pc-flow">
@@ -152,7 +156,7 @@ function Manifold({
               </span>
 
               <h3 className="pc-branch-title">
-                <a href={destination.href}>
+                <a href={localeHref(locale, destination.href)}>
                   {destination.name}
                   <Arrow size={15} />
                 </a>

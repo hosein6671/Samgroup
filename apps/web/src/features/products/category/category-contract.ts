@@ -42,7 +42,7 @@
  * approves a method list it is filled in per column and the components render it unchanged.
  */
 
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 /* ------------------------------------------------------------------ actions */
 
@@ -55,7 +55,14 @@ import { ROUTES } from "@/features/site/site-routes";
 export type RouteId =
   "quote" | "sample" | "customization" | "finder" | "quality" | "exportLogistics" | "products";
 
-export const ACTION_HREF: Record<RouteId, string> = {
+/**
+ * The locale-less structural path behind each id. **Not rendered directly** — see `actionHref`.
+ *
+ * It stays locale-less for the reason every constant in `site-routes.ts` does: a path is one fact
+ * and the reader's language is another, and storing them joined would mean three copies of this
+ * table for three locales.
+ */
+const ACTION_PATH: Record<RouteId, string> = {
   quote: ROUTES.requestQuote,
   /*
    * "Request Sample" resolves to Contact Us, not to a sample form. `SampleRequest` was merged
@@ -67,9 +74,28 @@ export const ACTION_HREF: Record<RouteId, string> = {
   customization: ROUTES.customizedSolutions,
   finder: ROUTES.productFinder,
   quality: ROUTES.qualityCertifications,
+  /*
+   * `/export-logistics` is in the canonical route table and **no route implements it yet**, so
+   * this resolves to a locale-correct 404 rather than to a page. That is the honest current state
+   * and it is deliberately not hidden here: suppressing the CTA or pointing it elsewhere would be
+   * a content decision, and inventing the page would be inventing content. What changes below is
+   * only that the 404 now happens in the reader's own locale instead of after a re-negotiation.
+   */
   exportLogistics: ROUTES.exportLogistics,
   products: ROUTES.products,
 };
+
+/**
+ * One category action, addressed in the reader's locale.
+ *
+ * A two-line lookup that ends in `localeHref`, which stays the platform's only prefix rule. The
+ * fixtures still hold ids and never paths, so a route change remains one edit in `site-routes.ts`;
+ * what this adds is that the six category fixtures can no longer be rendered locale-less, because
+ * there is no longer an exported table of bare paths for a section to reach for.
+ */
+export function actionHref(locale: string, route: RouteId): string {
+  return localeHref(locale, ACTION_PATH[route]);
+}
 
 export type CategoryAction = {
   readonly label: string;

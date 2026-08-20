@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { FAMILIES } from "../../products-data";
 import type { SectionProps } from "../category-section";
@@ -25,7 +25,7 @@ import type { SectionProps } from "../category-section";
  * canonical `FAMILIES` rather than the fixture, so a category can never link to itself and can
  * never miss a sibling.
  */
-export function CategoryRelated({ content }: SectionProps): ReactNode {
+export function CategoryRelated({ content, locale }: SectionProps): ReactNode {
   const others = FAMILIES.filter((family) => family.id !== content.familyId);
 
   return (
@@ -33,7 +33,7 @@ export function CategoryRelated({ content }: SectionProps): ReactNode {
       <div className="fs-wrap pc-related-inner">
         <div className="pc-related-head">
           <p className="fs-eyebrow">The rest of the range</p>
-          <a href={ROUTES.products} className="pc-related-all">
+          <a href={localeHref(locale, ROUTES.products)} className="pc-related-all">
             All products
             <Arrow size={13} />
           </a>
@@ -42,7 +42,7 @@ export function CategoryRelated({ content }: SectionProps): ReactNode {
         <ul className="pc-related-list">
           {others.map((family) => (
             <li key={family.id}>
-              <a href={family.href}>
+              <a href={localeHref(locale, family.href)}>
                 <span className="pc-related-code">{family.code}</span>
                 <span className="pc-related-name">{family.name}</span>
                 <Arrow size={14} />

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import type { SectionProps } from "../category-section";
 
@@ -35,7 +35,7 @@ import type { SectionProps } from "../category-section";
  * one is issued at — so asserting one document per designation went further than the source. Each
  * document now states only what §7 supports, and the COA's per-batch scope, which §7 does state.
  */
-export function CategoryDocumentation({ content }: SectionProps): ReactNode {
+export function CategoryDocumentation({ content, locale }: SectionProps): ReactNode {
   const { documentation } = content;
 
   return (
@@ -79,7 +79,7 @@ export function CategoryDocumentation({ content }: SectionProps): ReactNode {
               <small>{documentation.note}</small>
             </span>
 
-            <a className="pc-doc-link" href={ROUTES.documentation}>
+            <a className="pc-doc-link" href={localeHref(locale, ROUTES.documentation)}>
               Open
               <Arrow size={13} />
             </a>

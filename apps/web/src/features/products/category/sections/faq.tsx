@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 
-import { ACTION_HREF } from "../category-contract";
+import { actionHref } from "../category-contract";
 import type { SectionProps } from "../category-section";
 
 /**
@@ -31,7 +31,7 @@ import type { SectionProps } from "../category-section";
  * script tag here would be the exact pattern that document forbids, and building the shared
  * component would be adding site architecture inside a page task. Reported, not done.
  */
-export function CategoryFaq({ content }: SectionProps): ReactNode {
+export function CategoryFaq({ content, locale }: SectionProps): ReactNode {
   const { faq } = content;
   if (faq.length === 0) return null;
 
@@ -60,7 +60,7 @@ export function CategoryFaq({ content }: SectionProps): ReactNode {
 
                 {entry.link && (
                   <p className="pc-faq-link">
-                    <a href={ACTION_HREF[entry.link.route]}>
+                    <a href={actionHref(locale, entry.link.route)}>
                       {entry.link.label}
                       <Arrow size={13} />
                     </a>

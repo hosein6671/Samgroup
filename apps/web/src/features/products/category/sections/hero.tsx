@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
-import { ROUTES } from "@/features/site/site-routes";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
-import { ACTION_HREF, groupSubRanges } from "../category-contract";
+import { actionHref, groupSubRanges } from "../category-contract";
 import type { SectionProps } from "../category-section";
 
 /**
@@ -28,7 +28,7 @@ import type { SectionProps } from "../category-section";
  *
  * Nothing in it is a metric. Every string is a designation from the frozen taxonomy.
  */
-export function CategoryHero({ content, family }: SectionProps): ReactNode {
+export function CategoryHero({ content, family, locale }: SectionProps): ReactNode {
   const { hero } = content;
 
   return (
@@ -43,7 +43,7 @@ export function CategoryHero({ content, family }: SectionProps): ReactNode {
             sections inside this page, not routes (SITE_STRUCTURE §4).
           */}
           <nav className="pc-trail" aria-label="Breadcrumb">
-            <a href={ROUTES.products}>Products</a>
+            <a href={localeHref(locale, ROUTES.products)}>Products</a>
             <span aria-hidden="true">/</span>
             <span aria-current="page">{family.name}</span>
           </nav>
@@ -56,17 +56,17 @@ export function CategoryHero({ content, family }: SectionProps): ReactNode {
           <p className="fs-lead">{hero.lead}</p>
 
           <div className="pc-hero-actions">
-            <a href={ACTION_HREF[hero.primary.route]} className="fs-btn fs-btn--gold">
+            <a href={actionHref(locale, hero.primary.route)} className="fs-btn fs-btn--gold">
               {hero.primary.label}
               <Arrow size={15} />
             </a>
-            <a href={ACTION_HREF[hero.secondary.route]} className="fs-btn fs-btn--glass">
+            <a href={actionHref(locale, hero.secondary.route)} className="fs-btn fs-btn--glass">
               {hero.secondary.label}
             </a>
           </div>
         </div>
 
-        <GradeIndex content={content} family={family} />
+        <GradeIndex content={content} family={family} locale={locale} />
       </div>
     </section>
   );
