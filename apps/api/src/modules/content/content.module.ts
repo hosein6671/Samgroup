@@ -7,6 +7,7 @@ import { ContentPagesController } from "./content-pages.controller";
 import { ContentPagesService } from "./content-pages.service";
 import { CustomizedSolutionsService } from "./customized-solutions.service";
 import { PayloadClient } from "./payload.client";
+import { QualityCertificationsService } from "./quality-certifications.service";
 
 /**
  * The Content module — ARCHITECTURE.md §Modules, "proxies/aggregates Payload CMS data".
@@ -23,6 +24,12 @@ import { PayloadClient } from "./payload.client";
 @Module({
   imports: [LocaleResolutionModule],
   controllers: [ContentGlobalsController, ContentPagesController],
-  providers: [AboutUsService, ContentPagesService, CustomizedSolutionsService, PayloadClient],
+  providers: [
+    AboutUsService,
+    ContentPagesService,
+    CustomizedSolutionsService,
+    PayloadClient,
+    QualityCertificationsService,
+  ],
 })
 export class ContentModule {}

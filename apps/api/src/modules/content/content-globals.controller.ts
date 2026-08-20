@@ -7,6 +7,7 @@ import { LocaleResolutionService } from "../../common/locale/locale-resolution.s
 import { LocaleQuery } from "../../common/locale/locale.query";
 import { AboutUsService } from "./about-us.service";
 import { CustomizedSolutionsService } from "./customized-solutions.service";
+import { QualityCertificationsService } from "./quality-certifications.service";
 
 import type { ContentGlobalResult } from "./content-global.reader";
 import type { ResponseWithMeta } from "../../common/http/with-meta";
@@ -15,6 +16,7 @@ import type {
   AboutUsContent,
   ContentGlobalResponse,
   CustomizedSolutionsContent,
+  QualityCertificationsContent,
 } from "@sam-group/types";
 
 const UNKNOWN_GLOBAL_MESSAGE = "No content global is served under that name.";
@@ -25,7 +27,9 @@ type ContentGlobalReader<T> = {
 };
 
 /** What any recognised Global can answer with. */
-type ServedGlobal = ContentGlobalResponse<AboutUsContent | CustomizedSolutionsContent>;
+type ServedGlobal = ContentGlobalResponse<
+  AboutUsContent | CustomizedSolutionsContent | QualityCertificationsContent
+>;
 
 /**
  * `GET /content/globals/:name` — the company Globals, one name at a time.
@@ -33,9 +37,10 @@ type ServedGlobal = ContentGlobalResponse<AboutUsContent | CustomizedSolutionsCo
  * ── The path is the frozen one ─────────────────────────────────────────────
  *
  * API_CONTRACT_FINAL.md §Content already specifies this route and lists the eight names it will
- * eventually answer to. Two are implemented — `about-us` and `customized-solutions` — and the rest
- * are separate gates. An unimplemented name is a 404 **here**, before any request reaches Payload:
- * the CMS is not a routing table, and a typo must not become an upstream error.
+ * eventually answer to. Three are implemented — `about-us`, `customized-solutions` and
+ * `quality-certifications` — and the rest are separate gates. An unimplemented name is a 404
+ * **here**, before any request reaches Payload: the CMS is not a routing table, and a typo must not
+ * become an upstream error.
  *
  * ── Why one controller and not one per Global ──────────────────────────────
  *
@@ -52,11 +57,13 @@ export class ContentGlobalsController {
   constructor(
     aboutUs: AboutUsService,
     customizedSolutions: CustomizedSolutionsService,
+    qualityCertifications: QualityCertificationsService,
     private readonly localeResolution: LocaleResolutionService,
   ) {
     this.readers = {
       "about-us": aboutUs,
       "customized-solutions": customizedSolutions,
+      "quality-certifications": qualityCertifications,
     };
   }
 

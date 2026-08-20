@@ -275,3 +275,212 @@ export type CustomizedSolutionsContent = {
 
 /** `GET /content/globals/customized-solutions`. */
 export type CustomizedSolutionsResponse = ContentGlobalResponse<CustomizedSolutionsContent>;
+
+/* ------------------------------------------------ Quality & Certifications */
+
+/**
+ * A Product Family, as an identifier.
+ *
+ * **The canonical ADR-009 identifier**: one string that is simultaneously the default-locale
+ * `Category.slug` in `sam_platform`, the `/{locale}/products/{slug}` route segment, Payload's
+ * `categoryKey`, and the frontend's `ProductFamily` key.
+ *
+ * It appears on this wire for one reason — the sampling policy is confirmed for some families and
+ * not others, and the CMS holds *which*. It never carries a family's name or its address: those are
+ * Prisma-owned and code-navigated, and Payload may never mirror a Prisma entity (ADR-002).
+ * `apps/web` resolves a key against its own canonical table, exactly as it resolves a
+ * `ContentRouteKey`, and a key it cannot resolve is dropped rather than rendered.
+ */
+export type ProductFamilyKey =
+  | "base-oils"
+  | "lubricant-additives"
+  | "engine-oils-automotive-lubricants"
+  | "industrial-oils-lubricants"
+  | "marine-oils-lubricants"
+  | "antifreeze-coolants";
+
+export type QualityCertificationsHero = {
+  eyebrow: string | null;
+  /** The page's H1. Always present — a document without one is not served at all. */
+  title: string;
+  supportingText: string | null;
+  /** The heading over the hero's stage chain. The chain's contents come from `approach.stages`. */
+  indexLabel: string | null;
+  primaryCta: ContentCta | null;
+  secondaryCta: ContentCta | null;
+};
+
+/**
+ * One testing stage.
+ *
+ * `when` says **where in the material's passage the stage sits** — the meaning the stage's own name
+ * already carries. There is deliberately no field for what happens inside it: no approved document
+ * describes any stage's contents, and elaborating one would be writing a procedure.
+ */
+export type QualityStage = {
+  name: string;
+  when: string;
+};
+
+export type QualityApproach = {
+  /**
+   * The band's own label.
+   *
+   * Editorial content, not chrome: it is a visible line of page copy, so it is localized in the CMS
+   * and `null` when unwritten. **The frontend supplies no English fallback for it** — on a page
+   * served in three languages, a code-owned label is one a Persian or Arabic reader meets in
+   * English above translated content.
+   */
+  eyebrow: string | null;
+  heading: string | null;
+  lead: string | null;
+  stages: QualityStage[];
+  /** What this section does not publish, stated in the section. */
+  footnote: string | null;
+};
+
+/**
+ * One property the laboratory tests for — **a name, and nothing else**.
+ *
+ * No `method`, `condition`, `unit`, `value` or `accreditation` field exists on this type, and none
+ * exists in the CMS either. No approved document in this project names a single test standard, and a
+ * designation cited wrongly against a real property is a technical error a buyer would specify
+ * against. A property name does not establish that the test is performed, performed in-house, or
+ * performed against any standard.
+ */
+export type QualityProperty = {
+  name: string;
+};
+
+/** One attribute the register deliberately does not carry, and the reason, both published. */
+export type QualityUnpublishedAttribute = {
+  name: string;
+  why: string;
+};
+
+export type QualityLaboratory = {
+  /** The band's own label — localized CMS copy, never a code string. See `QualityApproach`. */
+  eyebrow: string | null;
+  heading: string | null;
+  lead: string | null;
+  registerLabel: string | null;
+  orderNote: string | null;
+  properties: QualityProperty[];
+  unpublishedHeading: string | null;
+  unpublished: QualityUnpublishedAttribute[];
+  /** `null` when no photograph is uploaded. The section then renders no figure at all. */
+  figure: ContentFigure | null;
+};
+
+/**
+ * The certifications section — **five strings, and structurally nothing else**.
+ *
+ * ── Why there is no array here ──────────────────────────────────────────────
+ *
+ * Because there is nothing to put in one. SITE_STRUCTURE §7 blocks this section until a real
+ * certificate list exists and is emphatic that no placeholder certification is ever published; the
+ * *shape* of a certification claim is still one, and a reader counts empty slots.
+ *
+ * So this type carries no `items`, no `issuingBody`, no `certificateNumber`, no `validUntil`, no
+ * file and no link — absent rather than empty, so a plausible guess cannot be dropped into a slot.
+ * The `Certifications` collection and its Admin-only publish gate are a later gate; when they
+ * arrive, an optional array joins this object and every existing consumer keeps working.
+ *
+ * `status` is words, never a colour: the page renders it as text beside a decorative mark.
+ */
+export type QualityCertificationsSection = {
+  eyebrow: string | null;
+  heading: string | null;
+  status: string | null;
+  statement: string | null;
+  note: string | null;
+};
+
+/**
+ * One document issued with supply.
+ *
+ * **There is no `href` and no file.** Whether any of these can be obtained from this site is
+ * unconfirmed, and a field that does not exist cannot imply a download.
+ */
+export type QualityDocument = {
+  name: string;
+  scope: string | null;
+};
+
+export type QualityDocumentation = {
+  /** The band's own label — localized CMS copy, never a code string. See `QualityApproach`. */
+  eyebrow: string | null;
+  heading: string | null;
+  lead: string | null;
+  registerLabel: string | null;
+  documents: QualityDocument[];
+  /** The line that keeps the register from reading as a download list. */
+  note: string | null;
+};
+
+/**
+ * The sampling policy, and the exact scope it is confirmed for.
+ *
+ * `families` carries **keys only** — never a label, never a path. `apps/web` resolves each against
+ * the canonical Product Family table; an unknown key is dropped by the API before it is served, and
+ * dropped again by the frontend if one somehow survives. When nothing resolves, the section is not
+ * rendered: the policy published without its scope is a broader promise than the documentation
+ * makes.
+ */
+export type QualitySampling = {
+  eyebrow: string | null;
+  /** The policy itself. Rendered as the section's own heading — there is no separate heading. */
+  statement: string;
+  familiesLabel: string | null;
+  families: ProductFamilyKey[];
+  limit: string | null;
+};
+
+export type QualityClosing = {
+  eyebrow: string | null;
+  heading: string | null;
+  lead: string | null;
+  primaryCta: ContentCta | null;
+  routes: ContentCta[];
+};
+
+/**
+ * The Quality & Certifications page's editorial content, from
+ * `GET /content/globals/quality-certifications`.
+ *
+ * ── The hardest constraint on this page, on the wire ────────────────────────
+ *
+ * Nothing in this type can carry a certificate, standard, licence, accreditation, issuing body,
+ * certificate number, validity date or mark; a test method designation, a test condition or a
+ * numerical result; a capacity, market or customer. Several of those have no field at all — absent
+ * rather than empty.
+ *
+ * ── Sections below the hero are nullable ────────────────────────────────────
+ *
+ * A section with no content is `null` and is not rendered, so the page can be published in stages.
+ * The hero is not optional: `hero.title` is the page's H1, and a Global that has none is reported as
+ * unavailable rather than served headless.
+ *
+ * ── Nothing here is Payload-shaped ──────────────────────────────────────────
+ *
+ * No document id, no `_status`, no `globalType`, no timestamps, no version metadata, no rich-text
+ * AST, no expanded media record. `apps/web` cannot tell this came from a CMS.
+ */
+export type QualityCertificationsContent = {
+  hero: QualityCertificationsHero;
+  approach: QualityApproach | null;
+  laboratory: QualityLaboratory | null;
+  certifications: QualityCertificationsSection | null;
+  documentation: QualityDocumentation | null;
+  sampling: QualitySampling | null;
+  closing: QualityClosing | null;
+  /**
+   * `alternates` is always empty: `/quality-certifications` is a structural route whose URL is
+   * identical in every locale, so its `hreflang` set is the platform's `Locale` table rather than a
+   * CMS translation state (PROJECT_HANDOFF.md §6.12).
+   */
+  seo: SeoFields;
+};
+
+/** `GET /content/globals/quality-certifications`. */
+export type QualityCertificationsResponse = ContentGlobalResponse<QualityCertificationsContent>;

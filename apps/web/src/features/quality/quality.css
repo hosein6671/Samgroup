@@ -20,14 +20,18 @@
  *
  * ── Two knowing near-duplicates ─────────────────────────────────────────────
  *
- * `.qc-slot*` is the media-frame construction `about.css` declares as `.ab-slot*`, and `.qc-pending`
- * is the dashed proof-state aside that exists as `.ab-pending` and `.cs-pending`. Importing either
- * page's stylesheet would pull several hundred lines of another page's layout for one frame and one
- * box, and this task's scope rules out a shared CSS refactor outright.
+ * `.qc-slot*` is the figure construction `about.css` declares as `.ab-slot*`, and `.qc-pending` is
+ * the aside that exists as `.ab-pending` and `.cs-pending`. Importing either page's stylesheet would
+ * pull several hundred lines of another page's layout for one figure and one box, and a shared CSS
+ * refactor is outside every page gate this platform has run.
  *
- * **At three copies of the pending aside and two of the media slot, this is no longer a cheap
- * duplicate.** Promoting both to the design system is now worth its own task. It is recorded here,
- * as `about.css` recorded it before, rather than done quietly inside a page build.
+ * **At three copies of the aside and two of the figure, this is no longer a cheap duplicate.**
+ * Promoting both to the design system is now worth its own task. It is recorded here, as
+ * `about.css` recorded it before, rather than done quietly inside a page build.
+ *
+ * `.qc-pending` is NOT proof-state furniture and did not leave with the fixture: it renders the
+ * laboratory register's withheld attributes, which are published CMS content and are the reason a
+ * list of property names cannot be read as a capability claim.
  *
  * ============================================================================
  * THE PAGE'S RHYTHM
@@ -45,8 +49,13 @@
  */
 
 /* ============================================================================
-   1 · MEDIA SLOT
+   1 · LABORATORY FIGURE
    Declared before the section that uses it, as `about.css` does with the same construction.
+
+   This was the proof-state media slot: a hairline frame, a drafting grid, gold registration marks
+   and an "Image pending" state, drawn because the asset did not exist. It carried the same status
+   `.ab-pending` and `.cs-pending` carry, and it was deleted with the fixture at the CMS-2B cutover
+   — the page now renders a real upload or renders nothing at all.
    ============================================================================ */
 
 .qc-slot {
@@ -63,11 +72,6 @@
 .qc-slot-frame {
   position: relative;
   overflow: hidden;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 10px;
-  padding: clamp(20px, 2.4vw, 32px);
   aspect-ratio: 4 / 3;
   border: 1px solid var(--color-border-hairline);
   border-radius: var(--radius-lg);
@@ -75,83 +79,15 @@
 }
 
 /*
- * The blueprint field, at drafting scale rather than section scale.
- *
- * `.fs-blueprint` is the section-level ground at 92px cells. Inside a frame this size that yields
- * three or four lines, which reads as a rendering fault rather than as drawn paper. So the field is
- * restated once here at 26px, and `.fs-blueprint` keeps its job on the section behind it.
+ * A real upload fills the frame. `object-fit: cover` with the frame's own aspect ratio keeps the
+ * section's rhythm regardless of what an editor uploads, and the intrinsic width/height on the
+ * element still reserve the space while the file loads.
  */
-.qc-slot-grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.7;
-  background-image:
-    linear-gradient(to right, var(--color-border-hairline) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-border-hairline) 1px, transparent 1px);
-  background-size: 26px 26px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 25%, transparent 100%);
-}
-
-/*
- * Registration marks — the gold accent, at two opposite corners.
- *
- * Corner brackets rather than a badge: gold is the flagship's interactive colour, and a filled gold
- * shape inside an empty frame would read as a control. Two thin corners read as a crop mark, which
- * is what an uncommissioned asset actually needs.
- */
-.qc-slot-frame::before,
-.qc-slot-frame::after {
-  content: "";
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border: 1px solid var(--color-border-accent);
-  opacity: 0.85;
-}
-
-.qc-slot-frame::before {
-  top: 16px;
-  inset-inline-start: 16px;
-  border-inline-end: 0;
-  border-block-end: 0;
-}
-
-.qc-slot-frame::after {
-  bottom: 16px;
-  inset-inline-end: 16px;
-  border-inline-start: 0;
-  border-block-start: 0;
-}
-
-.qc-slot-intent {
-  position: relative;
-  margin: 0;
-  font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  text-align: center;
-  color: var(--color-text-accent);
-}
-
-.qc-slot-state {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 13px;
-  font-weight: 300;
-  color: var(--color-text-tertiary);
-}
-
-.qc-slot-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--color-border-accent);
-  flex: none;
+.qc-slot-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .qc-slot-caption {
@@ -166,26 +102,6 @@
   line-height: 1.5;
   font-weight: 300;
   color: var(--color-text-secondary);
-}
-
-/* The queued alt text. Proof-state information — it is the commission, and it is the audience this
-   page has today. It leaves with the caption when a real asset lands. */
-.qc-slot-alt {
-  display: flex;
-  gap: 8px;
-  font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  line-height: 1.5;
-  color: var(--color-text-tertiary);
-}
-
-.qc-slot-alt b {
-  flex: none;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  opacity: 0.7;
 }
 
 /* ============================================================================
@@ -1055,4 +971,69 @@
   .qc-sampling-statement {
     max-width: none;
   }
+}
+
+/* ============================================================================
+   9 · CMS STATES
+   The three things the page can be besides published: served in a fallback language, unpublished,
+   or unreachable. All three are content states, and none of them is a 404.
+   ============================================================================ */
+
+/*
+ * No stages, no chain column. No photograph, no figure column.
+ *
+ * Both grids reserve a second column. When the CMS holds nothing for it, the column would otherwise
+ * stay reserved and the page would carry a large empty band beside the copy — which is exactly the
+ * empty-frame reading the proof-state slot was deleted to avoid. These single-column variants are
+ * what makes "a missing optional section renders absent" true visually and not only structurally.
+ */
+.qc-hero-inner[data-chain="no"],
+.qc-lab-top[data-figure="no"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
+ * The locale-fallback notice.
+ *
+ * Stated rather than hidden, in the register About Us and the legal template already use: the reader
+ * is told the page is shown in another language, and nothing more is claimed. `role="note"` carries
+ * that to assistive technology, so the meaning does not depend on the band's colour — and the
+ * element it sits inside carries its own `lang`/`dir` (WCAG 3.1.2).
+ */
+.qc-fallback-note {
+  max-width: var(--fs-wrap-max, 1240px);
+  margin: 0 auto;
+  padding: 14px clamp(20px, 4vw, 56px) 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-muted, #5a6072);
+}
+
+/*
+ * The unavailable state — About Us's geometry, so a visitor who meets either reads one page rather
+ * than two designs.
+ */
+.qc-unavailable {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(72px, 8vw, 112px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.qc-unavailable-inner {
+  position: relative;
+  max-width: 62ch;
+}
+
+.qc-unavailable-inner h1 {
+  margin: clamp(12px, 1.4vw, 18px) 0 clamp(16px, 1.8vw, 24px);
+}
+
+.qc-unavailable-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: clamp(20px, 2.4vw, 30px);
 }

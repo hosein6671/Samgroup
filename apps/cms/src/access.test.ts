@@ -356,9 +356,83 @@ describe("editorial identities", () => {
   });
 });
 
+/**
+ * The Pages versions gate — a hole that was open until the CMS-2B gate closed it.
+ *
+ * ── What was wrong ──────────────────────────────────────────────────────────
+ *
+ * `Pages.access.read` has always been `publishedForService`, so the NestJS service credential could
+ * only ever read *published* legal pages through `/api/pages`. But `readVersions` was unset, and in
+ * `payload@3.88.0` that is not a safe default: a `grep` for `readVersions` across `payload/dist`
+ * finds exactly one assignment (`folders/createFolderCollection.js`) and none in
+ * `collections/config/sanitize.js`, so a collection is given no default rule — and `executeAccess`
+ * then takes its `if (req.user) return true` branch (`auth/executeAccess.js`) for **any**
+ * authenticated identity when an access function is absent.
+ *
+ * So `/api/pages/versions` and `/api/pages/:id/versions/:versionId` were a second door onto the same
+ * drafts, standing beside the guarded one — and the drafts here are unreviewed legal text.
+ *
+ * This is the identical hole `AboutUs` found for a Global during CMS-1. It was not a Global-only
+ * problem, and these tests fail if the line is ever removed again.
+ *
+ * ── What is deliberately unchanged ──────────────────────────────────────────
+ *
+ * Nothing else about Pages. Same schema, same four rules, same drafts setting, same anonymous
+ * refusal, same published-only service read — asserted below so the hardening is provably narrow.
+ */
+describe("Pages versions are editors-only", () => {
+  test("the rule is declared explicitly, because Payload defaults it to nothing safe", () => {
+    assert.ok(
+      Pages.access?.readVersions !== undefined,
+      "readVersions has no Payload default for a collection either: without it any authenticated identity reads drafts",
+    );
+  });
+
+  test("the service identity cannot read a Page version", () => {
+    assert.equal(call(Pages.access?.readVersions, SERVICE), false);
+  });
+
+  test("anonymous cannot read a Page version", () => {
+    assert.equal(call(Pages.access?.readVersions, ANONYMOUS), false);
+  });
+
+  test("editors keep the version access their editorial work depends on", () => {
+    assert.equal(call(Pages.access?.readVersions, CONTENT_MANAGER), true);
+    assert.equal(call(Pages.access?.readVersions, ADMIN), true);
+  });
+
+  test("the versions rule is the editor gate, not a new predicate", () => {
+    assert.equal(Pages.access?.readVersions, editorOnly);
+  });
+
+  test("published Page reads are unchanged by the hardening", () => {
+    // The service identity still reads published pages, and still only published ones.
+    assert.deepEqual(call(Pages.access?.read, SERVICE), PUBLISHED_ONLY);
+    assert.equal(call(Pages.access?.read, ANONYMOUS), false);
+    assert.equal(call(Pages.access?.read, CONTENT_MANAGER), true);
+    assert.equal(call(Pages.access?.read, ADMIN), true);
+  });
+
+  test("the write rules are unchanged by the hardening", () => {
+    for (const operation of ["create", "update", "delete"] as const) {
+      assert.equal(call(Pages.access?.[operation], CONTENT_MANAGER), true);
+      assert.equal(call(Pages.access?.[operation], SERVICE), false);
+      assert.equal(call(Pages.access?.[operation], ANONYMOUS), false);
+    }
+  });
+
+  test("the Pages schema is untouched — this was a security fix, not a redesign", () => {
+    const fieldNames = Pages.fields
+      .filter((entry): entry is (typeof Pages.fields)[number] & { name: string } => "name" in entry)
+      .map((entry) => entry.name);
+
+    assert.deepEqual(fieldNames, ["title", "slug", "body", "bodyHtml", "lastUpdatedDate", "seo"]);
+  });
+});
+
 describe("collection wiring", () => {
   test("Pages declares every operation explicitly rather than inheriting a default", () => {
-    for (const operation of ["read", "create", "update", "delete"] as const) {
+    for (const operation of ["read", "create", "update", "delete", "readVersions"] as const) {
       assert.ok(Pages.access?.[operation] !== undefined, `Pages.access.${operation} is unset`);
     }
   });

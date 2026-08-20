@@ -16,7 +16,7 @@
  * the lift is a prefix, not a rewrite.
  */
 
-import type { ContentRouteKey } from "@sam-group/types";
+import type { ContentRouteKey, ProductFamilyKey } from "@sam-group/types";
 
 export const ROUTES = {
   home: "/",
@@ -49,18 +49,68 @@ export const ROUTES = {
   privacyPolicy: "/privacy-policy",
 } as const;
 
+/**
+ * One Product Family, as this application navigates it.
+ *
+ * `key` is the **canonical ADR-009 identifier** — the same string that is the default-locale
+ * `Category.slug` in `sam_platform`, the `/{locale}/products/{slug}` route segment, and Payload's
+ * `categoryKey`. It is the only part of a family the CMS is ever allowed to hold; `label` and `href`
+ * are this table's, and stay this table's.
+ */
+export type ProductFamilyEntry = {
+  readonly key: ProductFamilyKey;
+  readonly label: string;
+  readonly href: string;
+};
+
 /** The six product families, in the order SITE_STRUCTURE §4 lists them. */
-export const PRODUCT_CATEGORIES: readonly { readonly label: string; readonly href: string }[] = [
-  { label: "Base Oils", href: "/products/base-oils" },
-  { label: "Lubricant Additives & Components", href: "/products/lubricant-additives" },
+export const PRODUCT_CATEGORIES: readonly ProductFamilyEntry[] = [
+  { key: "base-oils", label: "Base Oils", href: "/products/base-oils" },
   {
+    key: "lubricant-additives",
+    label: "Lubricant Additives & Components",
+    href: "/products/lubricant-additives",
+  },
+  {
+    key: "engine-oils-automotive-lubricants",
     label: "Engine Oils & Automotive Lubricants",
     href: "/products/engine-oils-automotive-lubricants",
   },
-  { label: "Industrial Oils & Lubricants", href: "/products/industrial-oils-lubricants" },
-  { label: "Marine Oils & Lubricants", href: "/products/marine-oils-lubricants" },
-  { label: "Antifreeze & Coolants", href: "/products/antifreeze-coolants" },
+  {
+    key: "industrial-oils-lubricants",
+    label: "Industrial Oils & Lubricants",
+    href: "/products/industrial-oils-lubricants",
+  },
+  {
+    key: "marine-oils-lubricants",
+    label: "Marine Oils & Lubricants",
+    href: "/products/marine-oils-lubricants",
+  },
+  {
+    key: "antifreeze-coolants",
+    label: "Antifreeze & Coolants",
+    href: "/products/antifreeze-coolants",
+  },
 ] as const;
+
+/**
+ * A Product Family key, as the family this application knows — or `undefined`.
+ *
+ * ── Why this exists, and why it may answer `undefined` ─────────────────────
+ *
+ * The Quality page's sampling policy is confirmed for some families and not others, and **which**
+ * is editorial: it lives in the CMS. What lives there is a *key* and nothing else — Payload may
+ * never mirror a Prisma-owned entity (ADR-002), so a family's published name and its page address
+ * come from this table, exactly as a `ContentRouteKey`'s path does.
+ *
+ * `undefined` is the honest answer for a key this table does not know, and there is deliberately no
+ * fallback: rendering a family whose name and address are guesses would be worse than rendering one
+ * fewer. The API already drops any key outside the frozen six, so this is the second of two guards,
+ * not the only one.
+ */
+export function productFamilyByKey(key: string): ProductFamilyEntry | undefined {
+  return PRODUCT_CATEGORIES.find((family) => family.key === key);
+}
 
 /**
  * Primary navigation. Products carries the mega menu; everything else is a flat link, exactly

@@ -27,6 +27,7 @@ import type {
   AboutUsContent,
   ContentPageResponse,
   CustomizedSolutionsContent,
+  QualityCertificationsContent,
 } from "@sam-group/types";
 
 export type ContentPageResult =
@@ -179,6 +180,28 @@ function isCustomizedSolutionsContent(value: unknown): value is CustomizedSoluti
 }
 
 /**
+ * Structural validation of the Quality & Certifications projection — the same shallow check again.
+ *
+ * It deliberately does **not** inspect the certifications section. That section is nullable like
+ * every other, and its contract is that it holds five strings or nothing; checking here for a
+ * certificate list would be checking for a shape the API cannot produce.
+ */
+function isQualityCertificationsContent(value: unknown): value is QualityCertificationsContent {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const hero: unknown = (value as Record<string, unknown>).hero;
+
+  return (
+    typeof hero === "object" &&
+    hero !== null &&
+    typeof (hero as Record<string, unknown>).title === "string" &&
+    (hero as Record<string, unknown>).title !== ""
+  );
+}
+
+/**
  * One company Global, read through NestJS and narrowed to the page's own shape.
  *
  * Every Global answers with the same envelope, so it is unwrapped once here rather than per page —
@@ -236,4 +259,23 @@ export function getCustomizedSolutionsContent(
   locale: string,
 ): Promise<ContentGlobalResult<CustomizedSolutionsContent>> {
   return getContentGlobal("customized-solutions", locale, isCustomizedSolutionsContent);
+}
+
+/**
+ * The Quality & Certifications page's editorial copy, from
+ * `GET /api/v1/content/globals/quality-certifications`.
+ *
+ * **No certification list arrives through here, in any form.** The API serves a statement that the
+ * list is unconfirmed, because that is the only thing the CMS can hold — there is no
+ * `Certifications` collection, no relation and no field for a certificate, an issuing body, a
+ * number, a validity date or a file. When that changes it is a later gate, and this signature does
+ * not.
+ *
+ * The sampling policy's families arrive as **keys**. Their names and page addresses are resolved by
+ * `features/site/site-routes.ts`, so Product taxonomy stays Prisma-owned and code-navigated.
+ */
+export function getQualityCertificationsContent(
+  locale: string,
+): Promise<ContentGlobalResult<QualityCertificationsContent>> {
+  return getContentGlobal("quality-certifications", locale, isQualityCertificationsContent);
 }

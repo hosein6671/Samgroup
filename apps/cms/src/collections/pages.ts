@@ -37,6 +37,25 @@ export const Pages: CollectionConfig = {
     delete: editorOnly,
     read: publishedForService,
     update: editorOnly,
+    /*
+     * **Explicit, and it has to be** — the same hole `AboutUs` and `CustomizedSolutions` each close
+     * for a Global, closed here for the collection that predates both.
+     *
+     * Verified in `payload@3.88.0`: `readVersions` is given **no default** for a collection either
+     * (a `grep` for it across `payload/dist` finds one assignment, in
+     * `folders/createFolderCollection.js`, and none in `collections/config/sanitize.js`), and
+     * `executeAccess` then takes its `if (req.user) return true` branch when an access function is
+     * absent (`auth/executeAccess.js`). So without this line **any authenticated identity — the
+     * NestJS `service` credential included — could read every legal-page draft** through
+     * `/api/pages/versions` and `/api/pages/:id/versions/:versionId`.
+     *
+     * That mattered more here than anywhere: `read` is `publishedForService` precisely because an
+     * unreviewed Privacy Policy or set of sales conditions must never be publicly readable, and the
+     * versions endpoints were a second door into the same drafts, standing beside the guarded one.
+     *
+     * `read` is unchanged, and so is every other rule — a published page reads exactly as it did.
+     */
+    readVersions: editorOnly,
   },
   admin: {
     defaultColumns: ["title", "slug", "lastUpdatedDate", "_status"],

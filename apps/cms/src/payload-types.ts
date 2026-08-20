@@ -92,10 +92,12 @@ export interface Config {
   globals: {
     'about-us': AboutUs;
     'customized-solutions': CustomizedSolution;
+    'quality-certifications': QualityCertification;
   };
   globalsSelect: {
     'about-us': AboutUsSelect<false> | AboutUsSelect<true>;
     'customized-solutions': CustomizedSolutionsSelect<false> | CustomizedSolutionsSelect<true>;
+    'quality-certifications': QualityCertificationsSelect<false> | QualityCertificationsSelect<true>;
   };
   locale: 'en' | 'fa' | 'ar';
   widgets: {
@@ -816,6 +818,255 @@ export interface CustomizedSolution {
   createdAt?: string | null;
 }
 /**
+ * The Quality & Certifications page. No certificate, standard, licence, accreditation, issuing body, number or validity date is modelled anywhere in this Global — the certifications section states that the list is unconfirmed, and that is all it can state.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quality-certifications".
+ */
+export interface QualityCertification {
+  id: number;
+  hero: {
+    eyebrow?: string | null;
+    /**
+     * The page's H1. Required — a document with no heading is treated as unconfigured and is not served.
+     */
+    title: string;
+    supportingText?: string | null;
+    /**
+     * Heading for the stage chain beside the hero. The chain itself is read from the testing stages below — it is not a second list.
+     */
+    indexLabel?: string | null;
+    primaryCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+    secondaryCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+  };
+  /**
+   * The stages at which testing happens. Their order is their position in the list — a batch meets them in sequence.
+   */
+  approach?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    lead?: string | null;
+    stages?:
+      | {
+          name: string;
+          /**
+           * Where the stage sits in the material's passage — not what is done inside it. No approved document describes the contents of any stage, so describing one here would be writing a procedure.
+           */
+          when: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * States what this section does not publish. A reader shown three stage names fills in their contents unless told the page is not saying.
+     */
+    footnote?: string | null;
+  };
+  /**
+   * Property names only. A property name does NOT establish that Sam Group performs that test, performs it in-house, owns the equipment, holds an accreditation for it, or can meet any numeric value. No approved document names a single test standard. Do not add a method designation, a test condition or a result to any wording here.
+   */
+  laboratory?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    lead?: string | null;
+    registerLabel?: string | null;
+    /**
+     * How the register is ordered — e.g. the source's own order.
+     */
+    orderNote?: string | null;
+    /**
+     * A name, and nothing else. There is deliberately no field here for a test method, a condition, a unit, a value, a result, an accreditation, an instrument or an in-house marker — a wrong method number cited against a real property is a technical error a buyer would specify against.
+     */
+    properties?:
+      | {
+          name: string;
+          id?: string | null;
+        }[]
+      | null;
+    unpublishedHeading?: string | null;
+    /**
+     * Each attribute the register withholds, with the reason, shown to the reader. Removing the in-house/external entry would let a 'Laboratory Capability' heading be read as claiming all of them in-house.
+     */
+    unpublished?:
+      | {
+          name: string;
+          why: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Optional. Instruments and bench, not portraits. The section renders with no figure at all when this is empty.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional caption shown under the image.
+     */
+    imageCaption?: string | null;
+  };
+  /**
+   * This section publishes ONE statement and no list. There is no field here for a certificate, standard, licence, accreditation, issuing body, certificate number, validity date, mark, logo or link, and none may be added — the real list is unconfirmed, and a placeholder is the one claim on this page a reader has no way to check. The Certifications collection with its Admin-only publish gate is a later gate.
+   */
+  certifications?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    /**
+     * The state, as words. It is rendered as text beside a decorative mark, never as a colour alone.
+     */
+    status?: string | null;
+    statement?: string | null;
+    note?: string | null;
+  };
+  /**
+   * An informational register of the paperwork a shipment carries. Nothing here is a download: there is no file field and no link field, and the note below must keep saying so — six document names under a heading are read as six files otherwise.
+   */
+  documentation?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    lead?: string | null;
+    registerLabel?: string | null;
+    documents?:
+      | {
+          name: string;
+          /**
+           * Optional. What the document is issued against — only where an approved document states it.
+           */
+          scope?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * The line that keeps this register from reading as a download list. Do not remove it while none of these can be obtained from this site.
+     */
+    note?: string | null;
+  };
+  sampling: {
+    eyebrow?: string | null;
+    /**
+     * The policy itself, in one sentence. It is the section's heading — there is no separate heading field.
+     */
+    statement: string;
+    familiesLabel?: string | null;
+    /**
+     * Which product families the policy is confirmed for. Payload stores identifiers only — the family's name and its page address come from the product catalogue, never from here. Select at least one: the policy is published with its scope or not at all.
+     */
+    families: (
+      | 'base-oils'
+      | 'lubricant-additives'
+      | 'engine-oils-automotive-lubricants'
+      | 'industrial-oils-lubricants'
+      | 'marine-oils-lubricants'
+      | 'antifreeze-coolants'
+    )[];
+    /**
+     * States that the policy is not extended beyond the families selected above. Publishing the policy without its limit is a broader promise than the documentation makes.
+     */
+    limit?: string | null;
+  };
+  closing?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    lead?: string | null;
+    primaryCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+    routes?:
+      | {
+          label: string;
+          route?:
+            ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    /**
+     * Shown when the page is shared. 1200×630 is the platform convention. Separate from any hero image on purpose.
+     */
+    socialImage?: (number | null) | Media;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Falls back to the social image above.
+     */
+    twitterImage?: (number | null) | Media;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+    /**
+     * Advanced. Replaces the automatically generated JSON-LD for this page. Leave empty to use the automatic output.
+     */
+    structuredDataOverride?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-us_select".
  */
@@ -973,6 +1224,148 @@ export interface CustomizedSolutionsSelect<T extends boolean = true> {
           | T
           | {
               name?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        socialImage?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        twitterImage?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+        structuredDataOverride?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "quality-certifications_select".
+ */
+export interface QualityCertificationsSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        supportingText?: T;
+        indexLabel?: T;
+        primaryCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+        secondaryCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+      };
+  approach?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        lead?: T;
+        stages?:
+          | T
+          | {
+              name?: T;
+              when?: T;
+              id?: T;
+            };
+        footnote?: T;
+      };
+  laboratory?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        lead?: T;
+        registerLabel?: T;
+        orderNote?: T;
+        properties?:
+          | T
+          | {
+              name?: T;
+              id?: T;
+            };
+        unpublishedHeading?: T;
+        unpublished?:
+          | T
+          | {
+              name?: T;
+              why?: T;
+              id?: T;
+            };
+        image?: T;
+        imageCaption?: T;
+      };
+  certifications?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        status?: T;
+        statement?: T;
+        note?: T;
+      };
+  documentation?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        lead?: T;
+        registerLabel?: T;
+        documents?:
+          | T
+          | {
+              name?: T;
+              scope?: T;
+              id?: T;
+            };
+        note?: T;
+      };
+  sampling?:
+    | T
+    | {
+        eyebrow?: T;
+        statement?: T;
+        familiesLabel?: T;
+        families?: T;
+        limit?: T;
+      };
+  closing?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        lead?: T;
+        primaryCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+        routes?:
+          | T
+          | {
+              label?: T;
+              route?: T;
               id?: T;
             };
       };

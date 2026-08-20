@@ -6,9 +6,14 @@ import { LocaleResolutionService } from "../../common/locale/locale-resolution.s
 import { AboutUsService } from "./about-us.service";
 import { ContentGlobalsController } from "./content-globals.controller";
 import { CustomizedSolutionsService } from "./customized-solutions.service";
+import { QualityCertificationsService } from "./quality-certifications.service";
 
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
-import type { AboutUsContent, CustomizedSolutionsContent } from "@sam-group/types";
+import type {
+  AboutUsContent,
+  CustomizedSolutionsContent,
+  QualityCertificationsContent,
+} from "@sam-group/types";
 
 const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
 const FA: ResolvedLocale = { code: "fa", defaultCode: "en", isDefault: false };
@@ -59,10 +64,29 @@ const SOLUTIONS: CustomizedSolutionsContent = {
   seo: CONTENT.seo,
 };
 
+const QUALITY: QualityCertificationsContent = {
+  hero: {
+    eyebrow: null,
+    title: "VERIFICATION QUALITY TITLE",
+    supportingText: null,
+    indexLabel: null,
+    primaryCta: null,
+    secondaryCta: null,
+  },
+  approach: null,
+  laboratory: null,
+  certifications: null,
+  documentation: null,
+  sampling: null,
+  closing: null,
+  seo: CONTENT.seo,
+};
+
 type Harness = {
   controller: ContentGlobalsController;
   find: jest.Mock;
   findSolutions: jest.Mock;
+  findQuality: jest.Mock;
   resolve: jest.Mock;
 };
 
@@ -74,6 +98,10 @@ async function createHarness(): Promise<Harness> {
     response: { available: true, content: SOLUTIONS },
     localeFallback: false,
   });
+  const findQuality = jest.fn().mockResolvedValue({
+    response: { available: true, content: QUALITY },
+    localeFallback: false,
+  });
   const resolve = jest.fn().mockResolvedValue(EN);
 
   const moduleRef = await Test.createTestingModule({
@@ -81,11 +109,18 @@ async function createHarness(): Promise<Harness> {
     providers: [
       { provide: AboutUsService, useValue: { find } },
       { provide: CustomizedSolutionsService, useValue: { find: findSolutions } },
+      { provide: QualityCertificationsService, useValue: { find: findQuality } },
       { provide: LocaleResolutionService, useValue: { resolve } },
     ],
   }).compile();
 
-  return { controller: moduleRef.get(ContentGlobalsController), find, findSolutions, resolve };
+  return {
+    controller: moduleRef.get(ContentGlobalsController),
+    find,
+    findSolutions,
+    findQuality,
+    resolve,
+  };
 }
 
 describe("ContentGlobalsController", () => {
@@ -157,7 +192,7 @@ describe("ContentGlobalsController", () => {
   });
 
   it("404s an unimplemented global without touching the CMS", async () => {
-    const { controller, find, findSolutions, resolve } = await createHarness();
+    const { controller, find, findSolutions, findQuality, resolve } = await createHarness();
 
     const error: unknown = await controller.findOne("home", {}).then(
       () => null,
@@ -169,6 +204,7 @@ describe("ContentGlobalsController", () => {
     expect((error as ApiException).getStatus()).toBe(404);
     expect(find).not.toHaveBeenCalled();
     expect(findSolutions).not.toHaveBeenCalled();
+    expect(findQuality).not.toHaveBeenCalled();
     expect(resolve).not.toHaveBeenCalled();
   });
 
@@ -181,25 +217,106 @@ describe("ContentGlobalsController", () => {
       expect(response.data).toEqual({ available: true, content: SOLUTIONS });
     });
 
+    it("serves the Quality & Certifications Global under the same path", async () => {
+      const { controller } = await createHarness();
+
+      const response = await controller.findOne("quality-certifications", {});
+
+      expect(response.data).toEqual({ available: true, content: QUALITY });
+    });
+
     it("sends each name to its own service and to no other", async () => {
-      const { controller, find, findSolutions } = await createHarness();
+      const { controller, find, findSolutions, findQuality } = await createHarness();
 
       await controller.findOne("customized-solutions", {});
 
       expect(findSolutions).toHaveBeenCalledTimes(1);
       expect(find).not.toHaveBeenCalled();
+      expect(findQuality).not.toHaveBeenCalled();
+
+      await controller.findOne("quality-certifications", {});
+
+      expect(findQuality).toHaveBeenCalledTimes(1);
+      expect(find).not.toHaveBeenCalled();
     });
 
-    it("gives the second Global the same unpublished semantics as the first", async () => {
-      const { controller, findSolutions } = await createHarness();
-      findSolutions.mockResolvedValue({
-        response: { available: false, content: null },
+    /**
+     * Three of the contract's eight names have implementations. The other five are separate gates,
+     * and until then each is a 404 decided here rather than an empty read against the CMS.
+     */
+    it("recognises exactly the three built names", async () => {
+      const { controller } = await createHarness();
+
+      for (const built of ["about-us", "customized-solutions", "quality-certifications"]) {
+        await expect(controller.findOne(built, {})).resolves.toBeDefined();
+      }
+
+      for (const unbuilt of [
+        "home",
+        "products-landing",
+        "export-logistics",
+        "contact-us",
+        "faq-page",
+      ]) {
+        const error: unknown = await controller.findOne(unbuilt, {}).then(
+          () => null,
+          (rejection: unknown) => rejection,
+        );
+
+        expect((error as ApiException).getStatus()).toBe(404);
+      }
+    });
+
+    it("gives every Global the same unpublished semantics as the first", async () => {
+      const { controller, findSolutions, findQuality } = await createHarness();
+      const unpublished = { response: { available: false, content: null }, localeFallback: false };
+
+      findSolutions.mockResolvedValue(unpublished);
+      findQuality.mockResolvedValue(unpublished);
+
+      for (const name of ["customized-solutions", "quality-certifications"]) {
+        const response = await controller.findOne(name, {});
+
+        expect(response.data).toEqual({ available: false, content: null });
+      }
+    });
+
+    it("reports a Quality locale fallback in meta, and only when there is one", async () => {
+      const { controller, findQuality } = await createHarness();
+
+      findQuality.mockResolvedValue({
+        response: { available: true, content: QUALITY },
+        localeFallback: true,
+      });
+
+      const fellBack = await controller.findOne("quality-certifications", { locale: "fa" });
+
+      expect(fellBack.meta).toEqual({ localeFallback: true });
+
+      findQuality.mockResolvedValue({
+        response: { available: true, content: QUALITY },
         localeFallback: false,
       });
 
-      const response = await controller.findOne("customized-solutions", {});
+      const translated = await controller.findOne("quality-certifications", { locale: "fa" });
 
-      expect(response.data).toEqual({ available: false, content: null });
+      expect(translated.meta).toEqual({});
+    });
+
+    it("lets a Quality upstream failure through as itself, never as a 404", async () => {
+      const { controller, findQuality } = await createHarness();
+
+      findQuality.mockRejectedValue(
+        new ApiException(503, ErrorCode.UpstreamUnavailable, "The content service is unavailable."),
+      );
+
+      const error: unknown = await controller.findOne("quality-certifications", {}).then(
+        () => null,
+        (rejection: unknown) => rejection,
+      );
+
+      expect((error as ApiException).getStatus()).toBe(503);
+      expect((error as ApiException).code).toBe(ErrorCode.UpstreamUnavailable);
     });
 
     /**

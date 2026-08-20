@@ -3,7 +3,11 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getAboutUsContent, getCustomizedSolutionsContent } from "./content";
+import {
+  getAboutUsContent,
+  getCustomizedSolutionsContent,
+  getQualityCertificationsContent,
+} from "./content";
 
 /**
  * The Content client, and the boundary it is on the safe side of.
@@ -217,5 +221,106 @@ describe("getCustomizedSolutionsContent", () => {
         status: 200,
       });
     }
+  });
+});
+
+describe("getQualityCertificationsContent", () => {
+  afterEach(() => {
+    apiGet.mockReset();
+  });
+
+  it("asks NestJS for its own Global, under the same endpoint family", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: AVAILABLE, meta: {} });
+
+    await getQualityCertificationsContent("fa");
+
+    expect(apiGet).toHaveBeenCalledWith("/content/globals/quality-certifications", {
+      locale: "fa",
+    });
+  });
+
+  /**
+   * The three conditions again, and on this page the third one matters most: `/quality-certifications`
+   * is the address the platform gives for the certification question, and a CMS outage that became a
+   * 404 there would tell a crawler the company has no such page.
+   */
+  it("keeps the same three conditions apart as the two Globals before it", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: UNAVAILABLE, meta: {} });
+    await expect(getQualityCertificationsContent("en")).resolves.toEqual({
+      ok: false,
+      reason: "not-configured",
+    });
+
+    apiGet.mockResolvedValue({ ok: false, reason: "http", status: 503 });
+    await expect(getQualityCertificationsContent("en")).resolves.toEqual({
+      ok: false,
+      reason: "api-error",
+      status: 503,
+    });
+
+    apiGet.mockResolvedValue({ ok: false, reason: "unreachable", detail: "ECONNREFUSED" });
+    await expect(getQualityCertificationsContent("en")).resolves.toEqual({
+      ok: false,
+      reason: "unreachable",
+    });
+  });
+
+  it("reports a locale fallback from the response meta", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: AVAILABLE, meta: { localeFallback: true } });
+
+    await expect(getQualityCertificationsContent("ar")).resolves.toMatchObject({
+      ok: true,
+      localeFallback: true,
+    });
+  });
+
+  it("rejects a 200 that is not the projection", async () => {
+    for (const data of [null, {}, { available: true, content: { hero: {} } }]) {
+      apiGet.mockResolvedValue({ ok: true, data, meta: {} });
+
+      await expect(getQualityCertificationsContent("en")).resolves.toEqual({
+        ok: false,
+        reason: "api-error",
+        status: 200,
+      });
+    }
+  });
+});
+
+/**
+ * The Product taxonomy boundary, asserted against the source tree rather than against a rendering.
+ *
+ * The Quality page's sampling policy is the first surface where the CMS says anything about a
+ * Product Family. What it says is a **key** — an ADR-009 identifier — and the family's published
+ * name and page address are resolved in `features/site/site-routes.ts`. If a family label or a
+ * `/products/…` path ever appears in a CMS payload, this boundary has moved and Payload has become
+ * an owner of taxonomy that lives in `sam_platform` (ADR-002).
+ *
+ * There is no runtime assertion available for "the CMS did not send a label", so the assertion is
+ * structural: the one table that maps a key to a label and an href is in this application.
+ */
+describe("product family names and addresses are resolved in this application", () => {
+  it("keeps exactly one key-to-family table, and it is not in the content client", async () => {
+    const routes = await import("../features/site/site-routes");
+
+    expect(routes.productFamilyByKey("base-oils")).toEqual({
+      key: "base-oils",
+      label: "Base Oils",
+      href: "/products/base-oils",
+    });
+    expect(routes.productFamilyByKey("a-family-from-a-newer-schema")).toBeUndefined();
+  });
+
+  it("declares the six frozen identifiers and no seventh", async () => {
+    const routes = await import("../features/site/site-routes");
+
+    expect(routes.PRODUCT_CATEGORIES.map((family) => family.key)).toEqual([
+      "base-oils",
+      "lubricant-additives",
+      "engine-oils-automotive-lubricants",
+      "industrial-oils-lubricants",
+      "marine-oils-lubricants",
+      "antifreeze-coolants",
+    ]);
   });
 });
