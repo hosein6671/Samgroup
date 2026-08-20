@@ -11,6 +11,7 @@ import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
 import { cmsDatabaseUri, cmsMediaStorage, payloadSecret } from "./env";
 import { AboutUs } from "./globals/about-us";
+import { CustomizedSolutions } from "./globals/customized-solutions";
 import { CMS_LOCALIZATION, assertFrozenLocalization } from "./localization";
 
 /**
@@ -54,15 +55,15 @@ export default buildConfig({
   editor: lexicalEditor(),
   /*
    * Company pages are Globals with tailored schemas, never entries in a generic collection
-   * (PAYLOAD_CONTENT_ARCHITECTURE.md decision 1). `AboutUs` is the first of them.
+   * (PAYLOAD_CONTENT_ARCHITECTURE.md decision 1). `AboutUs` was the first; `CustomizedSolutions` the second.
    *
-   * The other ten Globals that document specifies — Home, Products Landing, Customized Solutions,
-   * Export & Logistics, Quality & Certifications, Contact Us, FAQ Page, Header, Footer, Settings —
-   * are **not** here, and each is its own gate. Header/Footer/Settings in particular remain
+   * The other nine Globals that document specifies — Home, Products Landing, Export & Logistics,
+   * Quality & Certifications, Contact Us, FAQ Page, Header, Footer, Settings — are **not** here,
+   * and each is its own gate. Header/Footer/Settings in particular remain
    * code-owned for now, deliberately: reading them here would put a CMS call in the root layout of
    * every page on the site.
    */
-  globals: [AboutUs],
+  globals: [AboutUs, CustomizedSolutions],
   /*
    * GraphQL is disabled. Payload exposes REST and GraphQL over the same data; the Content module
    * uses REST, so the GraphQL endpoint and its playground would be a second public surface on a

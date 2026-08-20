@@ -198,3 +198,80 @@ export type ContentGlobalResponse<T> =
 
 /** `GET /content/globals/about-us`. */
 export type AboutUsResponse = ContentGlobalResponse<AboutUsContent>;
+
+/* -------------------------------------------------- Customized Solutions */
+
+/**
+ * An action whose destination is a structural anchor on the page it sits on.
+ *
+ * **It carries a label and nothing else, and that is the contract.** The anchor id is declared by
+ * the component that owns the section, shared in links, and changed only by changing the markup.
+ * Storing it in the CMS would let an edit silently break a fragment somebody had already sent, and
+ * would mix page anchors into `ContentRouteKey`, whose vocabulary describes *pages*. An editor
+ * renames the button; nobody can point it somewhere else.
+ */
+export type ContentAnchorCta = {
+  label: string;
+};
+
+export type CustomizedSolutionsHero = {
+  eyebrow: string | null;
+  /** The page's H1. Always present — a document without one is not served at all. */
+  title: string;
+  supportingText: string | null;
+  /** Jumps to the request form on this same page. The frontend owns the target. */
+  requestCta: ContentAnchorCta | null;
+  routeCta: ContentCta | null;
+};
+
+export type CustomizedSolutionsIntroduction = {
+  heading: string | null;
+  /**
+   * The section's prose as HTML, **sanitized server-side by NestJS before it is served** — the same
+   * allow-list rebuild every other Content response carries, for the same reason.
+   */
+  bodyHtml: string;
+};
+
+export type CustomizedSolutionsProcess = {
+  heading: string | null;
+  lead: string | null;
+  /**
+   * The stages in order. A step's number is its position in this array — it is not stored, because
+   * storing a number beside a position is storing the same fact twice — and there is no
+   * description: none is written for any step.
+   */
+  steps: { name: string }[];
+};
+
+/**
+ * The Customized Solutions page's editorial content, from
+ * `GET /content/globals/customized-solutions`.
+ *
+ * ── What this deliberately does not carry: the form ────────────────────────
+ *
+ * The Custom Product Request form on this page is **Prisma's and the API's** — its fields, their
+ * labels, the Incoterm options, the validation and the consent text all follow the
+ * `custom_formulation_requests` columns and the DTO that writes them. None of it appears here, and
+ * the page renders the form from code regardless of what the CMS holds.
+ *
+ * ── Sections below the hero are nullable ───────────────────────────────────
+ *
+ * A section with no content is `null` and is not rendered, so the page can be published in stages.
+ * The hero is not optional: `hero.title` is the page's H1, and a Global that has none is reported
+ * as unavailable rather than served headless.
+ */
+export type CustomizedSolutionsContent = {
+  hero: CustomizedSolutionsHero;
+  introduction: CustomizedSolutionsIntroduction | null;
+  process: CustomizedSolutionsProcess | null;
+  /**
+   * `alternates` is always empty: `/customized-solutions` is a structural route whose URL is
+   * identical in every locale, so its `hreflang` set is the platform's `Locale` table rather than a
+   * CMS translation state (PROJECT_HANDOFF.md §6.12).
+   */
+  seo: SeoFields;
+};
+
+/** `GET /content/globals/customized-solutions`. */
+export type CustomizedSolutionsResponse = ContentGlobalResponse<CustomizedSolutionsContent>;

@@ -375,9 +375,9 @@ which parts of it are built, and states plainly that most are not.
 
 ### Not built — and each is its own gate
 
-- **Ten of the eleven Globals.** Home, Products Landing, Customized Solutions, Export & Logistics,
-  Quality & Certifications, Contact Us, FAQ Page, Header, Footer and Settings do not exist.
-  **`AboutUs` does** — see "The About Us Global" below.
+- **Nine of the eleven Globals.** Home, Products Landing, Export & Logistics, Quality &
+  Certifications, Contact Us, FAQ Page, Header, Footer and Settings do not exist. **`AboutUs` and
+  `CustomizedSolutions` do** — see the two sections at the end of this document.
 - **`ProductCategoryContent`, `Certifications`, `JobOpenings`, `FaqEntries`** — none exists, so the
   `categoryKey` soft key to Prisma `Category`, the Admin-only certification publish gate and the
   shared FAQ collection are all still design only.
@@ -632,3 +632,82 @@ So the two are separated, and each has a test that fails if they are ever confla
 
 Note that the fallback target is **always the default locale**: an untranslated `ar` page is served
 in English, never in Persian. There is no locale chain, and none is to be invented.
+
+## The CustomizedSolutions Global — built 20 August 2026 (CMS-2A)
+
+The second company Global, and a deliberately smaller one: three sections of copy around a form that
+is not this Global's business at all. It reuses the CMS-1 path unchanged —
+Payload Global → NestJS Content module → `apps/web` — and adds no architecture.
+
+### The schema is the page, and nothing more
+
+`apps/cms/src/globals/customized-solutions.ts` models `hero`, `introduction` and `process`, plus the
+shared `seoFields()` group.
+
+**`whatCanWeCustomize`, `privateLabelProgramme` and `caseExamples` are deliberately absent** — the
+five entries are named in no approved document, neither private-label list is written and the minimum
+order quantity is unconfirmed, and the case examples are marked at source as placeholders pending
+real, customer-approved cases. Step _descriptions_ are absent for the same reason: the six step names
+are transcribed from the documentation and no description exists for any of them. **No media field**
+exists, because the page reserves no photograph.
+
+### The form is Prisma's and the API's, and the CMS cannot reach it
+
+The Custom Product Request form under this page's request anchor stays entirely code-owned:
+`apps/web/src/features/customized-solutions/solutions-form.ts` holds its fourteen fields, their
+labels, the Incoterm options and the consent text, beside the DTO and the
+`custom_formulation_requests` columns they mirror. An editor renaming a label in a CMS text input
+could otherwise produce a form the database refuses.
+
+Two consequences are worth stating because they are load-bearing:
+
+- **The form renders in every state**, including "not published yet" and "unavailable". An editorial
+  outage must never take a working lead-capture path off the site. This is the one deliberate
+  difference from the About Us unavailable state, which has nothing to offer when its Global is
+  empty.
+- **A CMS test asserts the boundary**, failing if any request-form field name appears in the Global's
+  schema, and an API test asserts it again on the response.
+
+### Two kinds of action, and only one has a destination in the CMS
+
+The hero offers a **route action** (`{ label, route }`, the shared `ContentRouteKey` vocabulary) and a
+**request action** that jumps to the form on this same page. The request action carries **a label and
+nothing else**: its target is `ANCHORS.request` in `apps/web`, and the API's projection discards any
+`route`, `href`, `target` or `anchor` found in the document.
+
+The route-key vocabulary was **not** widened with page anchors. An anchor id is part of a URL people
+share and part of the markup that declares it; mixing the two vocabularies would let an edit break a
+fragment, and would put page structure into a list that describes pages.
+
+### Everything else is the CMS-1 contract, unchanged
+
+Draft/publish with **`readVersions: editorOnly`** — explicit, because Payload defaults it for no
+Global and `executeAccess` grants any authenticated identity when it is absent. Preview remains
+deferred. Unpublished answers `200 { available: false, content: null }`, never `NOT_FOUND`; an
+unrecognised Global name is a 404 before any CMS call; a CMS failure is 503; and `apps/web` renders
+HTTP 200 with a deliberate state for each, never `notFound()`.
+
+The route/document locale stays the route's under a fallback, and the fallback content is annotated
+with the locale actually served — the same split `layout.spec.tsx` and the page specs hold for
+About Us.
+
+**The behaviour that must not vary between Globals is now one implementation**, not one per page:
+`apps/api/src/modules/content/content-global.reader.ts` performs every Global read — never asking for
+a draft, turning Payload's empty document into `available: false`, and measuring the locale fallback
+with a second cheap read. A third Global is a projection, a service and a line in the controller's
+dispatch table.
+
+### The fixture is gone, and no approved copy exists
+
+`solutions-data.ts` was deleted. Its **form** half survives as `solutions-form.ts` and its anchors as
+`solutions-anchors.ts`, because neither was ever editorial. No fixture copy was seeded into
+`sam_cms`, and none may be: publishing this page is an editorial act performed in the admin UI.
+`/design-proof/customized-solutions` reads the same endpoint, so there is one source of truth.
+
+### Remaining CMS slices
+
+Home, Products Landing, Export & Logistics, Quality & Certifications, Contact Us and FAQ Page
+Globals; `ProductCategoryContent`, `Certifications` (with its Admin-only publish gate),
+`JobOpenings` and `FaqEntries`. **Header, Footer, Settings and site navigation remain code-owned by
+decision**, not merely unbuilt: reading them from the CMS would put a content call in the root layout
+of every page on the site.

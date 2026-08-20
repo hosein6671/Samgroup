@@ -23,7 +23,11 @@
 
 import { apiGet } from "./api-client";
 
-import type { AboutUsContent, ContentPageResponse } from "@sam-group/types";
+import type {
+  AboutUsContent,
+  ContentPageResponse,
+  CustomizedSolutionsContent,
+} from "@sam-group/types";
 
 export type ContentPageResult =
   | {
@@ -155,11 +159,38 @@ function isAboutUsContent(value: unknown): value is AboutUsContent {
   );
 }
 
-/** The About Us page's content, from `GET /api/v1/content/globals/about-us`. */
-export async function getAboutUsContent(
+/**
+ * Structural validation of the Customized Solutions projection — the same shallow check, for the
+ * same reason.
+ */
+function isCustomizedSolutionsContent(value: unknown): value is CustomizedSolutionsContent {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const hero: unknown = (value as Record<string, unknown>).hero;
+
+  return (
+    typeof hero === "object" &&
+    hero !== null &&
+    typeof (hero as Record<string, unknown>).title === "string" &&
+    (hero as Record<string, unknown>).title !== ""
+  );
+}
+
+/**
+ * One company Global, read through NestJS and narrowed to the page's own shape.
+ *
+ * Every Global answers with the same envelope, so it is unwrapped once here rather than per page —
+ * and with it the distinction the API keeps between a name it does not serve (404), a Global with
+ * nothing published (200 with `available: false`) and a CMS that did not answer (503).
+ */
+async function getContentGlobal<T>(
+  name: string,
   locale: string,
-): Promise<ContentGlobalResult<AboutUsContent>> {
-  const result = await apiGet<unknown>("/content/globals/about-us", { locale });
+  isContent: (value: unknown) => value is T,
+): Promise<ContentGlobalResult<T>> {
+  const result = await apiGet<unknown>(`/content/globals/${name}`, { locale });
 
   if (!result.ok) {
     if (result.reason === "unreachable") {
@@ -181,13 +212,28 @@ export async function getAboutUsContent(
     return { ok: false, reason: "not-configured" };
   }
 
-  if (available !== true || !isAboutUsContent(content)) {
+  if (available !== true || !isContent(content)) {
     return { ok: false, reason: "api-error", status: 200 };
   }
 
-  return {
-    ok: true,
-    content,
-    localeFallback: result.meta.localeFallback === true,
-  };
+  return { ok: true, content, localeFallback: result.meta.localeFallback === true };
+}
+
+/** The About Us page's content, from `GET /api/v1/content/globals/about-us`. */
+export function getAboutUsContent(locale: string): Promise<ContentGlobalResult<AboutUsContent>> {
+  return getContentGlobal("about-us", locale, isAboutUsContent);
+}
+
+/**
+ * The Customized Solutions page's editorial copy, from
+ * `GET /api/v1/content/globals/customized-solutions`.
+ *
+ * **The request form on that page is not in here and never will be.** Its fields, validation and
+ * consent text are code-owned, beside the API DTO they mirror, and the page renders it whatever
+ * this call returns — including when it returns nothing.
+ */
+export function getCustomizedSolutionsContent(
+  locale: string,
+): Promise<ContentGlobalResult<CustomizedSolutionsContent>> {
+  return getContentGlobal("customized-solutions", locale, isCustomizedSolutionsContent);
 }

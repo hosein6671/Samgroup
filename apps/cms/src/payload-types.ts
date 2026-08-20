@@ -91,9 +91,11 @@ export interface Config {
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'fa' | 'ar') | ('en' | 'fa' | 'ar')[];
   globals: {
     'about-us': AboutUs;
+    'customized-solutions': CustomizedSolution;
   };
   globalsSelect: {
     'about-us': AboutUsSelect<false> | AboutUsSelect<true>;
+    'customized-solutions': CustomizedSolutionsSelect<false> | CustomizedSolutionsSelect<true>;
   };
   locale: 'en' | 'fa' | 'ar';
   widgets: {
@@ -682,6 +684,138 @@ export interface AboutUs {
   createdAt?: string | null;
 }
 /**
+ * The Customized Solutions page copy. The request form itself is not CMS content — its fields, validation and consent text belong to the API.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customized-solutions".
+ */
+export interface CustomizedSolution {
+  id: number;
+  hero: {
+    eyebrow?: string | null;
+    /**
+     * The page's H1. Required — a document with no heading is treated as unconfigured and is not served.
+     */
+    title: string;
+    supportingText?: string | null;
+    requestCta?: {
+      /**
+       * Wording only. This button always jumps to the request form on this page; its target is fixed in code. Leave empty to omit this action.
+       */
+      label?: string | null;
+    };
+    routeCta?: {
+      /**
+       * Leave empty to omit this action from the page.
+       */
+      label?: string | null;
+      route?:
+        ('products' | 'customized-solutions' | 'quality-certifications' | 'contact-us' | 'request-a-quote') | null;
+    };
+  };
+  introduction?: {
+    heading?: string | null;
+    body?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    bodyHtml?: string | null;
+  };
+  process?: {
+    heading?: string | null;
+    lead?: string | null;
+    /**
+     * The stages in order. Their numbering is their position — it is not stored, and there is no description field: none is written for any step.
+     */
+    steps?:
+      | {
+          name: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    /**
+     * Shown when the page is shared. 1200×630 is the platform convention. Separate from any hero image on purpose.
+     */
+    socialImage?: (number | null) | Media;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Falls back to the social image above.
+     */
+    twitterImage?: (number | null) | Media;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+    /**
+     * Advanced. Replaces the automatically generated JSON-LD for this page. Leave empty to use the automatic output.
+     */
+    structuredDataOverride?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-us_select".
  */
@@ -774,6 +908,71 @@ export interface AboutUsSelect<T extends boolean = true> {
           | {
               label?: T;
               route?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        socialImage?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        twitterImage?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+        structuredDataOverride?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customized-solutions_select".
+ */
+export interface CustomizedSolutionsSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        supportingText?: T;
+        requestCta?:
+          | T
+          | {
+              label?: T;
+            };
+        routeCta?:
+          | T
+          | {
+              label?: T;
+              route?: T;
+            };
+      };
+  introduction?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        bodyHtml?: T;
+      };
+  process?:
+    | T
+    | {
+        heading?: T;
+        lead?: T;
+        steps?:
+          | T
+          | {
+              name?: T;
               id?: T;
             };
       };

@@ -1,6 +1,7 @@
 import { lexicalHTMLField } from "@payloadcms/richtext-lexical";
 
 import { editorOnly, publishedForService } from "../access";
+import { ROUTE_OPTIONS, ctaField } from "../fields/cta";
 import { seoFields } from "../fields/seo";
 
 import type { Field, GlobalConfig } from "payload";
@@ -27,56 +28,15 @@ import type { Field, GlobalConfig } from "payload";
  *
  * ── What is NOT editorial, and stays in code ───────────────────────────────
  *
- * - **Structural URLs.** A call to action carries a `label` and a `route` *key*, never an href.
- *   Structural page URLs stay fixed English across locales and are locale-prefixed at render time
- *   (PROJECT_HANDOFF.md §6.12); an editable href would hand that contract to a text input. The
- *   option list is the five routes this page already links to, so the vocabulary is the site's
- *   rather than a new one.
+ * - **Structural URLs.** A call to action carries a `label` and a `route` *key*, never an href —
+ *   `fields/cta.ts` holds that vocabulary, shared with every other Global so a route list cannot
+ *   exist twice. Structural page URLs stay fixed English across locales and are locale-prefixed at
+ *   render time (PROJECT_HANDOFF.md §6.12); an editable href would hand that contract to a text
+ *   input.
  * - **The six Product Families.** The published range is `Category` data in `sam_platform` and its
  *   navigation is code (`features/site/site-routes.ts`). Restating it here would put a second copy
  *   of a frozen taxonomy in the one database that must never mirror the other (ADR-002).
  */
-
-/**
- * The structural routes an About Us action may point at — the five this page already links to.
- *
- * Values are route *keys* resolved to a locale-prefixed path by `apps/web`. They are not URLs and
- * must never become URLs.
- */
-const ROUTE_OPTIONS = [
-  { label: "Products", value: "products" },
-  { label: "Customized Solutions", value: "customized-solutions" },
-  { label: "Quality & Certifications", value: "quality-certifications" },
-  { label: "Contact Us", value: "contact-us" },
-  { label: "Request a Quote", value: "request-a-quote" },
-];
-
-/** A call to action: localized copy plus a non-localized structural destination. */
-function ctaField(name: string, label: string): Field {
-  return {
-    name,
-    type: "group",
-    label,
-    fields: [
-      {
-        name: "label",
-        type: "text",
-        localized: true,
-        admin: { description: "Leave empty to omit this action from the page." },
-      },
-      {
-        name: "route",
-        type: "select",
-        options: ROUTE_OPTIONS,
-        /*
-         * A destination is not copy. The same button points at the same page in every language —
-         * only its wording changes — and the locale prefix is applied by the frontend.
-         */
-        localized: false,
-      },
-    ],
-  };
-}
 
 /**
  * An optional photograph for a section, plus its caption.

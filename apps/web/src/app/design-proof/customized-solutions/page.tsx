@@ -1,32 +1,42 @@
+import { SolutionsExperience } from "@/features/customized-solutions/solutions-experience";
+import { SolutionsUnavailable } from "@/features/customized-solutions/solutions-unavailable";
+import { getCustomizedSolutionsContent } from "@/lib/content";
+
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { SolutionsExperience } from "@/features/customized-solutions/solutions-experience";
+/** The proof tree sits outside `[locale]`, so it renders the default locale. */
+const PROOF_LOCALE = "en";
 
 /**
- * Customized Solutions, on the proof route.
+ * The Customized Solutions design proof — the same experience, on the transitional proof URL.
  *
- * It sits under `/design-proof` for the same reasons the homepage, the Products landing and the
- * six category pages do: locale routing does not exist, and the copy this page carries belongs to
- * the Payload `CustomizedSolutions` Global, which arrives in M2. Its real home is
- * `app/[locale]/customized-solutions/page.tsx`.
+ * It reads the same endpoint as the canonical route, exactly as the About Us proof route does.
+ * Keeping a fixture alive here would leave the platform with two copies of one page's copy,
+ * diverging the moment an editor saved anything, so the proof shows what a visitor would see —
+ * including the unavailable state, while no editor has published this page.
  *
- * **The canonical route is deliberately left pointing elsewhere.** `ROUTES.customizedSolutions` is
- * `/customized-solutions`, and it is the destination of the primary nav item, of `ClosingCta`'s
- * gold button on the Products landing and all five published category pages, and of the category
- * contract's `customization` action. Every one of those still 404s, and repointing the canonical
- * table at this proof path to make them resolve would be faking the lift rather than doing it.
+ * `noindex, nofollow` stays, and the route remains live until ADR-010 §9's order retires it.
  */
 export const metadata: Metadata = {
   title: "Customized Solutions — Sam Group",
   description:
     "Custom lubricant and base oil formulation developed against a stated specification, qualified by sample before commitment.",
-  // A proof route, as with every page built so far. Indexing is enabled when this lifts to
-  // app/[locale]. `Service` structured data (SITE_STRUCTURE §14) lands with the shared <JsonLd>
-  // component (FRONTEND_ARCHITECTURE §4), which does not exist yet.
   robots: { index: false, follow: false },
 };
 
-export default function CustomizedSolutionsProofPage(): ReactNode {
-  return <SolutionsExperience />;
+export default async function CustomizedSolutionsProofPage(): Promise<ReactNode> {
+  const result = await getCustomizedSolutionsContent(PROOF_LOCALE);
+
+  if (result.ok) {
+    // The proof route asks for the default locale, so a fallback cannot arise here.
+    return <SolutionsExperience content={result.content} locale={PROOF_LOCALE} />;
+  }
+
+  return (
+    <SolutionsUnavailable
+      locale={PROOF_LOCALE}
+      reason={result.reason === "not-configured" ? "not-configured" : "service"}
+    />
+  );
 }

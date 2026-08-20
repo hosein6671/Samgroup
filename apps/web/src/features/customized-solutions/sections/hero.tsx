@@ -1,89 +1,90 @@
+import { Arrow } from "@/features/site/logo-mark";
+import { contentRouteHref } from "@/features/site/site-routes";
+
+import { ANCHORS } from "../solutions-anchors";
+
+import type { CustomizedSolutionsHero, CustomizedSolutionsProcess } from "@sam-group/types";
 import type { ReactNode } from "react";
 
-import { Arrow } from "@/features/site/logo-mark";
-
-import { ANCHORS, INTRO, PROCESS_STEPS } from "../solutions-data";
-
 /**
- * 1 · Hero — SITE_STRUCTURE §5's "Heading".
+ * The Customized Solutions hero — the page's `<h1>`, its lead, and its two actions.
  *
- * ── The right column ────────────────────────────────────────────────────────
+ * ── Two actions, two different kinds, and only one of them has a CMS destination ─
  *
- * Both pages built before this one put an index in the hero's right column: the Products landing
- * draws a riser diagram over the six families, and a category page draws a stratigraphic column
- * over its sub-ranges. Each indexes the thing its page is actually about, and each doubles as the
- * page's table of contents — which is why neither page needs a separate one.
+ * The **request action** jumps to the form further down this same page. Its label is editorial; its
+ * target is `ANCHORS.request`, read from code and never from the CMS. That is the whole point of
+ * the split: an editor can rename the button, and no edit anywhere can send it somewhere else or
+ * break a fragment somebody has already shared.
  *
- * This page is about a sequence, so its index is a sequence: the six process steps, numbered, in
- * order, anchored into the rail below. That keeps the established device without repeating either
- * drawing, and it is honest about what this page holds — six names, and no claim beyond them.
+ * The **route action** points at another page and carries a route key, resolved to a locale-prefixed
+ * path by `contentRouteHref` — the same handling every editorial route action on the platform gets.
  *
- * ── The primary action points at this page ──────────────────────────────────
- *
- * Every other hero's primary CTA resolves to a `ROUTES` entry. This one is an in-page anchor to
- * the request form, because the form is the thing the CTA asks for and it is directly below. That
- * is stated in `solutions-data.ts` rather than left to be inferred from a `#` in the markup.
- *
- * ── Motion ──────────────────────────────────────────────────────────────────
- *
- * `reveal-fade-rise` from `packages/ui`'s `motion.css` — scroll-driven CSS, no JavaScript. The
- * homepage's `RevealEngine` stays homepage-only, as it does on the two pages built before this.
+ * Both are optional: an action the CMS holds no label for is simply not rendered.
  */
-export function SolutionsHero(): ReactNode {
+export function SolutionsHero({
+  hero,
+  process,
+  locale,
+}: {
+  readonly hero: CustomizedSolutionsHero;
+  readonly process: CustomizedSolutionsProcess | null;
+  readonly locale: string;
+}): ReactNode {
+  const hasActions = hero.requestCta !== null || hero.routeCta !== null;
+
   return (
     <section className="cs-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
-
       <div className="fs-wrap cs-hero-inner">
         <div className="cs-hero-copy reveal-fade-rise">
-          <p className="fs-eyebrow">{INTRO.eyebrow}</p>
-
-          <h1 className="fs-d1">{INTRO.heading}</h1>
-          <p className="fs-lead">{INTRO.lead}</p>
-
-          <div className="cs-hero-actions">
-            <a href={INTRO.primary.href} className="fs-btn fs-btn--gold">
-              {INTRO.primary.label}
-              <Arrow size={15} />
-            </a>
-            <a href={INTRO.secondary.href} className="fs-btn fs-btn--glass">
-              {INTRO.secondary.label}
-            </a>
-          </div>
+          {hero.eyebrow !== null && <p className="fs-eyebrow">{hero.eyebrow}</p>}
+          <h1 className="fs-d1">{hero.title}</h1>
+          {hero.supportingText !== null && <p className="fs-lead">{hero.supportingText}</p>}
+          {hasActions && (
+            <div className="cs-hero-actions">
+              {hero.requestCta !== null && (
+                <a href={`#${ANCHORS.request}`} className="fs-btn fs-btn--gold">
+                  {hero.requestCta.label}
+                  <Arrow size={15} />
+                </a>
+              )}
+              {hero.routeCta !== null && (
+                <a
+                  href={contentRouteHref(locale, hero.routeCta.route)}
+                  className="fs-btn fs-btn--glass"
+                >
+                  {hero.routeCta.label}
+                </a>
+              )}
+            </div>
+          )}
         </div>
-
-        <ProcessIndex />
+        {process !== null && process.steps.length > 0 && <ProcessIndex steps={process.steps} />}
       </div>
     </section>
   );
 }
 
 /**
- * The process index — the hero's right-hand element and the page's contents.
+ * The step index beside the hero.
  *
- * Names and positions only. The step descriptions Payload specifies alongside them are pending
- * editorial copy (see `solutions-data.ts`), so there is nothing to put under each name and
- * nothing is put there.
- *
- * CSS only — borders and pseudo-elements on tokenised colours. No SVG to keep in sync with the
- * data, no canvas, nothing added to the first-load JavaScript budget.
+ * Its count is the list's own length rather than a stored number, and each row links to the process
+ * section's anchor — structural, code-owned, exactly as the request anchor is.
  */
-function ProcessIndex(): ReactNode {
+function ProcessIndex({ steps }: { readonly steps: readonly { name: string }[] }): ReactNode {
   return (
     <aside className="cs-index reveal-fade-rise" aria-labelledby="cs-index-title">
       <p className="fs-eyebrow" id="cs-index-title">
         The process
       </p>
-
       <p className="cs-index-note">
-        {PROCESS_STEPS.length} steps, from a stated requirement to a delivered batch.
+        {steps.length} steps, from a stated requirement to a delivered batch.
       </p>
-
       <ol className="cs-index-list">
-        {PROCESS_STEPS.map((step, i) => (
-          <li className="cs-index-step" key={step.id}>
+        {steps.map((step, index) => (
+          <li className="cs-index-step" key={step.name}>
             <a href={`#${ANCHORS.process}`}>
-              <span className="cs-index-num">{String(i + 1).padStart(2, "0")}</span>
+              <span className="cs-index-num">{String(index + 1).padStart(2, "0")}</span>
               <span className="cs-index-name">{step.name}</span>
             </a>
           </li>

@@ -5,6 +5,7 @@ import { AboutUsService } from "./about-us.service";
 import { ContentGlobalsController } from "./content-globals.controller";
 import { ContentPagesController } from "./content-pages.controller";
 import { ContentPagesService } from "./content-pages.service";
+import { CustomizedSolutionsService } from "./customized-solutions.service";
 import { PayloadClient } from "./payload.client";
 
 /**
@@ -22,6 +23,6 @@ import { PayloadClient } from "./payload.client";
 @Module({
   imports: [LocaleResolutionModule],
   controllers: [ContentGlobalsController, ContentPagesController],
-  providers: [AboutUsService, ContentPagesService, PayloadClient],
+  providers: [AboutUsService, ContentPagesService, CustomizedSolutionsService, PayloadClient],
 })
 export class ContentModule {}

@@ -117,10 +117,19 @@
   color: rgba(238, 241, 246, 0.72);
 }
 
+/*
+ * 24×24, for the reason stated at length on `.pr-consent input` in `products.css`: WCAG 2.2 AA
+ * 2.5.8 was failed at 16×16 with 20px of clearance, and sizing the native input is the smallest
+ * correction that keeps a real checkbox with its native state, keyboard behaviour and focus ring.
+ *
+ * The two rules are kept identical on purpose — this one serves the Contact Us inquiry form, that
+ * one the Customized Solutions request form and the Products download gate, and a consent control
+ * that is accessible on one page and not the other is the divergence they exist to prevent.
+ */
 .fm-consent input {
-  margin-top: 2px;
-  width: 16px;
-  height: 16px;
+  margin-top: 0;
+  width: 24px;
+  height: 24px;
   flex: none;
   accent-color: var(--fs-gold);
 }

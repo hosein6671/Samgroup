@@ -41,12 +41,18 @@ export type {
   AboutUsQualityStandards,
   AboutUsResponse,
   AboutUsWhoWeAre,
+  ContentAnchorCta,
   ContentCta,
   ContentFigure,
   ContentGlobalResponse,
   ContentImage,
   ContentPageResponse,
   ContentRouteKey,
+  CustomizedSolutionsContent,
+  CustomizedSolutionsHero,
+  CustomizedSolutionsIntroduction,
+  CustomizedSolutionsProcess,
+  CustomizedSolutionsResponse,
 } from "./content";
 export type { LocaleDirection, LocaleResponse } from "./locale";
 export type { SeoAlternate, SeoFields, SeoImage, TwitterCardType } from "./seo";

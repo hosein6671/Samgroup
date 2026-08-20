@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getAboutUsContent } from "./content";
+import { getAboutUsContent, getCustomizedSolutionsContent } from "./content";
 
 /**
  * The Content client, and the boundary it is on the safe side of.
@@ -161,5 +161,61 @@ describe("the CMS boundary, asserted against the source", () => {
     );
 
     expect(offenders).toEqual([]);
+  });
+});
+
+describe("getCustomizedSolutionsContent", () => {
+  afterEach(() => {
+    apiGet.mockReset();
+  });
+
+  it("asks NestJS for its own Global, under the same endpoint family", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: AVAILABLE, meta: {} });
+
+    await getCustomizedSolutionsContent("fa");
+
+    expect(apiGet).toHaveBeenCalledWith("/content/globals/customized-solutions", { locale: "fa" });
+  });
+
+  it("keeps the same three conditions apart as the first Global does", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: UNAVAILABLE, meta: {} });
+    await expect(getCustomizedSolutionsContent("en")).resolves.toEqual({
+      ok: false,
+      reason: "not-configured",
+    });
+
+    apiGet.mockResolvedValue({ ok: false, reason: "http", status: 503 });
+    await expect(getCustomizedSolutionsContent("en")).resolves.toEqual({
+      ok: false,
+      reason: "api-error",
+      status: 503,
+    });
+
+    apiGet.mockResolvedValue({ ok: false, reason: "unreachable", detail: "ECONNREFUSED" });
+    await expect(getCustomizedSolutionsContent("en")).resolves.toEqual({
+      ok: false,
+      reason: "unreachable",
+    });
+  });
+
+  it("reports a locale fallback from the response meta", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: AVAILABLE, meta: { localeFallback: true } });
+
+    await expect(getCustomizedSolutionsContent("ar")).resolves.toMatchObject({
+      ok: true,
+      localeFallback: true,
+    });
+  });
+
+  it("rejects a 200 that is not the projection", async () => {
+    for (const data of [null, {}, { available: true, content: { hero: {} } }]) {
+      apiGet.mockResolvedValue({ ok: true, data, meta: {} });
+
+      await expect(getCustomizedSolutionsContent("en")).resolves.toEqual({
+        ok: false,
+        reason: "api-error",
+        status: 200,
+      });
+    }
   });
 });

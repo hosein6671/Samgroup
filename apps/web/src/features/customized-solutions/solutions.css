@@ -566,3 +566,54 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ============================================================================
+   CMS STATES
+   Added with the CMS-2A cutover: the locale-fallback notice, and the state this
+   page shows when its editorial copy is unpublished or unreachable. The request
+   form below both is unaffected and keeps its own styling.
+   ============================================================================ */
+
+/*
+ * The locale-fallback notice, in the register the About and legal templates already use: the reader
+ * is told the page is shown in another language, and nothing more is claimed. `role="note"` carries
+ * that to assistive technology, so the meaning never depends on the band's colour.
+ */
+.cs-fallback-note {
+  max-width: var(--fs-wrap-max, 1240px);
+  margin: 0 auto;
+  padding: 14px clamp(20px, 4vw, 56px) 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-text-muted, #5a6072);
+}
+
+.cs-intro-prose {
+  display: grid;
+  gap: clamp(16px, 1.8vw, 22px);
+}
+
+.cs-unavailable {
+  position: relative;
+  padding-block: clamp(116px, 13vh, 172px) clamp(56px, 6vw, 88px);
+  background:
+    radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
+    var(--color-surface-canvas);
+  overflow: hidden;
+}
+
+.cs-unavailable-inner {
+  position: relative;
+  max-width: 62ch;
+}
+
+.cs-unavailable-inner h1 {
+  margin: clamp(12px, 1.4vw, 18px) 0 clamp(16px, 1.8vw, 24px);
+}
+
+.cs-unavailable-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: clamp(20px, 2.4vw, 30px);
+}

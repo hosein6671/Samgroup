@@ -132,20 +132,20 @@ These two fill it in the shape §2.3 already fixes: same envelope, same `?locale
 
 ### 2.4 Content _(Payload, via NestJS)_
 
-| Method | Path                               | Auth | Purpose                                                                                                                                                                        |
-| ------ | ---------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GET    | `/content/globals/:name`           | P    | One Payload Global: `home`, `about-us` (**built** — §2.4b), `products-landing`, `customized-solutions`, `export-logistics`, `quality-certifications`, `contact-us`, `faq-page` |
-| GET    | `/content/pages/:slug`             | P    | Legal pages from the `Pages` collection                                                                                                                                        |
-| GET    | `/content/product-categories/:key` | P    | `ProductCategoryContent` — editorial copy for a category page                                                                                                                  |
-| GET    | `/content/faq`                     | P    | `FaqEntries`; `?category=` filter. Feeds both `/faq` and per-product-page FAQ blocks from one source                                                                           |
-| GET    | `/content/certifications`          | P    | **Published certifications only** — see §4                                                                                                                                     |
-| GET    | `/content/job-openings`            | P    | Open vacancies                                                                                                                                                                 |
-| GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                                          |
-| GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                                              |
+| Method | Path                               | Auth | Purpose                                                                                                                                                                                            |
+| ------ | ---------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/content/globals/:name`           | P    | One Payload Global: `home`, `about-us` (**built** — §2.4b), `products-landing`, `customized-solutions` (**built** — §2.4b), `export-logistics`, `quality-certifications`, `contact-us`, `faq-page` |
+| GET    | `/content/pages/:slug`             | P    | Legal pages from the `Pages` collection                                                                                                                                                            |
+| GET    | `/content/product-categories/:key` | P    | `ProductCategoryContent` — editorial copy for a category page                                                                                                                                      |
+| GET    | `/content/faq`                     | P    | `FaqEntries`; `?category=` filter. Feeds both `/faq` and per-product-page FAQ blocks from one source                                                                                               |
+| GET    | `/content/certifications`          | P    | **Published certifications only** — see §4                                                                                                                                                         |
+| GET    | `/content/job-openings`            | P    | Open vacancies                                                                                                                                                                                     |
+| GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                                                              |
+| GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                                                                  |
 
 #### 2.4a Implementation status — 16 August 2026, extended 20 August 2026
 
-**Two of the eight paths are implemented, and no path was added, renamed or reshaped.**
+**Two of the eight paths are implemented, and no path was added, renamed or reshaped.** The Globals path now answers to two names.
 `GET /content/pages/:slug` is described below; `GET /content/globals/:name` is §2.4b.
 
 `GET /content/pages/:slug` is live, served by a new `ContentModule` in `apps/api`. It takes `?locale=`
@@ -229,9 +229,9 @@ two for an untranslated one.
 **optional**, and with either absent the Content endpoints answer 503 and log why rather than taking
 the whole API down with them.
 
-#### 2.4b `GET /content/globals/:name` — About Us only (20 August 2026)
+#### 2.4b `GET /content/globals/:name` — About Us and Customized Solutions (20 August 2026)
 
-**One name answers: `about-us`.** The other seven that §2.4's table lists are separate gates, and an
+**Two names answer: `about-us` and `customized-solutions`.** The other six that §2.4's table lists are separate gates, and an
 unimplemented name is a **404 here**, decided before any request reaches the CMS — the CMS is not a
 routing table and a typo must not surface as an upstream error. No alias and no second path exists.
 
@@ -301,6 +301,31 @@ absent — so without an explicit rule the service credential could have read ev
 `/api/globals/about-us/versions`. The Global declares `readVersions: editorOnly`. Measured with a
 draft saved and nothing published: service read `{}`, service read with `?draft=true` `{}`,
 service `GET …/versions` **403**, anonymous read **403**, editor read returns the draft.
+
+##### Customized Solutions (CMS-2A)
+
+The second name on this endpoint, added without changing the envelope, the locale handling or any
+failure semantics — a Global is a service and a projection behind one contract, and the parts that
+must not vary between pages are now **one shared implementation** (`content-global.reader.ts`)
+rather than one per page.
+
+Its projection carries `hero`, `introduction` (rich text as sanitized `bodyHtml`) and `process`
+(a heading, a lead, and steps as names). Everything else about the page is out of scope by decision:
+
+- **Two kinds of action, and only one of them has a destination on the wire.** `routeCta` is the
+  familiar `{ label, route }`. `requestCta` is **`{ label }` and nothing else** — it jumps to the
+  request form on the same page, and that anchor is structural, declared in `apps/web`. The
+  projection reads a label and discards any `route`, `href`, `target` or `anchor` present in the
+  document, so no CMS edit can move where that button goes or break a fragment already shared. The
+  route-key vocabulary is **not** widened with page anchors.
+- **The Custom Product Request form is not content, and is not served here.** Its fourteen fields,
+  their labels, the Incoterm options, the validation and the consent text follow the
+  `custom_formulation_requests` columns and the DTO that writes them
+  ([PAYLOAD_CONTENT_ARCHITECTURE.md](./content/PAYLOAD_CONTENT_ARCHITECTURE.md) §Customized
+  Solutions: "the surrounding page copy only, never the form data"). `apps/web` renders it from
+  code in every state, **including both failure states** — an editorial outage must not take a lead
+  capture path with it.
+- **No media field.** This page reserves no photograph, so none is modelled.
 
 **The other six paths are unbuilt** because the Globals and collections behind them do not exist.
 

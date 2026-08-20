@@ -5,9 +5,10 @@ import { ErrorCode } from "../../common/http/error-code";
 import { LocaleResolutionService } from "../../common/locale/locale-resolution.service";
 import { AboutUsService } from "./about-us.service";
 import { ContentGlobalsController } from "./content-globals.controller";
+import { CustomizedSolutionsService } from "./customized-solutions.service";
 
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
-import type { AboutUsContent } from "@sam-group/types";
+import type { AboutUsContent, CustomizedSolutionsContent } from "@sam-group/types";
 
 const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
 const FA: ResolvedLocale = { code: "fa", defaultCode: "en", isDefault: false };
@@ -45,9 +46,23 @@ const CONTENT: AboutUsContent = {
   },
 };
 
+const SOLUTIONS: CustomizedSolutionsContent = {
+  hero: {
+    eyebrow: null,
+    title: "VERIFICATION SOLUTIONS TITLE",
+    supportingText: null,
+    requestCta: null,
+    routeCta: null,
+  },
+  introduction: null,
+  process: null,
+  seo: CONTENT.seo,
+};
+
 type Harness = {
   controller: ContentGlobalsController;
   find: jest.Mock;
+  findSolutions: jest.Mock;
   resolve: jest.Mock;
 };
 
@@ -55,17 +70,22 @@ async function createHarness(): Promise<Harness> {
   const find = jest
     .fn()
     .mockResolvedValue({ response: { available: true, content: CONTENT }, localeFallback: false });
+  const findSolutions = jest.fn().mockResolvedValue({
+    response: { available: true, content: SOLUTIONS },
+    localeFallback: false,
+  });
   const resolve = jest.fn().mockResolvedValue(EN);
 
   const moduleRef = await Test.createTestingModule({
     controllers: [ContentGlobalsController],
     providers: [
       { provide: AboutUsService, useValue: { find } },
+      { provide: CustomizedSolutionsService, useValue: { find: findSolutions } },
       { provide: LocaleResolutionService, useValue: { resolve } },
     ],
   }).compile();
 
-  return { controller: moduleRef.get(ContentGlobalsController), find, resolve };
+  return { controller: moduleRef.get(ContentGlobalsController), find, findSolutions, resolve };
 }
 
 describe("ContentGlobalsController", () => {
@@ -137,7 +157,7 @@ describe("ContentGlobalsController", () => {
   });
 
   it("404s an unimplemented global without touching the CMS", async () => {
-    const { controller, find, resolve } = await createHarness();
+    const { controller, find, findSolutions, resolve } = await createHarness();
 
     const error: unknown = await controller.findOne("home", {}).then(
       () => null,
@@ -148,6 +168,56 @@ describe("ContentGlobalsController", () => {
     expect((error as ApiException).code).toBe(ErrorCode.NotFound);
     expect((error as ApiException).getStatus()).toBe(404);
     expect(find).not.toHaveBeenCalled();
+    expect(findSolutions).not.toHaveBeenCalled();
     expect(resolve).not.toHaveBeenCalled();
+  });
+
+  describe("dispatch", () => {
+    it("serves the Customized Solutions Global under the same path", async () => {
+      const { controller } = await createHarness();
+
+      const response = await controller.findOne("customized-solutions", {});
+
+      expect(response.data).toEqual({ available: true, content: SOLUTIONS });
+    });
+
+    it("sends each name to its own service and to no other", async () => {
+      const { controller, find, findSolutions } = await createHarness();
+
+      await controller.findOne("customized-solutions", {});
+
+      expect(findSolutions).toHaveBeenCalledTimes(1);
+      expect(find).not.toHaveBeenCalled();
+    });
+
+    it("gives the second Global the same unpublished semantics as the first", async () => {
+      const { controller, findSolutions } = await createHarness();
+      findSolutions.mockResolvedValue({
+        response: { available: false, content: null },
+        localeFallback: false,
+      });
+
+      const response = await controller.findOne("customized-solutions", {});
+
+      expect(response.data).toEqual({ available: false, content: null });
+    });
+
+    /**
+     * A dispatch table keyed by request input is a prototype-pollution shape if it is read
+     * carelessly: `__proto__`, `constructor` and `toString` are all "present" on a plain object.
+     * Only own properties count as recognised names.
+     */
+    it("recognises no name it was not given", async () => {
+      const { controller } = await createHarness();
+
+      for (const name of ["__proto__", "constructor", "toString", "hasOwnProperty", ""]) {
+        const error: unknown = await controller.findOne(name, {}).then(
+          () => null,
+          (rejection: unknown) => rejection,
+        );
+
+        expect((error as ApiException).getStatus()).toBe(404);
+      }
+    });
   });
 });

@@ -1,78 +1,133 @@
-import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { cache } from "react";
 
 import { SolutionsExperience } from "@/features/customized-solutions/solutions-experience";
+import { SolutionsUnavailable } from "@/features/customized-solutions/solutions-unavailable";
+import { getCustomizedSolutionsContent } from "@/lib/content";
+import { defaultLocale } from "@/lib/locale-contract";
+import { getActiveLocales } from "@/lib/locales";
+
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 /**
  * The Customized Solutions page, on its canonical route — `/{locale}/customized-solutions`.
  *
- * `SolutionsExperience` is rendered **unchanged**, exactly as the three pages promoted before it
- * were: the component takes no props, reads no locale, performs no fetch, and supplies the
- * `#main-content` target the root layout's skip link points at. Its own header note called this
- * lift "this file unchanged plus swapping `solutions-data.ts` from fixtures to the Payload
- * `CustomizedSolutions` Global through NestJS" — **only the first half is this gate.**
+ * ── CMS-backed as of the CMS-2A gate ────────────────────────────────────────
  *
- * ── What this promotion actually resolves ───────────────────────────────────
+ * The page's editorial copy comes from the Payload `CustomizedSolutions` Global through NestJS —
+ * `GET /api/v1/content/globals/customized-solutions`. The fixture module this route used to render
+ * was deleted with the cutover rather than kept as a fallback: two sources of truth for one
+ * published page is the failure mode the cutover policy exists to prevent.
  *
- * More links than any other page in this batch. `ROUTES.customizedSolutions` is a primary nav
- * item, the gold action on `ClosingCta` across the Products landing and all six Family pages, the
- * `customization` action on the category contract, and one of the three routes in both About Us's
- * and Quality's closing navigation. Every one of those redirected through middleware and then
- * 404'd. They resolve from this file onward. The proof route's own note said repointing the
- * canonical table at `/design-proof/*` "would be faking the lift rather than doing it" — this is
- * doing it.
+ * **The request form is not part of that.** It renders from code in every branch below, including
+ * both failure states, because it is Prisma's and the API's and takes no CMS input at all.
  *
- * ── The page's proof-state furniture lifts with it, deliberately ─────────────
+ * ── Three outcomes, and none of them is `notFound()` ────────────────────────
  *
- * Three specified sections are absent (What Can We Customize?, Private Label Programme, Case
- * Examples) and the introduction's aside names all three. The request form stays a `<fieldset
- * disabled>` with no `<form>` around it, behind its "Not connected" notice: there is still no
- * `POST /custom-formulation-requests`, and a form that accepts a specification and discards it is
- * worse than no form. None of that is touched here. `introduction.tsx` says of its aside that it
- * "should not lift"; read with its own next sentence, deletion is tied to approved copy arriving,
- * not to a URL changing — so it lifts unchanged and retires in the content gate that supersedes
- * it.
+ * - **Content** — rendered.
+ * - **Unpublished** (the API answered 200 with `available: false`) — the "not published yet" state.
+ * - **Unreachable or an API error, 503 included** — the "unavailable" state.
  *
- * ── Media, recorded and not implemented ─────────────────────────────────────
+ * `/customized-solutions` is a structural URL that the header, the footer and the sitemap all point
+ * at, so a canonical 404 on it would state that the service does not exist. Neither an empty CMS nor
+ * a failed request is that statement (ADR-010 §7, held for a corporate route).
  *
- * This page reserves **no media frame at all** — the hero's right column is the six-step process
- * index, which is also the page's table of contents. That is unchanged here, and it is where the
- * platform's strongest motion opportunity sits: a process film belongs to `CustomizationProcess`,
- * as a full-width 16:9 band between the rail and the process note, because the section's whole
- * claim is a *sequence* and it currently publishes six bare step names for want of approved
- * descriptions. Recorded, not built: `customizationProcess[]` has no media field, the Payload
- * Global's own hero image has no slot on this page, and FRONTEND_ARCHITECTURE §8's reserved GSAP
- * treatment is still not a dependency of `apps/web`.
+ * ── Metadata ────────────────────────────────────────────────────────────────
  *
- * ── No `generateStaticParams`, and no `dynamicParams` ───────────────────────
- *
- * The `[locale]` segment is the parent's, and `app/[locale]/layout.tsx` already generates it from
- * the `Locale` table and closes it with `dynamicParams = false`. This route introduces no dynamic
- * segment of its own, so it has nothing to enumerate — restating either here would be a second
- * copy of the locale source that PROJECT_HANDOFF §6.9 keeps singular.
- *
- * ── Metadata, and what is deliberately absent ───────────────────────────────
- *
- * The title and description are the proof route's own two strings, character for character.
- *
- * **No `robots`.** `app/[locale]/layout.tsx` declares `robots: { index: false, follow: false }` for
- * this whole tree and every page inherits it. **No canonical and no `hreflang`** — both are
- * ADR-010 Non-Goals, and P3b is a route promotion, not the SEO launch. **No JSON-LD** — `Service`
- * structured data waits on the shared `<JsonLd>` component specified in FRONTEND_ARCHITECTURE §4,
- * which does not exist.
- *
- * ── The proof route is still live ───────────────────────────────────────────
- *
- * `/design-proof/customized-solutions` renders this same experience until a later gate redirects
- * it, per ADR-010 §9's order. Both trees carry `noindex, nofollow` from their own layouts, and the
- * proof route is what this one is validated against.
+ * Composed from the Global's `SeoFields`, falling back to the hero title — the same mapping the
+ * About Us and legal routes use. **No `robots`**: the tree's layout declares `noindex, nofollow` and
+ * a route-level override would be a second answer. **No canonical, no `hreflang`, no JSON-LD** —
+ * ADR-010 Non-Goals, and the SEO launch is not this gate.
  */
-export const metadata: Metadata = {
-  title: "Customized Solutions — Sam Group",
-  description:
-    "Custom lubricant and base oil formulation developed against a stated specification, qualified by sample before commitment.",
-};
+const resolveSolutions = cache(getCustomizedSolutionsContent);
 
-export default function CustomizedSolutionsPage(): ReactNode {
-  return <SolutionsExperience />;
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const result = await resolveSolutions(locale);
+
+  if (!result.ok) return {};
+
+  const { hero, seo } = result.content;
+
+  const ogImage = seo.socialImage
+    ? {
+        url: seo.socialImage.url,
+        ...(seo.socialImage.alt !== null && { alt: seo.socialImage.alt }),
+        ...(seo.socialImage.width !== null && { width: seo.socialImage.width }),
+        ...(seo.socialImage.height !== null && { height: seo.socialImage.height }),
+      }
+    : undefined;
+
+  const twitterImage = seo.twitterImage
+    ? {
+        url: seo.twitterImage.url,
+        ...(seo.twitterImage.alt !== null && { alt: seo.twitterImage.alt }),
+      }
+    : undefined;
+
+  return {
+    title: seo.metaTitle ?? hero.title,
+    ...(seo.metaDescription !== null && { description: seo.metaDescription }),
+    ...(seo.canonicalUrl !== null && { alternates: { canonical: seo.canonicalUrl } }),
+    openGraph: {
+      title: seo.ogTitle ?? seo.metaTitle ?? hero.title,
+      ...(seo.ogDescription !== null || seo.metaDescription !== null
+        ? { description: seo.ogDescription ?? seo.metaDescription ?? undefined }
+        : {}),
+      ...(ogImage !== undefined && { images: [ogImage] }),
+    },
+    twitter: {
+      card: seo.twitterCardType,
+      title: seo.twitterTitle ?? seo.ogTitle ?? seo.metaTitle ?? hero.title,
+      ...(seo.twitterDescription !== null || seo.ogDescription !== null
+        ? { description: seo.twitterDescription ?? seo.ogDescription ?? undefined }
+        : {}),
+      ...(twitterImage !== undefined && { images: [twitterImage] }),
+    },
+  };
+}
+
+export default async function CustomizedSolutionsPage({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<ReactNode> {
+  const { locale } = await params;
+  const result = await resolveSolutions(locale);
+
+  if (result.ok) {
+    /*
+     * A fallback changes what language the content is in, never what language the page is. The
+     * document's `lang`/`dir` stay the route's, set by the layout from the `Locale` table; the
+     * served locale is passed down so the content itself can be annotated with it.
+     */
+    const served = result.localeFallback ? defaultLocale(await getActiveLocales()) : null;
+
+    return (
+      <SolutionsExperience
+        content={result.content}
+        locale={locale}
+        fallbackLocale={served === null ? null : { code: served.code, direction: served.direction }}
+      />
+    );
+  }
+
+  if (result.reason === "not-configured") {
+    return <SolutionsUnavailable locale={locale} reason="not-configured" />;
+  }
+
+  console.warn(
+    `[customized-solutions] rendering unavailable state — ` +
+      (result.reason === "unreachable"
+        ? "the platform API did not respond (down, refused, timed out, or API_INTERNAL_URL unset)"
+        : result.status === 503
+          ? "the platform API answered 503 — the CMS did not respond to it"
+          : `the platform API answered, but not with page content (HTTP ${String(result.status)})`),
+  );
+
+  return <SolutionsUnavailable locale={locale} reason="service" />;
 }

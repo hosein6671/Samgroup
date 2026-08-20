@@ -16,7 +16,8 @@ import {
 } from "@/features/forms/form-feedback";
 import { IDLE, type SubmissionState } from "@/features/forms/submission-state";
 
-import { ANCHORS, CONSENT_LABEL, REQUEST_GROUPS, type RequestField } from "../solutions-data";
+import { ANCHORS } from "../solutions-anchors";
+import { CONSENT_LABEL, REQUEST_GROUPS, type RequestField } from "../solutions-form";
 
 /**
  * 4 · Custom Product Request — SITE_STRUCTURE §5's `[FORM]`, and this page's terminal section.

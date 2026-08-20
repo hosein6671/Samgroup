@@ -1,32 +1,9 @@
-import type { ReactNode } from "react";
-
 /*
- * The flagship brand scope, imported for the fourth time on the platform.
- *
- * `flagship.css` declares `[data-brand="flagship"]` — palette, type scale, layout wrappers, field
- * styling and button vocabulary. It still lives under `features/home` because the approved scope
- * of the chrome extraction was the site-level *components*, deliberately not a CSS
- * reorganisation, and every page built since has repeated that note rather than moving the file.
- * This one does the same. Promoting it remains a one-line move plus four import updates, and it
- * stays deferred rather than done quietly inside a page task.
- *
- * ── Why `products.css` is imported by a page that renders none of its sections ──
- *
- * For exactly two constructions now: `.pr-inert` and `.pr-consent` — a dashed notice and a consent
- * row. Nothing about them is specific to the Products landing; they happen to have been written
- * there first, because that is where the first inert form appeared. `.pr-gate-fieldset` is no
- * longer used here: the request form is connected, and only its attachment control is disabled, so
- * there is no fieldset to dim. The class stays in `products.css` for the download gate that still
- * uses it.
- *
- * `forms.css` is imported for the `.fm-*` submission constructions this page now shares with
- * Contact Us — the outcome banner, and the one class that dims the disabled attachment field.
- *
- * Restating them under a `cs-` name would be duplicating CSS to avoid an import, which is the
- * trade AI_RULES.md's no-duplication rule exists to prevent. The category template already sets
- * this precedent, importing the same stylesheet for the one component it borrows. Both cases
- * point at the same eventual tidy-up: the inert-form vocabulary belongs in shared CSS, and that
- * is a task of its own rather than something to do inside a page build.
+ * The flagship brand scope, plus the two stylesheets this page borrows constructions from:
+ * `products.css` for `.pr-inert` and `.pr-consent`, and `forms.css` for the `.fm-*` submission
+ * banner. Restating either under a `cs-` name would duplicate CSS to avoid an import, which is the
+ * trade AI_RULES.md's no-duplication rule exists to prevent. Both point at the same eventual
+ * tidy-up — the inert-form vocabulary belongs in shared CSS — which is a task of its own.
  *
  * **`ClosingCta` is deliberately not imported.** Its primary action is this page.
  */
@@ -43,54 +20,87 @@ import { CustomizationProcess } from "./sections/customization-process";
 import { SolutionsHero } from "./sections/hero";
 import { SolutionsIntroduction } from "./sections/introduction";
 
+import type { CustomizedSolutionsContent } from "@sam-group/types";
+import type { ReactNode } from "react";
+
 /**
  * The Customized Solutions page.
  *
- * ── Four sections of a specified seven ──────────────────────────────────────
+ * ── Editorial copy comes from the CMS; the form does not ────────────────────
  *
- * SITE_STRUCTURE §5 specifies: Heading → Introduction → What Can We Customize? → Our Customization
- * Process → Private Label Programme → Case Examples → Custom Product Request.
+ * The hero, the introduction and the process rail render what
+ * `GET /api/v1/content/globals/customized-solutions` served — the Payload `CustomizedSolutions`
+ * Global, projected by the Content module. `apps/web` never calls Payload and has no awareness it
+ * exists (ADR-003).
  *
- * Four are built. The three omitted — What Can We Customize?, Private Label Programme, Case
- * Examples — have no approved copy, and the last of them is marked at source as placeholder
- * content pending real, customer-approved cases. They are withheld rather than invented, which is
- * the same handling the category template gives `industries` and `applications`. `solutions-data.ts`
- * records the reasoning per section, and the introduction names them on the page itself so a
- * reviewer reads a short page as unfinished rather than as complete.
+ * **`CustomRequestForm` is not part of that.** It is a client component posting to a Server Action
+ * that writes a Prisma `CustomFormulationRequest`; its fields, options, validation and consent text
+ * live in `solutions-form.ts` beside the DTO they mirror. It takes no props from this component and
+ * renders identically whatever the CMS holds — including when the CMS holds nothing, and including
+ * when the CMS is down. That independence is the point: an editorial outage must never take a lead
+ * capture path with it.
  *
- * ── What this page is, and is not ───────────────────────────────────────────
+ * ── Sections render if they exist ───────────────────────────────────────────
  *
- * **Entirely server-rendered.** Not one component here carries `"use client"`. The process rail is
- * an ordered list, the form is a disabled `<fieldset>` with no `<form>` around it, and every
- * reveal is the design system's scroll-driven CSS. The only client JavaScript on the page is the
- * header's, inherited from the shared chrome — the same budget the three pages before it hold to.
+ * The introduction and the process rail are nullable and simply absent when the CMS holds nothing
+ * for them, so the page can be published in stages. Three sections SITE_STRUCTURE §5 specifies —
+ * What Can We Customize, Private Label Programme, Case Examples — have no fields in the Global and
+ * no components here; each is blocked on approved content, not on this gate.
  *
- * **No GSAP.** FRONTEND_ARCHITECTURE §8 reserves GSAP + ScrollTrigger for `CustomizationProcess`,
- * and it is not used: the dependency is not installed, adding one needs approval, and the
- * choreographed treatment was reserved for a sequence of six descriptions that this page does not
- * yet have. Noted in the component rather than silently skipped.
+ * ── Server-rendered, apart from the form ────────────────────────────────────
  *
- * **It closes on the form.** The shared `ClosingCta` is not rendered here — its primary action
- * points at this page. Seven frozen pages send visitors here to submit a request; the request is
- * the last thing on the page.
- *
- * ── Lift path ───────────────────────────────────────────────────────────────
- *
- * Same shape as the three pages before it. Moving this to
- * `app/[locale]/customized-solutions/page.tsx` is this file unchanged plus swapping
- * `solutions-data.ts` from fixtures to the Payload `CustomizedSolutions` Global through NestJS.
- * The components take the same shapes either way, because the fixture module is already written
- * against that Global's field list.
+ * Only `CustomRequestForm` carries `"use client"`, and it did before this cutover too.
  */
-export function SolutionsExperience(): ReactNode {
+export function SolutionsExperience({
+  content,
+  locale,
+  fallbackLocale = null,
+}: {
+  readonly content: CustomizedSolutionsContent;
+  readonly locale: string;
+  /**
+   * The locale the CMS actually served, when it is not the one that was asked for.
+   *
+   * `null` whenever the requested locale is translated. Non-null it carries the served locale's own
+   * `code` and `direction`, read from the `Locale` table rather than inferred from the code.
+   */
+  readonly fallbackLocale?: { readonly code: string; readonly direction: "ltr" | "rtl" } | null;
+}): ReactNode {
   return (
     <div data-brand="flagship">
       <SiteNav />
 
-      <main id="main-content">
-        <SolutionsHero />
-        <SolutionsIntroduction />
-        <CustomizationProcess />
+      {/*
+       * ── The route locale is not changed by a fallback ─────────────────────
+       *
+       * `<html lang>`/`<html dir>` are set by `app/[locale]/layout.tsx` from the **route's** locale
+       * row, and a CMS fallback must never move them. What is annotated here is the content: when
+       * the CMS served the default locale instead of the requested one, the copy inside `<main>`
+       * genuinely is in that other language (WCAG 2.2 AA 3.1.2 Language of Parts), and `dir` travels
+       * with it so a left-to-right fallback reads correctly inside a right-to-left document.
+       *
+       * The form is inside this element and its labels are code-owned English either way — the same
+       * position the annotation states.
+       */}
+      <main
+        id="main-content"
+        {...(fallbackLocale !== null && {
+          lang: fallbackLocale.code,
+          dir: fallbackLocale.direction,
+        })}
+      >
+        {fallbackLocale !== null && (
+          <p className="cs-fallback-note" role="note">
+            This page has not been translated into this language. It is shown in the site&rsquo;s
+            default language.
+          </p>
+        )}
+
+        <SolutionsHero hero={content.hero} process={content.process} locale={locale} />
+        {content.introduction !== null && (
+          <SolutionsIntroduction introduction={content.introduction} />
+        )}
+        {content.process !== null && <CustomizationProcess process={content.process} />}
         <CustomRequestForm />
       </main>
 

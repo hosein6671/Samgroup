@@ -779,10 +779,28 @@
   color: var(--color-text-secondary);
 }
 
+/*
+ * The consent checkbox's interactive target — **24×24, and that number is a requirement.**
+ *
+ * WCAG 2.2 AA 2.5.8 (Target Size, Minimum) asks for a 24×24 CSS-pixel target, or 24 CSS pixels of
+ * clearance to every adjacent target. Measured in a browser at 640px, this control was 16×16 with
+ * its nearest neighbour 20px away: it met neither the threshold nor the spacing exception.
+ *
+ * Sizing the native input is the smallest correction that fixes it. The control stays a real
+ * `<input type="checkbox">` — not a custom ARIA widget — so its checked state stays programmatically
+ * exposed, Space still toggles it, the label's `for` association still activates it, and the browser
+ * still paints its own focus ring. `accent-color` keeps the brand tint.
+ *
+ * `margin-top` drops to 0 because the taller box aligns with the first line of the label on its own.
+ *
+ * The same rule exists on `.fm-consent input` in `forms.css`. Both are shared constructions — this
+ * one serves the Customized Solutions request form and the Products download gate, that one serves
+ * the Contact Us inquiry form — and they are kept identical deliberately.
+ */
 .pr-consent input {
-  margin-top: 2px;
-  width: 16px;
-  height: 16px;
+  margin-top: 0;
+  width: 24px;
+  height: 24px;
   flex: none;
   accent-color: var(--color-accent-default);
 }
