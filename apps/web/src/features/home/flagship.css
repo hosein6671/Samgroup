@@ -821,14 +821,51 @@
   border-inline-start: 2px solid var(--fs-gold);
   padding-inline-start: 12px;
 }
-/* Accordion: interpolates to intrinsic height, no JS measurement, no clipped copy. */
+/* Accordion: interpolates to intrinsic height, no JS measurement, no clipped copy.
+ *
+ * `visibility` is the accessibility half, and it is not decoration. A collapsed panel is zero
+ * rows high and its contents are clipped by `.fs-drawer-panel > div`, but clipping hides nothing
+ * from the platform: while the drawer was open, the nine collapsed Product links stayed focusable
+ * and stayed in the accessibility tree, so Tab walked through nine invisible destinations between
+ * "Products" and "Customized Solutions" and `aria-expanded="false"` described a region whose
+ * contents were still exposed.
+ *
+ * This is the same contract `.fs-drawer` and `.fs-mega-panel` above already use — hidden at rest,
+ * visible on `[data-open]` — so the drawer's two disclosures now behave identically.
+ *
+ * `visibility` is deliberately NOT transitioned, which is the same choice `.fs-drawer` above
+ * already makes (it transitions `opacity` and lets `visibility` flip at once). Transitioning it
+ * would make the state a function of time, and the property this rule exists to guarantee —
+ * "an expanded link is focusable" — must not be true only after 380ms. The visible cost is that
+ * the panel's contents clear at the start of the collapse rather than at its end; the height
+ * still interpolates, so the accordion still reads as closing.
+ *
+ * Nothing here is motion, so `prefers-reduced-motion` has nothing to disable: the global
+ * duration override in `packages/ui/styles/base.css` collapses the row interpolation and the
+ * panel simply switches state. */
 .fs-drawer-panel {
   display: grid;
   grid-template-rows: 0fr;
+  visibility: hidden;
   transition: grid-template-rows 380ms var(--e-entrance);
 }
 .fs-drawer-panel[data-open] {
   grid-template-rows: 1fr;
+}
+/*
+ * The un-hide is scoped to an OPEN drawer, and that scope is load-bearing rather than tidy.
+ *
+ * `visibility: visible` on a descendant overrides an ancestor's `hidden` — it is the one property
+ * that works that way. Unscoped, an accordion left expanded (open the drawer, expand Products,
+ * press Escape) would keep `visibility: visible` on the panel and re-expose all nine links
+ * *through* the closed drawer's own `visibility: hidden`, which is measurably worse than the
+ * defect this gate came to fix. Measured at 375x812: 9/9 focusable with the drawer shut.
+ *
+ * The panel keeps its own `[data-open]` for the row interpolation above, so the accordion's
+ * remembered state is untouched; only the un-hiding requires the drawer to be open too.
+ */
+.fs-drawer[data-open] .fs-drawer-panel[data-open] {
+  visibility: visible;
 }
 .fs-drawer-panel > div {
   overflow: hidden;
@@ -1355,7 +1392,10 @@
   font-family: var(--font-technical);
   font-size: 10.5px;
   letter-spacing: 0.2em;
-  color: var(--color-text-accent);
+  /* `text-accent` resolved to the light-context gold and measured 4.45:1 against the panel's
+     own gradient — marginally under WCAG 1.4.3's 4.5:1 at this size. `text-secondary` is
+     5.12:1 there. Size, weight, tracking and spacing are unchanged. */
+  color: var(--color-text-secondary);
   position: relative;
   z-index: 2;
 }
@@ -1695,6 +1735,25 @@
   font-size: 10.5px;
   letter-spacing: 0.22em;
   color: var(--color-text-accent);
+}
+/*
+ * The one instance that does not sit on paper.
+ *
+ * Three of the four `.fs-wb-num` blocks sit on `.fs-why`'s `--fs-paper` (#f3f4f6), where
+ * `--color-text-accent` resolves to the light-context gold and measures 4.57:1 — legible, and
+ * left exactly as it is. The fourth is inside `.fs-qual`, which paints itself `--fs-navy`
+ * (#061346) while remaining inside a `data-surface="light"` section, so the same token resolves
+ * to the same dark gold and measures 3.51:1 — a WCAG 1.4.3 failure for normal text.
+ *
+ * The fix is scoped to that panel and to that element, deliberately. The alternatives were both
+ * wider than the defect: giving `.fs-qual` a midnight surface context would remap every semantic
+ * colour for every descendant, and moving the general rule would break the three instances that
+ * are already correct. `--fs-gold-2` is the light step of the brand gold this file already
+ * defines and is what the midnight context itself resolves `--color-text-accent` to, so this
+ * introduces no new value, no new token and no surface change.
+ */
+.fs-qual .fs-wb-num {
+  color: var(--fs-gold-2);
 }
 .fs-cap-copy {
   grid-column: 1 / span 5;
@@ -2263,7 +2322,14 @@
   padding: 13px 16px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  /*
+   * The token, not a literal. This outline is the only thing identifying the control, which puts
+   * it under WCAG 1.4.11's 3:1 floor. It was `rgba(255, 255, 255, 0.16)` and measured 1.62:1
+   * against its own fill — the same defect the design system already solved when it set the
+   * midnight `border-strong` to 0.40 rather than 0.22 (packages/ui/src/tokens/color.ts). Every
+   * `.fs-field` sits inside a `data-surface="midnight"` section, so this resolves there.
+   */
+  border: 1px solid var(--color-border-strong);
   color: #fff;
   font: 400 14.5px/1.5 var(--font-text);
   transition:
@@ -2399,7 +2465,9 @@
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(238, 241, 246, 0.4);
+  /* Was `rgba(238, 241, 246, 0.4)` — 3.46:1 on the footer's ink, under WCAG 1.4.3's 4.5:1.
+     The midnight context already publishes a legible tertiary tone; this uses it. */
+  color: var(--color-text-tertiary);
 }
 
 /* The success toast is removed with the homepage partnership form. It was the mechanism by which
