@@ -75,6 +75,52 @@
 //
 // `prisma migrate reset` drops all of it, exactly as it drops the three
 // constraints above; `prisma migrate deploy` restores it.
+//
+// PRODUCT-DATA-2A adds a THIRD group of objects this file cannot express, across
+// migrations 20260822120000_add_catalog_technical_data and
+// 20260822140000_harden_catalog_technical_audit. The decision behind all of it is
+// [ADR-014](../docs/ADR/ADR-014-catalog-technical-data-and-provenance.md), which
+// also records the ONE thing the database deliberately does NOT enforce: how a
+// row reaches review_status = approved. That transition belongs to the review
+// service in PRODUCT-DATA-2B, and no generic update path may ever expose the
+// column. Listed here for the same reason the two groups above are: nothing else
+// makes them visible.
+//
+//   CHECK constraints:
+//     specifications_value_shape             — numeric/pair columns must match
+//                                              value_type, and min <= max
+//     specifications_normalized_complete     — a typed row carries a property
+//                                              key and a display value
+//     product_claims_forbidden_approval      — LICENSED_BY and REFERENCE_ONLY
+//                                              can never be APPROVED
+//     product_claims_approved_by_named_body  — APPROVED_BY + APPROVED requires
+//                                              a non-empty standard_body
+//     technical_reviews_exactly_one_target   — a review has one subject, never
+//                                              two and never none
+//
+//   Functions:
+//     evidence_set_hash_lines(text[])        — the deterministic encoding
+//     specification_evidence_set_hash(uuid)  — the reviewed-evidence fingerprint
+//     product_claim_evidence_set_hash(uuid)  — the ProductClaim counterpart
+//     source_facts_immutable()               — the trigger guard body
+//
+//   Trigger (BEFORE UPDATE ROW, ENABLE ALWAYS):
+//     source_facts_immutable_guard           — BEFORE UPDATE OR DELETE: a
+//                                              recorded source fact is evidence
+//                                              and can be neither rewritten nor
+//                                              deleted. INSERT is untouched.
+//
+//   Views — the ONLY sanctioned public read surface for technical data:
+//     v_specification_public                 — approved, live, allow-listed
+//     v_product_claim_public                 — approved, live, allow-listed,
+//                                              forbidden kinds excluded again
+//   Both views are SELECT-only: INSERT/UPDATE/DELETE/TRUNCATE are revoked from
+//   PUBLIC and from the owner. A guard rail, not a privilege boundary — see
+//   ADR-014 §8 for exactly what that does and does not buy.
+//
+// The views carry no review-status column and no provenance column, and they
+// join nothing in the Technical Data Provenance section. That section is
+// import/audit only and is categorically non-public.
 // =============================================================================
 
 // Prisma 7 no longer accepts `url` here — the connection string for Migrate
@@ -161,18 +207,217 @@ enum MediaType {
   @@map("media_type")
 }
 
+// --- Technical Data (PRODUCT-DATA-2A) ----------------------------------------
+// Closed vocabularies for Prisma-owned catalog technical data. Every one of them
+// is INTERNAL until a row carrying it is APPROVED — the enums describe what may
+// be recorded, never what may be published. Publication is decided by
+// `review_status` and the two public views, not by membership of a type.
+
+/// The grade vocabularies this catalog actually uses. NULL on a ProductGrade
+/// means "not yet safely classified" and is a legitimate, expected state — it is
+/// NOT a fourth system and must never be backfilled by guesswork.
+///
+/// `PRODUCT_SPECIFIC` is deliberately absent: a label belonging to no published
+/// system is recorded verbatim in `ProductGrade.label` with a NULL system, which
+/// says the same thing without inventing a classification.
+enum GradeSystem {
+  SAE    @map("sae")
+  ISO_VG @map("iso_vg")
+  NLGI   @map("nlgi")
+
+  @@map("grade_system")
+}
+
+/// The SHAPE of a normalized technical value — what the numeric columns mean,
+/// not what the property is. Enforced by the `specifications_value_shape` CHECK
+/// added in the same migration, so an inconsistent combination cannot be stored.
+///
+///   POINT       one value            numericMin
+///   RANGE       lower and upper      numericMin + numericMax, min <= max
+///   MINIMUM     a floor              numericMin
+///   MAXIMUM     a ceiling            numericMax
+///   PAIR        two coupled values   pairFirst + pairSecond
+///   TEXT        prose                no numeric columns
+///   REPORT_ONLY the source states the property is reported, not limited
+///   CODE        a classification code carried as text
+enum SpecValueType {
+  POINT       @map("point")
+  RANGE       @map("range")
+  MINIMUM     @map("minimum")
+  MAXIMUM     @map("maximum")
+  TEXT        @map("text")
+  REPORT_ONLY @map("report_only")
+  CODE        @map("code")
+  PAIR        @map("pair")
+
+  @@map("spec_value_type")
+}
+
+/// What kind of value a SpecProperty carries at all — a coarser axis than
+/// `SpecValueType`, which describes one recorded value. Viscosity is NUMERIC and
+/// may legitimately arrive as POINT, RANGE or MINIMUM; appearance is TEXTUAL.
+enum SpecValueKind {
+  NUMERIC @map("numeric")
+  TEXTUAL @map("textual")
+  CODED   @map("coded")
+
+  @@map("spec_value_kind")
+}
+
+/// Whether a test method must accompany a value for that property to mean
+/// anything. A viscosity without its ASTM method is not the same fact as one
+/// with it.
+enum MethodRequirement {
+  REQUIRED       @map("required")
+  OPTIONAL       @map("optional")
+  NOT_APPLICABLE @map("not_applicable")
+
+  @@map("method_requirement")
+}
+
+/// What a recorded number actually IS. This is the difference between a
+/// marketing figure and a specification limit, and it is never inferred.
+///
+/// UNSPECIFIED is the honest default and the value every legacy row carries: the
+/// source did not say. The public label for AVERAGE is "Average test results"
+/// and belongs to the translation catalogs, not to this type.
+enum ResultBasis {
+  AVERAGE             @map("average")
+  TYPICAL             @map("typical")
+  SPECIFICATION_LIMIT @map("specification_limit")
+  MEASURED            @map("measured")
+  UNSPECIFIED         @map("unspecified")
+
+  @@map("result_basis")
+}
+
+/// The publication gate. Exactly one value — APPROVED — lets a fact reach the
+/// public views, and nothing reaches them by default: every row is born
+/// SOURCE_RECORDED.
+///
+///   SOURCE_RECORDED  extracted from a source, never reviewed
+///   NEEDS_REVIEW     queued for SAM technical review
+///   APPROVED         SAM technical approval recorded — the ONLY public state
+///   REJECTED         reviewed and refused
+///   SUPERSEDED       replaced by a later fact; kept, never deleted
+enum TechnicalReviewStatus {
+  SOURCE_RECORDED @map("source_recorded")
+  NEEDS_REVIEW    @map("needs_review")
+  APPROVED        @map("approved")
+  REJECTED        @map("rejected")
+  SUPERSEDED      @map("superseded")
+
+  @@map("technical_review_status")
+}
+
+/// What a reviewer DECIDED, as opposed to what state a row is IN.
+/// `SOURCE_RECORDED` has no counterpart here by design: it is the state before
+/// any human decision, so it can never be the outcome of one.
+enum TechnicalReviewDecision {
+  APPROVED     @map("approved")
+  REJECTED     @map("rejected")
+  NEEDS_REVIEW @map("needs_review")
+  SUPERSEDED   @map("superseded")
+
+  @@map("technical_review_decision")
+}
+
+/// The strength of a product claim, from weakest to strongest. The distinction
+/// is legal, not stylistic: "formulated for" and "approved by" are different
+/// statements, and conflating them is the specific failure this type prevents.
+///
+///   CLASSIFICATION_STATED  a bare API/ACEA class the source states
+///   MEETS                  the source states the product meets a standard
+///   SUITABLE_FOR           suitability, not conformance
+///   RECOMMENDED_FOR        a recommendation
+///   FORMULATED_FOR         an additive target level — NOT an approval
+///   APPROVED_BY            a named body has approved it
+///   LICENSED_BY            a named body has licensed it
+///   REFERENCE_ONLY         recorded for internal reference; never publishable
+enum ProductClaimKind {
+  CLASSIFICATION_STATED @map("classification_stated")
+  MEETS                 @map("meets")
+  SUITABLE_FOR          @map("suitable_for")
+  RECOMMENDED_FOR       @map("recommended_for")
+  FORMULATED_FOR        @map("formulated_for")
+  APPROVED_BY           @map("approved_by")
+  LICENSED_BY           @map("licensed_by")
+  REFERENCE_ONLY        @map("reference_only")
+
+  @@map("product_claim_kind")
+}
+
+/// How a SourceDocument is addressed. A URL is one case among several, not the
+/// model: the authoritative catalog workbook is an uploaded file with no URL at
+/// all, and a schema that required one would have no way to cite it.
+enum SourceLocatorType {
+  URL           @map("url")
+  UPLOADED_FILE @map("uploaded_file")
+
+  @@map("source_locator_type")
+}
+
+/// How a SourceFact was got out of its document. Frozen because it decides how
+/// far a fact is trusted: an OCR reading and a spreadsheet cell are not
+/// equivalent evidence, and a reviewer must be able to tell them apart.
+enum ExtractionMethod {
+  SPREADSHEET_CELL     @map("spreadsheet_cell")
+  PDF_TEXT_LAYER       @map("pdf_text_layer")
+  PDF_OCR              @map("pdf_ocr")
+  MANUAL_TRANSCRIPTION @map("manual_transcription")
+
+  @@map("extraction_method")
+}
+
+/// What the source said about units for one extracted fact.
+///
+///   STATED         the source gave a unit
+///   ABSENT         the source gave none
+///   DIMENSIONLESS  the quantity has no unit (e.g. viscosity index)
+///   UNRECOGNIZED   the source gave one this platform cannot yet interpret
+enum SourceUnitClassification {
+  STATED        @map("stated")
+  ABSENT        @map("absent")
+  DIMENSIONLESS @map("dimensionless")
+  UNRECOGNIZED  @map("unrecognized")
+
+  @@map("source_unit_classification")
+}
+
+/// How one SourceFact supports one normalized fact. SUPERSEDED evidence is
+/// retained rather than unlinked — the audit trail must still show what an
+/// earlier approval was based on.
+enum EvidenceRole {
+  PRIMARY       @map("primary")
+  CORROBORATING @map("corroborating")
+  SUPERSEDED    @map("superseded")
+
+  @@map("evidence_role")
+}
+
+/// How confident a raw-property to SpecProperty mapping is. Recorded so medium
+/// and low confidence mappings can be STORED without being treated as approved
+/// domain truth — which is exactly what `reviewStatus` alongside it decides.
+enum MappingConfidence {
+  HIGH   @map("high")
+  MEDIUM @map("medium")
+  LOW    @map("low")
+
+  @@map("mapping_confidence")
+}
+
 // --- Identity & Access -------------------------------------------------------
 
 model User {
-  id             String     @id @default(uuid()) @db.Uuid
-  email          String     @unique
-  passwordHash   String     @map("password_hash")
-  role           UserRole
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         UserRole
   /// Whether this account may authenticate at all — ADR-012. NOT NULL with a
   /// database-level default, so a row written by any path (a raw INSERT
   /// included) is active unless it says otherwise, and no code path can
   /// create an account whose status is unknown. No endpoint writes it.
-  status         UserStatus @default(ACTIVE)
+  status       UserStatus @default(ACTIVE)
 
   /// The credential cutoff: every access token and refresh session issued at
   /// or before this instant is permanently invalid (ADR-012 §7).
@@ -183,8 +428,8 @@ model User {
   /// monotonic: re-enabling the account does NOT clear or lower it, which is
   /// what makes disable a revocation rather than a suspension.
   credentialsRevokedAt DateTime? @map("credentials_revoked_at") @db.Timestamptz(6)
-  organizationId String?    @map("organization_id") @db.Uuid
-  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  organizationId       String?   @map("organization_id") @db.Uuid
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   organization                    Organization?              @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   authSessions                    AuthSession[]
@@ -196,6 +441,7 @@ model User {
   downloadRequestsAssigned        DownloadRequest[]
   blogPosts                       BlogPost[]
   statusChanges                   StatusHistory[]
+  technicalReviews                TechnicalReview[]
   assignmentChangesMade           LeadAssignmentHistory[]    @relation("AssignmentHistoryActor")
   assignmentsHandedOver           LeadAssignmentHistory[]    @relation("AssignmentHistoryFrom")
   assignmentsReceived             LeadAssignmentHistory[]    @relation("AssignmentHistoryTo")
@@ -290,6 +536,8 @@ model Product {
   // — the other classification axis — restricts for the same reason.
   productType    ProductType?     @relation(fields: [productTypeId], references: [id], onDelete: Restrict)
   specifications Specification[]
+  grades         ProductGrade[]
+  claims         ProductClaim[]
   segments       ProductSegment[]
   inquiries      Inquiry[]        @relation("InquiryRelatedProduct")
 
@@ -301,20 +549,286 @@ model Product {
   @@map("products")
 }
 
+/// One technical fact about a Product, or about ONE GRADE of a Product.
+///
+/// ── Two generations of columns live here, deliberately ──────────────────────
+///
+/// `key` / `value` are the ORIGINAL shape and are still what `GET /products/:slug`
+/// serves today. They are NOT removed, renamed or rewritten by PRODUCT-DATA-2A:
+/// every column below them is additive and nullable, so the table gains a
+/// normalized, reviewable representation without the shipped one changing
+/// meaning for a single existing reader. Removal is a later migration's decision
+/// and needs its own evidence — see the migration header.
+///
+/// ── The grade axis, and why it is a COMPOSITE foreign key ───────────────────
+///
+/// `productGradeId` NULL  -> a Product-level fact (applies to the whole product)
+/// `productGradeId` set   -> a Grade-level fact, belonging to a grade OF THE
+///                           SAME PRODUCT
+///
+/// That second sentence is the invariant, and it is enforced by PostgreSQL, not
+/// by a service. The relation references `(id, product_id)` on `product_grades`
+/// rather than `id` alone, reusing this row's own `product_id` as the second
+/// column. A grade belonging to a different Product therefore cannot be
+/// referenced at all — the pair does not exist in the target key.
+///
+/// It works because a multi-column foreign key defaults to MATCH SIMPLE, which
+/// skips the check entirely when ANY column is NULL. A Product-level fact
+/// (`productGradeId` NULL) is thus unconstrained by it, and a Grade-level fact
+/// is fully constrained by it. One mechanism, both cases, no trigger.
+///
+/// Measured against Prisma 7.9.1 and PostgreSQL 18 before it was adopted — the
+/// composite reference validates, generates, and rejects a cross-product grade
+/// at the database.
+///
+/// ── Deletion ────────────────────────────────────────────────────────────────
+///
+/// `product` stays ON DELETE CASCADE — the shipped behaviour, unchanged. The
+/// grade reference is RESTRICT: catalogue facts are retired with `deletedAt`,
+/// never erased, and a grade that still carries facts is not deletable. Evidence
+/// and review rows RESTRICT against this table in turn, so a Product delete that
+/// would destroy an audit trail aborts rather than cascading through it.
+///
+/// ── ON UPDATE RESTRICT, and why it is not the default ───────────────────
+///
+/// Prisma emits ON UPDATE CASCADE unless told otherwise, and on a COMPOSITE key
+/// that is actively dangerous: moving a grade to another product would cascade
+/// the new product_id down into this row, silently re-parenting the fact to a
+/// product it was never measured on. The invariant would hold at every instant
+/// and the data would still be wrong.
+///
+/// Measured, not reasoned about — the first version of this migration used the
+/// default, and a database probe moved a grade across products with its
+/// specifications following it. RESTRICT is what makes that an error.
 model Specification {
-  id        String  @id @default(uuid()) @db.Uuid
-  productId String  @map("product_id") @db.Uuid
+  id        String @id @default(uuid()) @db.Uuid
+  productId String @map("product_id") @db.Uuid
+  /// LEGACY. The original untyped key/value pair, still served by the catalog
+  /// API. Kept NOT NULL and untouched; new normalized rows carry `propertyKey`
+  /// and `displayValue` instead.
   key       String
+  /// LEGACY — see `key`.
   value     String
-  unit      String?
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// NULL for a Product-level fact; a grade OF THIS PRODUCT otherwise. The
+  /// composite foreign key below is what makes "of this product" true.
+  productGradeId String? @map("product_grade_id") @db.Uuid
+
+  /// The controlled dictionary entry this fact is an instance of. Nullable
+  /// because legacy rows predate the dictionary; required by CHECK as soon as
+  /// `valueType` is set, so a normalized row is never uncontrolled.
+  propertyKey String? @map("property_key")
+
+  /// Exactly what a reader should see, as text — including any qualifier the
+  /// numeric columns cannot carry. The numeric columns are for filtering and
+  /// comparison; this is for display, and the two are never expected to be
+  /// derivable from one another.
+  displayValue String? @map("display_value")
+
+  /// The shape of the value. NULL means this row has not been normalized yet.
+  valueType SpecValueType? @map("value_type")
+
+  /// The numeric payload, interpreted by `valueType` and constrained by the
+  /// `specifications_value_shape` CHECK. Decimal rather than float: a
+  /// specification limit that changes when it is round-tripped is not a limit.
+  numericMin Decimal? @map("numeric_min") @db.Decimal(20, 6)
+  numericMax Decimal? @map("numeric_max") @db.Decimal(20, 6)
+
+  /// The two halves of a PAIR value — a coupled reading the source states
+  /// together and which loses its meaning if split into two rows.
+  pairFirst  Decimal? @map("pair_first") @db.Decimal(20, 6)
+  pairSecond Decimal? @map("pair_second") @db.Decimal(20, 6)
+
+  /// Already present before PRODUCT-DATA-2A and reused rather than duplicated.
+  unit String?
+
+  /// The test method the value was produced by, verbatim from the source.
+  method String?
+
+  /// A short source-stated qualification the numeric columns cannot express.
+  /// Deliberately NOT a free-text review note: `TechnicalReview.note` is where
+  /// reviewer prose belongs, and `valueQualifierNote` is not a column here.
+  qualifier String?
+
+  /// What the number IS. NOT NULL with an UNSPECIFIED default so that a row can
+  /// never silently imply a specification limit it never claimed.
+  resultBasis ResultBasis @default(UNSPECIFIED) @map("result_basis")
+
+  /// The publication gate. NOT NULL, defaulting to SOURCE_RECORDED at the
+  /// DATABASE — a row inserted by any path, a raw INSERT included, is
+  /// unapproved unless a review says otherwise. `v_specification_public` shows
+  /// APPROVED and nothing else.
+  reviewStatus TechnicalReviewStatus @default(SOURCE_RECORDED) @map("review_status")
+
+  sortOrder Int?      @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Soft deletion. Catalogue facts are retired, never erased, because a hard
+  /// delete would take its evidence and its review history with it.
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  product      Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productGrade ProductGrade?           @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
+  property     SpecProperty?           @relation(fields: [propertyKey], references: [key], onDelete: Restrict)
+  evidence     SpecificationEvidence[]
+  reviews      TechnicalReview[]
 
   // No unique on (productId, key) by decision: a product may carry the same key
   // more than once, e.g. one row per grade.
 
   @@index([productId])
+  @@index([productGradeId])
+  @@index([propertyKey])
+  @@index([reviewStatus])
   @@map("specifications")
+}
+
+/// One grade of a Product — `SAE 10W-40`, `ISO VG 46`, `NLGI 2`.
+///
+/// ── What this is NOT ────────────────────────────────────────────────────────
+///
+/// No slug, no route, no localization, no SKU, and none may be added here. A
+/// grade is not addressable: the canonical Product Detail URL is flat
+/// (`/{locale}/products/{product-slug}`, ADR-009/ADR-010) and a grade is a
+/// FACET WITHIN that page, not a page. It therefore takes no part in the
+/// ADR-011 slug namespace — `product_slug_claims` is fed by `categories.slug`,
+/// `products.slug` and `content_translations`, and this table is none of them.
+///
+/// `label` is the EXACT source label, stored verbatim. It is not parsed, not
+/// normalized and not reformatted: the workbook's wording is the public wording.
+///
+/// `gradeSystem` NULL means not yet safely classified — a real state, not a gap
+/// to be filled in by inference.
+///
+/// The 100 authoritative Products are NOT imported by this gate and no row here
+/// is created by it. `Quenching` is not a Grade and `TC` is a performance
+/// classification, not a Grade; neither may ever become a row. No synthetic or
+/// default Grade exists — a Product with no grades has none, and its facts hang
+/// off the Product directly.
+model ProductGrade {
+  id          String       @id @default(uuid()) @db.Uuid
+  productId   String       @map("product_id") @db.Uuid
+  /// The exact label the source states. Verbatim.
+  label       String
+  /// NULL = not yet safely classified. See GradeSystem.
+  gradeSystem GradeSystem? @map("grade_system")
+  sortOrder   Int          @map("sort_order")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  product        Product         @relation(fields: [productId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  specifications Specification[]
+  claims         ProductClaim[]
+
+  /// One grade label per product, and the reason the importer can be re-run
+  /// without producing duplicates.
+  @@unique([productId, label])
+  /// The COMPOSITE IDENTITY the invariant rests on. Redundant as a uniqueness
+  /// statement — `id` is already the primary key — and required as a foreign-key
+  /// TARGET: PostgreSQL will only reference a set of columns that carries a
+  /// unique constraint, and `Specification`/`ProductClaim` reference
+  /// `(id, product_id)` precisely so a grade cannot be borrowed across products.
+  @@unique([id, productId])
+  @@index([productId])
+  @@map("product_grades")
+}
+
+/// The controlled dictionary of technical properties — INTERNAL, non-localized,
+/// and not exposed publicly by this gate.
+///
+/// Its primary key is the stable key itself rather than a surrogate uuid: the
+/// key IS the identity, it is what `Specification.propertyKey` stores, and a
+/// dictionary whose entries can be renamed without anything noticing is not a
+/// controlled vocabulary. `Specification` references it ON DELETE RESTRICT, so
+/// an entry that is in use cannot be removed out from under the facts using it.
+///
+/// Seeded by nothing in this gate. Medium and low confidence mappings are
+/// recorded in `SpecPropertyMapping` with their confidence and their own review
+/// status — they must never be written here, because everything here is
+/// approved domain truth by construction.
+model SpecProperty {
+  /// The stable key. Lowercase snake_case by convention; never renamed.
+  key String @id
+
+  /// What this property MEANS, in one sentence, for a reviewer. Not a public
+  /// label and not localized — public wording lives in the translation catalogs.
+  canonicalMeaning String @map("canonical_meaning")
+
+  /// The physical quantity measured (e.g. `kinematic_viscosity`, `density`).
+  /// Free text rather than an enum: no quantity vocabulary is approved, and an
+  /// enum asserting one would be an unapproved architecture decision.
+  quantity String
+
+  valueKind SpecValueKind @map("value_kind")
+
+  /// The units a value for this property may carry. Empty means none is valid —
+  /// which is the correct state for a dimensionless or textual property.
+  allowedUnits String[] @map("allowed_units")
+
+  methodRequirement MethodRequirement @map("method_requirement")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  specifications Specification[]
+  mappings       SpecPropertyMapping[]
+
+  @@map("spec_properties")
+}
+
+/// A statement made ABOUT a Product or one of its Grades — a classification, a
+/// suitability, an approval.
+///
+/// ── Why the kind is a closed type and not a boolean ─────────────────────────
+///
+/// "Formulated for" and "approved by" are legally different sentences. A bare
+/// API/ACEA class the source merely states is CLASSIFICATION_STATED; an additive
+/// target level is FORMULATED_FOR. Neither is an approval, and no code path may
+/// promote one into another.
+///
+/// ── What the database refuses, regardless of application code ───────────────
+///
+/// Two CHECKs in the migration, not service rules:
+///
+///   * LICENSED_BY and REFERENCE_ONLY can NEVER reach APPROVED. The licensing
+///     statements in the supplied external material are third-party claims this
+///     platform has no right to republish, and reference-only exists precisely
+///     to hold something that is never published — including the unnamed
+///     automaker claim.
+///   * APPROVED_BY can only reach APPROVED with a non-empty `standardBody`. An
+///     approval by nobody in particular is not an approval. The second half of
+///     that rule — that SAM verification is recorded — is a TechnicalReview row,
+///     which is a cross-row fact a CHECK cannot see; it belongs to the review
+///     service in the later gate.
+model ProductClaim {
+  id             String  @id @default(uuid()) @db.Uuid
+  productId      String  @map("product_id") @db.Uuid
+  /// NULL = the claim applies to the whole Product. Otherwise a grade OF THIS
+  /// PRODUCT, by the same composite foreign key `Specification` uses.
+  productGradeId String? @map("product_grade_id") @db.Uuid
+
+  kind ProductClaimKind
+
+  /// The body named by the claim — `API`, `ACEA`, a manufacturer. NULL when the
+  /// source names none, which is itself a reason the claim cannot be an
+  /// approval.
+  standardBody String? @map("standard_body")
+  /// The specific class or specification code, verbatim.
+  standardCode String? @map("standard_code")
+  /// Source-stated context that changes what the claim means.
+  contextNote  String? @map("context_note")
+
+  reviewStatus TechnicalReviewStatus @default(SOURCE_RECORDED) @map("review_status")
+  sortOrder    Int?                  @map("sort_order")
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt    DateTime?             @map("deleted_at") @db.Timestamptz(6)
+
+  product      Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productGrade ProductGrade?     @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
+  evidence     ClaimEvidence[]
+  reviews      TechnicalReview[]
+
+  @@index([productId])
+  @@index([productGradeId])
+  @@index([reviewStatus])
+  @@map("product_claims")
 }
 
 /// A buyer-facing application/use axis — ADR-007 §4. ORTHOGONAL to Product
@@ -893,12 +1407,12 @@ model ContentTranslation {
 /// table cannot hold an FK to five different parents. The anchor point the
 /// future Workflow module extends.
 model StatusHistory {
-  id          String   @id @default(uuid()) @db.Uuid
-  entityType  String   @map("entity_type")
-  entityId    String   @map("entity_id") @db.Uuid
-  fromStatus  String?  @map("from_status")
-  toStatus    String   @map("to_status")
-  changedById String?  @map("changed_by_id") @db.Uuid
+  id                     String   @id @default(uuid()) @db.Uuid
+  entityType             String   @map("entity_type")
+  entityId               String   @map("entity_id") @db.Uuid
+  fromStatus             String?  @map("from_status")
+  toStatus               String   @map("to_status")
+  changedById            String?  @map("changed_by_id") @db.Uuid
   /// Who acted, as text, captured at write time — and never updated afterwards.
   ///
   /// `changedById` is `ON DELETE SET NULL`, and deleting a `User` row is this platform's
@@ -914,9 +1428,9 @@ model StatusHistory {
   ///
   /// Nullable because rows written before this column existed have nothing to record, and
   /// because a future system actor may have no email at all.
-  changedByEmailSnapshot String? @map("changed_by_email_snapshot")
-  changedAt   DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
-  note        String?
+  changedByEmailSnapshot String?  @map("changed_by_email_snapshot")
+  changedAt              DateTime @default(now()) @map("changed_at") @db.Timestamptz(6)
+  note                   String?
 
   changedBy User? @relation(fields: [changedById], references: [id], onDelete: SetNull)
 
@@ -981,4 +1495,323 @@ model LeadAssignmentHistory {
   @@index([changedById])
   @@index([changedAt])
   @@map("lead_assignment_history")
+}
+
+// --- Technical Data Provenance (PRODUCT-DATA-2A) ------------------------------
+//
+// IMPORT AND AUDIT ONLY. Nothing in this section may ever appear in a public
+// DTO, a public view, a sitemap, an SEO payload or a RAG index. External sources
+// and provenance are categorically non-public — not "non-public by default", and
+// not "non-public unless flagged": there is no publishable flag anywhere in this
+// section, and `SourceDocument.isPublishable` is absent on purpose so that no
+// caller can ever ask the question.
+//
+// The two public views (`v_specification_public`, `v_product_claim_public`,
+// created in the migration) select from `specifications` and `product_claims`
+// only. No view, and no future view, joins any table below.
+//
+// TDS bytes and external images are never stored here and never imported.
+// `SourceAsset` records a file's IDENTITY — a hash and a size — not its content.
+
+/// The identity of a source file, without the file.
+///
+/// `sha256` is the whole point: it is what makes "the same document" and "a new
+/// revision of that document" distinguishable, and it is unique, so one physical
+/// file is one row no matter how many documents cite it.
+///
+/// NO BYTES. This platform does not store TDS content, and adding a column that
+/// could hold it would defeat the decision rather than implement it.
+model SourceAsset {
+  id        String @id @default(uuid()) @db.Uuid
+  /// Lowercase hex SHA-256 of the file, always 64 characters.
+  sha256    String @unique
+  byteSize  Int    @map("byte_size")
+  mediaType String @map("media_type")
+  /// Pages, where the medium has pages. NULL for a spreadsheet.
+  pageCount Int?   @map("page_count")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  documents SourceDocument[]
+
+  @@map("source_assets")
+}
+
+/// A cited source — a supplier TDS, a standards page, or the authoritative
+/// catalog workbook this project was given.
+///
+/// ── Locator, not URL ────────────────────────────────────────────────────────
+///
+/// The workbook has no URL and never will, so a required `url` column would have
+/// made the project's own primary source uncitable. `locatorType` +
+/// `locatorValue` addresses both cases with one shape: a URL, or a file name.
+///
+/// ── Revisions ───────────────────────────────────────────────────────────────
+///
+/// The same locator may legitimately be recorded more than once — a supplier
+/// republishes a TDS at the same address with different content. That is a new
+/// revision, a new `SourceAsset` hash, and a new row here; `supersededBy` links
+/// the old row forward. The uniqueness key is therefore
+/// (locatorType, locatorValue, sourceAssetId), NOT the locator alone.
+///
+/// `sourceAssetId` is nullable because a source can be cited before, or without,
+/// a captured file — a standards web page read in a browser has no asset. Note
+/// that PostgreSQL treats NULLs as distinct in a unique index, so rows with no
+/// asset are not de-duplicated by it; that is accepted rather than worked
+/// around, because two citations of an uncaptured page are genuinely two
+/// citations.
+model SourceDocument {
+  id String @id @default(uuid()) @db.Uuid
+
+  sourceAssetId String?           @map("source_asset_id") @db.Uuid
+  locatorType   SourceLocatorType @map("locator_type")
+  /// The URL, or the file name of the uploaded document. Never fetched again by
+  /// this gate.
+  locatorValue  String            @map("locator_value")
+
+  publisher     String?
+  title         String
+  documentDate  DateTime? @map("document_date") @db.Date
+  revisionLabel String?   @map("revision_label")
+  retrievedAt   DateTime  @map("retrieved_at") @db.Timestamptz(6)
+
+  /// What numbers in THIS document are, absent a per-fact override. A supplier
+  /// TDS that says "typical values" sets it once here rather than on every fact.
+  defaultResultBasis ResultBasis @default(UNSPECIFIED) @map("default_result_basis")
+
+  /// The later revision that replaces this one. RESTRICT: a superseding document
+  /// cannot be deleted while it is still the forward pointer of an older one.
+  supersededById String? @map("superseded_by_id") @db.Uuid
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  sourceAsset  SourceAsset?     @relation(fields: [sourceAssetId], references: [id], onDelete: Restrict)
+  supersededBy SourceDocument?  @relation("SourceDocumentSupersession", fields: [supersededById], references: [id], onDelete: Restrict)
+  supersedes   SourceDocument[] @relation("SourceDocumentSupersession")
+  importRuns   ImportRun[]
+  facts        SourceFact[]
+
+  @@unique([locatorType, locatorValue, sourceAssetId])
+  @@index([sourceAssetId])
+  @@index([supersededById])
+  @@map("source_documents")
+}
+
+/// One execution of an importer. Every SourceFact names the run that produced
+/// it, so a bad extraction is identifiable and reversible as a set rather than
+/// row by row.
+///
+/// `sourceDocumentId` is nullable: a run over several documents belongs to none
+/// of them in particular.
+model ImportRun {
+  id               String  @id @default(uuid()) @db.Uuid
+  sourceDocumentId String? @map("source_document_id") @db.Uuid
+
+  /// What produced the facts, precisely enough to reproduce them.
+  importerVersion String    @map("importer_version")
+  startedAt       DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt      DateTime? @map("finished_at") @db.Timestamptz(6)
+  note            String?
+
+  sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict)
+  facts          SourceFact[]
+
+  @@index([sourceDocumentId])
+  @@map("import_runs")
+}
+
+/// One raw fact exactly as the source stated it — IMMUTABLE after insert,
+/// enforced by a BEFORE UPDATE trigger in the migration, not by convention.
+///
+/// This is the bottom of the evidence chain. A normalized `Specification` can be
+/// corrected; what the source SAID cannot, because a rewritable record of what a
+/// document claimed is not evidence of anything. Corrections are new rows plus a
+/// SUPERSEDED evidence role, never an UPDATE.
+///
+/// Every `raw*` column is verbatim text, deliberately unparsed: interpretation
+/// happens on the way to `Specification`, and keeping the original means a
+/// mis-interpretation is always recoverable.
+model SourceFact {
+  id               String @id @default(uuid()) @db.Uuid
+  sourceDocumentId String @map("source_document_id") @db.Uuid
+  importRunId      String @map("import_run_id") @db.Uuid
+
+  /// Where in the document. Whichever of these the medium has.
+  pageNumber  Int?    @map("page_number")
+  sheetName   String? @map("sheet_name")
+  rowNumber   Int?    @map("row_number")
+  columnLabel String? @map("column_label")
+
+  /// Verbatim, unparsed source text.
+  rawProperty String? @map("raw_property")
+  rawUnit     String? @map("raw_unit")
+  rawValue    String  @map("raw_value")
+  rawMethod   String? @map("raw_method")
+  rawGrade    String? @map("raw_grade")
+
+  extractionMethod   ExtractionMethod         @map("extraction_method")
+  unitClassification SourceUnitClassification @map("unit_classification")
+
+  /// Overrides the document's `defaultResultBasis` for this fact alone, when the
+  /// source says something different in one place.
+  resultBasisOverride ResultBasis? @map("result_basis_override")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  sourceDocument     SourceDocument          @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict)
+  importRun          ImportRun               @relation(fields: [importRunId], references: [id], onDelete: Restrict)
+  specificationLinks SpecificationEvidence[]
+  claimLinks         ClaimEvidence[]
+
+  @@index([sourceDocumentId])
+  @@index([importRunId])
+  @@map("source_facts")
+}
+
+/// Which SourceFacts support which Specification — many-to-many, in both
+/// directions, because both directions genuinely occur: two documents can
+/// corroborate one normalized value, and one workbook cell can be the evidence
+/// for a value AND for the grade it belongs to.
+///
+/// Both foreign keys RESTRICT. Deleting a Specification or a SourceFact that
+/// participates in an evidence link is refused outright — this row IS the audit
+/// history, and a cascade here would erase the reason an approval was given.
+model SpecificationEvidence {
+  specificationId String       @map("specification_id") @db.Uuid
+  sourceFactId    String       @map("source_fact_id") @db.Uuid
+  role            EvidenceRole
+  note            String?
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  specification Specification @relation(fields: [specificationId], references: [id], onDelete: Restrict)
+  sourceFact    SourceFact    @relation(fields: [sourceFactId], references: [id], onDelete: Restrict)
+
+  @@id([specificationId, sourceFactId])
+  @@index([sourceFactId])
+  @@map("specification_evidence")
+}
+
+/// The ProductClaim counterpart of SpecificationEvidence, with the same
+/// cardinality and the same RESTRICT rules.
+model ClaimEvidence {
+  productClaimId String       @map("product_claim_id") @db.Uuid
+  sourceFactId   String       @map("source_fact_id") @db.Uuid
+  role           EvidenceRole
+  note           String?
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  productClaim ProductClaim @relation(fields: [productClaimId], references: [id], onDelete: Restrict)
+  sourceFact   SourceFact   @relation(fields: [sourceFactId], references: [id], onDelete: Restrict)
+
+  @@id([productClaimId, sourceFactId])
+  @@index([sourceFactId])
+  @@map("claim_evidence")
+}
+
+/// A proposed correspondence between a raw source property string and a
+/// `SpecProperty` key.
+///
+/// This table exists so that uncertain mappings have somewhere to live that is
+/// NOT the dictionary. `confidence` records how good the guess is and
+/// `reviewStatus` records whether anyone has agreed with it; a MEDIUM or LOW row
+/// sitting here at SOURCE_RECORDED is explicitly not approved domain truth, and
+/// nothing may read it as such.
+///
+/// `specPropertyKey` is nullable: "we saw this property and have no mapping for
+/// it" is a result worth recording, and the unresolved list the importer must
+/// report is exactly the set of rows where it is NULL.
+model SpecPropertyMapping {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// The source's own wording, verbatim.
+  rawProperty String  @map("raw_property")
+  /// The source's own unit, verbatim, where the same wording maps differently
+  /// depending on it.
+  rawUnit     String? @map("raw_unit")
+
+  specPropertyKey String? @map("spec_property_key")
+
+  confidence   MappingConfidence
+  reviewStatus TechnicalReviewStatus @default(SOURCE_RECORDED) @map("review_status")
+  note         String?
+  createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  specProperty SpecProperty? @relation(fields: [specPropertyKey], references: [key], onDelete: Restrict)
+
+  @@unique([rawProperty, rawUnit])
+  @@index([specPropertyKey])
+  @@index([reviewStatus])
+  @@map("spec_property_mappings")
+}
+
+/// One recorded SAM technical review decision — the only thing that can make a
+/// technical fact public.
+///
+/// ── Exactly one subject ─────────────────────────────────────────────────────
+///
+/// A review is OF a Specification or OF a ProductClaim, never both and never
+/// neither. Enforced by the `technical_reviews_exactly_one_target` CHECK, not by
+/// a service: a review with two subjects, or none, is not a review.
+///
+/// Both subject foreign keys RESTRICT, so a reviewed row cannot be deleted out
+/// from under its own review history.
+///
+/// ── The evidence-set hash, and why approval expires ─────────────────────────
+///
+/// `evidenceSetHash` is the fingerprint of exactly what the reviewer looked at.
+/// It is computed by the database functions the migration installs
+/// (`specification_evidence_set_hash`, `product_claim_evidence_set_hash`), and
+/// its definition is deterministic and fixed:
+///
+///   1. take every evidence link for the subject
+///   2. for each, the SourceFact id and the SHA-256 of the SourceAsset behind
+///      that fact's SourceDocument (empty string where no asset was captured)
+///   3. render one line per link as `<sourceFactId>:<sha256>`
+///   4. sort those lines by byte value, ascending — so the hash does not depend
+///      on insertion order
+///   5. join with newline, encode UTF-8, SHA-256, lowercase hex
+///
+/// Recomputing it later and finding a different value means the evidence changed
+/// after the approval, and the approval therefore no longer describes the facts
+/// in front of it. ENFORCING that — refusing to serve, or resetting the status —
+/// is review-service behaviour and belongs to the later API/admin gate. This
+/// gate installs the schema and the functions that make it computable.
+///
+/// ── Reviewer identity ───────────────────────────────────────────────────────
+///
+/// `reviewerId` is ON DELETE SET NULL, matching `StatusHistory.changedById`, and
+/// `reviewerEmailSnapshot` is NOT NULL. ADR-012 makes deleting a User this
+/// platform's strongest credential revocation, so a RESTRICT here would make an
+/// approved specification block an off-boarding. The snapshot is what keeps the
+/// record true afterwards: the FK goes, the name does not.
+model TechnicalReview {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Exactly one of these two is set. See the CHECK.
+  specificationId String? @map("specification_id") @db.Uuid
+  productClaimId  String? @map("product_claim_id") @db.Uuid
+
+  reviewerId            String? @map("reviewer_id") @db.Uuid
+  /// Who decided, captured at write time and never updated. NOT NULL: a review
+  /// that names nobody is not accountable, and deleting the user must not be
+  /// able to produce one.
+  reviewerEmailSnapshot String  @map("reviewer_email_snapshot")
+
+  reviewedAt DateTime                @default(now()) @map("reviewed_at") @db.Timestamptz(6)
+  decision   TechnicalReviewDecision
+  note       String?
+
+  /// The deterministic fingerprint of the reviewed evidence set — 64 lowercase
+  /// hex characters. See the model comment for the exact definition.
+  evidenceSetHash String @map("evidence_set_hash")
+
+  specification Specification? @relation(fields: [specificationId], references: [id], onDelete: Restrict)
+  productClaim  ProductClaim?  @relation(fields: [productClaimId], references: [id], onDelete: Restrict)
+  reviewer      User?          @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([specificationId])
+  @@index([productClaimId])
+  @@index([reviewerId])
+  @@index([reviewedAt])
+  @@map("technical_reviews")
 }

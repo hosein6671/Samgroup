@@ -17,8 +17,9 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-011](./ADR-011-products-slug-namespace-enforcement.md)          | A shared, database-maintained slug claim registry enforces that namespace; ADR-010 §6's mechanism deferral is closed                      | Accepted |
 | [ADR-012](./ADR-012-application-session-and-account-status.md)       | Refresh sessions in `sam_platform` with rotation; `active`/`disabled` account status; `apps/web` owns the browser cookie                  | Accepted |
 | [ADR-013](./ADR-013-lead-assignment-and-status-workflow.md)          | Lead assignment and status workflow                                                                                                       | Accepted | 20 August 2026 |
+| [ADR-014](./ADR-014-catalog-technical-data-and-provenance.md)        | Catalog technical data: Grades, normalized Specifications, immutable provenance and approval-gated publication                            | Accepted |
 
-These twelve, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+These fourteen, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 
