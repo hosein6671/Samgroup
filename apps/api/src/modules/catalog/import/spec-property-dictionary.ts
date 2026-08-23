@@ -850,7 +850,7 @@ export const ELEMENT_CONTENT_LABELS: readonly string[] = [
 ];
 
 function mappingLookupKey(rawProperty: string, rawUnit: string | null): string {
-  return `${rawProperty.replace(/\s+/g, " ").trim().toLowerCase()} ${(rawUnit ?? "").trim().toLowerCase()}`;
+  return `${rawProperty.replace(/\s+/g, " ").trim().toLowerCase()}\u0000${(rawUnit ?? "").trim().toLowerCase()}`;
 }
 
 const MAPPINGS_BY_LABEL_AND_UNIT = new Map<string, SpecPropertyMappingSeed>();

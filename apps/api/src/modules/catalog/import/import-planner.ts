@@ -795,7 +795,7 @@ export function sourceFactKey(fact: PlannedSourceFact): string {
     fact.rawValue,
     fact.rawMethod ?? "",
     fact.rawGrade ?? "",
-  ].join(" ");
+  ].join("\u0000");
 }
 
 function distinctSourceFacts(products: readonly PlannedProduct[]): number {
