@@ -127,7 +127,13 @@ VALUES ('dddddddd-0000-4000-8000-0000000000aa','td-probe-reviewer@example.invali
 
 INSERT INTO "spec_properties" ("key","canonical_meaning","quantity","value_kind","allowed_units","method_requirement")
 VALUES ('td_probe_viscosity_40c','Kinematic viscosity at 40 C','kinematic_viscosity','numeric','{"mm2/s"}','required'),
-       ('td_probe_appearance','Visual appearance','appearance','textual','{}','not_applicable');
+       ('td_probe_appearance','Visual appearance','appearance','textual','{}','not_applicable'),
+       -- One key per value shape. `specifications_import_identity_key` allows one live
+       -- Specification per (product, grade, property), so a probe that reused a single key
+       -- for several shapes would be testing that index rather than the value-shape CHECK.
+       ('td_probe_pair','Foaming sequence pair','volume_ratio','numeric','{}','optional'),
+       ('td_probe_report','Reported without a value','appearance','textual','{}','not_applicable'),
+       ('td_probe_limitation','Approval-limitation probe','kinematic_viscosity','numeric','{}','optional');
 
 -- 2 + 3. Grades exist only where the source states them. The zero-grade Product
 -- gets NO grade row at all — absence is the representation, not a placeholder.
@@ -237,7 +243,7 @@ SELECT pg_temp.expect_rejected(
   '5. a property_key outside the dictionary is rejected');
 SELECT pg_temp.expect_accepted(
   $q$INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","pair_first","pair_second")
-     VALUES ('ffffffff-0000-4000-8000-00000000010b','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_viscosity_40c','12/40','pair',12,40)$q$,
+     VALUES ('ffffffff-0000-4000-8000-00000000010b','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_pair','12/40','pair',12,40)$q$,
   '5. a well-formed PAIR is accepted');
 SELECT pg_temp.expect_accepted(
   $q$INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type")
@@ -245,7 +251,7 @@ SELECT pg_temp.expect_accepted(
   '5. a well-formed TEXT value is accepted');
 SELECT pg_temp.expect_accepted(
   $q$INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type")
-     VALUES ('ffffffff-0000-4000-8000-00000000010d','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_appearance','Report','report_only')$q$,
+     VALUES ('ffffffff-0000-4000-8000-00000000010d','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_report','Report','report_only')$q$,
   '5. a well-formed REPORT_ONLY value is accepted');
 
 -- ── Provenance fixture ────────────────────────────────────────────────────
@@ -818,7 +824,7 @@ SELECT pg_temp.verdict(
 -- This asserts the LIMITATION, so that the day someone implements the review
 -- service and closes it, this test fails and forces the docs to be updated.
 INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
-VALUES ('ffffffff-0000-4000-8000-000000000301','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_viscosity_40c','7','point',7);
+VALUES ('ffffffff-0000-4000-8000-000000000301','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_limitation','7','point',7);
 SELECT pg_temp.expect_accepted(
   $q$UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000301'$q$,
   '23. LIMITATION: approval can be set with no TechnicalReview');
@@ -834,6 +840,363 @@ SELECT pg_temp.verdict(
   '23. the limitation is recorded as a database COMMENT',
   'documented in-schema');
 
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 24. PRODUCT-DATA-2C-B1: persistent catalog identity and import idempotency
+--     Migration 20260823120000_add_catalog_import_identity (ADR-015).
+--
+--     These were run ad hoc when the migration was written. They live here now
+--     because a protection that is only ever checked once is a protection that
+--     silently lapses. Every probe below is transaction-scoped like the rest of
+--     this script and leaves the database exactly as it found it.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── 24a. products.source_ref — shape, nullability, uniqueness ──────────────
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM information_schema.columns
+    WHERE table_name='products' AND column_name='source_ref'),
+  '24. products.source_ref exists',
+  (SELECT coalesce(string_agg(column_name,','),'MISSING') FROM information_schema.columns
+    WHERE table_name='products' AND column_name='source_ref'));
+
+SELECT pg_temp.verdict(
+  (SELECT data_type='character varying' AND character_maximum_length=64
+     FROM information_schema.columns
+    WHERE table_name='products' AND column_name='source_ref'),
+  '24. source_ref is varchar(64)',
+  (SELECT data_type||'('||coalesce(character_maximum_length::text,'?')||')'
+     FROM information_schema.columns
+    WHERE table_name='products' AND column_name='source_ref'));
+
+SELECT pg_temp.verdict(
+  (SELECT is_nullable='YES' FROM information_schema.columns
+    WHERE table_name='products' AND column_name='source_ref'),
+  '24. source_ref is nullable, so non-catalog Products need none',
+  (SELECT is_nullable FROM information_schema.columns
+    WHERE table_name='products' AND column_name='source_ref'));
+
+-- Three fresh Products, all NULL: proves multiple NULLs coexist under the unique index.
+INSERT INTO "products" ("id","name","slug","category_id")
+VALUES ('5cee0000-0000-4000-8000-000000000001','SR Probe A','sr-probe-a','dddddddd-0000-4000-8000-00000000000f'),
+       ('5cee0000-0000-4000-8000-000000000002','SR Probe B','sr-probe-b','dddddddd-0000-4000-8000-00000000000f'),
+       ('5cee0000-0000-4000-8000-000000000003','SR Probe C','sr-probe-c','dddddddd-0000-4000-8000-00000000000f');
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 3 FROM "products"
+    WHERE "id"::text LIKE '5cee0000%' AND "source_ref" IS NULL),
+  '24. multiple NULL source_ref values coexist',
+  (SELECT count(*)::text FROM "products" WHERE "id"::text LIKE '5cee0000%' AND "source_ref" IS NULL));
+
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "products" SET "source_ref"='SAMCAT-W1-R003'
+      WHERE "id"='5cee0000-0000-4000-8000-000000000001'$q$,
+  '24. a ratified source_ref can be assigned once');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"='SAMCAT-W1-R003'
+      WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
+  '24. a DUPLICATE non-null source_ref is rejected');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"='' WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
+  '24. a BLANK source_ref is rejected');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"='   ' WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
+  '24. a WHITESPACE-ONLY source_ref is rejected');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"=' SAMCAT-W1-R006 '
+      WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
+  '24. an UNTRIMMED source_ref is rejected');
+
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "products" SET "source_ref"=repeat('X',64)
+      WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
+  '24. a 64-character source_ref is accepted at the boundary');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"=repeat('X',65)
+      WHERE "id"='5cee0000-0000-4000-8000-000000000003'$q$,
+  '24. an OVER-LENGTH source_ref is rejected');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"='SAMCAT-W1-R999'
+      WHERE "id"='5cee0000-0000-4000-8000-000000000001'$q$,
+  '24. CHANGING a non-null source_ref is rejected');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "products" SET "source_ref"=NULL
+      WHERE "id"='5cee0000-0000-4000-8000-000000000001'$q$,
+  '24. CLEARING a non-null source_ref is rejected');
+
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "products" SET "name"='SR Probe A renamed'
+      WHERE "id"='5cee0000-0000-4000-8000-000000000001'$q$,
+  '24. an unrelated Product UPDATE is still permitted');
+
+SELECT pg_temp.verdict(
+  (SELECT "source_ref"='SAMCAT-W1-R003' FROM "products"
+    WHERE "id"='5cee0000-0000-4000-8000-000000000001'),
+  '24. the identity survived the unrelated update unchanged',
+  (SELECT coalesce("source_ref",'NULL') FROM "products"
+    WHERE "id"='5cee0000-0000-4000-8000-000000000001'));
+
+-- Vacuously true on a fresh replay database, and the real assertion on live DEV
+-- and on a restored backup: no demo Product ever carries a ratified identity.
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM "products"
+    WHERE "slug" LIKE 'sam-demo-%' AND "source_ref" IS NOT NULL),
+  '24. every sam-demo- Product has a NULL source_ref',
+  (SELECT count(*)::text FROM "products" WHERE "slug" LIKE 'sam-demo-%' AND "source_ref" IS NOT NULL));
+
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM information_schema.columns
+    WHERE table_name IN ('v_specification_public','v_product_claim_public')
+      AND column_name IN ('source_ref','claim_identity_hash','manifest_hash')),
+  '24. no internal identity column is exposed by either public view',
+  (SELECT coalesce(string_agg(table_name||'.'||column_name,','),'none')
+     FROM information_schema.columns
+    WHERE table_name IN ('v_specification_public','v_product_claim_public')
+      AND column_name IN ('source_ref','claim_identity_hash','manifest_hash')));
+
+-- ── 24b. Specification import identity ─────────────────────────────────────
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM pg_class WHERE relname='specifications_import_identity_key'),
+  '24. specifications_import_identity_key exists',
+  (SELECT coalesce(string_agg(relname,','),'MISSING') FROM pg_class
+    WHERE relname='specifications_import_identity_key'));
+
+SELECT pg_temp.verdict(
+  (SELECT i.indisunique FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
+    WHERE c.relname='specifications_import_identity_key'),
+  '24. it is UNIQUE',
+  'indisunique');
+
+SELECT pg_temp.verdict(
+  (SELECT i.indnullsnotdistinct FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
+    WHERE c.relname='specifications_import_identity_key'),
+  '24. it uses NULLS NOT DISTINCT, so a NULL grade still collides',
+  'indnullsnotdistinct');
+
+SELECT pg_temp.verdict(
+  (SELECT pg_get_indexdef(c.oid) LIKE '%WHERE (deleted_at IS NULL)%' FROM pg_class c
+    WHERE c.relname='specifications_import_identity_key'),
+  '24. it applies to LIVE rows only (deleted_at IS NULL)',
+  (SELECT substring(pg_get_indexdef(c.oid) FROM 'WHERE.*$') FROM pg_class c
+    WHERE c.relname='specifications_import_identity_key'));
+
+INSERT INTO "spec_properties" ("key","canonical_meaning","quantity","value_kind","allowed_units","method_requirement")
+VALUES ('sr_probe_prop','Identity probe property','kinematic_viscosity','numeric','{"mm2/s"}','optional');
+
+INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
+VALUES ('5cee1111-0000-4000-8000-000000000001','dddddddd-0000-4000-8000-000000000001','k','v','sr_probe_prop','1.0','point',1.0);
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
+     VALUES ('5cee1111-0000-4000-8000-000000000002','dddddddd-0000-4000-8000-000000000001','k','v','sr_probe_prop','2.0','point',2.0)$q$,
+  '24. a duplicate PRODUCT-level (product, NULL grade, property) is rejected');
+
+INSERT INTO "specifications" ("id","product_id","product_grade_id","key","value","property_key","display_value","value_type","numeric_min")
+VALUES ('5cee1111-0000-4000-8000-000000000003','dddddddd-0000-4000-8000-000000000002','eeeeeeee-0000-4000-8000-000000000001','k','v','sr_probe_prop','3.0','point',3.0);
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "specifications" ("id","product_id","product_grade_id","key","value","property_key","display_value","value_type","numeric_min")
+     VALUES ('5cee1111-0000-4000-8000-000000000004','dddddddd-0000-4000-8000-000000000002','eeeeeeee-0000-4000-8000-000000000001','k','v','sr_probe_prop','4.0','point',4.0)$q$,
+  '24. a duplicate GRADE-level (product, grade, property) is rejected');
+
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
+     VALUES ('5cee1111-0000-4000-8000-000000000005','dddddddd-0000-4000-8000-000000000003','k','v','sr_probe_prop','5.0','point',5.0)$q$,
+  '24. the same property on a DIFFERENT product is still accepted');
+
+UPDATE "specifications" SET "deleted_at"=now() WHERE "id"='5cee1111-0000-4000-8000-000000000001';
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
+     VALUES ('5cee1111-0000-4000-8000-000000000006','dddddddd-0000-4000-8000-000000000001','k','v','sr_probe_prop','6.0','point',6.0)$q$,
+  '24. retiring a Specification frees the identity for its replacement');
+
+-- ── 24c. SourceFact evidence identity and immutability ─────────────────────
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM pg_class WHERE relname='source_facts_evidence_identity_key'),
+  '24. source_facts_evidence_identity_key exists',
+  (SELECT coalesce(string_agg(relname,','),'MISSING') FROM pg_class
+    WHERE relname='source_facts_evidence_identity_key'));
+
+SELECT pg_temp.verdict(
+  (SELECT string_agg(a.attname, ',' ORDER BY k.ord) =
+          'source_document_id,page_number,sheet_name,row_number,column_label,raw_property,raw_unit,raw_value,raw_method,raw_grade'
+     FROM pg_index i
+     JOIN pg_class c ON c.oid=i.indexrelid
+     CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ord)
+     JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum
+    WHERE c.relname='source_facts_evidence_identity_key'),
+  '24. its identity columns are exactly the ten verbatim reading columns, in order',
+  (SELECT string_agg(a.attname, ',' ORDER BY k.ord)
+     FROM pg_index i
+     JOIN pg_class c ON c.oid=i.indexrelid
+     CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ord)
+     JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum
+    WHERE c.relname='source_facts_evidence_identity_key'));
+
+SELECT pg_temp.verdict(
+  (SELECT i.indnullsnotdistinct FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
+    WHERE c.relname='source_facts_evidence_identity_key'),
+  '24. the evidence identity uses NULLS NOT DISTINCT',
+  'indnullsnotdistinct');
+
+SELECT pg_temp.verdict(
+  (SELECT NOT bool_or(a.attname = 'import_run_id')
+     FROM pg_index i
+     JOIN pg_class c ON c.oid=i.indexrelid
+     CROSS JOIN LATERAL unnest(i.indkey) AS k(attnum)
+     JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum
+    WHERE c.relname='source_facts_evidence_identity_key'),
+  '24. import_run_id is NOT part of the evidence identity, so a replay converges',
+  'absent');
+
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "source_facts" ("id","source_document_id","import_run_id","sheet_name","row_number","column_label","raw_property","raw_unit","raw_value","raw_method","raw_grade","extraction_method","unit_classification")
+     VALUES ('5cee2222-0000-4000-8000-000000000001','d0c00000-0000-4000-8000-000000000002','4a110000-0000-4000-8000-000000000001','Products',7,'D','Viscosity @40C','mm2/s','12.5','ASTM D445','SAE 40','spreadsheet_cell','stated')$q$,
+  '24. re-reading the SAME evidence does not create a second SourceFact');
+
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "source_facts" ("id","source_document_id","import_run_id","sheet_name","row_number","column_label","raw_property","raw_unit","raw_value","raw_method","raw_grade","extraction_method","unit_classification")
+     VALUES ('5cee2222-0000-4000-8000-000000000002','d0c00000-0000-4000-8000-000000000002','4a110000-0000-4000-8000-000000000001','Products',7,'D','Viscosity @40C','mm2/s','99.9','ASTM D445','SAE 40','spreadsheet_cell','stated')$q$,
+  '24. a CORRECTED reading is a new SourceFact revision, not an edit');
+
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "source_facts" SET "raw_value"='tampered'
+      WHERE "id"='fac70000-0000-4000-8000-000000000001'$q$,
+  '24. UPDATE of a SourceFact is still refused');
+
+SELECT pg_temp.expect_rejected(
+  $q$DELETE FROM "source_facts" WHERE "id"='fac70000-0000-4000-8000-000000000001'$q$,
+  '24. DELETE of a SourceFact is still refused');
+
+-- ── 24d. ProductClaim identity ─────────────────────────────────────────────
+SELECT pg_temp.verdict(
+  (SELECT data_type='character' AND character_maximum_length=64
+     FROM information_schema.columns
+    WHERE table_name='product_claims' AND column_name='claim_identity_hash'),
+  '24. product_claims.claim_identity_hash is char(64)',
+  (SELECT coalesce(data_type||'('||coalesce(character_maximum_length::text,'?')||')','MISSING')
+     FROM information_schema.columns
+    WHERE table_name='product_claims' AND column_name='claim_identity_hash'));
+
+SELECT pg_temp.verdict(
+  (SELECT is_nullable='YES' FROM information_schema.columns
+    WHERE table_name='product_claims' AND column_name='claim_identity_hash'),
+  '24. it is nullable by design, for claims the importer did not create',
+  (SELECT is_nullable FROM information_schema.columns
+    WHERE table_name='product_claims' AND column_name='claim_identity_hash'));
+
+SELECT pg_temp.verdict(
+  (SELECT col_description('product_claims'::regclass,
+            (SELECT attnum FROM pg_attribute
+              WHERE attrelid='product_claims'::regclass AND attname='claim_identity_hash'))
+          LIKE '%IDENTITY%'),
+  '24. the column documents that it is an identity, not an evidence link',
+  'documented in-schema');
+
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "product_claims" ("id","product_id","kind","claim_identity_hash")
+     VALUES ('5cee3333-0000-4000-8000-000000000009','dddddddd-0000-4000-8000-000000000001','suitable_for','NOT-A-HASH')$q$,
+  '24. a malformed claim_identity_hash is rejected by CHECK');
+
+SELECT pg_temp.verdict(
+  (SELECT string_agg(a.attname, ',' ORDER BY k.ord) =
+          'product_id,product_grade_id,kind,standard_body,standard_code,claim_identity_hash'
+     FROM pg_index i
+     JOIN pg_class c ON c.oid=i.indexrelid
+     CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ord)
+     JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum
+    WHERE c.relname='product_claims_import_identity_key'),
+  '24. the claim identity index carries exactly the intended columns',
+  (SELECT coalesce(string_agg(a.attname, ',' ORDER BY k.ord),'MISSING')
+     FROM pg_index i
+     JOIN pg_class c ON c.oid=i.indexrelid
+     CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY AS k(attnum, ord)
+     JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum
+    WHERE c.relname='product_claims_import_identity_key'));
+
+-- Two suitabilities that differ ONLY by statement: the case the columns alone lose.
+INSERT INTO "product_claims" ("id","product_id","kind","claim_identity_hash")
+VALUES ('5cee3333-0000-4000-8000-000000000001','dddddddd-0000-4000-8000-000000000001','suitable_for',repeat('a',64));
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "product_claims" ("id","product_id","kind","claim_identity_hash")
+     VALUES ('5cee3333-0000-4000-8000-000000000002','dddddddd-0000-4000-8000-000000000001','suitable_for',repeat('b',64))$q$,
+  '24. two SUITABLE_FOR claims with different statements both survive');
+
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "product_claims" ("id","product_id","kind","claim_identity_hash")
+     VALUES ('5cee3333-0000-4000-8000-000000000003','dddddddd-0000-4000-8000-000000000001','suitable_for',repeat('a',64))$q$,
+  '24. the SAME claim identity twice is rejected');
+
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "product_claims" ("id","product_id","kind","claim_identity_hash")
+     VALUES ('5cee3333-0000-4000-8000-000000000004','dddddddd-0000-4000-8000-000000000001','recommended_for',NULL)$q$,
+  '24. a NULL claim_identity_hash is still accepted for a non-imported claim');
+
+-- ── 24e. ImportRun application identity ────────────────────────────────────
+SELECT pg_temp.verdict(
+  (SELECT data_type='character' AND character_maximum_length=64
+     FROM information_schema.columns
+    WHERE table_name='import_runs' AND column_name='manifest_hash'),
+  '24. import_runs.manifest_hash is char(64)',
+  (SELECT coalesce(data_type||'('||coalesce(character_maximum_length::text,'?')||')','MISSING')
+     FROM information_schema.columns
+    WHERE table_name='import_runs' AND column_name='manifest_hash'));
+
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "import_runs" ("id","importer_version","manifest_hash")
+     VALUES ('5cee4444-0000-4000-8000-000000000009','probe-0.0.0','NOT-A-HASH')$q$,
+  '24. a malformed manifest_hash is rejected by CHECK');
+
+INSERT INTO "import_runs" ("id","importer_version","manifest_hash","finished_at")
+VALUES ('5cee4444-0000-4000-8000-000000000001','probe-0.0.0',repeat('c',64),now());
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "import_runs" ("id","importer_version","manifest_hash","finished_at")
+     VALUES ('5cee4444-0000-4000-8000-000000000002','probe-0.0.0',repeat('c',64),now())$q$,
+  '24. the same manifest cannot be recorded as applied twice');
+
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "import_runs" ("id","importer_version","manifest_hash")
+     VALUES ('5cee4444-0000-4000-8000-000000000003','probe-0.0.0',repeat('c',64))$q$,
+  '24. an UNFINISHED run with that manifest is still allowed, so a retry stays possible');
+
+SELECT pg_temp.verdict(
+  (SELECT pg_get_indexdef(c.oid) LIKE '%finished_at IS NOT NULL%' FROM pg_class c
+    WHERE c.relname='import_runs_applied_manifest_key'),
+  '24. the manifest identity applies to FINISHED runs only',
+  (SELECT substring(pg_get_indexdef(c.oid) FROM 'WHERE.*$') FROM pg_class c
+    WHERE c.relname='import_runs_applied_manifest_key'));
+
+-- ── 24f. ADR-011 regression, with source_ref present ───────────────────────
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 3 FROM "product_slug_claims"
+    WHERE "slug" IN ('sr-probe-a','sr-probe-b','sr-probe-c')),
+  '24. inserting a Product still CLAIMS its slug by trigger',
+  (SELECT count(*)::text FROM "product_slug_claims"
+    WHERE "slug" IN ('sr-probe-a','sr-probe-b','sr-probe-c')));
+
+UPDATE "products" SET "slug"='sr-probe-a-renamed' WHERE "id"='5cee0000-0000-4000-8000-000000000001';
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM "product_slug_claims" WHERE "slug"='sr-probe-a-renamed')
+  AND (SELECT count(*) = 0 FROM "product_slug_claims" WHERE "slug"='sr-probe-a'),
+  '24. renaming a Product releases the old claim and takes the new one',
+  (SELECT coalesce(string_agg("slug",','),'none') FROM "product_slug_claims"
+    WHERE "slug" LIKE 'sr-probe-a%'));
+
+DELETE FROM "products" WHERE "id"='5cee0000-0000-4000-8000-000000000003';
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM "product_slug_claims" WHERE "slug"='sr-probe-c'),
+  '24. deleting a Product releases its trigger-managed slug claim',
+  (SELECT count(*)::text FROM "product_slug_claims" WHERE "slug"='sr-probe-c'));
+
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
+    WHERE c.relname='product_slug_claims' AND NOT t.tgisinternal),
+  '24. product_slug_claims is written only BY triggers, never by one',
+  (SELECT count(*)::text FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
+    WHERE c.relname='product_slug_claims' AND NOT t.tgisinternal));
 ROLLBACK;
 SQL
 )

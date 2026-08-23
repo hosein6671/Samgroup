@@ -518,9 +518,25 @@ model Category {
 }
 
 model Product {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String
-  slug          String   @unique
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+  slug String @unique
+
+  /// The ratified catalog identity this Product was imported under, e.g.
+  /// `SAMCAT-W1-R003`. INTERNAL: never served by a public DTO, the catalog API,
+  /// the sitemap, web or the CMS — asserted by test, not by convention.
+  ///
+  /// Nullable because it is additive over rows that predate it and because a
+  /// Product created outside the catalog import legitimately has none; a
+  /// NOT NULL column would have made the migration impossible and would assert
+  /// that every Product must come from a workbook, which is not true.
+  ///
+  /// Unique when present, so one ratified identity can name at most one row.
+  /// Never derived from slug, name or worksheet row: after ratification the
+  /// string is OPAQUE (ADR-011, PRODUCT-DATA-2C-A), and the database refuses to
+  /// rewrite a non-NULL value to a different one.
+  sourceRef String? @unique @map("source_ref") @db.VarChar(64)
+
   categoryId    String   @map("category_id") @db.Uuid
   /// The PRIMARY Product Type, single-valued in v2 (ADR-007 §4). Nullable in
   /// Phase 1 because no ProductType row is approved yet, and a required
@@ -819,6 +835,21 @@ model ProductClaim {
   sortOrder    Int?                  @map("sort_order")
   createdAt    DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
   deletedAt    DateTime?             @map("deleted_at") @db.Timestamptz(6)
+
+  /// Stable identity discriminator for an IMPORTED claim: the SHA-256 of the
+  /// evidence identity of the source reading this claim was normalized from.
+  ///
+  /// It exists because the normalized columns cannot tell two real claims apart.
+  /// Three products state two DIFFERENT suitabilities — "Suitable for manual
+  /// gear box" and "Suitable for helical and spiral gear box" — which both
+  /// normalize to `SUITABLE_FOR` with a NULL body, code and note. Without this
+  /// column the two are one row and a genuine claim is lost; with it they are
+  /// two rows and a replay can match each back to its own reading.
+  ///
+  /// It is an IDENTITY, not an evidence link. `ClaimEvidence` remains the only
+  /// statement of which facts support a claim, and a claim may cite many.
+  /// NULL for any claim not created by the importer.
+  claimIdentityHash String? @map("claim_identity_hash") @db.Char(64)
 
   product      Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
   productGrade ProductGrade?     @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
@@ -1612,6 +1643,13 @@ model ImportRun {
   startedAt       DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
   finishedAt      DateTime? @map("finished_at") @db.Timestamptz(6)
   note            String?
+
+  /// The canonical manifest hash this run applied. Unique among FINISHED runs,
+  /// so the same plan cannot be applied twice and be recorded as two successes.
+  /// An abandoned or failed run keeps `finishedAt` NULL and does not consume the
+  /// hash, so a retry after a rollback is still allowed. NULL for a run that
+  /// applied no manifest.
+  manifestHash String? @map("manifest_hash") @db.Char(64)
 
   sourceDocument SourceDocument? @relation(fields: [sourceDocumentId], references: [id], onDelete: Restrict)
   facts          SourceFact[]

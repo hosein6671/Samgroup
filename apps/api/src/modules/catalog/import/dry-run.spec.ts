@@ -4,7 +4,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { WORKBOOK_FIXTURE } from "./__fixtures__/workbook-rows.fixture";
-import { assertDryRunOnly, DryRunRequiredError, main, OFFLINE_DATABASE, parseArgs } from "./cli";
+import {
+  APPLY_EXECUTION_ENABLED,
+  assertDryRunOnly,
+  DryRunRequiredError,
+  main,
+  OFFLINE_DATABASE,
+  parseArgs,
+} from "./cli";
 import { DryRunWroteDataError, renderSummary, runDryRun, WATCHED_TABLES } from "./dry-run";
 import { buildImportPlan } from "./import-planner";
 import { buildManifest } from "./manifest";
@@ -42,6 +49,10 @@ function stubDatabase(
     listProductSourceRefs() {
       calls.push("listProductSourceRefs");
       return Promise.resolve(new Set(sourceRefs));
+    },
+    databaseName() {
+      calls.push("databaseName");
+      return Promise.resolve("test_db");
     },
   };
 }
@@ -87,6 +98,7 @@ describe("the dry run writes nothing", () => {
       },
       listSlugKeys: () => Promise.resolve(new Set<string>()),
       listProductSourceRefs: () => Promise.resolve(new Set<string>()),
+      databaseName: () => Promise.resolve("test_db"),
     };
     await expect(
       runDryRun(drifting, (keys) => buildImportPlan({ ...PLAN_INPUT, existingSlugKeys: keys })),
@@ -145,9 +157,10 @@ describe("the command line refuses anything but a dry run", () => {
     expect(() => assertDryRunOnly(["--dry-run"])).not.toThrow();
   });
 
-  it("refuses every argument that would mean write", () => {
+  it("refuses every argument that would SHORTCUT the apply confirmation contract", () => {
+    // `--apply` itself is a real mode now (see below). What stays forbidden is anything that
+    // would let somebody past the nine confirmations without answering them.
     for (const arg of [
-      "--apply",
       "--commit",
       "--write",
       "--execute",
@@ -161,6 +174,14 @@ describe("the command line refuses anything but a dry run", () => {
     }
   });
 
+  it("treats --apply as a mode, not a shortcut, and refuses to combine it with --dry-run", () => {
+    expect(() => assertDryRunOnly(["--apply"])).not.toThrow();
+    expect(() => assertDryRunOnly(["--dry-run", "--apply"])).toThrow(/mutually exclusive/);
+    // Still no way to pair it with a shortcut.
+    expect(() => assertDryRunOnly(["--apply", "--force"])).toThrow(DryRunRequiredError);
+    expect(() => assertDryRunOnly(["--apply", "--yes"])).toThrow(DryRunRequiredError);
+  });
+
   it("refuses every argument that would mean approve", () => {
     for (const arg of ["--approve", "--approved", "--review-status=APPROVED"]) {
       expect(() => assertDryRunOnly(["--dry-run", arg])).toThrow(DryRunRequiredError);
@@ -168,7 +189,19 @@ describe("the command line refuses anything but a dry run", () => {
   });
 
   it("refuses a forbidden argument even when --dry-run is also present", () => {
-    expect(() => assertDryRunOnly(["--dry-run", "--apply"])).toThrow(/no apply mode/);
+    expect(() => assertDryRunOnly(["--dry-run", "--force"])).toThrow(/no shortcut/);
+  });
+
+  it("keeps dry run the DEFAULT: a bare invocation writes nothing and demands --dry-run", () => {
+    expect(() => assertDryRunOnly([])).toThrow(/--dry-run is required/);
+    expect(parseArgs(["--dry-run", "--fixture"]).apply).toBe(false);
+    expect(parseArgs(["--apply", "--workbook", "w.xlsx"]).apply).toBe(true);
+  });
+
+  it("does not enable apply execution in this build", () => {
+    // PRODUCT-DATA-2C-B1 builds the machinery; running it is a separate gate. A constant
+    // rather than a flag, so no argument can turn it on.
+    expect(APPLY_EXECUTION_ENABLED).toBe(false);
   });
 
   it("refuses an argument that would mean ratify", () => {
@@ -320,25 +353,48 @@ describe("the importer's own source tree", () => {
     .filter((entry) => entry.endsWith(".ts"))
     .map((entry) => ({ entry, text: readFileSync(join(importDir, entry), "utf8") }));
 
-  it("contains no write to a catalogue table", () => {
-    // Not "an apply mode that is switched off" — no apply code exists to switch on. The
-    // pattern requires a Prisma model receiver so that `createHash(...).update(bytes)` —
+  /**
+   * The apply engine lives in `apply/` and is the ONE place a write may appear. Everything
+   * else — the parser, the planner, the dictionaries, the manifest, the dry run and the CLI's
+   * read surface — must still be incapable of writing, and these two tests are what keeps the
+   * boundary from spreading. A write outside `apply/` is a regression whatever it is for.
+   */
+  const isApplyEngine = (entry: string): boolean => /(^|[\\/])apply[\\/]/.test(entry);
+
+  it("contains no write to a catalogue table outside the apply engine", () => {
+    // The pattern requires a Prisma model receiver so that `createHash(...).update(bytes)` —
     // hashing the workbook — is not mistaken for a database write.
     const writePattern =
       /\b(prisma|client|tx|db)\s*\.\s*\w+\s*\.\s*(create|createMany|update|updateMany|upsert|delete|deleteMany)\b|\$executeRaw/;
     for (const { entry, text } of sources) {
-      if (entry.endsWith(".spec.ts")) continue;
+      if (entry.endsWith(".spec.ts") || isApplyEngine(entry)) continue;
       expect({ entry, writes: writePattern.test(text) }).toEqual({ entry, writes: false });
     }
   });
 
-  it("contains no INSERT, UPDATE or DELETE statement", () => {
+  it("contains no INSERT, UPDATE or DELETE statement outside the apply engine", () => {
     for (const { entry, text } of sources) {
-      if (entry.endsWith(".spec.ts")) continue;
+      if (entry.endsWith(".spec.ts") || isApplyEngine(entry)) continue;
       expect({ entry, sql: /\b(INSERT INTO|UPDATE\s+"|DELETE FROM)\b/.test(text) }).toEqual({
         entry,
         sql: false,
       });
+    }
+  });
+
+  it("keeps every write inside apply/, and none of them touches product_slug_claims", () => {
+    const writers = sources.filter(
+      ({ entry, text }) =>
+        !entry.endsWith(".spec.ts") && /\b(INSERT INTO|UPDATE\s+"|DELETE FROM)\b/.test(text),
+    );
+    // Exactly one writing module today. A second one is not forbidden, but it must be in
+    // apply/ and it must show up here rather than appearing quietly somewhere else.
+    for (const { entry } of writers) expect(isApplyEngine(entry)).toBe(true);
+    for (const { entry, text } of writers) {
+      expect({
+        entry,
+        touchesRegistry: /(INSERT INTO|UPDATE|DELETE FROM)\s+"?product_slug_claims/i.test(text),
+      }).toEqual({ entry, touchesRegistry: false });
     }
   });
 

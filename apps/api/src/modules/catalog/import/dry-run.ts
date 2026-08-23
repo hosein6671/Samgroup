@@ -56,6 +56,8 @@ export interface DryRunDatabase {
   countRows(tables: readonly string[]): Promise<ReadonlyMap<string, number>>;
   /** Current `product_slug_claims.slug_key` values. */
   listSlugKeys(): Promise<ReadonlySet<string>>;
+  /** The database actually connected to, so --apply can refuse an unintended target. */
+  databaseName(): Promise<string>;
   /**
    * The ratified `sourceRef`s the database already holds a Product for, so INSERT and UPDATE
    * are told apart by what is PERSISTED rather than by what the ledger knows.

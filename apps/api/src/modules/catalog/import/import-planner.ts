@@ -229,6 +229,64 @@ interface RowPlanResult {
   readonly unmapped: readonly { rawProperty: string; rawUnit: string; reason: string }[];
 }
 
+/**
+ * Reports two readings that would normalize to the SAME property at the SAME scope.
+ *
+ * `specifications_import_identity_key` allows one live Specification per
+ * (product, grade, property), so a second reading of the same property at the same scope has
+ * nowhere to go. The database refuses it and the apply engine refuses it — but both of those
+ * happen AFTER a reviewer has already approved the plan. Reported here so it is a finding in
+ * the artefact the reviewer actually reads, and so no value is ever quietly chosen between
+ * two readings that measure different conditions or methods.
+ *
+ * A CHILD-level conflict, not a blocking one: the Product row itself is still writable, and
+ * `SPECIFICATION` is deliberately absent from `PRODUCT_BLOCKING_CATEGORIES`.
+ *
+ * Exported so the rule is testable directly. The authoritative workbook contains no such
+ * collision — measured, 1398 of 1398 distinct — so there is no natural case to exercise it on,
+ * and a rule that only ever runs on data that never triggers it is a rule nobody has checked.
+ */
+export function duplicateSpecificationSubjectFlags(
+  technicalFacts: readonly PlannedTechnicalFact[],
+): PlanFlag[] {
+  const subjects = new Map<
+    string,
+    { gradeLabel: string | null; propertyKey: string; count: number }
+  >();
+  for (const fact of technicalFacts) {
+    if (fact.specification === null) continue;
+    const key = `${fact.gradeLabel ?? ""} ${fact.specification.propertyKey}`;
+    const seen = subjects.get(key);
+    if (seen) seen.count++;
+    else {
+      subjects.set(key, {
+        gradeLabel: fact.gradeLabel,
+        propertyKey: fact.specification.propertyKey,
+        count: 1,
+      });
+    }
+  }
+
+  const flags: PlanFlag[] = [];
+  for (const subject of subjects.values()) {
+    if (subject.count < 2) continue;
+    flags.push({
+      code: "SPECIFICATION_SUBJECT_DUPLICATED",
+      severity: "conflict",
+      category: "SPECIFICATION",
+      detail:
+        `${String(subject.count)} readings normalize to the property ` +
+        `"${subject.propertyKey}" at ` +
+        (subject.gradeLabel === null ? "PRODUCT level" : `grade "${subject.gradeLabel}"`) +
+        `. One property carries one normalized value at one scope, so these cannot all be ` +
+        `published. Decide which reading is the specification, or give the readings distinct ` +
+        `approved property identities where they measure different conditions or methods. ` +
+        `Nothing is chosen automatically.`,
+    });
+  }
+  return flags;
+}
+
 function planRow(row: WorkbookProductRow, identity: IdentityAssignment): RowPlanResult {
   const flags: PlanFlag[] = identity.flags.map((flag) => ({ ...flag, category: "IDENTITY" }));
   const unmapped: { rawProperty: string; rawUnit: string; reason: string }[] = [];
@@ -515,6 +573,8 @@ function planRow(row: WorkbookProductRow, identity: IdentityAssignment): RowPlan
       flags: claimFlags,
     });
   }
+
+  flags.push(...duplicateSpecificationSubjectFlags(technicalFacts));
 
   const allFlags: PlanFlag[] = [
     ...flags,

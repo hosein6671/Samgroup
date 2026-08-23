@@ -7,10 +7,15 @@
  * "default to dry run", because a default is something a future edit can change by accident
  * and a required flag is not.
  *
- * There is no apply flag, no `--force`, no `--yes`, no environment variable and no hidden
- * argument that makes this write. `assertDryRunOnly` rejects anything that looks like one by
- * name, so a half-finished apply path cannot be reached from the command line even if
- * somebody adds one later without wiring it up deliberately.
+ * There is one other mode, `--apply`, and it is not a shortcut past this one: it demands nine
+ * separate confirmations (`apply/confirmations.ts`), every one checked against what the
+ * machine actually found. There is still no `--force`, no `--yes`, no environment variable
+ * and no hidden argument, and `assertDryRunOnly` rejects anything that looks like one by name.
+ *
+ * `APPLY_EXECUTION_ENABLED` is FALSE in this build. `--apply` runs the whole contract — the
+ * confirmations, the custody check, the plan, the preflight and the guards — and then stops
+ * where the write transaction would open. PRODUCT-DATA-2C-B1 builds the machinery; running it
+ * is a separate gate.
  *
  * There is likewise no approval flag and no ratification flag. Both are recorded human
  * decisions with an identity attached; a command-line switch is not that.
@@ -36,6 +41,15 @@ import { renderSummary, runDryRun, WATCHED_TABLES } from "./dry-run";
 import { assertRatifiedWorkbookCustody, parseRatifiedLedger } from "./identity-ledger";
 import { buildImportPlan } from "./import-planner";
 import { buildLedger, buildManifest, renderLedgerJson, renderManifestJson } from "./manifest";
+import {
+  allWriteRows,
+  assertNothingApproved,
+  assertPlanApplicable,
+  assertWritePlanIdentitiesDistinct,
+  buildWritePlan,
+} from "./apply/apply-engine";
+import { assertApplyConfirmations, readApplyConfirmations } from "./apply/confirmations";
+import { assertReferenceDataSafe } from "./apply/reference-data";
 import { renderReviewSummary } from "./review-summary";
 import { WORKBOOK_LINEAGE } from "./source-ref";
 import { parseCatalogWorkbook } from "./workbook-parser";
@@ -44,9 +58,14 @@ import type { DryRunDatabase } from "./dry-run";
 import type { LedgerEntry } from "./identity-ledger";
 import type { ParsedWorkbook } from "./workbook-parser";
 
-/** Arguments that would mean "write". Refused by name, whether or not one is implemented. */
+/**
+ * Arguments that would mean "write without being asked properly". Refused by name.
+ *
+ * `--apply` is NOT on this list any more: it is a real mode with a nine-part confirmation
+ * contract (`apply/confirmations.ts`). Every SHORTCUT past that contract still is, and always
+ * must be — a `--force` is precisely the thing the contract exists to make impossible.
+ */
 const FORBIDDEN_ARGS: readonly string[] = [
-  "--apply",
   "--commit",
   "--write",
   "--execute",
@@ -61,6 +80,25 @@ const FORBIDDEN_ARGS: readonly string[] = [
   "--no-dry-run",
 ];
 
+/**
+ * Whether this build may open a write transaction.
+ *
+ * FALSE, and deliberately a constant rather than a flag: PRODUCT-DATA-2C-B1 builds and
+ * verifies the apply machinery and is explicitly not permitted to run it. `--apply` therefore
+ * performs every confirmation, every preflight and every guard — so the contract is real,
+ * reachable and testable end to end — and then stops at the point where the transaction would
+ * open. PRODUCT-DATA-2C-B2 flips this, and flipping it is a reviewed change rather than an
+ * argument somebody can pass.
+ */
+export const APPLY_EXECUTION_ENABLED = false;
+
+export class ApplyNotEnabledError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ApplyNotEnabledError";
+  }
+}
+
 export class DryRunRequiredError extends Error {
   constructor(message: string) {
     super(message);
@@ -72,6 +110,8 @@ export interface CliOptions {
   /** Absolute path to the authoritative workbook, or null when `--fixture` was given. */
   readonly workbookPath: string | null;
   readonly useFixture: boolean;
+  /** True when --apply was given. The confirmation contract is checked separately. */
+  readonly apply: boolean;
   readonly ledgerPath: string | null;
   readonly manifestPath: string | null;
   readonly summaryPath: string | null;
@@ -87,17 +127,26 @@ export function assertDryRunOnly(argv: readonly string[]): void {
     const name = arg.split("=")[0] ?? arg;
     if (FORBIDDEN_ARGS.includes(name)) {
       throw new DryRunRequiredError(
-        `"${name}" is not a supported argument. This importer is dry-run only: there is no ` +
-          `apply mode, no approval flag and no ratification flag, and a persistent catalog ` +
-          `import is a separate gate with its own approval.`,
+        `"${name}" is not a supported argument. It is a shortcut past the apply ` +
+          `confirmation contract, and there is no shortcut: --apply requires all nine ` +
+          `confirmations. There is likewise no approval flag and no ratification flag — both ` +
+          `are recorded human decisions, not command-line switches.`,
       );
     }
+  }
+  if (argv.includes("--apply")) {
+    if (argv.includes("--dry-run")) {
+      throw new DryRunRequiredError(
+        "--dry-run and --apply are mutually exclusive. One run either plans or applies.",
+      );
+    }
+    return;
   }
   if (!argv.includes("--dry-run")) {
     throw new DryRunRequiredError(
       "Refusing to run: --dry-run is required.\n" +
         "  pnpm catalog:import --dry-run --workbook <path to the authoritative workbook>\n" +
-        "There is no other mode. The importer performs no database writes.",
+        "The only other mode is --apply, which requires its full confirmation contract.",
     );
   }
 }
@@ -132,6 +181,7 @@ export function parseArgs(argv: readonly string[]): CliOptions {
   return {
     workbookPath: useFixture || !workbookPath ? null : resolve(workbookPath),
     useFixture,
+    apply: argv.includes("--apply"),
     ledgerPath: read("--ledger"),
     manifestPath: read("--manifest-out"),
     summaryPath: read("--summary-out"),
@@ -158,6 +208,12 @@ export function prismaDryRunDatabase(client: {
         counts.set(table, Number(rows[0]?.count ?? 0));
       }
       return counts;
+    },
+    async databaseName() {
+      const rows = await client.$queryRawUnsafe<{ name: string }[]>(
+        `SELECT current_database() AS name`,
+      );
+      return rows[0]?.name ?? "";
     },
     async listSlugKeys() {
       const rows = await client.$queryRawUnsafe<{ slug_key: string }[]>(
@@ -189,6 +245,8 @@ export const OFFLINE_DATABASE: DryRunDatabase = {
   countRows: (tables) => Promise.resolve(new Map(tables.map((table) => [table, 0]))),
   listSlugKeys: () => Promise.resolve(new Set<string>()),
   listProductSourceRefs: () => Promise.resolve(new Set<string>()),
+  // Never a real database name, so --apply can never match a --target-database against it.
+  databaseName: () => Promise.resolve("(offline)"),
 };
 
 /**
@@ -243,14 +301,23 @@ export async function main(
   log: (line: string) => void = console.log,
 ): Promise<number> {
   const options = parseArgs(argv);
+  const readFlag = (flag: string): string | null => {
+    const index = argv.indexOf(flag);
+    if (index >= 0) return argv[index + 1] ?? null;
+    const inline = argv.find((arg) => arg.startsWith(`${flag}=`));
+    return inline ? inline.slice(flag.length + 1) || null : null;
+  };
   const source = loadWorkbook(options);
 
   // Validated, never repaired: a duplicate reference or an unratified entry is a refusal,
   // and no path here writes the ledger back or promotes a PROPOSED entry to RATIFIED.
   let ledger: readonly LedgerEntry[] = [];
+  let ledgerSha256: string | null = null;
   if (options.ledgerPath) {
     const path = resolve(options.ledgerPath);
-    const ratified = parseRatifiedLedger(readFileSync(path, "utf8"), path);
+    const ledgerText = readFileSync(path, "utf8");
+    ledgerSha256 = createHash("sha256").update(ledgerText, "utf8").digest("hex");
+    const ratified = parseRatifiedLedger(ledgerText, path);
 
     // Custody, checked HERE — before the plan is built and before the database is opened, so
     // a workbook the owner never approved cannot reach a point where a write is conceivable.
@@ -278,6 +345,11 @@ export async function main(
     }
     ledger = ratified.entries;
   }
+  if (options.apply && ledgerSha256 === null) {
+    throw new DryRunRequiredError(
+      "--apply requires --ledger: an apply without a ratified ledger has no identities.",
+    );
+  }
 
   const result = await runDryRun(database, (existingSlugKeys, existingSourceRefs) =>
     buildImportPlan({
@@ -293,6 +365,37 @@ export async function main(
   );
 
   const manifest = buildManifest(result.plan);
+
+  // ── Apply ─────────────────────────────────────────────────────────────────
+  // Every gate, in order, before anything could be written. The plan above was just built
+  // from the same inputs, so the preflight below is checking THIS plan and not a remembered
+  // one. Nothing after this point opens a transaction in this build.
+  if (options.apply) {
+    const confirmations = readApplyConfirmations(readFlag);
+    assertApplyConfirmations(confirmations, {
+      workbookSha256: source.sha256,
+      ledgerSha256: ledgerSha256 ?? "",
+      manifestHash: manifest.manifestHash,
+      databaseName: await database.databaseName(),
+    });
+    assertNothingApproved(result.plan);
+    assertReferenceDataSafe();
+    const mode = assertPlanApplicable(result.plan, await database.listProductSourceRefs());
+    const writePlan = buildWritePlan(result.plan);
+    assertWritePlanIdentitiesDistinct(writePlan);
+
+    log(`APPLY PREFLIGHT               passed (${mode})`);
+    log(`  confirmations               9/9 verified against observed values`);
+    log(`  rows the apply would write  ${String(allWriteRows(writePlan).length)}`);
+    throw new ApplyNotEnabledError(
+      "Every apply confirmation, guard and preflight passed, and execution stops here.\n" +
+        "  APPLY_EXECUTION_ENABLED is false in this build: PRODUCT-DATA-2C-B1 builds and\n" +
+        "  verifies the apply machinery, and running it against a real catalogue is\n" +
+        "  PRODUCT-DATA-2C-B2 with its own approval, backup and rollback evidence.\n" +
+        "  NOTHING WAS WRITTEN.",
+    );
+  }
+
   log(renderSummary(result));
   log(`MANIFEST HASH                 ${manifest.manifestHash}`);
   if (source.parsed.identifierColumn === null) {
