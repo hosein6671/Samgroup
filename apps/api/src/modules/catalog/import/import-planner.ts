@@ -57,7 +57,7 @@ import {
 import { normalizeNameForMatching } from "./source-ref";
 import { SPEC_PROPERTY_SEED, resolveProperty } from "./spec-property-dictionary";
 import { decideSpecificationCandidate } from "./specification-candidates";
-import { mapTaxonomy } from "./taxonomy-mapping";
+import { mapTaxonomy, ratifiedFamilyDecisionFor } from "./taxonomy-mapping";
 import { classifyUnit, normalizeValue } from "./value-normalization";
 import { sourceFamilyOf } from "./workbook-parser";
 
@@ -210,6 +210,18 @@ export interface PlanInput {
   readonly existingSlugKeys: ReadonlySet<string>;
   /** A frozen identity ledger, replayed for identity. Empty on a first generation. */
   readonly ledger?: readonly LedgerEntry[];
+  /**
+   * The `sourceRef`s the database already holds a Product for.
+   *
+   * INSERT-versus-UPDATE is a statement about the DATABASE, so it is decided from the
+   * database and not from the ledger. The two used to be conflated, and once identities were
+   * ratified WITHOUT being imported that conflation started calling a hundred unwritten rows
+   * "UPDATE" — an identity the owner has ratified is not a Product that exists.
+   *
+   * Empty (the default) means no Product is persisted under any ratified reference, which is
+   * the truthful state of a catalogue that has never been imported.
+   */
+  readonly existingSourceRefs?: ReadonlySet<string>;
 }
 
 interface RowPlanResult {
@@ -222,7 +234,9 @@ function planRow(row: WorkbookProductRow, identity: IdentityAssignment): RowPlan
   const unmapped: { rawProperty: string; rawUnit: string; reason: string }[] = [];
 
   const slug = proposeSlug(row.rowNumber, row.name);
-  const taxonomy = mapTaxonomy(row);
+  // The resolved identity is passed so a reviewed family decision follows the row rather
+  // than the position it happened to occupy when the decision was made.
+  const taxonomy = mapTaxonomy(row, identity.sourceRef);
   const entry = ENTRIES_BY_WORKBOOK_ROW.get(row.rowNumber);
   const family = sourceFamilyOf(row);
   const isAdditive = taxonomy.productTypeKey === "lubricant-additives";
@@ -235,6 +249,16 @@ function planRow(row: WorkbookProductRow, identity: IdentityAssignment): RowPlan
       severity: "conflict",
       category: "TAXONOMY",
       detail: taxonomy.conflict,
+    });
+  } else if (ratifiedFamilyDecisionFor(row, identity.sourceRef)) {
+    // A family the owner DECIDED rather than the evidence settled. Recorded explicitly:
+    // resolving the conflict removed its flag, and a decision that leaves no trace behind is
+    // indistinguishable afterwards from a mapping that never conflicted at all.
+    flags.push({
+      code: "TAXONOMY_FAMILY_OWNER_DECISION",
+      severity: "info",
+      category: "TAXONOMY",
+      detail: taxonomy.basis,
     });
   }
 
@@ -588,6 +612,8 @@ export function evidenceHashOf(product: PlannedProduct): string {
   return createHash("sha256").update(lines.join("\n"), "utf8").digest("hex");
 }
 
+const EMPTY_SOURCE_REFS: ReadonlySet<string> = new Set<string>();
+
 export function buildImportPlan(input: PlanInput): ImportPlan {
   const ledger = input.ledger ?? [];
   const previousHashes = new Map(ledger.map((entry) => [entry.sourceRef, entry.evidenceHash]));
@@ -612,6 +638,7 @@ export function buildImportPlan(input: PlanInput): ImportPlan {
     let product = result.product;
 
     const known = identity.matchedEntry !== null;
+    const persisted = (input.existingSourceRefs ?? EMPTY_SOURCE_REFS).has(product.sourceRef);
     const previous = previousHashes.get(product.sourceRef);
     const current = evidenceHashOf(product);
 
@@ -636,7 +663,13 @@ export function buildImportPlan(input: PlanInput): ImportPlan {
       };
     }
 
-    planned.push({ ...product, action: known && previous === current ? "SKIP" : "INSERT" });
+    // SKIP means "already in the database and its evidence has not moved". It therefore
+    // needs BOTH: a persisted Product, and an unchanged evidence hash. A ratified identity
+    // alone never earns a SKIP.
+    planned.push({
+      ...product,
+      action: persisted && previous === current ? "SKIP" : "INSERT",
+    });
 
     for (const item of result.unmapped) {
       const key = `${item.rawProperty} ${item.rawUnit}`;
@@ -683,12 +716,15 @@ export function buildImportPlan(input: PlanInput): ImportPlan {
   // ── The product-level action, decided last ────────────────────────────────
   // SKIP outranks CONFLICT: an already-imported, unchanged row is not re-proposed. Otherwise
   // a BLOCKING conflict wins, and only then does insert-versus-update apply.
+  //
+  // UPDATE requires a Product the database actually holds under this reference. A ratified
+  // ledger entry says which row this is, not that it has ever been written.
   const products: PlannedProduct[] = withSlugFlags.map((product) => {
-    const known = resolution.assignments.get(product.rowNumber)?.matchedEntry !== null;
+    const persisted = (input.existingSourceRefs ?? EMPTY_SOURCE_REFS).has(product.sourceRef);
     if (product.action === "SKIP" && !hasProductBlockingConflict(product)) return product;
     const action: ImportAction = hasProductBlockingConflict(product)
       ? "CONFLICT"
-      : known
+      : persisted
         ? "UPDATE"
         : "INSERT";
     return { ...product, action };

@@ -56,6 +56,15 @@ export interface DryRunDatabase {
   countRows(tables: readonly string[]): Promise<ReadonlyMap<string, number>>;
   /** Current `product_slug_claims.slug_key` values. */
   listSlugKeys(): Promise<ReadonlySet<string>>;
+  /**
+   * The ratified `sourceRef`s the database already holds a Product for, so INSERT and UPDATE
+   * are told apart by what is PERSISTED rather than by what the ledger knows.
+   *
+   * The schema has no such column yet, so today this is always empty and every ratified
+   * identity is correctly planned as an INSERT. Persisting the reference is a schema change
+   * and belongs to the gate that first writes a Product.
+   */
+  listProductSourceRefs(): Promise<ReadonlySet<string>>;
 }
 
 export interface DryRunCountsDelta {
@@ -91,12 +100,16 @@ export class DryRunWroteDataError extends Error {
  */
 export async function runDryRun(
   database: DryRunDatabase,
-  buildPlan: (existingSlugKeys: ReadonlySet<string>) => ImportPlan,
+  buildPlan: (
+    existingSlugKeys: ReadonlySet<string>,
+    existingSourceRefs: ReadonlySet<string>,
+  ) => ImportPlan,
 ): Promise<DryRunResult> {
   const countsBefore = await database.countRows(WATCHED_TABLES);
   const existingSlugKeys = await database.listSlugKeys();
+  const existingSourceRefs = await database.listProductSourceRefs();
 
-  const plan = buildPlan(existingSlugKeys);
+  const plan = buildPlan(existingSlugKeys, existingSourceRefs);
 
   const countsAfter = await database.countRows(WATCHED_TABLES);
 

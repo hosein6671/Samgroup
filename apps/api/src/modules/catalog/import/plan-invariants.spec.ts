@@ -94,13 +94,25 @@ describe("the ratified shape of the catalogue", () => {
     expect(twoStroke?.claimCandidates.some((claim) => claim.standardCode === "TC")).toBe(true);
   });
 
-  it("keeps the five gear rows filed under Marine as explicit unresolved conflicts", () => {
+  it("carries the ratified Marine decision for the five gear rows, in the manifest", () => {
     for (const rowNumber of [234, 237, 240, 243, 246]) {
       const row = manifest.rows.find((item) => item.rowNumber === rowNumber);
-      expect(row?.proposedProductFamilyKey).toBeNull();
-      expect(row?.conflictsByCategory.TAXONOMY).toBeGreaterThan(0);
-      expect(row?.action).toBe("CONFLICT");
+      expect(row?.proposedProductFamilyKey).toBe("marine-oils-lubricants");
+      expect(row?.proposedProductTypeKey).toBe("gear-oils");
+      expect(row?.conflictsByCategory.TAXONOMY).toBe(0);
+      expect(row?.action).toBe("INSERT");
+      // The decision, and the evidence it overruled, must survive into the audit artefact.
+      const decision = row?.flags.find((flag) => flag.code === "TAXONOMY_FAMILY_OWNER_DECISION");
+      expect(decision?.severity).toBe("info");
+      expect(decision?.detail).toContain("OWNER DECISION");
+      expect(decision?.detail).toContain("GEAR section");
     }
+  });
+
+  it("leaves the whole plan free of taxonomy conflicts", () => {
+    expect(plan.counts.conflictsByCategory.TAXONOMY).toBe(0);
+    expect(plan.counts.products.conflict).toBe(0);
+    expect(plan.counts.products.insert).toBe(100);
   });
 });
 

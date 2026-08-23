@@ -33,13 +33,15 @@ import { resolve } from "node:path";
 
 import { WORKBOOK_FIXTURE } from "./__fixtures__/workbook-rows.fixture";
 import { renderSummary, runDryRun, WATCHED_TABLES } from "./dry-run";
+import { assertRatifiedWorkbookCustody, parseRatifiedLedger } from "./identity-ledger";
 import { buildImportPlan } from "./import-planner";
 import { buildLedger, buildManifest, renderLedgerJson, renderManifestJson } from "./manifest";
 import { renderReviewSummary } from "./review-summary";
+import { WORKBOOK_LINEAGE } from "./source-ref";
 import { parseCatalogWorkbook } from "./workbook-parser";
 
 import type { DryRunDatabase } from "./dry-run";
-import type { IdentityLedger, LedgerEntry } from "./identity-ledger";
+import type { LedgerEntry } from "./identity-ledger";
 import type { ParsedWorkbook } from "./workbook-parser";
 
 /** Arguments that would mean "write". Refused by name, whether or not one is implemented. */
@@ -163,6 +165,22 @@ export function prismaDryRunDatabase(client: {
       );
       return new Set(rows.map((row) => row.slug_key));
     },
+    async listProductSourceRefs() {
+      // `products` has no source_ref column yet, and asking for one that does not exist is
+      // an error rather than an empty answer. Checking the catalogue first means this
+      // reports the truth today — nothing is persisted under a ratified reference — and
+      // starts reporting the real set on its own the moment the column is added.
+      const present = await client.$queryRawUnsafe<{ column_name: string }[]>(
+        `SELECT column_name FROM information_schema.columns ` +
+          `WHERE table_schema = current_schema() AND table_name = 'products' ` +
+          `AND column_name = 'source_ref'`,
+      );
+      if (present.length === 0) return new Set<string>();
+      const rows = await client.$queryRawUnsafe<{ source_ref: string | null }[]>(
+        `SELECT source_ref FROM "products" WHERE source_ref IS NOT NULL`,
+      );
+      return new Set(rows.flatMap((row) => (row.source_ref === null ? [] : [row.source_ref])));
+    },
   };
 }
 
@@ -170,6 +188,7 @@ export function prismaDryRunDatabase(client: {
 export const OFFLINE_DATABASE: DryRunDatabase = {
   countRows: (tables) => Promise.resolve(new Map(tables.map((table) => [table, 0]))),
   listSlugKeys: () => Promise.resolve(new Set<string>()),
+  listProductSourceRefs: () => Promise.resolve(new Set<string>()),
 };
 
 /**
@@ -226,13 +245,41 @@ export async function main(
   const options = parseArgs(argv);
   const source = loadWorkbook(options);
 
+  // Validated, never repaired: a duplicate reference or an unratified entry is a refusal,
+  // and no path here writes the ledger back or promotes a PROPOSED entry to RATIFIED.
   let ledger: readonly LedgerEntry[] = [];
   if (options.ledgerPath) {
-    const raw = JSON.parse(readFileSync(options.ledgerPath, "utf8")) as IdentityLedger;
-    ledger = raw.entries;
+    const path = resolve(options.ledgerPath);
+    const ratified = parseRatifiedLedger(readFileSync(path, "utf8"), path);
+
+    // Custody, checked HERE — before the plan is built and before the database is opened, so
+    // a workbook the owner never approved cannot reach a point where a write is conceivable.
+    // The fixture is exempt by construction: it is not a file, it carries the all-zero hash,
+    // and `--fixture` is mutually exclusive with `--workbook`.
+    if (!options.useFixture) {
+      assertRatifiedWorkbookCustody(
+        ratified,
+        {
+          fileName: source.fileName,
+          sha256: source.sha256,
+          byteSize: source.byteSize,
+          sheetName: source.parsed.sheetName,
+          identifierColumn: source.parsed.identifierColumn,
+          identifierHeader: source.parsed.identifierHeader,
+          declaredSourceRefs: source.parsed.declaredSourceRefs,
+        },
+        WORKBOOK_LINEAGE,
+      );
+      log(`RATIFIED LEDGER               ${path}`);
+      log(`  schema version              ${String(ratified.schemaVersion)}`);
+      log(`  ratified identities         ${String(ratified.entries.length)}`);
+      log(`  approved master sha256      ${ratified.approvedMasterWorkbook?.sha256 ?? "(none)"}`);
+      log(`  workbook custody            verified\n`);
+    }
+    ledger = ratified.entries;
   }
 
-  const result = await runDryRun(database, (existingSlugKeys) =>
+  const result = await runDryRun(database, (existingSlugKeys, existingSourceRefs) =>
     buildImportPlan({
       workbook: source.parsed,
       workbookFileName: source.fileName,
@@ -240,6 +287,7 @@ export async function main(
       workbookByteSize: source.byteSize,
       workbookProvenance: source.provenance,
       existingSlugKeys,
+      existingSourceRefs,
       ledger,
     }),
   );

@@ -100,9 +100,48 @@ export interface LedgerEntry {
   readonly approved?: boolean;
 }
 
+/** The identity of one workbook file, pinned so a later run can prove it has the same one. */
+export interface WorkbookCustody {
+  readonly fileName: string;
+  readonly sha256: string;
+  readonly byteSize: number;
+}
+
+/**
+ * The approved master workbook: the original PLUS the owner-maintained identifier column.
+ * Only this file may be used to apply ratified identities.
+ */
+export interface MasterWorkbookCustody extends WorkbookCustody {
+  readonly worksheetName: string;
+  /** The identifier column's header, exactly as the sheet writes it. */
+  readonly identifierHeader: string;
+  /** The identifier column as a spreadsheet letter, e.g. `A`. */
+  readonly identifierColumn: string;
+}
+
+/**
+ * The ledger schema this code understands. Bumped when the shape changes in a way an older
+ * reader could misread; an unknown version is refused rather than read optimistically.
+ */
+export const RATIFIED_LEDGER_SCHEMA_VERSION = 1;
+
 export interface IdentityLedger {
+  /**
+   * The ledger schema version. Absent on the pre-custody shape, which is why it is optional
+   * here and REQUIRED by `assertRatifiedWorkbookCustody`.
+   */
+  readonly schemaVersion?: number;
   /** The workbook lineage these references belong to. A different lineage is a different set. */
   readonly lineage: string;
+  /** How many ratified identities this ledger declares. Self-describing, never inferred. */
+  readonly ratifiedIdentityCount?: number;
+  /**
+   * The authoritative workbook the references were derived from. Kept for audit and fixture
+   * parity ONLY: it carries no identifier column, so it can never be the apply workbook.
+   */
+  readonly originalWorkbook?: WorkbookCustody;
+  /** The one file a ratified run may be applied from. */
+  readonly approvedMasterWorkbook?: MasterWorkbookCustody;
   readonly entries: readonly LedgerEntry[];
 }
 
@@ -532,4 +571,409 @@ export function mintedCount(resolution: IdentityResolution): number {
   return [...resolution.assignments.values()].filter(
     (assignment) => assignment.matchedEntry === null,
   ).length;
+}
+
+/** Raised when a file offered as the RATIFIED ledger is not one. Never repaired in place. */
+export class RatifiedLedgerError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RatifiedLedgerError";
+  }
+}
+
+/**
+ * Reads a ratified identity ledger, and refuses anything that is not one.
+ *
+ * The production ledger is the owner's frozen decision about which row is which Product, so
+ * this validates rather than repairs: a duplicate reference, a `PROPOSED` entry that never
+ * got ratified, or a missing field is a REFUSAL. Silently dropping a bad entry would let a
+ * hundred-identity file degrade to ninety-nine without anyone noticing, and auto-promoting a
+ * `PROPOSED` entry would be the importer ratifying its own proposal — the one thing
+ * ratification exists to prevent.
+ *
+ * Nothing here writes: the ledger is read-only input, and no caller may hand back a mutated
+ * copy of it.
+ */
+export function parseRatifiedLedger(json: string, path: string): IdentityLedger {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(json);
+  } catch (error) {
+    throw new RatifiedLedgerError(
+      `${path} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (typeof raw !== "object" || raw === null) {
+    throw new RatifiedLedgerError(`${path} must be a JSON object with "lineage" and "entries".`);
+  }
+  const candidate = raw as {
+    schemaVersion?: unknown;
+    lineage?: unknown;
+    ratifiedIdentityCount?: unknown;
+    originalWorkbook?: unknown;
+    approvedMasterWorkbook?: unknown;
+    entries?: unknown;
+  };
+  if (typeof candidate.lineage !== "string" || candidate.lineage.length === 0) {
+    throw new RatifiedLedgerError(
+      `${path} has no workbook "lineage". A ledger without a ` +
+        `lineage does not say which workbook its references belong to.`,
+    );
+  }
+  if (!Array.isArray(candidate.entries)) {
+    throw new RatifiedLedgerError(`${path} has no "entries" array.`);
+  }
+
+  const entries: LedgerEntry[] = [];
+  const seen = new Set<string>();
+  for (const [index, item] of candidate.entries.entries()) {
+    const where = `${path} entry ${String(index)}`;
+    if (typeof item !== "object" || item === null) {
+      throw new RatifiedLedgerError(`${where} is not an object.`);
+    }
+    const entry = item as Record<string, unknown>;
+    const text = (field: string): string => {
+      const value = entry[field];
+      if (typeof value !== "string" || value.length === 0) {
+        throw new RatifiedLedgerError(`${where} has no "${field}".`);
+      }
+      return value;
+    };
+    const sourceRef = text("sourceRef");
+    if (seen.has(sourceRef)) {
+      throw new RatifiedLedgerError(
+        `${path} holds ${sourceRef} more than once. An identity belongs to one row, and a ` +
+          `ledger that lists it twice cannot say which.`,
+      );
+    }
+    seen.add(sourceRef);
+
+    // The production ledger is the ratified one. A PROPOSED entry in it is a file that was
+    // never signed off, and this is not the place that signs it off.
+    if (entry["state"] !== "RATIFIED") {
+      throw new RatifiedLedgerError(
+        `${where} (${sourceRef}) is "${String(entry["state"])}", not "RATIFIED". The ` +
+          `production ledger holds ratified identities only; the importer never ratifies one.`,
+      );
+    }
+    const rowNumber = entry["rowNumber"];
+    if (typeof rowNumber !== "number" || !Number.isInteger(rowNumber) || rowNumber < 1) {
+      throw new RatifiedLedgerError(`${where} (${sourceRef}) has no valid "rowNumber".`);
+    }
+    const approved = entry["approved"];
+    if (approved !== undefined && typeof approved !== "boolean") {
+      throw new RatifiedLedgerError(`${where} (${sourceRef}) has a non-boolean "approved".`);
+    }
+
+    entries.push({
+      sourceRef,
+      state: "RATIFIED",
+      sheetName: text("sheetName"),
+      rowNumber,
+      exactName: text("exactName"),
+      normalizedName: text("normalizedName"),
+      categoryLabel: text("categoryLabel"),
+      evidenceHash: text("evidenceHash"),
+      ...(approved === undefined ? {} : { approved }),
+    });
+  }
+
+  if (entries.length === 0) {
+    throw new RatifiedLedgerError(
+      `${path} holds no entries. An empty file is not "no ledger": pass no --ledger at all ` +
+        `to run the first authoritative generation.`,
+    );
+  }
+
+  // ── Custody ───────────────────────────────────────────────────────────────
+  // Shape-checked here; MATCHED against a real file in `assertRatifiedWorkbookCustody`.
+  const optionalNumber = (value: unknown, field: string): number | undefined => {
+    if (value === undefined) return undefined;
+    if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+      throw new RatifiedLedgerError(`${path} has a non-integer "${field}".`);
+    }
+    return value;
+  };
+  const custody = (value: unknown, field: string): Record<string, unknown> | undefined => {
+    if (value === undefined) return undefined;
+    if (typeof value !== "object" || value === null) {
+      throw new RatifiedLedgerError(`${path} has a malformed "${field}".`);
+    }
+    return value as Record<string, unknown>;
+  };
+  const custodyText = (source: Record<string, unknown>, field: string, where: string): string => {
+    const value = source[field];
+    if (typeof value !== "string" || value.length === 0) {
+      throw new RatifiedLedgerError(`${path} ${where} has no "${field}".`);
+    }
+    // A path is not an identity. Pinning one would tie the ledger to one machine's disk.
+    if (/[\\/]/.test(value)) {
+      throw new RatifiedLedgerError(
+        `${path} ${where} "${field}" contains a path separator. Custody records a FILE ` +
+          `NAME and a hash, never a location.`,
+      );
+    }
+    return value;
+  };
+  const custodySize = (source: Record<string, unknown>, where: string): number => {
+    const value = source["byteSize"];
+    if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+      throw new RatifiedLedgerError(`${path} ${where} has no valid "byteSize".`);
+    }
+    return value;
+  };
+  const custodyHash = (source: Record<string, unknown>, where: string): string => {
+    const value = source["sha256"];
+    if (typeof value !== "string" || !/^[0-9a-f]{64}$/.test(value)) {
+      throw new RatifiedLedgerError(`${path} ${where} has no valid lowercase hex "sha256".`);
+    }
+    return value;
+  };
+
+  const originalRaw = custody(candidate.originalWorkbook, "originalWorkbook");
+  const masterRaw = custody(candidate.approvedMasterWorkbook, "approvedMasterWorkbook");
+
+  return {
+    ...(candidate.schemaVersion === undefined
+      ? {}
+      : { schemaVersion: optionalNumber(candidate.schemaVersion, "schemaVersion") }),
+    lineage: candidate.lineage,
+    ...(candidate.ratifiedIdentityCount === undefined
+      ? {}
+      : {
+          ratifiedIdentityCount: optionalNumber(
+            candidate.ratifiedIdentityCount,
+            "ratifiedIdentityCount",
+          ),
+        }),
+    ...(originalRaw === undefined
+      ? {}
+      : {
+          originalWorkbook: {
+            fileName: custodyText(originalRaw, "fileName", "originalWorkbook"),
+            sha256: custodyHash(originalRaw, "originalWorkbook"),
+            byteSize: custodySize(originalRaw, "originalWorkbook"),
+          },
+        }),
+    ...(masterRaw === undefined
+      ? {}
+      : {
+          approvedMasterWorkbook: {
+            fileName: custodyText(masterRaw, "fileName", "approvedMasterWorkbook"),
+            sha256: custodyHash(masterRaw, "approvedMasterWorkbook"),
+            byteSize: custodySize(masterRaw, "approvedMasterWorkbook"),
+            worksheetName: custodyText(masterRaw, "worksheetName", "approvedMasterWorkbook"),
+            identifierHeader: custodyText(masterRaw, "identifierHeader", "approvedMasterWorkbook"),
+            identifierColumn: custodyText(masterRaw, "identifierColumn", "approvedMasterWorkbook"),
+          },
+        }),
+    entries,
+  };
+}
+
+/** Raised when the file in front of the importer is not the ledger's approved workbook. */
+export class RatifiedWorkbookMismatchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RatifiedWorkbookMismatchError";
+  }
+}
+
+/** `1` -> `A`, `27` -> `AA`. Local so the ledger does not depend on the ZIP reader. */
+function columnLetter(index: number): string {
+  let n = index;
+  let out = "";
+  while (n > 0) {
+    const remainder = (n - 1) % 26;
+    out = String.fromCharCode(65 + remainder) + out;
+    n = Math.floor((n - 1) / 26);
+  }
+  return out;
+}
+
+/** What the custody check needs to know about the file that was actually opened. */
+export interface WorkbookUnderTest {
+  readonly fileName: string;
+  readonly sha256: string;
+  readonly byteSize: number;
+  readonly sheetName: string;
+  readonly identifierColumn: number | null;
+  readonly identifierHeader?: string | null;
+  readonly declaredSourceRefs: ReadonlyMap<number, string>;
+}
+
+/**
+ * Proves the file in front of the importer IS the owner's approved master workbook, and that
+ * it declares exactly the ratified identities the ledger holds.
+ *
+ * ── Why the ledger is the only authority ────────────────────────────────────
+ *
+ * The approved workbook lives outside version control, so nothing in the repository would
+ * otherwise say which file it is. The committed ledger pins it. The hashes are NOT repeated
+ * in TypeScript: a constant in code and a value in the ledger could disagree, and then there
+ * would be two authorities and no way to tell which one the owner approved.
+ *
+ * ── Why the original workbook is refused here ───────────────────────────────
+ *
+ * The original is still valid for proposal, audit and fixture-parity flows — but it has no
+ * identifier column, so applying ratified identities from it could only ever be inference.
+ * It fails on its hash, which is the correct reason.
+ *
+ * ── Where this runs ─────────────────────────────────────────────────────────
+ *
+ * Before the plan is built and before the database is opened, so a mismatch cannot reach a
+ * point where a write would be conceivable.
+ */
+export function assertRatifiedWorkbookCustody(
+  ledger: IdentityLedger,
+  workbook: WorkbookUnderTest,
+  expectedLineage: string,
+): void {
+  const fail = (message: string): never => {
+    throw new RatifiedWorkbookMismatchError(message);
+  };
+
+  if (ledger.schemaVersion === undefined) {
+    fail(
+      `The ratified ledger declares no "schemaVersion". A ledger without one predates ` +
+        `workbook custody and cannot say which file it approves.`,
+    );
+  }
+  if (ledger.schemaVersion !== RATIFIED_LEDGER_SCHEMA_VERSION) {
+    fail(
+      `Ratified ledger schemaVersion ${String(ledger.schemaVersion)} is not supported; this ` +
+        `importer reads version ${String(RATIFIED_LEDGER_SCHEMA_VERSION)}. Refusing to read a ` +
+        `ledger whose shape it may misunderstand.`,
+    );
+  }
+  if (ledger.lineage !== expectedLineage) {
+    fail(
+      `Ratified ledger lineage "${ledger.lineage}" is not "${expectedLineage}". A different ` +
+        `lineage is a different set of identities, not a variant of this one.`,
+    );
+  }
+
+  const master = ledger.approvedMasterWorkbook;
+  if (!master) {
+    fail(
+      `The ratified ledger pins no "approvedMasterWorkbook". The approved file lives outside ` +
+        `version control, so without this the run cannot prove which workbook it opened.`,
+    );
+    return;
+  }
+
+  const declaredCount = ledger.ratifiedIdentityCount;
+  if (declaredCount === undefined) {
+    fail(`The ratified ledger declares no "ratifiedIdentityCount".`);
+    return;
+  }
+  if (ledger.entries.length !== declaredCount) {
+    fail(
+      `The ratified ledger declares ${String(declaredCount)} identities but holds ` +
+        `${String(ledger.entries.length)}.`,
+    );
+  }
+  for (const entry of ledger.entries) {
+    if (entry.state !== "RATIFIED") {
+      fail(`${entry.sourceRef} is ${entry.state}, not RATIFIED.`);
+    }
+  }
+
+  // ── The file itself ───────────────────────────────────────────────────────
+  if (workbook.sha256 !== master.sha256) {
+    const isOriginal =
+      ledger.originalWorkbook !== undefined && workbook.sha256 === ledger.originalWorkbook.sha256;
+    fail(
+      `This is not the approved master workbook.\n` +
+        `  expected ${master.fileName}\n` +
+        `    sha256 ${master.sha256}\n` +
+        `  received ${workbook.fileName}\n` +
+        `    sha256 ${workbook.sha256}\n` +
+        (isOriginal
+          ? `  That is the ORIGINAL authoritative workbook. It is valid for proposal, audit ` +
+            `and fixture parity, but it carries no identifier column, so ratified identities ` +
+            `could only be inferred from it. Use the approved master workbook.`
+          : `  A single changed byte changes the hash. Re-approve the file, or use the one ` +
+            `the ledger pins.`),
+    );
+  }
+  if (workbook.byteSize !== master.byteSize) {
+    fail(
+      `Approved master workbook is ${String(master.byteSize)} bytes; this file is ` +
+        `${String(workbook.byteSize)}.`,
+    );
+  }
+  if (workbook.sheetName !== master.worksheetName) {
+    fail(
+      `Approved master worksheet is "${master.worksheetName}"; this file parsed ` +
+        `"${workbook.sheetName}".`,
+    );
+  }
+
+  // ── The identifier column ─────────────────────────────────────────────────
+  if (workbook.identifierColumn === null) {
+    fail(
+      `The workbook declares no identifier column. Ratified identities are applied only from ` +
+        `a workbook that names them; nothing here is inferred.`,
+    );
+    return;
+  }
+  const actualColumn = columnLetter(workbook.identifierColumn);
+  if (actualColumn !== master.identifierColumn) {
+    fail(
+      `Approved identifier column is ${master.identifierColumn}; this workbook carries it in ` +
+        `${actualColumn}.`,
+    );
+  }
+  const actualHeader = workbook.identifierHeader ?? "";
+  if (actualHeader !== master.identifierHeader) {
+    fail(
+      `Approved identifier header is "${master.identifierHeader}"; this workbook reads ` +
+        `"${actualHeader}".`,
+    );
+  }
+
+  // ── The declared references ───────────────────────────────────────────────
+  // Set membership is checked BEFORE the count. Both catch a missing row, but "declares no
+  // row for SAMCAT-W1-R003" names the identity that went missing, and "expected 100, got 99"
+  // does not — and which identity it was is the only part a reviewer can act on.
+  const declared = [...workbook.declaredSourceRefs.values()];
+  const seen = new Map<string, number>();
+  for (const reference of declared) seen.set(reference, (seen.get(reference) ?? 0) + 1);
+  const duplicated = [...seen].filter(([, count]) => count > 1).map(([reference]) => reference);
+  if (duplicated.length > 0) {
+    fail(
+      `The workbook declares ${duplicated.join(", ")} more than once. An identity belongs to ` +
+        `one row.`,
+    );
+  }
+  // Membership only. A ratified reference is OPAQUE: nothing here re-derives it from a row
+  // number, so a row that moved still matches as long as it still declares its reference.
+  const known = new Set(ledger.entries.map((entry) => entry.sourceRef));
+  const unknown = declared.filter((reference) => !known.has(reference)).sort();
+  if (unknown.length > 0) {
+    fail(
+      `The workbook declares ${unknown.join(", ")}, which the ratified ledger does not hold. ` +
+        `An unknown declared reference is a reconciliation, never a new product.`,
+    );
+  }
+  const declaredSet = new Set(declared);
+  const unmatched = ledger.entries
+    .map((entry) => entry.sourceRef)
+    .filter((reference) => !declaredSet.has(reference))
+    .sort();
+  if (unmatched.length > 0) {
+    fail(
+      `The workbook declares no row for ${unmatched.join(", ")}. A ratified identity that no ` +
+        `row claims is reported, never dropped and never reassigned.`,
+    );
+  }
+  // Backstop. With the three checks above satisfied the two sets are equal and this cannot
+  // fire; it stays so that relaxing one of them can never silently let a count through.
+  if (declared.length !== declaredCount) {
+    fail(
+      `Expected ${String(declaredCount)} declared sourceRefs; the workbook declares ` +
+        `${String(declared.length)}.`,
+    );
+  }
 }

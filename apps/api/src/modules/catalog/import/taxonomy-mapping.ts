@@ -98,11 +98,112 @@ const TYPE_MANUAL_TRANSMISSION = "دنده دستی";
 const TYPE_AUTOMATIC = "اتوماتیک";
 
 /**
- * The five rows whose family cannot be decided from the evidence available. Listed
- * explicitly rather than pattern-matched: a conflict set that grows silently because a
- * regular expression matched something new is a conflict set nobody reviews.
+ * The five rows whose family the EVIDENCE cannot decide. Listed explicitly rather than
+ * pattern-matched: a conflict set that grows silently because a regular expression matched
+ * something new is a conflict set nobody reviews.
+ *
+ * The evidence still conflicts — that is why the owner had to decide. These row numbers are
+ * the ratification-time position of the five, kept so a workbook that carries no identifier
+ * column can still be mapped; `RATIFIED_MARINE_GEAR_DECISIONS` is the authority once one does.
  */
 export const GEAR_FAMILY_CONFLICT_ROWS: readonly number[] = [234, 237, 240, 243, 246];
+
+/**
+ * One reviewed decision: which family an evidence-conflicted row belongs to, and on whose
+ * authority.
+ */
+export interface RatifiedFamilyDecision {
+  readonly sourceRef: string;
+  /** The row's position when the decision was made. Evidence, never identity (ADR-011). */
+  readonly ratifiedAtRow: number;
+  /** The exact public name when the decision was made, so a rename is visible in review. */
+  readonly ratifiedName: string;
+  readonly productFamilyKey: ProductFamilyKey;
+  readonly productTypeKey: ProductTypeKey;
+}
+
+/**
+ * The owner's ratified resolution of the five Marine/Gear rows (PRODUCT-DATA-2C-A).
+ *
+ * ── What was decided, and by whom ───────────────────────────────────────────
+ *
+ * The evidence genuinely conflicts and still does: Excel files these five under
+ * `روغن های دریایی Marine Oils`, while the HSB catalogue prints them in its GEAR section
+ * with no marine qualifier, and their designations (API GL-5/GL-4/GL-3/GL-I, ATF) are
+ * automotive gear and transmission classes. Nothing in the technical sources proves marine
+ * duty, and this table does not claim otherwise.
+ *
+ * The owner selected the authoritative Excel category as the governing authority for the
+ * PUBLIC Product Family. That is an OWNER DECISION about publication, not a technical
+ * finding — so the family below is authority-derived, and the contradicting Gear evidence is
+ * preserved in `basis` rather than dropped, because a decision that hides what it overruled
+ * cannot be re-reviewed.
+ *
+ * ── Keyed by sourceRef, on purpose ──────────────────────────────────────────
+ *
+ * Keyed by RATIFIED sourceRef, not by row number and not by name. Row position moves the
+ * moment anyone inserts a row, and `GL-x Grade` is a name shape the workbook could
+ * legitimately reuse. Once the master workbook declares its references, a row that moves
+ * carries this decision with it. The row numbers remain only as the fallback for a workbook
+ * with no identifier column, and as the evidence of where each row sat when it was decided.
+ */
+export const RATIFIED_MARINE_GEAR_DECISIONS: readonly RatifiedFamilyDecision[] = [
+  {
+    sourceRef: "SAMCAT-W1-R234",
+    ratifiedAtRow: 234,
+    ratifiedName: "ATF Grade",
+    productFamilyKey: "marine-oils-lubricants",
+    productTypeKey: "gear-oils",
+  },
+  {
+    sourceRef: "SAMCAT-W1-R237",
+    ratifiedAtRow: 237,
+    ratifiedName: "GL-5 Grade",
+    productFamilyKey: "marine-oils-lubricants",
+    productTypeKey: "gear-oils",
+  },
+  {
+    sourceRef: "SAMCAT-W1-R240",
+    ratifiedAtRow: 240,
+    ratifiedName: "GL-4 Grade",
+    productFamilyKey: "marine-oils-lubricants",
+    productTypeKey: "gear-oils",
+  },
+  {
+    sourceRef: "SAMCAT-W1-R243",
+    ratifiedAtRow: 243,
+    ratifiedName: "GL-3 Grade",
+    productFamilyKey: "marine-oils-lubricants",
+    productTypeKey: "gear-oils",
+  },
+  {
+    sourceRef: "SAMCAT-W1-R246",
+    ratifiedAtRow: 246,
+    ratifiedName: "GL-I Grade",
+    productFamilyKey: "marine-oils-lubricants",
+    productTypeKey: "gear-oils",
+  },
+];
+
+const DECISIONS_BY_SOURCE_REF = new Map(
+  RATIFIED_MARINE_GEAR_DECISIONS.map((decision) => [decision.sourceRef, decision]),
+);
+const DECISIONS_BY_RATIFIED_ROW = new Map(
+  RATIFIED_MARINE_GEAR_DECISIONS.map((decision) => [decision.ratifiedAtRow, decision]),
+);
+
+/**
+ * Finds the reviewed decision for a row. The declared `sourceRef` wins whenever the workbook
+ * carries one, because that is the only identifier that survives a re-sort; the
+ * ratification-time row number is consulted only when it does not.
+ */
+export function ratifiedFamilyDecisionFor(
+  row: WorkbookProductRow,
+  sourceRef?: string,
+): RatifiedFamilyDecision | null {
+  if (sourceRef !== undefined) return DECISIONS_BY_SOURCE_REF.get(sourceRef) ?? null;
+  return DECISIONS_BY_RATIFIED_ROW.get(row.rowNumber) ?? null;
+}
 
 export interface TaxonomyProposal {
   readonly productFamilyKey: ProductFamilyKey | null;
@@ -165,7 +266,7 @@ function proposeSegments(row: WorkbookProductRow): SegmentKey[] {
   return segments;
 }
 
-export function mapTaxonomy(row: WorkbookProductRow): TaxonomyProposal {
+export function mapTaxonomy(row: WorkbookProductRow, sourceRef?: string): TaxonomyProposal {
   const segmentKeys = proposeSegments(row);
   const categoryRecognised = KNOWN_CATEGORIES.includes(row.categoryLabel);
 
@@ -252,6 +353,28 @@ export function mapTaxonomy(row: WorkbookProductRow): TaxonomyProposal {
     }
 
     case CATEGORY_MARINE: {
+      const decision = ratifiedFamilyDecisionFor(row, sourceRef);
+      if (decision) {
+        return {
+          productFamilyKey: decision.productFamilyKey,
+          productTypeKey: decision.productTypeKey,
+          segmentKeys,
+          categoryRecognised: true,
+          // Resolved by an owner decision, so it is no longer a conflict — but the evidence
+          // it overruled is spelled out here so the audit trail still carries both sides.
+          conflict: null,
+          basis:
+            `OWNER DECISION (${decision.sourceRef}, ratified at row ` +
+            `${String(decision.ratifiedAtRow)} as "${decision.ratifiedName}"): the ` +
+            `authoritative Excel category "${CATEGORY_MARINE}" governs the public Product ` +
+            `Family, giving ${decision.productFamilyKey}. The contradicting evidence stands ` +
+            `and is not overturned: the HSB catalogue prints this row in its GEAR section ` +
+            `with no marine qualifier, and its designation is an API GL/ATF automotive gear ` +
+            `and transmission class, which is why the ProductType is ` +
+            `${decision.productTypeKey}. Marine duty is NOT claimed to be proven by the ` +
+            `technical sources; the family is set on Excel's authority alone.`,
+        };
+      }
       if (GEAR_FAMILY_CONFLICT_ROWS.includes(row.rowNumber)) {
         return {
           productFamilyKey: null,

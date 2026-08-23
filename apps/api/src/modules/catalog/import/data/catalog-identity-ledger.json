@@ -1,0 +1,1020 @@
+{
+  "schemaVersion": 1,
+  "lineage": "W1",
+  "ratifiedIdentityCount": 100,
+  "originalWorkbook": {
+    "fileName": "دسته بندی محصولات.xlsx",
+    "sha256": "922c689d040ae191fd711f24ef9f8524a551e294e4bf5304eaa4f4f693c0fb73",
+    "byteSize": 46381
+  },
+  "approvedMasterWorkbook": {
+    "fileName": "دسته بندی محصولات-master-with-sourceRef.xlsx",
+    "sha256": "4d993fd60411b315e69a0ddfd3d4c4a3ddce761a9a680da1d8e08020fbc7f2e9",
+    "byteSize": 41957,
+    "worksheetName": "محصولات",
+    "identifierHeader": "sourceRef",
+    "identifierColumn": "A"
+  },
+  "entries": [
+    {
+      "sourceRef": "SAMCAT-W1-R003",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 3,
+      "exactName": "CK-4 10W-40",
+      "normalizedName": "ck 4 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "126d8eec5f3f6696fcf6c031ad1f5140a82914aea4d7e7bdc5498254b0bbf3c4"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R006",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 6,
+      "exactName": "CJ-4 10W-40",
+      "normalizedName": "cj 4 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "5525ea2ffcae93728efd71083206c549006e06ff7fc43fa0abbcafaf8aaf7505"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R009",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 9,
+      "exactName": "CI-4 10W-40",
+      "normalizedName": "ci 4 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "6ec0fd449162ce5a25e1502a6d564998bc3b31f374fdc21904babb3e8b09aa98"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R012",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 12,
+      "exactName": "CI-4 15W-40",
+      "normalizedName": "ci 4 15w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "8e2c7e8e69ed8d651bcd653db89938f86d8bf498fed6a1f08e97d2d702071ffe"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R015",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 15,
+      "exactName": "CI-4 20W-50",
+      "normalizedName": "ci 4 20w 50",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "46ab563baa8eea578db9c0010f70b5e1cf93a9451101a391b4523c963789f693"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R018",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 18,
+      "exactName": "CH-4 15W-40",
+      "normalizedName": "ch 4 15w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "06a301560b994642262628d3be1236b59a71fbab55fdd90c91e16f9b741618c5"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R021",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 21,
+      "exactName": "CH-4 20W-50",
+      "normalizedName": "ch 4 20w 50",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "0507363f4c93a9175e1f59cda35f4427cf83fba795d1d665c0a109fa129a22bb"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R024",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 24,
+      "exactName": "CF-4 15W-40",
+      "normalizedName": "cf 4 15w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "b648116a9641e0a82d74444a5ad0fae9666a6347d0141c85701f982f6fc2086b"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R027",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 27,
+      "exactName": "CF-4 20W-50",
+      "normalizedName": "cf 4 20w 50",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "e41845a92924e8259e6e6cc1e2f0b3a010509211bd2fdb99cd485eb277b146b9"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R030",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 30,
+      "exactName": "CJ4 Grade",
+      "normalizedName": "cj4 grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "4557a8e2c3b4559e7463b93cdefe44a70e8e1f569c7950adf920cd07d8f7f46b"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R033",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 33,
+      "exactName": "CI4 Grade",
+      "normalizedName": "ci4 grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "a56cf04a7f0c404bccebf2cb2c08787c95c31ba7c50fe268c198403aa6993b15"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R036",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 36,
+      "exactName": "CH-4 Grade",
+      "normalizedName": "ch 4 grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "cf02150e4f090aa7a3a43cd5f3a71b1ca14dcfebb852f2fb17406d72f52f3b3c"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R039",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 39,
+      "exactName": "CD Grade",
+      "normalizedName": "cd grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "399529d65365a64b1501d258bc1acd0ab49173a9447918a18ae2bf5e933ed8d9"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R042",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 42,
+      "exactName": "SN 5W-30",
+      "normalizedName": "sn 5w 30",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "f01e5a43cb132490c22168cc11de5a5c136559edb0c4e168b6037014a8e8e796"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R045",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 45,
+      "exactName": "SN 5W-40",
+      "normalizedName": "sn 5w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "e44d4b3254ddf1fc70160c3790206eeca08dc62eaab814b9da307117fe47311d"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R048",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 48,
+      "exactName": "SN 10W-40",
+      "normalizedName": "sn 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "69a6fd08ad37237ab23bc10c7d180ac2d224fc930aaeac1055459284c323d0fa"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R051",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 51,
+      "exactName": "SM 10W-40",
+      "normalizedName": "sm 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "6f8e913c10e05bde965e7596979281352daf23295ab5d91b25c5ea053e6a290c"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R054",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 54,
+      "exactName": "SM 20W-50",
+      "normalizedName": "sm 20w 50",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "e96426c8b476b8158f3e4603ba5f3f4d2a0014825cb7c34d8bed2f7dad84b235"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R057",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 57,
+      "exactName": "SL 10W-40",
+      "normalizedName": "sl 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "e2a4ab1c10d233c36680dc8fd764ead5bfd692e181726431487593af8388b453"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R060",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 60,
+      "exactName": "SL 20W-50",
+      "normalizedName": "sl 20w 50",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "0e0b8219c4c761d53472f2b4e013745d71a38ce993bdb790fa1f2a2b9757c4d5"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R063",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 63,
+      "exactName": "SJ 10W-40",
+      "normalizedName": "sj 10w 40",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "7646a82ad9bf9a6bc4c885857dd7abfc6a453c947b20ecf028dc7ff1b7f9a5ff"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R066",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 66,
+      "exactName": "SJ 20W-50",
+      "normalizedName": "sj 20w 50",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "1084d65e347c0a789ce4fd3e5771ce857457e04fb0921a0334f57e9a66e6ff56"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R069",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 69,
+      "exactName": "SN Grade",
+      "normalizedName": "sn grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "a057dfea1fb4004209df5101e80c04835ec82dac5706c0dfa27fde3caeea74b9"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R072",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 72,
+      "exactName": "SM Grade",
+      "normalizedName": "sm grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "63cc4e5fcd7f568bb9f10c8e6b407c8b5ad13fc18e129140cb9a934f57e6707e"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R075",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 75,
+      "exactName": "SL Grade",
+      "normalizedName": "sl grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "a092083bdc8f186907024bfc9629617fe22c1a2fbf20fdef92527688a9ee48dc"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R078",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 78,
+      "exactName": "SJ Grade",
+      "normalizedName": "sj grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "3a339296446115269594bb10e26b54e44dc1d8ae3f78cb9a48c4c504050a2dd6"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R081",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 81,
+      "exactName": "SG Grade",
+      "normalizedName": "sg grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "91e13831e98d7a1a3ed89235a9e98c2cb8176de102763cf57821f6c00a839aff"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R084",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 84,
+      "exactName": "SF Grade",
+      "normalizedName": "sf grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "46ea0beeb4d56fe5805ccbd02ac6796e19a1452923844aae4f27b7bc95b81d70"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R087",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 87,
+      "exactName": "SC Grade",
+      "normalizedName": "sc grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "aef5acb8712eaa537e60fc83c661dcc28008788381c21f8c1d2db7ac586b429b"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R090",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 90,
+      "exactName": "locomotive Oil",
+      "normalizedName": "locomotive oil",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "443e0c6d11beccbfe2f65603a2ebe1e2bf24674612d2587029bae31cd99807a0"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R093",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 93,
+      "exactName": "Racing Grade",
+      "normalizedName": "racing grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "f1e0e96fa4d89a4eaa5df92b421935d62c2bdd894b6f1146b4d8e2d7d28799f7"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R096",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 96,
+      "exactName": "SN Grade",
+      "normalizedName": "sn grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "98ae5244a7d296051c90eabd1634329c1e09bc3e03ac0c18c40bd5996594057c"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R099",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 99,
+      "exactName": "SG Grade",
+      "normalizedName": "sg grade",
+      "categoryLabel": "روغن موتور Engine oil",
+      "evidenceHash": "691776b06d0c6ef5e2b9d22f072dbd89c1bb69968573fb26d3aa0f626332e0e7"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R102",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 102,
+      "exactName": "Extreme Pressure (EP)",
+      "normalizedName": "extreme pressure ep",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "7e58f0780bcf33374c65583f095d608a0de46252a8782c213abe54eb83a284e2"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R105",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 105,
+      "exactName": "Polyalphaolefin (PAO)",
+      "normalizedName": "polyalphaolefin pao",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "abd804b9862018043dddc6f7a0e73259dfb84f86aed7888c903fd6b3be92f747"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R108",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 108,
+      "exactName": "Polyalkylene Glycol (PAG)",
+      "normalizedName": "polyalkylene glycol pag",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "145ff45d491546455710acaa4a0f191102d606c96562957032aa2be3757069f3"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R111",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 111,
+      "exactName": "TURBINE TECH Radial Flow",
+      "normalizedName": "turbine tech radial flow",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "e1a7d5024ea2e5ce0ecef8028de1fdf0bbd7cd3cc649405dd29daccd0ac81b4f"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R114",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 114,
+      "exactName": "TURBINE TECH Gas Turbine (GT)",
+      "normalizedName": "turbine tech gas turbine gt",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "267afd3a9c550bb29906cccdf400b57cba240fd540540e4acc5f0acad0d539ed"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R117",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 117,
+      "exactName": "COMPRESSOR TECH",
+      "normalizedName": "compressor tech",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "10864f6b4039e173219db882fca05f3e603a05c5a24d385ff5ab53192cf8a2c5"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R120",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 120,
+      "exactName": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S)",
+      "normalizedName": "compressor tech polyalphaolefin synthetic pao s",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "3b6a637d8464b16e703c37412d5d84c4ea21e659378111f51602b523b0397d19"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R123",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 123,
+      "exactName": "COMPRESSOR TECH Refrigeration Compressor Oil",
+      "normalizedName": "compressor tech refrigeration compressor oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "627a6ff1c6e8597033d4c16d78d219d8216f7b28e84a690ebb5d0be791bdd594"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R126",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 126,
+      "exactName": "ROLLING TECH Rolling Oil",
+      "normalizedName": "rolling tech rolling oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "e5260c7b599061b765fa022eebaab63c4c37569cda85daf3e518492293407340"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R129",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 129,
+      "exactName": "HEAT TECH Heat Transfer Oil",
+      "normalizedName": "heat tech heat transfer oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "daedf4669b03f2003e15d8f84a1f49f67bda0d2d5e78aae51f23946d4c722b48"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R132",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 132,
+      "exactName": "HEAT TECH Heat Metal Oil",
+      "normalizedName": "heat tech heat metal oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "a27dc23c00d2098ed54831da6a7d2e493b0ecf06a186154115afc5522189f3cd"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R135",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 135,
+      "exactName": "CUTTING TECH Cutting Oil",
+      "normalizedName": "cutting tech cutting oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "cc2e2c9cf2103de0df3105ee047ce6ace83970583c6a3c8748c6904ba65fa6fd"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R138",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 138,
+      "exactName": "FLASHING TECH Flashing Oil",
+      "normalizedName": "flashing tech flashing oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "a9e5cbf63b6d56b854a879c71b0c8b9b0f62fb1a4aaf96ca92af0a17b36cfc21"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R141",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 141,
+      "exactName": "hydraulic oil- HL Grade",
+      "normalizedName": "hydraulic oil hl grade",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "289c31d3a21c4629e7408a5d752e92e292066a2e013833206aa93c0cc3191d56"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R144",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 144,
+      "exactName": "hydraulic Oil- HH Grade",
+      "normalizedName": "hydraulic oil hh grade",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "09a4025b9128040cfc11dd0b4b26eb5dd8d261251d92128418e0e5f35b6a01fa"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R147",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 147,
+      "exactName": "Circulating oil",
+      "normalizedName": "circulating oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "66e2396c6e682569f4a518a92c82ca49e72a95ca3123b2564cc46e53600ad975"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R150",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 150,
+      "exactName": "Heat Transfer oil",
+      "normalizedName": "heat transfer oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "c34ae57a7ccdd9d65d69fdb289916989b1e7207cf5d851c83ad2fb247a989fea"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R153",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 153,
+      "exactName": "quenching oil",
+      "normalizedName": "quenching oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "69cb0329268c1883237f1f53aba9dfdaf209297da3e2520c7339f12239062247"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R156",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 156,
+      "exactName": "Turbine oil",
+      "normalizedName": "turbine oil",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "b58cfdbfcc95a305dae56f34289c368fed4a90de8fd3ab0d4cedc697c0c7ed21"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R159",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 159,
+      "exactName": "Compressor oil -VB",
+      "normalizedName": "compressor oil vb",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "aa457400554af86daa83f180d939c535c3e80d53b961a3f382453939a62ae385"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R162",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 162,
+      "exactName": "Refrigerator compressor oil-KD",
+      "normalizedName": "refrigerator compressor oil kd",
+      "categoryLabel": "روغن های صنعتی Industrial Oils",
+      "evidenceHash": "4829878c9a9325e56fe29652c3d88a2d0089348bf327de204d5ad0482987df17"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R165",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 165,
+      "exactName": "GL-5 75W-80",
+      "normalizedName": "gl 5 75w 80",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "ec07c3722cc0c3b5bd20ab747ca156b5e3c5932ab736e2ac1daab2f068aedfc0"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R168",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 168,
+      "exactName": "GL-5 75W-90",
+      "normalizedName": "gl 5 75w 90",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "7a2a4dbff5472d2def7f1722aa1299a949967e53b840fe278bc1e511916b6b1d"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R171",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 171,
+      "exactName": "GL-5 80W-90",
+      "normalizedName": "gl 5 80w 90",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "3f717807ad9d45f19a5cdbf154782c98099ce6651f62150bd051eeab08b3e932"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R174",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 174,
+      "exactName": "GL-5 85W-90",
+      "normalizedName": "gl 5 85w 90",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "72e7274a30e8cec90a21bc77eeb47f48ba194ffbae6a3679495563d9cae09c8b"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R177",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 177,
+      "exactName": "GL-5 85W-140",
+      "normalizedName": "gl 5 85w 140",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "3c747bceb416abedbba2f0a1b1ce5cd2e9a0823f4703cf1352ef0ebcaa84eba4"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R180",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 180,
+      "exactName": "DCT",
+      "normalizedName": "dct",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "f4f8434b1a2730ed87afa90667e3e9ce3d83d226e0f39f1caea9c0a88fdf778a"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R183",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 183,
+      "exactName": "DEX VI",
+      "normalizedName": "dex vi",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "71e68bfe44551adf766097f6c3ecc9ff5db9d1b707cfd3d196b1d13bc531e334"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R186",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 186,
+      "exactName": "SP-4",
+      "normalizedName": "sp 4",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "1306909ccba6f5d673ab80659dc37f21e5fb9e01e7fe15217ac7be7d547d68b7"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R189",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 189,
+      "exactName": "CVT",
+      "normalizedName": "cvt",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "822efc5df879123397b7805ae43ae732c41593c117fda3e533f7e1a9095ad30c"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R192",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 192,
+      "exactName": "DEX III",
+      "normalizedName": "dex iii",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "0ce2c7e697f97ab17bd6231304996fa5d7f2bcde7c3248346a61d03bd6773ba6"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R195",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 195,
+      "exactName": "MV",
+      "normalizedName": "mv",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "c640dbbbbf327aef1c16709f078693d25cd56a7260166b3d68c9333af0fe669a"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R198",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 198,
+      "exactName": "AL-4",
+      "normalizedName": "al 4",
+      "categoryLabel": "روغن های دنده Gear oils",
+      "evidenceHash": "f550f625a19754592c09d00492656f00a5df8077215a6fc8fa9704a0d1933bd8"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R201",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 201,
+      "exactName": "ISO VG 32",
+      "normalizedName": "iso vg 32",
+      "categoryLabel": "روغن های سیستم هیدرولیک Hydraulic oils",
+      "evidenceHash": "66f0a6ce75744e42a8fb0cc2b68fdaa45650108e6e904f104655fb6ef424c8d5"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R204",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 204,
+      "exactName": "ISO VG 46",
+      "normalizedName": "iso vg 46",
+      "categoryLabel": "روغن های سیستم هیدرولیک Hydraulic oils",
+      "evidenceHash": "f20b48f6d2512546c430171b7f0645be7d02ad88ab6c0e1c5c053a6b02b61106"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R207",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 207,
+      "exactName": "ISO VG 68",
+      "normalizedName": "iso vg 68",
+      "categoryLabel": "روغن های سیستم هیدرولیک Hydraulic oils",
+      "evidenceHash": "cbc8dff75c4145220e695df199a53f2a1984d9d579231154bc8654f4c32f70c7"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R210",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 210,
+      "exactName": "ISO VG 100",
+      "normalizedName": "iso vg 100",
+      "categoryLabel": "روغن های سیستم هیدرولیک Hydraulic oils",
+      "evidenceHash": "0864a71a531223abce32e55ca2ceb3448d6e50ef6961443b222635dd9322d12d"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R213",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 213,
+      "exactName": "REWARD TECH Marine Special",
+      "normalizedName": "reward tech marine special",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "307b0eea863a4f5eec0e803cd3629260c496546e4dc7c3d3420d0cdc00e7d9cc"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R216",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 216,
+      "exactName": "REWARD SUPER TECH Semi Synthetic",
+      "normalizedName": "reward super tech semi synthetic",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "f8be7a2f7250be72f432bfe89ce83a9875351fbbef4ced42b07f43cfa2cf6839"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R219",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 219,
+      "exactName": "TWO-Stroke Engine Oil",
+      "normalizedName": "two stroke engine oil",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "a44085afc0c9f0111124423ffa8458fe943b9f72d151665c6eb4c544ce50ca61"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R222",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 222,
+      "exactName": "LENJ oil",
+      "normalizedName": "lenj oil",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "e559880f954b7c472f4cce8e8305ad78382da85912f15674ca0d71d318998061"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R225",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 225,
+      "exactName": "super trunk oil",
+      "normalizedName": "super trunk oil",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "2852da1a7e7498f90d61b23f58d544be16cd54462214f220fb3e4a330ccf2836"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R228",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 228,
+      "exactName": "trunk oil",
+      "normalizedName": "trunk oil",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "f4b76ca7609015144298f0566c56d26e0f70303d2e725a104aa7f8d811a23f05"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R231",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 231,
+      "exactName": "special trunk oil",
+      "normalizedName": "special trunk oil",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "09757536ebe25d33f7548a62abe1a742657b339e8d71d26acb3e880e126ee6bb"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R234",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 234,
+      "exactName": "ATF Grade",
+      "normalizedName": "atf grade",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "107082abfb277fd2ddcfe9d92db00c2b7e17c6f892e141e439f7f2992f363387"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R237",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 237,
+      "exactName": "GL-5 Grade",
+      "normalizedName": "gl 5 grade",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "db0e990a2bacb25904a16096fc46601628a94907530068ab020cdcccfc44b330"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R240",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 240,
+      "exactName": "GL-4 Grade",
+      "normalizedName": "gl 4 grade",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "ff542cc3774f5bddedc9676914f3cc3246b627edeaf2b0787c50b85ef8aaf87d"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R243",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 243,
+      "exactName": "GL-3 Grade",
+      "normalizedName": "gl 3 grade",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "889be4079461a4b21b5d1d969441207ea4b74288ab61938f87c62da01f680f67"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R246",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 246,
+      "exactName": "GL-I Grade",
+      "normalizedName": "gl i grade",
+      "categoryLabel": "روغن های دریایی Marine Oils",
+      "evidenceHash": "5f200852fab229249dbbd4076c638ff1fd2bcfe229efb8f066783d4100f1c9a9"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R249",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 249,
+      "exactName": "Ash-free Antioxidant",
+      "normalizedName": "ash free antioxidant",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "6354fd185a8ba5135daf25750a195965f53c48291179b07b747939933867b693"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R252",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 252,
+      "exactName": "Dispersant",
+      "normalizedName": "dispersant",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "5259a69c2470c85396831b088b1f7ab9fb40f26cf161bef4ce3bf15f750f0689"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R255",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 255,
+      "exactName": "Ash-less Dispersant",
+      "normalizedName": "ash less dispersant",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "f38ae57501d5a47992e9cafeb1f6ced26df44e32bc370d960a5ef4cf2ce531aa"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R258",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 258,
+      "exactName": "Molybdenum Compound",
+      "normalizedName": "molybdenum compound",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "2be64c8a0b1d353aa62a87c92731cd429e6d64cae85fb584094a52a13cf68c8b"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R261",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 261,
+      "exactName": "zink-ZDDP",
+      "normalizedName": "zink zddp",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "94c0b73705d0c29740ac14843cefcbd07df3acb85fac898cb5187ba9fe558d0e"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R264",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 264,
+      "exactName": "TB N400 Booster",
+      "normalizedName": "tb n400 booster",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "5e893fdb6bb3672c0e8b07934d1d806f345c77e2db02b0abe48a601edd33096f"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R267",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 267,
+      "exactName": "diesel engine oil additive package",
+      "normalizedName": "diesel engine oil additive package",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "d9eb6afda4b08392cca5e26298c20c42ccf44ab9947544b589a9e9ef2ac4aa0b"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R270",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 270,
+      "exactName": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive",
+      "normalizedName": "ci 4 ch 4 cf 4 cd sc cc engine oil additive",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "22de7168950dbee8a8d07c0a6d8d4a5efaaff2402644e8453b49690a417f0580"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R273",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 273,
+      "exactName": "SF , SE , SC/CC Engine oil additive",
+      "normalizedName": "sf se sc cc engine oil additive",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "72ee68c45778c5d63eee3041d8e85b93b49707b1be1199ac5295d4c63966a3e7"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R276",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 276,
+      "exactName": "SL , SJ , SG Engine oil additive package",
+      "normalizedName": "sl sj sg engine oil additive package",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "8fd0f65296654f8127c2540de3969acc53dd37dd1966893e946ff77ff4662607"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R279",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 279,
+      "exactName": "Universal Engine oil additive",
+      "normalizedName": "universal engine oil additive",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "65121869fda793becde628a2177e57e23b65f52e7278b53a3b0d815be1f3ccf3"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R282",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 282,
+      "exactName": "SN , SM , SL , SJ , SF…SC Engine oil additive",
+      "normalizedName": "sn sm sl sj sf sc engine oil additive",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "19825f33e9f9e3c2f761248ddc1ed4f1f7a59a2f0bd240a95dcbd145579b2e09"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R285",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 285,
+      "exactName": "Gear oil additive",
+      "normalizedName": "gear oil additive",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "93a2f6cc92d28be5ad4885c713582ab7882fb399f7f4d8f5631288e917832ecf"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R288",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 288,
+      "exactName": "Anti-wear hydraulic oil additive package",
+      "normalizedName": "anti wear hydraulic oil additive package",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "41d77c20ace47fc40c64a768ddf940f173ec1125220342b6375501b7866c61bb"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R291",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 291,
+      "exactName": "Two-stroke motor oil",
+      "normalizedName": "two stroke motor oil",
+      "categoryLabel": "افرودنی ها Additives",
+      "evidenceHash": "5009d720850d2f143a0b1e129a866d8ee1e6aa444293c742dc1b2293db7236be"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R294",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 294,
+      "exactName": "Mineral-Based",
+      "normalizedName": "mineral based",
+      "categoryLabel": "سایر محصولات Others products",
+      "evidenceHash": "9d29a4c14b1045c5cd26f9f7d6f2c05d8914602a48737f1c20dad6c7e4397cae"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R297",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 297,
+      "exactName": "High-Performance",
+      "normalizedName": "high performance",
+      "categoryLabel": "سایر محصولات Others products",
+      "evidenceHash": "dc2260c562a69a00d8f7f10f7e30e513c1c9123374a14580c72db6b5c479d7db"
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R300",
+      "state": "RATIFIED",
+      "sheetName": "محصولات",
+      "rowNumber": 300,
+      "exactName": "Grease Based on Calcium",
+      "normalizedName": "grease based on calcium",
+      "categoryLabel": "سایر محصولات Others products",
+      "evidenceHash": "0f0227c8984db180fab8d41a8fe034e68c6b5ebff6e879c44ae6a69711b26a82"
+    }
+  ]
+}

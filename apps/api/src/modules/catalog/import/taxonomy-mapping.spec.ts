@@ -4,6 +4,7 @@ import {
   mapTaxonomy,
   PRODUCT_FAMILY_KEYS,
   PROPOSED_PRODUCT_TYPE_KEYS,
+  RATIFIED_MARINE_GEAR_DECISIONS,
 } from "./taxonomy-mapping";
 
 const mapped = WORKBOOK_FIXTURE.rows.map((row) => ({ row, taxonomy: mapTaxonomy(row) }));
@@ -109,20 +110,111 @@ describe("gear oils are mapped row by row", () => {
     }
   });
 
-  it("CONFLICTS on the five gear rows the workbook files under Marine", () => {
+  it("still lists the five evidence-conflicted rows", () => {
     expect(GEAR_FAMILY_CONFLICT_ROWS).toEqual([234, 237, 240, 243, 246]);
-    for (const rowNumber of GEAR_FAMILY_CONFLICT_ROWS) {
-      const taxonomy = byRow.get(rowNumber);
-      expect(taxonomy?.productFamilyKey).toBeNull();
-      expect(taxonomy?.productTypeKey).toBe("gear-oils");
-      expect(taxonomy?.conflict).toContain("not evidenced and is not assumed");
+  });
+});
+
+/**
+ * PRODUCT-DATA-2C-A. The evidence still conflicts; the OWNER resolved it, choosing the
+ * authoritative Excel category as the authority for the public family. These tests hold that
+ * decision to its terms: the family is decided, the gear evidence is still on the record, and
+ * nothing else in either block moved.
+ */
+describe("the ratified Marine/Gear family decision", () => {
+  const RATIFIED_REFS = [
+    "SAMCAT-W1-R234",
+    "SAMCAT-W1-R237",
+    "SAMCAT-W1-R240",
+    "SAMCAT-W1-R243",
+    "SAMCAT-W1-R246",
+  ] as const;
+
+  const bySourceRef = new Map(
+    RATIFIED_MARINE_GEAR_DECISIONS.map((decision) => {
+      const row = WORKBOOK_FIXTURE.rows.find((item) => item.rowNumber === decision.ratifiedAtRow);
+      if (!row) throw new Error(`fixture has no row ${String(decision.ratifiedAtRow)}`);
+      return [decision.sourceRef, { row, taxonomy: mapTaxonomy(row, decision.sourceRef) }];
+    }),
+  );
+
+  it("is the five exact reviewed sourceRefs and no others", () => {
+    expect(RATIFIED_MARINE_GEAR_DECISIONS.map((d) => d.sourceRef)).toEqual([...RATIFIED_REFS]);
+    expect(RATIFIED_MARINE_GEAR_DECISIONS.map((d) => d.ratifiedAtRow)).toEqual([
+      ...GEAR_FAMILY_CONFLICT_ROWS,
+    ]);
+  });
+
+  it("resolves all five exact sourceRefs to marine-oils-lubricants", () => {
+    for (const sourceRef of RATIFIED_REFS) {
+      expect(bySourceRef.get(sourceRef)?.taxonomy.productFamilyKey).toBe("marine-oils-lubricants");
     }
   });
 
-  it("does not silently place those five in the marine family", () => {
-    for (const rowNumber of GEAR_FAMILY_CONFLICT_ROWS) {
-      expect(byRow.get(rowNumber)?.productFamilyKey).not.toBe("marine-oils-lubricants");
+  it("keeps ProductType gear-oils on all five", () => {
+    for (const sourceRef of RATIFIED_REFS) {
+      expect(bySourceRef.get(sourceRef)?.taxonomy.productTypeKey).toBe("gear-oils");
     }
+  });
+
+  it("clears the conflict on all five", () => {
+    for (const sourceRef of RATIFIED_REFS) {
+      expect(bySourceRef.get(sourceRef)?.taxonomy.conflict).toBeNull();
+    }
+  });
+
+  it("preserves the raw Excel Marine category verbatim as provenance", () => {
+    for (const sourceRef of RATIFIED_REFS) {
+      expect(bySourceRef.get(sourceRef)?.row.categoryLabel).toBe("روغن های دریایی Marine Oils");
+      expect(bySourceRef.get(sourceRef)?.taxonomy.basis).toContain("روغن های دریایی Marine Oils");
+    }
+  });
+
+  it("keeps the contradicting HSB Gear and API GL/ATF evidence on the record", () => {
+    for (const sourceRef of RATIFIED_REFS) {
+      const basis = bySourceRef.get(sourceRef)?.taxonomy.basis ?? "";
+      expect(basis).toContain("GEAR section");
+      expect(basis).toContain("API GL/ATF");
+      // The decision must not dress itself up as a technical finding.
+      expect(basis).toContain("NOT claimed to be proven");
+      expect(basis).toContain("OWNER DECISION");
+      expect(basis).toContain(sourceRef);
+    }
+  });
+
+  it("follows the sourceRef rather than the row, so a moved row keeps its decision", () => {
+    const row = WORKBOOK_FIXTURE.rows.find((item) => item.rowNumber === 234);
+    if (!row) throw new Error("fixture has no row 234");
+    // Same product, now sitting somewhere else entirely.
+    const moved = { ...row, rowNumber: 999 };
+    expect(mapTaxonomy(moved, "SAMCAT-W1-R234").productFamilyKey).toBe("marine-oils-lubricants");
+    // And a DIFFERENT product that happens to land on row 234 inherits nothing.
+    expect(mapTaxonomy({ ...row, rowNumber: 234 }, "SAMCAT-W1-R900").conflict).toContain(
+      "not evidenced and is not assumed",
+    );
+  });
+
+  it("changes no other Gear or Marine row", () => {
+    // Every automotive gear row keeps the automotive family it was decided on row evidence.
+    for (const rowNumber of [165, 168, 171, 174, 177, 180, 183, 186, 189, 192, 195, 198]) {
+      expect(byRow.get(rowNumber)?.productFamilyKey).toBe("engine-oils-automotive-lubricants");
+      expect(byRow.get(rowNumber)?.productTypeKey).toBe("gear-oils");
+    }
+    // Every genuinely marine row keeps marine-oils, not gear-oils.
+    for (const rowNumber of [213, 216, 219, 222, 225, 228, 231]) {
+      expect(byRow.get(rowNumber)?.productFamilyKey).toBe("marine-oils-lubricants");
+      expect(byRow.get(rowNumber)?.productTypeKey).toBe("marine-oils");
+    }
+  });
+
+  it("leaves no taxonomy conflict anywhere in the workbook", () => {
+    const conflicted = WORKBOOK_FIXTURE.rows
+      .map((row) => ({
+        row,
+        taxonomy: mapTaxonomy(row, `SAMCAT-W1-R${String(row.rowNumber).padStart(3, "0")}`),
+      }))
+      .filter((item) => item.taxonomy.conflict !== null);
+    expect(conflicted.map((item) => item.row.rowNumber)).toEqual([]);
   });
 
   it("still maps the genuinely marine rows of the same block", () => {

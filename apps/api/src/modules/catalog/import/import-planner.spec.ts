@@ -273,15 +273,32 @@ describe("units, methods, qualifiers and result basis", () => {
 });
 
 describe("the five gear rows filed under Marine", () => {
-  it("stay an explicit unresolved family conflict, and are not guessed", () => {
+  // Resolved by owner decision in PRODUCT-DATA-2C-A. What the decision must NOT do is erase
+  // the evidence it overruled, so that is asserted here alongside the outcome.
+  it("carry the ratified marine family without losing the gear evidence", () => {
     for (const rowNumber of [234, 237, 240, 243, 246]) {
       const product = byRow.get(rowNumber);
-      expect(product?.proposedProductFamilyKey).toBeNull();
+      expect(product?.proposedProductFamilyKey).toBe("marine-oils-lubricants");
       expect(product?.excelCategory).toBe("روغن های دریایی Marine Oils");
       expect(product?.proposedProductTypeKey).toBe("gear-oils");
-      expect(product?.flags.map((flag) => flag.code)).toContain("TAXONOMY_FAMILY_UNRESOLVED");
-      expect(product?.action).toBe("CONFLICT");
+      expect(product?.flags.map((flag) => flag.code)).not.toContain("TAXONOMY_FAMILY_UNRESOLVED");
+      expect(product?.action).toBe("INSERT");
+      const decision = product?.flags.find(
+        (flag) => flag.code === "TAXONOMY_FAMILY_OWNER_DECISION",
+      );
+      expect(decision?.severity).toBe("info");
+      expect(decision?.detail).toContain("OWNER DECISION");
+      expect(decision?.detail).toContain("GEAR section");
+      expect(decision?.detail).toContain("API GL/ATF");
     }
+  });
+
+  it("leaves the plan with no taxonomy conflict and 100 INSERTs", () => {
+    expect(plan.counts.products.insert).toBe(100);
+    expect(plan.counts.products.conflict).toBe(0);
+    expect(plan.counts.products.update).toBe(0);
+    expect(plan.counts.products.skip).toBe(0);
+    expect(plan.counts.conflictsByCategory.TAXONOMY).toBe(0);
   });
 });
 
@@ -365,9 +382,16 @@ describe("determinism", () => {
 describe("planner replay against a ledger the planner produced", () => {
   // NOT a database re-import. Nothing has ever been written; see `planner-replay.ts`.
   it("re-identifies every unchanged row instead of minting a new reference", () => {
-    const second = buildImportPlan({ ...BASE_INPUT, ledger });
+    // The database is told to already hold all 100, because "nothing to do" is a statement
+    // about what is PERSISTED. A ratified ledger alone never means a row was written.
+    const second = buildImportPlan({
+      ...BASE_INPUT,
+      ledger,
+      existingSourceRefs: new Set(ledger.map((entry) => entry.sourceRef)),
+    });
     expect(second.counts.products.insert).toBe(0);
     expect(second.counts.products.update).toBe(0);
+    expect(second.counts.products.skip).toBe(100);
     for (const entry of ledger) {
       expect(second.products.some((p) => p.sourceRef === entry.sourceRef)).toBe(true);
     }
@@ -453,7 +477,11 @@ describe("changed evidence", () => {
         ? { ...entry, evidenceHash: "f".repeat(64), approved: true }
         : entry,
     );
-    const second = buildImportPlan({ ...BASE_INPUT, ledger: poisoned });
+    const second = buildImportPlan({
+      ...BASE_INPUT,
+      ledger: poisoned,
+      existingSourceRefs: new Set(poisoned.map((entry) => entry.sourceRef)),
+    });
     const product = second.products.find((item) => item.rowNumber === 3);
     expect(product?.reviewStatus).toBe("NEEDS_REVIEW");
     expect(product?.flags.map((flag) => flag.code)).toContain(
@@ -466,7 +494,11 @@ describe("changed evidence", () => {
     const poisoned = ledger.map((entry) =>
       entry.sourceRef === "SAMCAT-W1-R201" ? { ...entry, evidenceHash: "a".repeat(64) } : entry,
     );
-    const second = buildImportPlan({ ...BASE_INPUT, ledger: poisoned });
+    const second = buildImportPlan({
+      ...BASE_INPUT,
+      ledger: poisoned,
+      existingSourceRefs: new Set(poisoned.map((entry) => entry.sourceRef)),
+    });
     const product = second.products.find((item) => item.rowNumber === 201);
     expect(["UPDATE", "CONFLICT"]).toContain(product?.action);
     expect(product?.flags.map((flag) => flag.code)).toContain("EVIDENCE_CHANGED_SINCE_REVIEW");

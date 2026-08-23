@@ -26,6 +26,7 @@ const PLAN_INPUT = {
 function stubDatabase(
   counts: Record<string, number> = {},
   slugKeys: readonly string[] = [],
+  sourceRefs: readonly string[] = [],
 ): DryRunDatabase & { calls: string[] } {
   const calls: string[] = [];
   return {
@@ -38,14 +39,23 @@ function stubDatabase(
       calls.push("listSlugKeys");
       return Promise.resolve(new Set(slugKeys));
     },
+    listProductSourceRefs() {
+      calls.push("listProductSourceRefs");
+      return Promise.resolve(new Set(sourceRefs));
+    },
   };
 }
 
 describe("the dry run writes nothing", () => {
-  it("only reads: row counts and the slug namespace, and nothing else", async () => {
+  it("only reads: row counts, the slug namespace and the persisted references", async () => {
     const database = stubDatabase();
     await runDryRun(database, (keys) => buildImportPlan({ ...PLAN_INPUT, existingSlugKeys: keys }));
-    expect(database.calls).toEqual(["countRows", "listSlugKeys", "countRows"]);
+    expect(database.calls).toEqual([
+      "countRows",
+      "listSlugKeys",
+      "listProductSourceRefs",
+      "countRows",
+    ]);
   });
 
   it("reports every watched table unchanged", async () => {
@@ -76,6 +86,7 @@ describe("the dry run writes nothing", () => {
         );
       },
       listSlugKeys: () => Promise.resolve(new Set<string>()),
+      listProductSourceRefs: () => Promise.resolve(new Set<string>()),
     };
     await expect(
       runDryRun(drifting, (keys) => buildImportPlan({ ...PLAN_INPUT, existingSlugKeys: keys })),
@@ -289,7 +300,14 @@ describe("the planner replay simulation", () => {
   });
 
   it("produces no INSERT and no UPDATE for an unchanged workbook", () => {
-    const { simulation } = simulatePlannerReplay(PLAN_INPUT);
+    // Persisted, because SKIP is a claim about the DATABASE and not about the ledger: a
+    // ratified identity that was never written is still an INSERT.
+    const { simulation } = simulatePlannerReplay({
+      ...PLAN_INPUT,
+      existingSourceRefs: new Set(
+        WORKBOOK_FIXTURE.rows.map((row) => `SAMCAT-W1-R${String(row.rowNumber).padStart(3, "0")}`),
+      ),
+    });
     expect(simulation.productActions.insert).toBe(0);
     expect(simulation.productActions.update).toBe(0);
     expect(simulation.productActions.skip + simulation.productActions.conflict).toBe(100);

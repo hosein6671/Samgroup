@@ -102,15 +102,28 @@ export interface ParsedWorkbook {
   readonly rows: readonly WorkbookProductRow[];
   /** The column carrying ratified references, or null when the sheet has none. */
   readonly identifierColumn: number | null;
+  /**
+   * The identifier column's header EXACTLY as the sheet writes it, whitespace collapsed.
+   *
+   * The column is matched case-insensitively against `IDENTIFIER_HEADERS`, so the match
+   * alone does not say what the cell actually reads. Custody verification pins the exact
+   * wording, and cannot check it against a value nothing reported.
+   *
+   * Optional so that a `ParsedWorkbook` assembled by hand — the frozen fixture — stays valid
+   * without restating a field it has no identifier column for.
+   */
+  readonly identifierHeader?: string | null;
   /** `rowNumber -> declared sourceRef`, empty when there is no identifier column. */
   readonly declaredSourceRefs: ReadonlyMap<number, string>;
 }
 
 /** Finds the identifier column, if the sheet has one. Absence is normal, not an error. */
-function findIdentifierColumn(sheet: XlsxSheet): number | null {
+function findIdentifierColumn(sheet: XlsxSheet): { column: number; header: string } | null {
   for (let column = 1; column <= LAST_SCANNED_COLUMN; column++) {
-    const header = collapseWhitespace(cellText(sheet, HEADER_ROW, column)).toLowerCase();
-    if (header.length > 0 && IDENTIFIER_HEADERS.includes(header)) return column;
+    const text = collapseWhitespace(cellText(sheet, HEADER_ROW, column));
+    if (text.length > 0 && IDENTIFIER_HEADERS.includes(text.toLowerCase())) {
+      return { column, header: text };
+    }
   }
   return null;
 }
@@ -139,7 +152,8 @@ export function parseCatalogWorkbook(buffer: Buffer): ParsedWorkbook {
     }
   }
 
-  const identifierColumn = findIdentifierColumn(sheet);
+  const identifier = findIdentifierColumn(sheet);
+  const identifierColumn = identifier === null ? null : identifier.column;
   const declaredSourceRefs = new Map<number, string>();
 
   const rows: WorkbookProductRow[] = [];
@@ -177,7 +191,13 @@ export function parseCatalogWorkbook(buffer: Buffer): ParsedWorkbook {
     });
   }
 
-  return { sheetName: sheet.name, rows, identifierColumn, declaredSourceRefs };
+  return {
+    sheetName: sheet.name,
+    rows,
+    identifierColumn,
+    identifierHeader: identifier === null ? null : identifier.header,
+    declaredSourceRefs,
+  };
 }
 
 /**

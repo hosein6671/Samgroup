@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
 import { WORKBOOK_FIXTURE } from "./__fixtures__/workbook-rows.fixture";
+import { isSourceRef } from "./source-ref";
 import {
   collapseWhitespace,
   IDENTIFIER_HEADERS,
@@ -140,10 +141,27 @@ describeWithWorkbook("against the real authoritative workbook", () => {
     const parsed = parseCatalogWorkbook(readFileSync(workbookPath as string));
     expect(parsed.sheetName).toBe(WORKBOOK_FIXTURE.sheetName);
     expect(parsed.rows).toEqual(WORKBOOK_FIXTURE.rows);
-    expect(parsed.identifierColumn).toBe(WORKBOOK_FIXTURE.identifierColumn);
-    expect([...parsed.declaredSourceRefs.entries()]).toEqual([
-      ...WORKBOOK_FIXTURE.declaredSourceRefs.entries(),
-    ]);
+  });
+
+  /**
+   * The owner's MASTER workbook is the authoritative one plus an identifier column, so the
+   * transcription above must be identical and this must be the ONLY difference. Written to
+   * accept either file: the pre-master workbook declares nothing, the master declares 100.
+   */
+  it("differs from the fixture in the identifier column and nothing else", () => {
+    const parsed = parseCatalogWorkbook(readFileSync(workbookPath as string));
+    if (parsed.identifierColumn === null) {
+      expect(parsed.declaredSourceRefs.size).toBe(0);
+      return;
+    }
+    expect(parsed.declaredSourceRefs.size).toBe(100);
+    // One declared reference per product row, and none anywhere else.
+    expect([...parsed.declaredSourceRefs.keys()]).toEqual(
+      WORKBOOK_FIXTURE.rows.map((row) => row.rowNumber),
+    );
+    const declared = [...parsed.declaredSourceRefs.values()];
+    expect(new Set(declared).size).toBe(100);
+    for (const value of declared) expect(isSourceRef(value)).toBe(true);
   });
 
   it("hashes to a SHA-256 the run reports, so the file in front of it is identifiable", () => {
