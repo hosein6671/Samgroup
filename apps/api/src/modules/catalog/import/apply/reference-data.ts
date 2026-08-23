@@ -96,7 +96,7 @@ export function specPropertyMappingRows(): readonly SpecPropertyMappingRow[] {
       mapping.specPropertyKey !== null &&
       seeded.has(mapping.specPropertyKey);
     return {
-      id: ids.identityKey("spec-property-mapping", mapping.rawProperty, rawUnit),
+      id: ids.specPropertyMappingId(mapping.rawProperty, rawUnit),
       rawProperty: mapping.rawProperty,
       rawUnit,
       specPropertyKey: mapping.specPropertyKey,

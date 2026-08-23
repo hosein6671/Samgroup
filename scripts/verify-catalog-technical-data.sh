@@ -76,11 +76,77 @@ run_sql() {
     psql -h 127.0.0.1 -U "$POSTGRES_PLATFORM_USER" -d "$POSTGRES_PLATFORM_DB" -tA -v ON_ERROR_STOP=1
 }
 
+# ── The census ─────────────────────────────────────────────────────────────
+# Every table the probe touches, counted. Taken before and after, and compared: that proves
+# the ROLLBACK restored the database whatever was in it, which an absolute "must be zero" can
+# only prove on an empty one. The script has to hold on a pristine database AND on a fully
+# imported catalogue, and those differ by 5,258 rows.
+census() {
+  run_sql <<'SQL'
+SELECT 'categories='          || count(*) FROM "categories"
+UNION ALL SELECT 'products='            || count(*) FROM "products"
+UNION ALL SELECT 'product_grades='      || count(*) FROM "product_grades"
+UNION ALL SELECT 'product_claims='      || count(*) FROM "product_claims"
+UNION ALL SELECT 'specifications='      || count(*) FROM "specifications"
+UNION ALL SELECT 'spec_properties='     || count(*) FROM "spec_properties"
+UNION ALL SELECT 'spec_property_mappings=' || count(*) FROM "spec_property_mappings"
+UNION ALL SELECT 'source_assets='       || count(*) FROM "source_assets"
+UNION ALL SELECT 'source_documents='    || count(*) FROM "source_documents"
+UNION ALL SELECT 'source_facts='        || count(*) FROM "source_facts"
+UNION ALL SELECT 'specification_evidence=' || count(*) FROM "specification_evidence"
+UNION ALL SELECT 'claim_evidence='      || count(*) FROM "claim_evidence"
+UNION ALL SELECT 'import_runs='         || count(*) FROM "import_runs"
+UNION ALL SELECT 'technical_reviews='   || count(*) FROM "technical_reviews"
+UNION ALL SELECT 'product_types='       || count(*) FROM "product_types"
+UNION ALL SELECT 'product_segments='    || count(*) FROM "product_segments"
+UNION ALL SELECT 'product_slug_claims=' || count(*) FROM "product_slug_claims"
+UNION ALL SELECT 'users='               || count(*) FROM "users"
+UNION ALL SELECT 'sourcerefs='          || count(*) FROM "products" WHERE "source_ref" IS NOT NULL;
+SQL
+}
+
+census_before=$(census)
+
 # Each case reports one `result|case|observed` line. A case that behaves
 # unexpectedly still reports rather than aborting, so one failure does not hide
 # the rest of the matrix.
 output=$(run_sql <<'SQL'
 BEGIN;
+
+-- ── Transaction-local baseline ────────────────────────────────────────────
+-- Every count assertion below that is not scoped to a probe id measures a DELTA against this
+-- snapshot, never an absolute. The script has to pass on a pristine database, where these are
+-- all zero, AND on a fully imported one, where they are 1,398 / 1,661 / 148 and so on. An
+-- absolute expectation is a statement about the whole catalogue; the probes only ever make a
+-- statement about their own rows, and this is what keeps the assertions saying that.
+CREATE TEMP TABLE td_baseline(t text PRIMARY KEY, n bigint) ON COMMIT DROP;
+INSERT INTO td_baseline(t, n)
+SELECT 'specification_evidence', count(*) FROM "specification_evidence"
+UNION ALL SELECT 'claim_evidence', count(*) FROM "claim_evidence"
+UNION ALL SELECT 'source_facts', count(*) FROM "source_facts"
+UNION ALL SELECT 'specifications', count(*) FROM "specifications"
+UNION ALL SELECT 'product_claims', count(*) FROM "product_claims"
+UNION ALL SELECT 'product_grades', count(*) FROM "product_grades"
+UNION ALL SELECT 'products', count(*) FROM "products"
+UNION ALL SELECT 'spec_properties', count(*) FROM "spec_properties"
+UNION ALL SELECT 'source_assets', count(*) FROM "source_assets"
+UNION ALL SELECT 'source_documents', count(*) FROM "source_documents"
+UNION ALL SELECT 'import_runs', count(*) FROM "import_runs"
+UNION ALL SELECT 'technical_reviews', count(*) FROM "technical_reviews"
+UNION ALL SELECT 'product_slug_claims', count(*) FROM "product_slug_claims";
+
+/** Rows this transaction added to a table, over whatever was already there. */
+CREATE OR REPLACE FUNCTION pg_temp.delta(tbl text) RETURNS bigint AS $$
+DECLARE current_n bigint; base_n bigint;
+BEGIN
+  EXECUTE format('SELECT count(*) FROM %I', tbl) INTO current_n;
+  SELECT n INTO base_n FROM td_baseline WHERE t = tbl;
+  IF base_n IS NULL THEN
+    RAISE EXCEPTION 'no baseline captured for %', tbl;
+  END IF;
+  RETURN current_n - base_n;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION pg_temp.expect_rejected(stmt text, label text) RETURNS text AS $$
 BEGIN
@@ -621,10 +687,13 @@ SELECT pg_temp.verdict(
   (SELECT "raw_value" = '12.5' FROM "source_facts" WHERE "id"='fac70000-0000-4000-8000-000000000001'),
   '18. ...with their raw values unaltered',
   (SELECT "raw_value" FROM "source_facts" WHERE "id"='fac70000-0000-4000-8000-000000000001'));
+-- DELTA, not absolute: an imported catalogue already holds 1,398 specification_evidence and
+-- 148 claim_evidence rows, and this case is about the four and the one THIS transaction made.
 SELECT pg_temp.verdict(
-  (SELECT count(*) = 4 FROM "specification_evidence") AND (SELECT count(*) = 1 FROM "claim_evidence"),
+  pg_temp.delta('specification_evidence') = 4 AND pg_temp.delta('claim_evidence') = 1,
   '18. evidence links remain intact',
-  (SELECT count(*)::text FROM "specification_evidence") || ' spec + ' || (SELECT count(*)::text FROM "claim_evidence") || ' claim');
+  pg_temp.delta('specification_evidence')::text || ' spec + ' ||
+    pg_temp.delta('claim_evidence')::text || ' claim (added by this transaction)');
 
 -- INSERT is deliberately NOT blocked: a correction is a new fact.
 SELECT pg_temp.expect_accepted(
@@ -886,13 +955,34 @@ SELECT pg_temp.verdict(
   '24. multiple NULL source_ref values coexist',
   (SELECT count(*)::text FROM "products" WHERE "id"::text LIKE '5cee0000%' AND "source_ref" IS NULL));
 
+-- The probe identities are RESERVED FOR VERIFICATION and deliberately outside the ratified
+-- ledger, whose space is SAMCAT-W1-R003 .. SAMCAT-W1-R300. An earlier version of this script
+-- borrowed SAMCAT-W1-R003, which is a real Product once the catalogue is imported: the assign
+-- then failed on the unique index, and the two immutability cases after it silently tested
+-- nothing. Reserving the identities is what lets this file run against an imported database.
+--
+-- Asserted rather than assumed, so a future ledger that ever adopted one of these would fail
+-- HERE, loudly, instead of turning three assertions into false negatives again.
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM "products"
+    WHERE "source_ref" IN ('SAMCAT-VERIFY-P1','SAMCAT-VERIFY-P2','SAMCAT-VERIFY-P9')),
+  '24. the reserved verification identities belong to no real Product',
+  (SELECT count(*)::text FROM "products"
+    WHERE "source_ref" IN ('SAMCAT-VERIFY-P1','SAMCAT-VERIFY-P2','SAMCAT-VERIFY-P9')));
+
+SELECT pg_temp.verdict(
+  (SELECT bool_and(length(r) BETWEEN 1 AND 64 AND r = btrim(r) AND btrim(r) <> '')
+     FROM unnest(ARRAY['SAMCAT-VERIFY-P1','SAMCAT-VERIFY-P2','SAMCAT-VERIFY-P9']) AS r),
+  '24. the reserved identities satisfy the source_ref shape CHECK',
+  'length 1..64, trimmed, non-empty');
+
 SELECT pg_temp.expect_accepted(
-  $q$UPDATE "products" SET "source_ref"='SAMCAT-W1-R003'
+  $q$UPDATE "products" SET "source_ref"='SAMCAT-VERIFY-P1'
       WHERE "id"='5cee0000-0000-4000-8000-000000000001'$q$,
-  '24. a ratified source_ref can be assigned once');
+  '24. a reserved source_ref can be assigned once');
 
 SELECT pg_temp.expect_rejected(
-  $q$UPDATE "products" SET "source_ref"='SAMCAT-W1-R003'
+  $q$UPDATE "products" SET "source_ref"='SAMCAT-VERIFY-P1'
       WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
   '24. a DUPLICATE non-null source_ref is rejected');
 
@@ -905,7 +995,7 @@ SELECT pg_temp.expect_rejected(
   '24. a WHITESPACE-ONLY source_ref is rejected');
 
 SELECT pg_temp.expect_rejected(
-  $q$UPDATE "products" SET "source_ref"=' SAMCAT-W1-R006 '
+  $q$UPDATE "products" SET "source_ref"=' SAMCAT-VERIFY-P2 '
       WHERE "id"='5cee0000-0000-4000-8000-000000000002'$q$,
   '24. an UNTRIMMED source_ref is rejected');
 
@@ -920,7 +1010,7 @@ SELECT pg_temp.expect_rejected(
   '24. an OVER-LENGTH source_ref is rejected');
 
 SELECT pg_temp.expect_rejected(
-  $q$UPDATE "products" SET "source_ref"='SAMCAT-W1-R999'
+  $q$UPDATE "products" SET "source_ref"='SAMCAT-VERIFY-P9'
       WHERE "id"='5cee0000-0000-4000-8000-000000000001'$q$,
   '24. CHANGING a non-null source_ref is rejected');
 
@@ -935,7 +1025,7 @@ SELECT pg_temp.expect_accepted(
   '24. an unrelated Product UPDATE is still permitted');
 
 SELECT pg_temp.verdict(
-  (SELECT "source_ref"='SAMCAT-W1-R003' FROM "products"
+  (SELECT "source_ref"='SAMCAT-VERIFY-P1' FROM "products"
     WHERE "id"='5cee0000-0000-4000-8000-000000000001'),
   '24. the identity survived the unrelated update unchanged',
   (SELECT coalesce("source_ref",'NULL') FROM "products"
@@ -1224,30 +1314,48 @@ while IFS='|' read -r result label observed; do
   [ "$result" = "PASS" ] || status=1
 done <<< "$verdicts"
 
-# The rollback is not assumed. Every table this probe wrote must be as it was.
+# The rollback is not assumed, and it is checked two ways.
+#
+# FIRST: no row carrying a probe MARKER is left anywhere. Markers, not table totals — an
+# imported catalogue legitimately holds thousands of rows in these tables, and "count them all
+# and expect zero" only ever worked because the tables happened to be empty.
 residue=$(run_sql <<'SQL'
 SELECT (SELECT count(*) FROM "categories"    WHERE "slug" LIKE 'td-probe-%')
      + (SELECT count(*) FROM "products"      WHERE "slug" LIKE 'td-probe-%')
-     + (SELECT count(*) FROM "product_grades")
-     + (SELECT count(*) FROM "product_claims")
-     + (SELECT count(*) FROM "spec_properties")
-     + (SELECT count(*) FROM "source_assets")
-     + (SELECT count(*) FROM "source_documents")
-     + (SELECT count(*) FROM "import_runs")
-     + (SELECT count(*) FROM "source_facts")
-     + (SELECT count(*) FROM "specification_evidence")
-     + (SELECT count(*) FROM "claim_evidence")
-     + (SELECT count(*) FROM "technical_reviews")
-     + (SELECT count(*) FROM "specifications")
+     + (SELECT count(*) FROM "products"      WHERE "slug" LIKE 'sr-probe-%')
+     + (SELECT count(*) FROM "products"      WHERE "id"::text LIKE '5cee0000%')
+     + (SELECT count(*) FROM "products"      WHERE "source_ref" LIKE 'SAMCAT-VERIFY-%')
+     + (SELECT count(*) FROM "products"      WHERE "id"::text LIKE 'dddddddd%')
+     + (SELECT count(*) FROM "product_grades"  WHERE "id"::text LIKE 'eeeeeeee%')
+     + (SELECT count(*) FROM "specifications"  WHERE "id"::text LIKE 'ffffffff%')
+     + (SELECT count(*) FROM "product_claims"  WHERE "id"::text LIKE 'cafe0000%')
+     + (SELECT count(*) FROM "source_facts"    WHERE "id"::text LIKE 'fac70000%')
+     + (SELECT count(*) FROM "import_runs"     WHERE "id"::text LIKE '4a110000%')
+     + (SELECT count(*) FROM "technical_reviews" WHERE "id"::text LIKE '7ec00000%')
      + (SELECT count(*) FROM "users"         WHERE "email" LIKE 'td-probe-%')
-     + (SELECT count(*) FROM "product_slug_claims" WHERE "slug_key" LIKE 'td-probe-%');
+     + (SELECT count(*) FROM "product_slug_claims" WHERE "slug_key" LIKE 'td-probe-%')
+     + (SELECT count(*) FROM "product_slug_claims" WHERE "slug_key" LIKE 'sr-probe-%');
 SQL
 )
 
 if [ "$(echo "$residue" | tr -d '[:space:]')" = "0" ]; then
-  printf '  %-4s %s\n' "PASS" "nothing survived the probe transaction"
+  printf '  %-4s %s\n' "PASS" "no probe row survived the transaction"
 else
   printf '  %-4s %s\n' "FAIL" "probe rows survived: $residue"
+  status=1
+fi
+
+# SECOND, and stronger: every counted table is back to exactly what it held before the run.
+# This is what makes the script safe against an imported catalogue — it proves the run changed
+# NOTHING, rather than proving the tables are empty.
+census_after=$(census)
+
+if [ "$census_before" = "$census_after" ]; then
+  printf '  %-4s %s\n' "PASS" "every table count is identical to before the run"
+else
+  printf '  %-4s %s\n' "FAIL" "the probe transaction changed table counts"
+  printf '    before: %s\n' "$(echo "$census_before" | tr '\n' ' ')" >&2
+  printf '    after:  %s\n' "$(echo "$census_after" | tr '\n' ' ')" >&2
   status=1
 fi
 

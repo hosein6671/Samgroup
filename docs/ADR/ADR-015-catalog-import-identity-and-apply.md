@@ -6,9 +6,9 @@ Accepted, 23 August 2026.
 
 Amends **ADR-014** in three narrow places, listed in §9. Amends nothing in ADR-007 through ADR-011: the taxonomy, the canonical identifier, the slug namespace and its trigger enforcement are untouched, and §6 records why the apply engine cannot affect them.
 
-Covers migration `20260823120000_add_catalog_import_identity`, delivered by PRODUCT-DATA-2C-B1.
+Covers migration `20260823120000_add_catalog_import_identity`, delivered by PRODUCT-DATA-2C-B1. Extended by PRODUCT-DATA-2C-B2A, which completed the writer and proved it on disposable databases (§12-§17). That work carried no migration and no schema change.
 
-**This ADR authorizes no import.** It adds a column, four constraints and an engine that refuses to run without nine confirmations. No catalog row has been written, and no demo Product has been deleted.
+**This ADR authorizes no import.** It adds a column, four constraints and an engine that refuses to run without nine confirmations. No catalog row has been written in `sam_platform`, and no demo Product has been deleted there. `APPLY_EXECUTION_ENABLED` is still `false`: the completed writer is reachable only from an internal test harness that refuses any database not explicitly named disposable, and the public CLI still stops before the transaction opens.
 
 ## Context
 
@@ -119,3 +119,102 @@ Approval is still a human decision belonging to a review service that does not e
 
 - `source_facts_evidence_identity_key` is written with an always-true `WHERE raw_value IS NOT NULL` predicate. Prisma's datamodel can express neither `NULLS NOT DISTINCT` nor a partial index; declared as a plain `@@unique` it would be created NULLS DISTINCT and inert for most facts, and left as a full index it is reported as drift and offered for deletion on the next `migrate dev`. Partial keeps it outside Prisma's index model, where ADR-014's CHECKs, triggers and views already sit. **This relies on Prisma ignoring partial indexes**, which is observed behaviour rather than a documented guarantee; `prisma migrate diff` is verified to report no drift, and that verification is the thing that would catch a change.
 - A 64-character bound on `source_ref` is a judgement, not a derived limit. The ratified format uses 14.
+
+## Amendment — PRODUCT-DATA-2C-B2A: the completed writer
+
+Added 24 August 2026. Sections 1-11 above are unchanged and every reference to them still resolves; this amendment records what the writer DOES, now that it exists and has been proved, and what the Architect required corrected before it could be committed (§18-§20). No migration, no schema change, and no import.
+
+### 12. What the writer actually does, per table
+
+PRODUCT-DATA-2C-B2A replaced the planned-row skeleton with real persistence for all thirteen inserting tables plus the `ImportRun`, in the order §6 fixed. Every table reconciles the **same** way:
+
+1. read what the database already holds, keyed by that table's identity;
+2. a row that is present and matches is **SKIP**;
+3. a row that is absent is **INSERT**;
+4. a row present under the planned identity but carrying different immutable data **ABORTS the import**.
+
+There is deliberately no blanket `ON CONFLICT DO NOTHING` standing in for step 4: a blanket `DO NOTHING` makes "already correct" and "already **wrong**" produce the same silent success. `source_facts` is the single table that reaches its unique index through `ON CONFLICT DO NOTHING`, and only after step 4 has already passed, because §10 requires it — `DO UPDATE` would fire `source_facts_immutable_guard` and abort.
+
+`import_run_id` is excluded from the SourceFact comparison. It records which run first read a fact; a later run re-reading an unchanged fact must not turn that into a conflict, because the reading did not change.
+
+**The exact first-apply row counts**, measured on a disposable clone of the current DEV catalogue and identical to what the manifest promises: 100 Products, 41 ProductSegments, 8 ProductTypes, 26 SpecProperties, 75 SpecPropertyMappings, 134 ProductGrades, 1,661 SourceFacts, 1,398 Specifications, 148 ProductClaims, 1,398 SpecificationEvidence, 148 ClaimEvidence, 53 SourceAssets, 69 SourceDocuments, 1 ImportRun. The ProductSegment count is **computed from the manifest** — 41 of the 100 rows carry exactly one Segment and 59 carry none — and is asserted against the plan rather than against a constant, so a taxonomy change fails a test instead of drifting.
+
+### 13. Review status is per row, and is never approval
+
+A Specification or ProductClaim is written `NEEDS_REVIEW` when the planner attached a conflict or review flag **to that row**, and `SOURCE_RECORDED` otherwise. Measured: 1,335 / 63 for Specifications, 81 / 67 for Claims. Nothing is `APPROVED`, and two independent assertions enforce it — one over the planned rows before the transaction opens, one re-reading the tables inside it.
+
+Per row rather than per product, on purpose. A product with one entangled grade label has one questionable reading, not fifteen; marking all fifteen would bury the one that needs a person.
+
+### 14. Truthful replay semantics
+
+The manifest records what a plan WOULD DO, and `action` is one of the fields it hashes. A first apply plans 100 INSERT; a replay of the same workbook against the resulting database plans 100 SKIP. **These are different plans and they hash differently**, which is correct — a reviewer reading the second is reading a different document.
+
+Three consequences follow, and all three are implemented rather than assumed:
+
+1. A replay must not look for a successful `ImportRun` under its **own** manifest hash: there never was one and there must never be one, because a plan that writes nothing is not an application of the catalogue. It checks the two facts that matter instead — some run did finish, and no run claims THIS plan as an application.
+2. **A replay inserts nothing, in any table.** Every ratified identity is persisted, so a row still missing means the catalogue is incomplete; a replay that filled the gap would be repairing a state nobody reviewed. Measured on a disposable database: 0 inserted, and 100 / 41 / 134 / 1,661 / 1,398 / 148 / 1,398 / 148 skipped, no demo deletion, no second ImportRun, and every count identical before and after.
+3. Refusing a manifest that was already applied belongs in the **preflight**, not at the `import_runs` step — the demo deletion happens in between, and a plan that can never commit must be refused before it deletes anything, even though the transaction would have rolled the deletion back.
+
+**A replay was not expressible before this gate.** `checkSlugNamespace` reported every already-claimed slug as `SLUG_COLLISION_WITH_EXISTING`, so re-planning against an imported catalogue produced 100 blocking conflicts rather than 100 SKIP — the 100 slugs are claimed, by the very Products that propose them. The planner now optionally receives, for each live slug key, the ratified `source_ref` of the Product owning it, and suppresses the collision only when the single proposing row IS that owner. A Category, a translated slug, or a Product carrying no identity maps to null and can never look like self-ownership; omitting the map entirely restores the previous behaviour exactly, which is the right reading for a catalogue never imported. **The first-apply manifest hash is unchanged by this**, verified on a fresh clone: `3a9c07dce033d09fc0e96382b91012a013be8dc6fa96fba3a472ee9d21ea26e9`.
+
+### 15. Post-write verification, and when the run becomes successful
+
+Fifty-three assertions run **inside the transaction**, before COMMIT and before `finished_at` is set. Each is a `SELECT` re-reading the tables, never an accumulator the writer incremented — a trigger, a cascade, a partial-index predicate or a `DO NOTHING` that quietly matched would all leave an accumulator right and the table wrong.
+
+They cover: every exact row count; every `sourceRef` present exactly once and none outside the plan; every Product slug registered by ADR-011 and every claim owned; no demo Product and no demo claim remaining; all six Category claims intact; every Grade, Specification and Claim belonging to the Product the plan names, and no unplanned row of any of them; every Specification and Claim carrying evidence; every evidence link resolving on both ends; every SourceFact owning one SourceDocument and one ImportRun; the withheld readings still backing nothing; no Specification from an unapproved or non-HIGH mapping; zero `APPROVED` rows and no review state outside the two permitted; no byte-capable column on any provenance table; and the workbook, ledger and manifest hashes still the confirmed ones.
+
+**`finished_at` is set only after all of them pass.** A failure rolls the whole transaction back and leaves the manifest hash unconsumed, so a retry stays possible (§4). Rehearsed: an unplanned `source_assets` row makes the verification fail, and the ten demo Products, their 18 memberships and their 10 trigger-managed slug claims all come back.
+
+### 16. Evidence revision
+
+Proved against PostgreSQL rather than argued. A statement that moves to another page keeps its ProductClaim — same row, same `claim_identity_hash`, no second claim — while the reading becomes a NEW immutable `source_facts` row, the claim gains a `ClaimEvidence` link to it, and the older link is retired to role `SUPERSEDED` rather than deleted. The superseded reading still refuses both `UPDATE` and `DELETE`. A statement whose MEANING changed produces a different claim identity, because the hash is over the normalized sentence.
+
+The product's evidence hash **does** change when a reading moves, which is what expires an approval: approval is keyed to the evidence a reviewer actually looked at, and a re-issued document is different evidence even when the number on the page is the same.
+
+**One accepted cost, recorded because it will matter later.** `ClaimEvidence.role` is compared as immutable, so once a review service starts retiring evidence links, re-running the same workbook REFUSES rather than skipping — the retired link says `SUPERSEDED` where the plan says `PRIMARY`. Refusing is the correct default here; the alternative is an importer that quietly reinstates evidence a reviewer retired. Reconciling reviewed evidence is the review service's decision to model (§10), not this engine's.
+
+### 17. Execution remains disabled
+
+`APPLY_EXECUTION_ENABLED` is `false`, and PRODUCT-DATA-2C-B2A did not change it. `--apply` still runs every confirmation, guard and preflight and then stops where the transaction would open. The completed writer is reachable only through an internal test harness that reads the database's own name out of the connection string and refuses anything not matching `sam_platform_disposable_*` — `sam_platform` and `sam_cms` cannot be reached from it at all, whatever is passed. No second flag, argument or environment variable was added; flipping the constant is a separate reviewed change.
+
+### 18. A Specification is public only when a human approved it
+
+`GET /products/:slug` selected `specifications.key`, `.value` and `.unit` — the legacy triple ADR-014 deliberately did not drop — with **no `review_status` filter**. That was not a bug when it shipped: every row in the table was hand-seeded demo data, so "return them all" and "return the approved ones" described the same set, and nothing forced the distinction.
+
+The import ends that. It writes 1,398 Specifications, every one `SOURCE_RECORDED` or `NEEDS_REVIEW`, none fit to publish. Committing it against the old query would have published the entire unreviewed technical catalogue through a route nobody changed and a DTO nobody widened — the most dangerous shape a leak can take, because no diff shows it.
+
+The public predicate is now **`reviewStatus = APPROVED AND deletedAt IS NULL`**, applied in `where` at the query boundary so PostgreSQL never returns an unapproved row to the process. Both halves are required and neither implies the other: `reviewStatus` is a decision a human recorded, `deletedAt` is whether the row is still current, and an approved row later retired is not public. `APPROVED` is named **positively** rather than by listing what to hide, so a status added to the enum later is non-public by default.
+
+Three read paths reach `specifications`, and all three carry it:
+
+1. the Product-detail select;
+2. `findSpecificationsBySlug`, the partial-refresh route — a second door to the same rows;
+3. the `?q=` search predicate. This one is not obvious and matters most: a search that matched an unapproved value would answer "does the platform hold a specification saying 173?" for data nobody published. **Confirming a value is a way of reading it.** On the current catalogue the branch matches nothing either way, so the list contract is observably unchanged; after an import it is the difference between a filter and an oracle.
+
+"The grade belongs to this product" is deliberately **not** re-checked in code: `specifications_product_grade_id_product_id_fkey` is a composite foreign key on `(product_grade_id, product_id)`, so a Specification citing another Product's grade cannot exist to be selected. The predicate mirrors `v_specification_public` (ADR-014), which remains the sanctioned read model; the same rule is now stated in both places a reader can arrive from.
+
+**Nothing was approved to make this work.** Measured on the imported disposable database: 1,398 rows stored, 0 approved, and all 100 Product detail responses return an empty specification array while the Products themselves stay publicly discoverable. Withholding unreviewed data is not the same as hiding the catalogue. The DTO, the routes and the list contract are untouched.
+
+### 19. The verification script had to survive the import
+
+`scripts/verify-catalog-technical-data.sh` passed 180/180 on a pristine database and failed 5 on an imported one. Both causes were assumptions that only held while the catalogue was empty:
+
+1. **It borrowed a real identity.** Its probe assigned `SAMCAT-W1-R003` — a ratified `sourceRef` belonging to an actual Product once the import runs. The assignment then failed on `products_source_ref_key`, and the two immutability cases that depended on it silently tested nothing: a probe row with a NULL `source_ref` accepts a change, so "CHANGING a non-null source_ref is rejected" reported **accepted**. A false negative on an immutability guard is the worst kind. The probes now use `SAMCAT-VERIFY-P1/P2/P9`, reserved for verification, outside the ratified `SAMCAT-W1-R003 … R300` space, and within the `products_source_ref_shape` CHECK. Two new assertions state the reservation rather than trusting it: that no real Product carries one, and that they satisfy the length and trim constraints.
+2. **It counted absolutely.** Case 18 asserted `count(*) = 4 FROM specification_evidence`, and the post-run residue check summed whole tables and expected zero. Both are statements about the entire catalogue; the probes only ever make a statement about their own rows. A transaction-local baseline is now captured after `BEGIN`, and `pg_temp.delta(table)` measures what **this transaction** added. The residue check became two: no row carrying a probe MARKER survives, and — stronger — a census taken before and after the run must be identical, which proves the rollback restored the database whatever was in it rather than proving the tables are empty.
+
+No assertion was deleted or weakened; the count went 180 → **183**. Verified on four database states — live DEV, a freshly migrated database, a restored backup with ownership and privileges preserved, and a fully imported catalogue — with an **identical assertion set** and 0 failures on all four, and the imported catalogue's counts unchanged by the run.
+
+### 20. Running the database integration tests
+
+The disposable-database suites need `--experimental-vm-modules`: Prisma 7's driver adapter loads through a dynamic import, which Jest's CommonJS runtime refuses without it. `NODE_OPTIONS` is read by node at process start, so **no Jest config option can supply it** — `jest.config.js` is loaded after that decision has been made. It is therefore an explicit command and not a package script, so the flag never applies to the ordinary unit-test run:
+
+```
+NODE_OPTIONS=--experimental-vm-modules \
+CATALOG_APPLY_TEST_ADMIN_URL=postgresql://<user>:<pw>@localhost:5432/postgres \
+CATALOG_WORKBOOK=<path to the approved master workbook> \
+pnpm --filter @sam-group/api exec jest \
+  src/modules/catalog/import/apply \
+  src/modules/catalog/public-specification-security.spec.ts
+```
+
+Every suite it runs SKIPS BY NAME when its environment variables are absent, so `pnpm test` stays green on a machine with no PostgreSQL and no workbook — the workbook is not in version control and CI has never had a copy. The public Specification security suite needs only the database, not the workbook: it builds its own rows, and requiring a workbook would skip a security check for a reason that has nothing to do with security.

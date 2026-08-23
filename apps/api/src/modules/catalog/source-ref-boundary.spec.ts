@@ -46,12 +46,24 @@ function sourceFiles(root: string, skip: (path: string) => boolean): string[] {
 const mentionsSourceRef = (path: string): boolean =>
   /\bsourceRef\b|\bsource_ref\b/.test(readFileSync(path, "utf8"));
 
+/**
+ * The only files permitted to name the column: the ones whose job is proving it never reaches
+ * a response. A list, not a rule about file extensions, so adding a third requires saying so.
+ */
+const ASSERTS_ABSENCE: readonly string[] = [
+  "source-ref-boundary.spec.ts",
+  "public-specification-security.spec.ts",
+];
+
 describe("Product.sourceRef stays internal", () => {
   it("is not named anywhere in the public catalog module outside the importer", () => {
     const offenders = sourceFiles(CATALOG_DIR, (path) =>
       path.includes(`${"import"}${require("node:path").sep}`),
     )
-      .filter((path) => !path.endsWith("source-ref-boundary.spec.ts"))
+      // Exempt by NAME, never by "it is a test": the two files below exist to assert that the
+      // column stays out of a response, and they cannot do that without naming it. Every other
+      // file in this module — production or test — is still caught, which is the point.
+      .filter((path) => !ASSERTS_ABSENCE.some((name) => path.endsWith(name)))
       .filter(mentionsSourceRef);
     expect(offenders).toEqual([]);
   });

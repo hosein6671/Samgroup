@@ -221,6 +221,16 @@ export function prismaDryRunDatabase(client: {
       );
       return new Set(rows.map((row) => row.slug_key));
     },
+    async listSlugClaimOwners() {
+      // LEFT JOIN, so a claim owned by a Category, a translated slug, or a Product with no
+      // ratified identity comes back as null and can never look like self-ownership.
+      const rows = await client.$queryRawUnsafe<{ slug_key: string; source_ref: string | null }[]>(
+        `SELECT c.slug_key, p.source_ref` +
+          ` FROM "product_slug_claims" c` +
+          ` LEFT JOIN "products" p ON c.owner_type = 'Product' AND p.id = c.owner_id`,
+      );
+      return new Map(rows.map((row) => [row.slug_key, row.source_ref ?? null]));
+    },
     async listProductSourceRefs() {
       // `products` has no source_ref column yet, and asking for one that does not exist is
       // an error rather than an empty answer. Checking the catalogue first means this
@@ -244,6 +254,7 @@ export function prismaDryRunDatabase(client: {
 export const OFFLINE_DATABASE: DryRunDatabase = {
   countRows: (tables) => Promise.resolve(new Map(tables.map((table) => [table, 0]))),
   listSlugKeys: () => Promise.resolve(new Set<string>()),
+  listSlugClaimOwners: () => Promise.resolve(new Map<string, string | null>()),
   listProductSourceRefs: () => Promise.resolve(new Set<string>()),
   // Never a real database name, so --apply can never match a --target-database against it.
   databaseName: () => Promise.resolve("(offline)"),
@@ -351,17 +362,20 @@ export async function main(
     );
   }
 
-  const result = await runDryRun(database, (existingSlugKeys, existingSourceRefs) =>
-    buildImportPlan({
-      workbook: source.parsed,
-      workbookFileName: source.fileName,
-      workbookSha256: source.sha256,
-      workbookByteSize: source.byteSize,
-      workbookProvenance: source.provenance,
-      existingSlugKeys,
-      existingSourceRefs,
-      ledger,
-    }),
+  const result = await runDryRun(
+    database,
+    (existingSlugKeys, existingSourceRefs, existingSlugKeyOwners) =>
+      buildImportPlan({
+        workbook: source.parsed,
+        workbookFileName: source.fileName,
+        workbookSha256: source.sha256,
+        workbookByteSize: source.byteSize,
+        workbookProvenance: source.provenance,
+        existingSlugKeys,
+        existingSourceRefs,
+        existingSlugKeyOwners,
+        ledger,
+      }),
   );
 
   const manifest = buildManifest(result.plan);
@@ -389,9 +403,10 @@ export async function main(
     log(`  rows the apply would write  ${String(allWriteRows(writePlan).length)}`);
     throw new ApplyNotEnabledError(
       "Every apply confirmation, guard and preflight passed, and execution stops here.\n" +
-        "  APPLY_EXECUTION_ENABLED is false in this build: PRODUCT-DATA-2C-B1 builds and\n" +
-        "  verifies the apply machinery, and running it against a real catalogue is\n" +
-        "  PRODUCT-DATA-2C-B2 with its own approval, backup and rollback evidence.\n" +
+        "  APPLY_EXECUTION_ENABLED is false in this build. The write transaction behind\n" +
+        "  this stop is complete and is proven against disposable databases; running it\n" +
+        "  against a real catalogue is PRODUCT-DATA-2C-B2B, with its own approval, backup\n" +
+        "  and rollback evidence.\n" +
         "  NOTHING WAS WRITTEN.",
     );
   }

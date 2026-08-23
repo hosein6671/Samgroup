@@ -67,6 +67,15 @@ export interface DryRunDatabase {
    * and belongs to the gate that first writes a Product.
    */
   listProductSourceRefs(): Promise<ReadonlySet<string>>;
+  /**
+   * For each live slug key, the ratified `source_ref` of the Product that owns it, or null
+   * when the owner is not an identified Product.
+   *
+   * Optional so an existing caller or test double needs no change: without it the planner
+   * reads every claimed key as a collision, which is right for a catalogue never imported
+   * and wrong only for a replay — and a replay is exactly what this answers.
+   */
+  listSlugClaimOwners?(): Promise<ReadonlyMap<string, string | null>>;
 }
 
 export interface DryRunCountsDelta {
@@ -105,13 +114,15 @@ export async function runDryRun(
   buildPlan: (
     existingSlugKeys: ReadonlySet<string>,
     existingSourceRefs: ReadonlySet<string>,
+    existingSlugKeyOwners: ReadonlyMap<string, string | null>,
   ) => ImportPlan,
 ): Promise<DryRunResult> {
   const countsBefore = await database.countRows(WATCHED_TABLES);
   const existingSlugKeys = await database.listSlugKeys();
   const existingSourceRefs = await database.listProductSourceRefs();
+  const owners = (await database.listSlugClaimOwners?.()) ?? new Map<string, string | null>();
 
-  const plan = buildPlan(existingSlugKeys, existingSourceRefs);
+  const plan = buildPlan(existingSlugKeys, existingSourceRefs, owners);
 
   const countsAfter = await database.countRows(WATCHED_TABLES);
 

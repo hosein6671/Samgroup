@@ -5,6 +5,7 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { TechnicalReviewStatus } from "../../prisma/generated/enums";
 import { MediaService } from "../media/media.service";
 import { SeoService } from "../seo/seo.service";
 
@@ -65,6 +66,48 @@ const PRODUCT_SELECT = {
   createdAt: true,
 } as const;
 
+/**
+ * The ONLY condition under which a `Specification` is public.
+ *
+ * ── Why this exists at all ──────────────────────────────────────────────────
+ *
+ * When this endpoint shipped, every `specifications` row was hand-seeded demo data, so
+ * "return them all" and "return the approved ones" described the same set and the endpoint
+ * chose the first. The catalog import ends that: it writes 1,398 rows, every one of them
+ * `SOURCE_RECORDED` or `NEEDS_REVIEW`, and none of them fit to publish. Without this predicate
+ * the first successful import would publish the entire unreviewed technical catalogue through
+ * a route nobody changed.
+ *
+ * ── Approved, and still live ────────────────────────────────────────────────
+ *
+ * Both halves are required and neither implies the other. `reviewStatus` is a decision a human
+ * recorded; `deletedAt` is whether the row is still current. An approved row that was later
+ * retired is not public, and a live row nobody approved never was.
+ *
+ * `SOURCE_RECORDED`, `NEEDS_REVIEW`, `REJECTED` and `SUPERSEDED` are all excluded by naming
+ * `APPROVED` positively rather than by listing what to hide: a status added to the enum later
+ * is non-public by default, which is the safe direction for a list of things to publish.
+ *
+ * ── At the query boundary, never in JavaScript ──────────────────────────────
+ *
+ * Applied inside `where`, so PostgreSQL never returns an unapproved row to this process. A
+ * fetch-then-filter would put unpublished technical data in a response object one careless
+ * spread away from the wire, and would make `?q=` an oracle for values nobody approved.
+ *
+ * ── What is NOT re-checked here, and why ────────────────────────────────────
+ *
+ * "The grade belongs to this product" is not a predicate this file can weaken or forget:
+ * `specifications_product_grade_id_product_id_fkey` is a COMPOSITE foreign key on
+ * `(product_grade_id, product_id)`, so a Specification citing another Product's grade cannot
+ * exist to be selected. This mirrors `v_specification_public` (ADR-014), which remains the
+ * sanctioned read model; the two are deliberately the same rule stated in the two places a
+ * reader could arrive from.
+ */
+const PUBLIC_SPECIFICATION_WHERE = {
+  reviewStatus: TechnicalReviewStatus.APPROVED,
+  deletedAt: null,
+} as const satisfies Prisma.SpecificationWhereInput;
+
 const PRODUCT_DETAIL_SELECT = {
   id: true,
   name: true,
@@ -84,6 +127,10 @@ const PRODUCT_DETAIL_SELECT = {
     select: { segment: { select: { id: true, name: true, slug: true } } },
   },
   specifications: {
+    // Approved and live only. A product whose technical data has been imported but not yet
+    // reviewed serves an EMPTY array here, which is the truthful answer: the platform holds
+    // no published specification for it yet.
+    where: PUBLIC_SPECIFICATION_WHERE,
     // `specifications` has no ordering column and no unique on (product_id, key) — a product
     // may legitimately repeat a key, one row per grade. Ordering by key then value is what
     // makes the response stable across requests rather than left to insertion order.
@@ -327,7 +374,10 @@ export class ProductsService {
     }
 
     return this.prisma.specification.findMany({
-      where: { productId },
+      // The same public predicate as the detail select. Stated here too rather than assumed:
+      // this is a SECOND route to the same rows, and a partial-refresh endpoint that returned
+      // what the full response withholds would be the leak the filter exists to prevent.
+      where: { productId, ...PUBLIC_SPECIFICATION_WHERE },
       orderBy: [{ key: "asc" }, { value: "asc" }],
       select: { id: true, key: true, value: true, unit: true },
     });
@@ -539,7 +589,16 @@ export class ProductsService {
     const branches: Prisma.ProductWhereInput[] = [
       { name: { contains: search, mode: "insensitive" } },
       { slug: { contains: search, mode: "insensitive" } },
-      { specifications: { some: { value: { contains: search, mode: "insensitive" } } } },
+      // Approved and live only, for the same reason the detail select filters: a `?q=` that
+      // matched an unapproved value would answer "does the platform hold a specification
+      // saying 173?" for data nobody published. A search that can confirm a value is a way of
+      // reading it, and the contract's "q matches specification values" means the values the
+      // caller is allowed to see.
+      {
+        specifications: {
+          some: { ...PUBLIC_SPECIFICATION_WHERE, value: { contains: search, mode: "insensitive" } },
+        },
+      },
     ];
 
     if (locale.isDefault) {

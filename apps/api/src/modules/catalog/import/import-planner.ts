@@ -208,6 +208,16 @@ export interface PlanInput {
   readonly workbookProvenance?: "AUTHORITATIVE_WORKBOOK" | "FROZEN_FIXTURE";
   /** Live `product_slug_claims.slug_key` values, so a namespace collision is seen up front. */
   readonly existingSlugKeys: ReadonlySet<string>;
+  /**
+   * For each live slug key, the ratified `source_ref` of the Product that owns it, or null
+   * when the owner is a Category, a translated slug, or a Product carrying no identity.
+   *
+   * This is what lets a REPLAY be told apart from a hundred collisions: after a successful
+   * import every one of the 100 slugs is claimed, and it is claimed by the very row that
+   * proposes it. Omitted (the default) means ownership is unknown and every existing key is
+   * treated as a collision, which is the correct reading for a catalogue never imported.
+   */
+  readonly existingSlugKeyOwners?: ReadonlyMap<string, string | null>;
   /** A frozen identity ledger, replayed for identity. Empty on a first generation. */
   readonly ledger?: readonly LedgerEntry[];
   /**
@@ -745,8 +755,13 @@ export function buildImportPlan(input: PlanInput): ImportPlan {
 
   // ── Slug namespace ────────────────────────────────────────────────────────
   const slugIssues = checkSlugNamespace(
-    planned.map((product) => ({ rowNumber: product.rowNumber, slug: product.proposedSlug })),
+    planned.map((product) => ({
+      rowNumber: product.rowNumber,
+      slug: product.proposedSlug,
+      sourceRef: product.sourceRef,
+    })),
     input.existingSlugKeys,
+    input.existingSlugKeyOwners,
   );
   const duplicateSlug = slugIssues.filter(
     (issue) =>

@@ -163,5 +163,27 @@ function normalizeStatement(text: string): string {
 export const claimIdentityHash = (statementText: string): string =>
   createHash("sha256").update(normalizeStatement(statementText), "utf8").digest("hex");
 
+/**
+ * A `spec_property_mappings` row is its `(rawProperty, rawUnit)` pair — exactly the tuple
+ * `spec_property_mappings_raw_property_raw_unit_key` indexes.
+ *
+ * A uuid, derived through the same namespace as every other id here. An earlier version handed
+ * `identityKey` straight to the `id` column, which is a NUL-delimited key string and not a
+ * uuid at all; nothing caught it because nothing had ever persisted a mapping.
+ */
+export const specPropertyMappingId = (rawProperty: string, rawUnit: string | null): string =>
+  derive("spec-property-mapping", rawProperty, rawUnit);
+
+/**
+ * An ImportRun is THE SUCCESSFUL APPLICATION OF ONE MANIFEST, so its id is the manifest hash
+ * and nothing else — not the clock, not the operator, not the attempt.
+ *
+ * `import_runs_applied_manifest_key` already forbids two FINISHED runs for one manifest; this
+ * makes a retried attempt converge on the same row rather than accumulating orphan runs no
+ * fact cites. A rolled-back attempt leaves nothing behind at all, so the id is free again by
+ * construction.
+ */
+export const importRunId = (manifestHash: string): string => derive("import-run", manifestHash);
+
 /** Exported for tests that assert the key space rather than the hash. */
 export const identityKey = key;

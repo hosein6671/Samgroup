@@ -23,6 +23,7 @@ import { sourceFactKey } from "../import-planner";
 
 import { assertDemoReplacementAllowed } from "./demo-guard";
 import * as ids from "./identities";
+import { specPropertyMappingRows, specPropertyRows } from "./reference-data";
 
 import type { ImportPlan, PlannedProduct } from "../catalog-import.types";
 import type { DemoProductRow } from "./demo-guard";
@@ -297,8 +298,17 @@ export function buildWritePlan(plan: ImportPlan): WritePlan {
 
   return {
     productTypes: [...productTypes.values()],
-    specProperties: [],
-    specPropertyMappings: [],
+    // Reference vocabulary. Reconciled by key, not by id, so the KEY is the identity.
+    specProperties: specPropertyRows().map((row) => ({
+      table: "spec_properties",
+      id: null,
+      identity: row.key,
+    })),
+    specPropertyMappings: specPropertyMappingRows().map((row) => ({
+      table: "spec_property_mappings",
+      id: row.id,
+      identity: ids.identityKey("spec-property-mapping", row.rawProperty, row.rawUnit),
+    })),
     sourceAssets,
     sourceDocuments,
     products,
@@ -432,7 +442,18 @@ export async function readDemoCandidates(tx: ApplyTransaction): Promise<DemoProd
             (SELECT count(*)::int FROM product_grades g WHERE g.product_id = p.id) AS "gradeCount",
             (SELECT count(*)::int FROM specifications s WHERE s.product_id = p.id) AS "specificationCount",
             (SELECT count(*)::int FROM product_claims c WHERE c.product_id = p.id) AS "claimCount",
-            0::int AS "sourceFactCount",
+            -- Reachable evidence, not a constant. A SourceFact carries no product column:
+            -- it reaches a Product only through a Specification or a ProductClaim, so this
+            -- is what "a demo row is cited by evidence" actually means. A fact cited by
+            -- both is counted twice, which is harmless in a guard that refuses on non-zero.
+            ((SELECT count(DISTINCT se.source_fact_id)::int
+                FROM specification_evidence se
+                JOIN specifications s2 ON s2.id = se.specification_id
+               WHERE s2.product_id = p.id)
+             + (SELECT count(DISTINCT ce.source_fact_id)::int
+                FROM claim_evidence ce
+                JOIN product_claims c2 ON c2.id = ce.product_claim_id
+               WHERE c2.product_id = p.id)) AS "sourceFactCount",
             (SELECT count(*)::int FROM inquiries i WHERE i.related_product_id = p.id) AS "inquiryCount",
             (SELECT count(*)::int FROM product_segments ps WHERE ps.product_id = p.id) AS "segmentCount"
        FROM products p

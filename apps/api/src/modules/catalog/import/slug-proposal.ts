@@ -91,6 +91,11 @@ export interface SlugIssue {
 export interface SlugCheckInput {
   readonly rowNumber: number;
   readonly slug: string;
+  /**
+   * The ratified identity this row resolved to, when it has one. Used only to recognise a
+   * claim this very row already owns; it is never used to derive or validate the slug.
+   */
+  readonly sourceRef?: string | null;
 }
 
 /**
@@ -101,9 +106,37 @@ export interface SlugCheckInput {
 export function checkSlugNamespace(
   proposals: readonly SlugCheckInput[],
   existingSlugKeys: ReadonlySet<string>,
+  existingSlugKeyOwners?: ReadonlyMap<string, string | null>,
 ): SlugIssue[] {
   const issues: SlugIssue[] = [];
   const byKey = new Map<string, number[]>();
+  const refByRow = new Map(
+    proposals.flatMap((proposal) =>
+      proposal.sourceRef === undefined || proposal.sourceRef === null
+        ? []
+        : [[proposal.rowNumber, proposal.sourceRef] as const],
+    ),
+  );
+
+  /**
+   * Whether the claim on `key` is already held BY THE VERY ROW proposing it.
+   *
+   * A re-run of an import that already succeeded finds all 100 of its own slugs sitting in
+   * `product_slug_claims`, owned by the Products it wrote. Reporting those as collisions
+   * would make an identical replay indistinguishable from a hundred genuine namespace
+   * conflicts, which is the opposite of what ADR-010 wants the check to say.
+   *
+   * The owner map is keyed by slug key and carries the OWNING Product's ratified
+   * `source_ref` — null for a Category, a translated slug, or a Product with no identity, so
+   * none of those can ever be mistaken for self-ownership. Absent entirely (the default), the
+   * check behaves exactly as it did before: every existing key is a collision.
+   */
+  const ownedByProposer = (key: string, rows: readonly number[]): boolean => {
+    if (existingSlugKeyOwners === undefined) return false;
+    const owner = existingSlugKeyOwners.get(key);
+    if (owner === undefined || owner === null) return false;
+    return rows.length === 1 && refByRow.get(rows[0] ?? -1) === owner;
+  };
 
   for (const proposal of proposals) {
     const key = slugKey(proposal.slug);
@@ -140,7 +173,7 @@ export function checkSlugNamespace(
           `No suffix is added; the owner must ratify a distinguishing slug.`,
       });
     }
-    if (existingSlugKeys.has(key)) {
+    if (existingSlugKeys.has(key) && !ownedByProposer(key, rows)) {
       issues.push({
         code: "SLUG_COLLISION_WITH_EXISTING",
         slug: key,

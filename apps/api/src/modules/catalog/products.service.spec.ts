@@ -657,7 +657,7 @@ describe("ProductsService.findAll — taxonomy filters", () => {
 });
 
 describe("ProductsService.findAll — search", () => {
-  it("matches name, slug and specification values", async () => {
+  it("matches name, slug and PUBLISHED specification values", async () => {
     const { service, productFindMany } = createService();
 
     await service.findAll(EN, { q: "SN 500" });
@@ -668,7 +668,18 @@ describe("ProductsService.findAll — search", () => {
           OR: [
             { name: { contains: "SN 500", mode: "insensitive" } },
             { slug: { contains: "SN 500", mode: "insensitive" } },
-            { specifications: { some: { value: { contains: "SN 500", mode: "insensitive" } } } },
+            {
+              // A `?q=` that matched an unapproved value would answer "does the platform hold
+              // a specification saying this?" for data nobody published. Confirming a value is
+              // a way of reading it.
+              specifications: {
+                some: {
+                  reviewStatus: "APPROVED",
+                  deletedAt: null,
+                  value: { contains: "SN 500", mode: "insensitive" },
+                },
+              },
+            },
           ],
         },
       }),
@@ -1264,7 +1275,10 @@ describe("ProductsService.findSpecificationsBySlug", () => {
     const result = await service.findSpecificationsBySlug("sn-500", EN);
 
     expect(specificationFindMany).toHaveBeenCalledWith({
-      where: { productId: PRODUCT_ROW.id },
+      // The partial-refresh route carries the same public predicate as the detail select. An
+      // endpoint that served what the full response withholds would be the leak the filter
+      // exists to prevent.
+      where: { productId: PRODUCT_ROW.id, reviewStatus: "APPROVED", deletedAt: null },
       orderBy: [{ key: "asc" }, { value: "asc" }],
       select: { id: true, key: true, value: true, unit: true },
     });
