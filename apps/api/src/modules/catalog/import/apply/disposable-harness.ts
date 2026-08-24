@@ -27,8 +27,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../../../prisma/generated/client";
 
 import { executeCatalogApply, type ApplyResult, type ExecuteApplyOptions } from "./executor";
+import { prismaApplyTransaction } from "./prisma-transaction";
 
-import type { ApplyTransaction } from "./apply-engine";
+export { prismaApplyTransaction };
 
 /** Databases this harness must never be able to reach, whatever it is handed. */
 export const PROTECTED_DATABASE_NAMES: readonly string[] = [
@@ -78,18 +79,6 @@ export function assertDisposableDatabase(name: string): void {
         `database nobody deliberately named that way is treated as real.`,
     );
   }
-}
-
-/** Wraps a Prisma interactive transaction in the engine's narrow write surface. */
-export function prismaApplyTransaction(client: {
-  $executeRawUnsafe: (sql: string, ...values: unknown[]) => Promise<number>;
-  $queryRawUnsafe: <T>(sql: string, ...values: unknown[]) => Promise<T>;
-}): ApplyTransaction {
-  return {
-    execute: (sql, ...params) => client.$executeRawUnsafe(sql, ...params),
-    query: <T>(sql: string, ...params: readonly unknown[]): Promise<T[]> =>
-      client.$queryRawUnsafe<T[]>(sql, ...params),
-  };
 }
 
 export type DisposableApplyOptions = Omit<ExecuteApplyOptions, "expectedDatabaseName"> & {

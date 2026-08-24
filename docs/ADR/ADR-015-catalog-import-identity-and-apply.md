@@ -175,6 +175,8 @@ The product's evidence hash **does** change when a reading moves, which is what 
 
 ### 17. Execution remains disabled
 
+> **Superseded in one respect by §21.** The constant was `false` and still is, but at the time this section was written flipping it would have enabled nothing: it was never read, and the `--apply` branch ended in an unconditional throw. PRODUCT-DATA-2C-B2A-H1 wired the path; read §21-§26 with this section.
+
 `APPLY_EXECUTION_ENABLED` is `false`, and PRODUCT-DATA-2C-B2A did not change it. `--apply` still runs every confirmation, guard and preflight and then stops where the transaction would open. The completed writer is reachable only through an internal test harness that reads the database's own name out of the connection string and refuses anything not matching `sam_platform_disposable_*` — `sam_platform` and `sam_cms` cannot be reached from it at all, whatever is passed. No second flag, argument or environment variable was added; flipping the constant is a separate reviewed change.
 
 ### 18. A Specification is public only when a human approved it
@@ -218,3 +220,66 @@ pnpm --filter @sam-group/api exec jest \
 ```
 
 Every suite it runs SKIPS BY NAME when its environment variables are absent, so `pnpm test` stays green on a machine with no PostgreSQL and no workbook — the workbook is not in version control and CI has never had a copy. The public Specification security suite needs only the database, not the workbook: it builds its own rows, and requiring a workbook would skip a security check for a reason that has nothing to do with security.
+
+## Amendment — PRODUCT-DATA-2C-B2A-H1: the production CLI is connected to the writer
+
+Added 24 August 2026. A defect correction. Sections 1-20 above are unchanged except §17, which is superseded in one respect and restated in §21. No migration, no schema change, no import, and the execution flag is still `false`.
+
+### 21. §17 was true about the constant and wrong about the consequence
+
+§17 said flipping `APPLY_EXECUTION_ENABLED` was "a separate reviewed change". It was — but flipping it would have done **nothing**, and the ADR did not say so because nobody had checked.
+
+The constant was exported and never read. The `--apply` branch in `cli.ts` ran every confirmation, every guard and every preflight, and then ended in an **unconditional** `throw new ApplyNotEnabledError`. There was no conditional to flip. `cli.ts` imported no executor, opened no transaction and held no reference to the writer at all; `executeCatalogApply` had exactly one caller in the repository — the disposable test harness, which by design refuses `sam_platform`. The only test watching the constant asserted it was `false`, which stayed true whether or not anything was wired.
+
+So the writer was complete, reviewed, and unreachable from the command an operator would actually run. The gate that was supposed to be "one constant away from live" was in fact a wiring change away, and the manifest, the ledger, the nine confirmations and the 183-assertion verification all passed while that was the case. **A guard nobody can reach is not a guard, and a switch that turns nothing on is worse than no switch: it invites a one-line commit that appears to have enabled something.**
+
+### 22. The production boundary
+
+`cli.ts` decides. `catalog-import.run.ts` connects. Nothing else may do either.
+
+```
+main(argv, database, log, execution)
+  → parse args · parse workbook · load ledger · verify custody · build plan
+  → assertApplyConfirmations   (all nine, against observed values)
+  → assertNothingApproved · assertReferenceDataSafe
+  → assertPlanApplicable · buildWritePlan · assertWritePlanIdentitiesDistinct
+  → dispatchApply(APPLY_EXECUTION_ENABLED, runner, request)
+       └─ enabled → runner(request)          [catalog-import.run.ts]
+            └─ client.$transaction(…, { isolationLevel: "Serializable" })
+                 └─ executeCatalogApply(tx, options)
+  → renderApplyResult(result)
+```
+
+The runner is **injected, never constructed in `cli.ts`**. That keeps the CLI independently testable with no database and no global Prisma state, and it means the only code that can open a write transaction against the live catalogue is the executable the operator actually ran. The production runner owns nothing but the connection: transaction ordering, the advisory lock, the isolation assertion, the demo guard, the row builders, the deterministic identities and the post-write verification all remain `executeCatalogApply`'s, called once and unwrapped never.
+
+**The disposable harness is not imported by the production entry point.** It is a test dependency, and a production executable that could reach it would be a second, quieter way into a write — the exact shape §17 claimed to have prevented.
+
+### 23. The committed constant is still the only enablement mechanism
+
+`APPLY_EXECUTION_ENABLED` remains `false`. What changed is that it is now **read**: it is the sole input to `dispatchApply`, and the path behind that branch is wired end to end. Changing that one value to `true` now genuinely enables the import, with no other edit.
+
+Nothing else can enable it. There is no environment variable, no hidden flag, no test-only CLI argument, no `--force`, no `--yes` and no dynamic import; `assertDryRunOnly` still refuses every shortcut by name, and the enabled/disabled decision is not reachable from `argv` or `process.env` at all.
+
+The integration suites reach the enabled path by passing `{ enabled: true }` to `main` — a parameter of an exported function, reachable only from code that imports it, which `catalog-import.run.ts` never passes. This is deliberate and it is the lesser evil: the alternative is to ship the flip untested, which is what §21 is about. A test asserts that the production entry point does not set it.
+
+### 24. Disabled behaviour, and the confirmation-before-runner guarantee
+
+Disabled, `--apply` is unchanged from §17's description as an operator sees it: every confirmation and preflight runs, `dispatchApply` returns null, and the command stops with `ApplyNotEnabledError` and `NOTHING WAS WRITTEN`. Measured against a disposable clone: **runner invocations 0, transactions opened 0, rows changed 0.**
+
+The runner is assembled only after all nine confirmations and every preflight have passed, so an unvalidated plan cannot reach it by construction. Seventeen confirmation failures — each of the nine missing, and each falsifiable one wrong — plus `--apply --dry-run` and six refused shortcuts were each measured to reach the runner **zero** times and to leave the clone byte-identical.
+
+Enabled but with no runner supplied is an explicit `ApplyRunnerMissingError`, not a silent no-op. A run that wrote nothing must never be reportable as a success.
+
+### 25. The database name is checked twice, by two different mechanisms
+
+`--target-database` is a **confirmation, not a destination chooser.**
+
+1. In `cli.ts`, `assertApplyConfirmations` compares it to `SELECT current_database()` on the live connection and refuses a mismatch before anything is built.
+2. In `executeCatalogApply`, `expectedDatabaseName` is compared to `current_database()` **again, inside the transaction**, so a connection that changed underneath is still refused.
+3. In `catalog-import.run.ts`, `PRODUCTION_TARGET_DATABASE` pins this executable to `sam_platform`. This is what stops the confirmation from quietly becoming an arbitrary-database escape hatch: `sam_cms` is Payload's and is never written by this importer (ADR-002), and a disposable clone is reached by the integration suites through their own runner, never through here.
+
+### 26. What was proved, and where
+
+`apply-wiring.spec.ts` — no database, no workbook, always runs — covers the dispatcher directly (enabled/disabled × runner present/missing, exactly-once invocation, typed result, error propagation) and asserts the wiring at source level, including that `cli.ts` constructs no Prisma client and that `catalog-import.run.ts` imports the executor, sets no `enabled`, and imports no harness.
+
+`apply-cli-integration.spec.ts` — skips by name without `CATALOG_APPLY_TEST_ADMIN_URL` and `CATALOG_WORKBOOK` — drives `main(argv, …)` against `sam_platform_disposable_*` clones and proves the whole chain: the disabled stop, the seventeen confirmation refusals, a first apply committing all approved counts, an identical replay inserting nothing and recording no second successful `ImportRun`, an injected mid-transaction failure restoring the ten demo Products and every baseline count, and the in-transaction name guard. It is matched by the §20 command, whose `src/modules/catalog/import/apply` pattern covers both new files.
