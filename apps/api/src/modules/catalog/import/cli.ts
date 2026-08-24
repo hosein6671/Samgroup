@@ -12,13 +12,12 @@
  * machine actually found. There is still no `--force`, no `--yes`, no environment variable
  * and no hidden argument, and `assertDryRunOnly` rejects anything that looks like one by name.
  *
- * `APPLY_EXECUTION_ENABLED` is FALSE in this build, and that constant is now the ONLY thing
- * standing between `--apply` and a real write: the path behind it is wired. `--apply` runs the
- * whole contract — the confirmations, the custody check, the plan, the preflight and the
- * guards — and then asks `dispatchApply` whether execution is enabled. Disabled, it stops
- * there and reports that nothing was written. Enabled, it hands the validated write plan to
+ * `APPLY_EXECUTION_ENABLED` is TRUE in this build, and that constant is the ONLY thing
+ * standing between `--apply` and a real write. `--apply` runs the whole contract — the
+ * confirmations, the custody check, the plan, the preflight and the guards — and then asks
+ * `dispatchApply` whether execution is enabled. Enabled, it hands the validated write plan to
  * the injected apply runner, which opens the reviewed SERIALIZABLE transaction and calls
- * `executeCatalogApply`.
+ * `executeCatalogApply`. Disabled, it stops there and reports that nothing was written.
  *
  * The runner is INJECTED rather than constructed here, so this file opens no connection, holds
  * no global Prisma state and stays testable without a database. The production runner is built
@@ -95,23 +94,24 @@ const FORBIDDEN_ARGS: readonly string[] = [
 /**
  * Whether this build may open a write transaction.
  *
- * FALSE, and deliberately a constant rather than a flag: PRODUCT-DATA-2C-B1 built and verified
- * the apply machinery and was explicitly not permitted to run it. `--apply` therefore performs
- * every confirmation, every preflight and every guard — so the contract is real, reachable and
- * testable end to end — and then stops at the point where the transaction would open.
+ * TRUE, and deliberately a constant rather than a flag. Three reviewed gates got it here:
+ * PRODUCT-DATA-2C-B1 built and verified the apply machinery and was explicitly not permitted
+ * to run it; PRODUCT-DATA-2C-B2A-H1 made this constant the sole input to `dispatchApply` and
+ * wired the production path behind that branch; PRODUCT-DATA-2C-B2B is the approved gate that
+ * set it to `true`, against a fresh verified backup, a proven restore, a matching manifest
+ * hash and the nine confirmations. Enabling the import is a committed, reviewed source change
+ * with an owner decision behind it — never a runtime one.
  *
- * What changed in PRODUCT-DATA-2C-B2A-H1: this constant is now actually READ. It used to be
- * exported and never consulted, while the `--apply` branch ended in an unconditional throw and
- * the CLI held no reference to the writer at all — so flipping it would have enabled nothing.
- * It is now the sole input to `dispatchApply`, and the production path behind that branch is
- * wired end to end. Changing this one value to `true` genuinely enables the import.
+ * Being enabled shortens the contract by nothing. `--apply` still performs every confirmation,
+ * every preflight and every guard before `dispatchApply` is so much as asked, and the executor
+ * re-checks the target database from inside the transaction it opens.
  *
  * That is the ONLY enablement mechanism. There is no environment variable, no hidden flag, no
- * test-only argument and no dynamic import that can turn execution on: `assertDryRunOnly`
+ * test-only argument and no dynamic import that can turn execution on or off: `assertDryRunOnly`
  * refuses every shortcut by name, and the enabled/disabled decision is not reachable from
  * `argv` or `process.env` at all.
  */
-export const APPLY_EXECUTION_ENABLED = false;
+export const APPLY_EXECUTION_ENABLED = true;
 
 export class ApplyNotEnabledError extends Error {
   constructor(message: string) {
@@ -567,10 +567,10 @@ export async function main(
     if (applyResult === null) {
       throw new ApplyNotEnabledError(
         "Every apply confirmation, guard and preflight passed, and execution stops here.\n" +
-          "  APPLY_EXECUTION_ENABLED is false in this build. The write transaction behind\n" +
-          "  this stop is wired, complete, and proven against disposable databases; running\n" +
-          "  it against a real catalogue is PRODUCT-DATA-2C-B2B, with its own approval,\n" +
-          "  backup and rollback evidence.\n" +
+          "  This run's apply dispatcher is disabled, so no write transaction\n" +
+          "  was opened. The committed APPLY_EXECUTION_ENABLED is true, so a disabled\n" +
+          "  dispatcher means `enabled: false` was passed to `main` explicitly — which\n" +
+          "  only importing code can do, and no command line or environment can reach.\n" +
           "  NOTHING WAS WRITTEN.",
       );
     }

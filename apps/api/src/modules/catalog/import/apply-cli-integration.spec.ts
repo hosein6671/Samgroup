@@ -14,11 +14,12 @@
  *
  * ── Enablement here is a function parameter, never a bypass ─────────────────
  *
- * `APPLY_EXECUTION_ENABLED` is committed false, and this gate does not change it. The enabled
- * path is reached by passing `{ enabled: true }` to `main` — an argument of an exported
- * function, reachable only from code that imports it. No CLI flag, no environment variable and
- * no dynamic import can do the same, and `catalog-import.run.ts` never passes it. The
- * alternative would be to ship the flip untested, which is worse.
+ * `APPLY_EXECUTION_ENABLED` is committed TRUE as of PRODUCT-DATA-2C-B2B, and this gate still
+ * does not read it: every block below passes `enabled` to `main` EXPLICITLY, so each one tests
+ * the dispatcher branch it names whatever the committed constant happens to say. That argument
+ * belongs to an exported function and is reachable only from code that imports it. No CLI flag,
+ * no environment variable and no dynamic import can do the same, and `catalog-import.run.ts`
+ * never passes it — the committed constant is still the only production switch.
  *
  * ── Never a real database ───────────────────────────────────────────────────
  *
@@ -183,10 +184,10 @@ suite("the production CLI path, against disposable clones", () => {
   }, TIMEOUT_MS);
 
   /* ---------------------------------------------------------------------- */
-  /* Disabled: the committed constant still stops everything                  */
+  /* Disabled: an explicitly disabled dispatcher stops everything             */
   /* ---------------------------------------------------------------------- */
 
-  describe("with execution disabled, as committed", () => {
+  describe("with execution explicitly disabled", () => {
     let url = "";
     let planned: PlannedInputs;
     let runner: ReturnType<typeof disposableRunner>;
@@ -199,8 +200,15 @@ suite("the production CLI path, against disposable clones", () => {
       planned = await buildPlanFor(url, workbook());
       before = await readCounts(url);
       runner = disposableRunner(url);
-      // `enabled` omitted: main falls back to the committed APPLY_EXECUTION_ENABLED.
-      outcome = await runCli(url, applyArgv(url, planned, workbook()), { runner });
+      // `enabled: false` is passed EXPLICITLY rather than inherited. The committed
+      // APPLY_EXECUTION_ENABLED is true (PRODUCT-DATA-2C-B2B), and what this block proves is
+      // a property of the dispatcher, not of that constant's current value: disabled, the
+      // runner is never reached and no row moves. Inheriting the constant would silently
+      // convert these assertions into a test of the enabled path the moment it was flipped.
+      outcome = await runCli(url, applyArgv(url, planned, workbook()), {
+        enabled: false,
+        runner,
+      });
       after = await readCounts(url);
     }, TIMEOUT_MS);
 

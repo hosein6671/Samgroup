@@ -198,10 +198,10 @@ describe("the command line refuses anything but a dry run", () => {
     expect(parseArgs(["--apply", "--workbook", "w.xlsx"]).apply).toBe(true);
   });
 
-  it("does not enable apply execution in this build", () => {
-    // PRODUCT-DATA-2C-B1 builds the machinery; running it is a separate gate. A constant
-    // rather than a flag, so no argument can turn it on.
-    expect(APPLY_EXECUTION_ENABLED).toBe(false);
+  it("enables apply execution in this build", () => {
+    // PRODUCT-DATA-2C-B1 built the machinery; PRODUCT-DATA-2C-B2B opened the gate. Still a
+    // constant rather than a flag, so no argument can turn it on or off.
+    expect(APPLY_EXECUTION_ENABLED).toBe(true);
   });
 
   it("refuses an argument that would mean ratify", () => {

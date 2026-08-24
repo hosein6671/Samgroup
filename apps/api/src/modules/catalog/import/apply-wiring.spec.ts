@@ -89,8 +89,8 @@ function spyRunner(
 /* -------------------------------------------------------------------------- */
 
 describe("the committed enablement constant", () => {
-  it("is still false: this gate wires the path, it does not open it", () => {
-    expect(APPLY_EXECUTION_ENABLED).toBe(false);
+  it("is true: PRODUCT-DATA-2C-B2B opened the path this gate wired", () => {
+    expect(APPLY_EXECUTION_ENABLED).toBe(true);
   });
 
   it("is declared as a literal, not derived from the environment or an argument", () => {
