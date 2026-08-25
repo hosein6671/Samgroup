@@ -45,7 +45,7 @@
  * domain truth by construction" and a HIGH mapping into it is what the importer treats as
  * resolved. Requiring `spec_property_mappings.review_status = 'approved'` instead would be a
  * stricter rule than the importer's, and no surface exists in this gate that could ever set it.
- * Flagged for the Architect in the gate report rather than decided silently.
+ * Ratified by the Architect on 25 August 2026 as Option A — ADR-016 §6.
  */
 const RESOLVED_MAPPING = `
   SELECT m."spec_property_key"
