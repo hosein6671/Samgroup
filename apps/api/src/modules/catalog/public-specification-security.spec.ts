@@ -55,6 +55,12 @@ const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
  */
 const PROBE_SLUG = "zz-public-spec-probe";
 
+/**
+ * The probe reviewer. Needed only because migration 20260825120000 makes an approval require a
+ * `TechnicalReview`, and that row carries a real foreign key to `users`.
+ */
+const REVIEWER_ID = "bbbb2222-0000-4000-8000-00000000beef";
+
 /** One Specification per review status, plus the two cases status alone does not cover. */
 interface ProbeSpec {
   readonly key: string;
@@ -92,6 +98,16 @@ suite("public Specification exposure", () => {
   let url = "";
   let prisma: PrismaService;
   let products: ProductsService;
+  /**
+   * How many Products the CLONED template already held, read rather than assumed.
+   *
+   * It was `10` when this suite was written and the template was a demo database; it is `100`
+   * against the imported catalogue, and it would be `0` against a freshly migrated one. An absolute
+   * expectation here is a statement about the whole catalogue, and this suite only ever makes a
+   * statement about its OWN probe row — the same correction ADR-015 §19 made to the verification
+   * script for exactly the same reason.
+   */
+  let productsBeforeProbe = 0;
 
   beforeAll(async () => {
     url = await createDisposableDatabase(
@@ -102,6 +118,14 @@ suite("public Specification exposure", () => {
     await withDisposableClient(url, async (client) => {
       const productId = randomUUID();
       const gradeId = randomUUID();
+      // Ids are generated here rather than by the database, because the approval
+      // path below has to name each subject in its TechnicalReview.
+      const specIdByKey = new Map<string, string>();
+
+      const baseline = await client.$queryRawUnsafe<{ n: number }[]>(
+        `SELECT count(*)::int AS n FROM products`,
+      );
+      productsBeforeProbe = Number(baseline[0]?.n ?? 0);
 
       await client.$executeRawUnsafe(
         `INSERT INTO products (id, name, slug, category_id)
@@ -128,21 +152,94 @@ suite("public Specification exposure", () => {
                    'textual'::spec_value_kind, 'not_applicable'::method_requirement)`,
           spec.key,
         );
+        /*
+         * ── Born unapproved, always ──────────────────────────────────────────
+         *
+         * Migration 20260825120000 refuses an INSERT that arrives already
+         * approved, and refuses a bare UPDATE into `approved` (ADR-016). This
+         * fixture used to write `review_status` directly, which is precisely the
+         * write the database no longer permits anyone to make.
+         *
+         * So every probe is inserted unapproved. The ones that need to BE
+         * approved are approved below through the legitimate path, and the ones
+         * that need a NON-approved status are moved there afterwards — leaving
+         * `approved` is deliberately ungated, so that still works.
+         *
+         * **No assertion in this file changed.** The seven probes still cover the
+         * same seven states; only the way they reach them did.
+         */
+        const specId = randomUUID();
+        specIdByKey.set(spec.key, specId);
+
         // The legacy triple is what the public DTO serves, so that is what is asserted on.
         await client.$executeRawUnsafe(
           `INSERT INTO specifications
-             (id, product_id, product_grade_id, property_key, key, value, unit,
-              review_status, deleted_at)
-           VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, $4, $5, 'cSt',
-                   $6::technical_review_status, $7::timestamptz)`,
+             (id, product_id, product_grade_id, property_key, key, value, unit)
+           VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, 'cSt')`,
+          specId,
           productId,
           spec.grade ? gradeId : null,
           spec.key,
           spec.key,
           `value-of-${spec.key}`,
-          spec.status,
-          spec.deleted ? new Date().toISOString() : null,
         );
+      }
+
+      // A reviewer, because `technical_reviews.reviewer_id` is a real foreign key.
+      await client.$executeRawUnsafe(
+        `INSERT INTO users (id, email, password_hash, role)
+         VALUES ($1::uuid, 'spec-sec-probe@samgp.test', 'not-a-credential', 'admin')`,
+        REVIEWER_ID,
+      );
+
+      for (const spec of PROBE_SPECS) {
+        const specId = specIdByKey.get(spec.key) as string;
+
+        if (spec.status === "approved") {
+          /*
+           * The gate's exact requirement: a TechnicalReview inserted in the SAME
+           * transaction as the status change, naming this subject, recording an
+           * approve decision, with a non-blank reviewer snapshot and the
+           * evidence-set hash the database computes for this subject right now.
+           *
+           * `$transaction` is what makes it the same transaction — a sequence of
+           * `$executeRawUnsafe` calls is a sequence of autocommits, and the gate
+           * would refuse the second one.
+           */
+          await client.$transaction(async (tx) => {
+            await tx.$executeRawUnsafe(
+              `INSERT INTO technical_reviews
+                 (id, specification_id, reviewer_id, reviewer_email_snapshot, decision,
+                  evidence_set_hash)
+               VALUES (gen_random_uuid(), $1::uuid, $2::uuid, 'spec-sec-probe@samgp.test',
+                       'approved', specification_evidence_set_hash($1::uuid))`,
+              specId,
+              REVIEWER_ID,
+            );
+            await tx.$executeRawUnsafe(
+              `UPDATE specifications SET review_status = 'approved' WHERE id = $1::uuid`,
+              specId,
+            );
+          });
+        } else if (spec.status !== "source_recorded") {
+          // Every other status is reachable by a plain UPDATE: only ENTRY into
+          // `approved` is gated.
+          await client.$executeRawUnsafe(
+            `UPDATE specifications SET review_status = $2::technical_review_status
+              WHERE id = $1::uuid`,
+            specId,
+            spec.status,
+          );
+        }
+
+        if (spec.deleted) {
+          // Retired AFTER approval, which is the real sequence and the one the
+          // "approved once, retired since" probe is about.
+          await client.$executeRawUnsafe(
+            `UPDATE specifications SET deleted_at = now() WHERE id = $1::uuid`,
+            specId,
+          );
+        }
       }
     });
 
@@ -299,11 +396,12 @@ suite("public Specification exposure", () => {
   it(
     "leaves the Product itself publicly discoverable, and the list unchanged",
     async () => {
-      // Withholding unreviewed specifications is not the same as hiding the product. The
-      // list contract is untouched: the probe product and the ten demo rows are all present.
+      // Withholding unreviewed specifications is not the same as hiding the product. The list
+      // contract is untouched: every Product the template held is still there, and the probe is
+      // one more — a DELTA against the baseline, never an absolute count of the catalogue.
       const page = await products.findAll(EN, { page: 1, limit: 100 } as never);
       expect(page.products.map((row) => row.slug)).toContain(PROBE_SLUG);
-      expect(page.total).toBe(11);
+      expect(page.total).toBe(productsBeforeProbe + 1);
       expect(Object.keys(page.products[0] ?? {}).sort()).toEqual([
         "categoryId",
         "createdAt",

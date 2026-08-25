@@ -19,8 +19,9 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-013](./ADR-013-lead-assignment-and-status-workflow.md)          | Lead assignment and status workflow                                                                                                       | Accepted | 20 August 2026 |
 | [ADR-014](./ADR-014-catalog-technical-data-and-provenance.md)        | Catalog technical data: Grades, normalized Specifications, immutable provenance and approval-gated publication                            | Accepted |
 | [ADR-015](./ADR-015-catalog-import-identity-and-apply.md)            | Persistent `Product.sourceRef`, database-enforced import idempotency, and the guarded transactional apply                                 | Accepted |
+| [ADR-016](./ADR-016-catalog-technical-review-api.md)                 | Admin-only catalog technical-review API: transactional approval, evidence-hash concurrency, immutable review history                      | Accepted |
 
-These fifteen, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+These sixteen, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 

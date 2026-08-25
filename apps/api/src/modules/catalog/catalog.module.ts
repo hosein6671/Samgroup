@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { IdentityModule } from "../identity/identity.module";
 import { MediaModule } from "../media/media.module";
 import { SeoMetaModule } from "../seo/seo-meta.module";
 
@@ -10,6 +11,12 @@ import { CategoriesController } from "./categories.controller";
 import { CategoriesService } from "./categories.service";
 import { ProductsController } from "./products.controller";
 import { ProductsService } from "./products.service";
+import {
+  CatalogReviewQueueController,
+  ProductClaimReviewController,
+  SpecificationReviewController,
+} from "./review/catalog-review.controller";
+import { CatalogReviewService } from "./review/catalog-review.service";
 
 /**
  * The Catalog module — ARCHITECTURE.md §Modules. Owns `Category`, `Product` and
@@ -39,9 +46,23 @@ import { ProductsService } from "./products.service";
     ContentTranslationModule,
     SeoMetaModule,
     MediaModule,
+    /*
+     * Guards, not services. `JwtAuthGuard` and `RolesGuard` are referenced by CLASS on the review
+     * controllers, and Nest constructs a class-referenced enhancer in the module that declares the
+     * controller — so `AccessTokenVerifier`, which `JwtAuthGuard` injects, has to be resolvable
+     * here. Identity exports exactly that one narrow capability rather than its `users` repository,
+     * which is what keeps this import from becoming cross-module data access.
+     */
+    IdentityModule,
   ],
-  controllers: [CategoriesController, ProductsController],
-  providers: [CategoriesService, ProductsService],
+  controllers: [
+    CategoriesController,
+    ProductsController,
+    CatalogReviewQueueController,
+    SpecificationReviewController,
+    ProductClaimReviewController,
+  ],
+  providers: [CategoriesService, ProductsService, CatalogReviewService],
   exports: [CategoriesService, ProductsService],
 })
 export class CatalogModule {}

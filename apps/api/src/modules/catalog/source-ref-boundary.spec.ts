@@ -9,6 +9,18 @@
  * Nothing stops a future `select: { ...PRODUCT_SELECT, sourceRef: true }` except a test that
  * fails when someone writes it — so the checks below read the actual source and the actual
  * response types rather than trusting the convention.
+ *
+ * ── The boundary is "non-public", not "unreadable" ──────────────────────────
+ *
+ * PRODUCT-REVIEW-1A adds the one surface with a real need for it: a reviewer reconciling a
+ * technical value against the ratified workbook has to be able to see which workbook row the
+ * Product is. So `review/` may name the column, and the exemption is NARROWED rather than
+ * granted — `admits the review module only behind an Admin guard` below re-reads those files and
+ * fails if any of them serves the column without `@Roles(UserRole.ADMIN)` and both guards.
+ *
+ * ADR-015 §1's rule is unchanged and every other assertion here is untouched: the column stays
+ * out of `products.service.ts`, out of every public Product DTO, out of SEO and the sitemap, out
+ * of `apps/web`, out of `apps/cms` and out of `packages/types`.
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -55,10 +67,16 @@ const ASSERTS_ABSENCE: readonly string[] = [
   "public-specification-security.spec.ts",
 ];
 
+/** The Admin review surface, which serves the column deliberately — see the module note above. */
+const REVIEW_DIR_SEGMENT = `${require("node:path").sep}review${require("node:path").sep}`;
+
 describe("Product.sourceRef stays internal", () => {
   it("is not named anywhere in the public catalog module outside the importer", () => {
-    const offenders = sourceFiles(CATALOG_DIR, (path) =>
-      path.includes(`${"import"}${require("node:path").sep}`),
+    const offenders = sourceFiles(
+      CATALOG_DIR,
+      (path) =>
+        path.includes(`${"import"}${require("node:path").sep}`) ||
+        path.includes(REVIEW_DIR_SEGMENT),
     )
       // Exempt by NAME, never by "it is a test": the two files below exist to assert that the
       // column stays out of a response, and they cannot do that without naming it. Every other
@@ -66,6 +84,40 @@ describe("Product.sourceRef stays internal", () => {
       .filter((path) => !ASSERTS_ABSENCE.some((name) => path.endsWith(name)))
       .filter(mentionsSourceRef);
     expect(offenders).toEqual([]);
+  });
+
+  /**
+   * The review module's exemption, made conditional on the thing that justifies it.
+   *
+   * A file under `review/` may name `sourceRef` only if the surface it belongs to is Admin-only.
+   * The controller is checked for both guards and for `@Roles(UserRole.ADMIN)`; the service and
+   * the DTOs are checked for the absence of any public entry point. If someone later adds an
+   * unguarded route to that folder and serves the column from it, this fails.
+   */
+  it("admits the review module only behind an Admin guard", () => {
+    const reviewFiles = sourceFiles(join(CATALOG_DIR, "review"), () => false).filter(
+      mentionsSourceRef,
+    );
+
+    // The exemption is worth nothing if the folder is empty — that would pass by having no files.
+    expect(reviewFiles.length).toBeGreaterThan(0);
+
+    const controller = readFileSync(
+      join(CATALOG_DIR, "review", "catalog-review.controller.ts"),
+      "utf8",
+    );
+    expect(controller).toMatch(/@UseGuards\(JwtAuthGuard,\s*RolesGuard\)/);
+    expect(controller).toMatch(/@Roles\(UserRole\.ADMIN\)/);
+    // Every `@Controller` in the folder is under the admin namespace, so no route escapes §2.10.
+    for (const [, path] of controller.matchAll(/@Controller\("([^"]+)"\)/g)) {
+      expect(path).toMatch(/^admin\//);
+    }
+
+    // And nothing in the folder declares a route outside that controller file.
+    for (const file of sourceFiles(join(CATALOG_DIR, "review"), () => false)) {
+      if (file.endsWith("catalog-review.controller.ts")) continue;
+      expect(readFileSync(file, "utf8")).not.toMatch(/@Controller\(/);
+    }
   });
 
   it("is absent from every Product response type", () => {

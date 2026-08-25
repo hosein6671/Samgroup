@@ -119,6 +119,13 @@ BEGIN;
 -- all zero, AND on a fully imported one, where they are 1,398 / 1,661 / 148 and so on. An
 -- absolute expectation is a statement about the whole catalogue; the probes only ever make a
 -- statement about their own rows, and this is what keeps the assertions saying that.
+-- The review rows that existed BEFORE this transaction opened. Captured as ids
+-- rather than a count, because case 26 needs to prove that `xmin` does not
+-- attribute any of them to this transaction — which is the whole basis of the
+-- approval gate's same-transaction test.
+CREATE TEMP TABLE td_reviews_before ON COMMIT DROP AS
+  SELECT "id" FROM "technical_reviews";
+
 CREATE TEMP TABLE td_baseline(t text PRIMARY KEY, n bigint) ON COMMIT DROP;
 INSERT INTO td_baseline(t, n)
 SELECT 'specification_evidence', count(*) FROM "specification_evidence"
@@ -174,6 +181,46 @@ CREATE OR REPLACE FUNCTION pg_temp.verdict(ok boolean, label text, observed text
   SELECT CASE WHEN $1 THEN 'PASS|' ELSE 'FAIL|' END || $2 || '|' || $3;
 $$ LANGUAGE sql;
 
+-- ── The LEGITIMATE approval path, as the database now requires it ──────────
+--
+-- Migration 20260825120000 makes entry into `approved` conditional on a
+-- TechnicalReview inserted in the SAME transaction, naming the subject, carrying
+-- an approve decision, a non-blank reviewer snapshot and the evidence-set hash
+-- the database computes for that subject right now (ADR-016).
+--
+-- Several probes below need an approved row in order to test something else
+-- entirely — the public views, the forbidden-kind CHECKs, the composite grade
+-- key. Before the gate existed they reached that state with a bare UPDATE. They
+-- now go through these helpers instead. **No assertion was removed or weakened
+-- by that change**: each of those probes still asserts exactly what it asserted
+-- before, on a row that is genuinely approved. What changed is the SETUP, and it
+-- changed because the setup was previously doing something the database no
+-- longer permits anyone to do.
+--
+-- The hash is read from the function rather than passed in, so a helper can
+-- never be used to smuggle a stale one past the gate.
+CREATE OR REPLACE FUNCTION pg_temp.approve_spec(spec_id uuid) RETURNS void AS $$
+BEGIN
+  INSERT INTO "technical_reviews"
+    ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+  VALUES (gen_random_uuid(), spec_id, 'dddddddd-0000-4000-8000-0000000000ab',
+          'td-gate-reviewer@example.invalid', 'approved',
+          "specification_evidence_set_hash"(spec_id));
+  UPDATE "specifications" SET "review_status" = 'approved' WHERE "id" = spec_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION pg_temp.approve_claim(claim_id uuid) RETURNS void AS $$
+BEGIN
+  INSERT INTO "technical_reviews"
+    ("id","product_claim_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+  VALUES (gen_random_uuid(), claim_id, 'dddddddd-0000-4000-8000-0000000000ab',
+          'td-gate-reviewer@example.invalid', 'approved',
+          "product_claim_evidence_set_hash"(claim_id));
+  UPDATE "product_claims" SET "review_status" = 'approved' WHERE "id" = claim_id;
+END;
+$$ LANGUAGE plpgsql;
+
 -- ── Fixture ────────────────────────────────────────────────────────────────
 -- One Product Family and three Products: zero-grade, single-grade, multi-grade
 -- — the three shapes the ratified distribution says the real catalog contains
@@ -189,7 +236,12 @@ VALUES ('dddddddd-0000-4000-8000-000000000001','TD Probe Zero','td-probe-zero','
        ('dddddddd-0000-4000-8000-000000000003','TD Probe Multi','td-probe-multi','dddddddd-0000-4000-8000-00000000000f');
 
 INSERT INTO "users" ("id","email","password_hash","role","status")
-VALUES ('dddddddd-0000-4000-8000-0000000000aa','td-probe-reviewer@example.invalid','x','admin','active');
+VALUES ('dddddddd-0000-4000-8000-0000000000aa','td-probe-reviewer@example.invalid','x','admin','active'),
+       -- A SECOND reviewer, and it exists because case 8 DELETES the first one to
+       -- prove ADR-012's revocation still works. Every approval helper below uses
+       -- this one, so the gate probes in cases 14, 25 and 26 keep working after
+       -- that deletion instead of failing on a dangling foreign key.
+       ('dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','x','admin','active');
 
 INSERT INTO "spec_properties" ("key","canonical_meaning","quantity","value_kind","allowed_units","method_requirement")
 VALUES ('td_probe_viscosity_40c','Kinematic viscosity at 40 C','kinematic_viscosity','numeric','{"mm2/s"}','required'),
@@ -393,11 +445,17 @@ SELECT pg_temp.expect_accepted(
      VALUES ('ffffffff-0000-4000-8000-000000000002','fac70000-0000-4000-8000-000000000001','primary')$q$,
   '7. one SourceFact supports a second Specification');
 
+-- Born unapproved, every one of them — the gate refuses an INSERT that arrives
+-- already approved, and the two that need to BE approved are approved below
+-- through the same path the review service uses.
 INSERT INTO "product_claims" ("id","product_id","kind","standard_body","standard_code","review_status")
-VALUES ('cafe0000-0000-4000-8000-000000000001','dddddddd-0000-4000-8000-000000000001','classification_stated','API','CF-4','approved'),
+VALUES ('cafe0000-0000-4000-8000-000000000001','dddddddd-0000-4000-8000-000000000001','classification_stated','API','CF-4','source_recorded'),
        ('cafe0000-0000-4000-8000-000000000002','dddddddd-0000-4000-8000-000000000001','licensed_by','API','Licence 1234','source_recorded'),
        ('cafe0000-0000-4000-8000-000000000003','dddddddd-0000-4000-8000-000000000001','reference_only',NULL,NULL,'source_recorded'),
-       ('cafe0000-0000-4000-8000-000000000004','dddddddd-0000-4000-8000-000000000001','formulated_for','ACEA','E7','approved');
+       ('cafe0000-0000-4000-8000-000000000004','dddddddd-0000-4000-8000-000000000001','formulated_for','ACEA','E7','source_recorded');
+
+SELECT pg_temp.approve_claim('cafe0000-0000-4000-8000-000000000001');
+SELECT pg_temp.approve_claim('cafe0000-0000-4000-8000-000000000004');
 
 SELECT pg_temp.expect_accepted(
   $q$INSERT INTO "claim_evidence" ("product_claim_id","source_fact_id","role")
@@ -519,16 +577,31 @@ SELECT pg_temp.expect_rejected(
   $q$INSERT INTO "product_claims" ("id","product_id","kind","standard_body","review_status")
      VALUES ('cafe0000-0000-4000-8000-00000000003e','dddddddd-0000-4000-8000-000000000001','approved_by','   ','approved')$q$,
   '14. ...and a blank body does not count as naming one');
-SELECT pg_temp.expect_accepted(
-  $q$INSERT INTO "product_claims" ("id","product_id","kind","standard_body","standard_code","review_status")
-     VALUES ('cafe0000-0000-4000-8000-00000000004e','dddddddd-0000-4000-8000-000000000001','approved_by','Example OEM','Spec 1','approved')$q$,
-  '14. APPROVED_BY with a named body is permitted');
+-- The positive case. It used to INSERT the row already approved; the gate now
+-- refuses that for EVERY claim, so it is inserted unapproved and then approved
+-- through the legitimate path. The assertion is unchanged in meaning — a named
+-- body is what makes an APPROVED_BY claim approvable — and is now stronger,
+-- because it also proves the gate admits a well-formed approval.
+INSERT INTO "product_claims" ("id","product_id","kind","standard_body","standard_code","review_status")
+VALUES ('cafe0000-0000-4000-8000-00000000004e','dddddddd-0000-4000-8000-000000000001','approved_by','Example OEM','Spec 1','source_recorded');
+-- Top level, not inside expect_accepted: see the note above the Specification
+-- positive control in case 26 for why a subtransaction cannot be used here.
+SELECT pg_temp.approve_claim('cafe0000-0000-4000-8000-00000000004e');
+SELECT pg_temp.verdict(
+  (SELECT "review_status" = 'approved' FROM "product_claims" WHERE "id"='cafe0000-0000-4000-8000-00000000004e'),
+  '14. APPROVED_BY with a named body is permitted',
+  (SELECT "review_status"::text FROM "product_claims" WHERE "id"='cafe0000-0000-4000-8000-00000000004e'));
 
 -- ── 13. The public views ─────────────────────────────────────────────────
 -- Approve one specification and soft-delete another; add an unapproved,
 -- a rejected and a superseded one. Only the approved live row may appear.
-UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000001';
-UPDATE "specifications" SET "review_status"='approved', "deleted_at"=now() WHERE "id"='ffffffff-0000-4000-8000-000000000002';
+-- Approved through the gate, not by a bare UPDATE — see pg_temp.approve_spec.
+-- The soft-deleted one is approved first and retired second: the gate governs
+-- entry into `approved`, and retiring an already-approved row is untouched by
+-- it, which is exactly the asymmetry this pair of rows goes on to prove.
+SELECT pg_temp.approve_spec('ffffffff-0000-4000-8000-000000000001');
+SELECT pg_temp.approve_spec('ffffffff-0000-4000-8000-000000000002');
+UPDATE "specifications" SET "deleted_at"=now() WHERE "id"='ffffffff-0000-4000-8000-000000000002';
 UPDATE "specifications" SET "review_status"='rejected'   WHERE "id"='ffffffff-0000-4000-8000-000000000003';
 UPDATE "specifications" SET "review_status"='superseded' WHERE "id"='ffffffff-0000-4000-8000-000000000004';
 
@@ -889,24 +962,33 @@ SELECT pg_temp.verdict(
   '22. there is no url column and no isPublishable flag',
   (SELECT coalesce(string_agg(column_name,','),'none') FROM information_schema.columns WHERE table_name='source_documents' AND column_name IN ('url','is_publishable')));
 
--- ── 23. The approval transition is NOT database-enforced (documented) ────
--- This asserts the LIMITATION, so that the day someone implements the review
--- service and closes it, this test fails and forces the docs to be updated.
+-- ── 23. The approval transition IS database-enforced ─────────────────────
+--
+-- This case used to assert the OPPOSITE. ADR-014 §8 recorded, deliberately,
+-- that the database gated what is read but not who decided, and wrote these
+-- assertions so that "the day someone implements the review service and closes
+-- it, this test fails and forces the docs to be updated". Migration
+-- 20260825120000 closed it; the assertions are inverted here, and ADR-016
+-- records the closure. Nothing was deleted — the same three questions are
+-- asked, and the expected answers are now the safe ones.
 INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
 VALUES ('ffffffff-0000-4000-8000-000000000301','dddddddd-0000-4000-8000-000000000001','k','v','td_probe_limitation','7','point',7);
-SELECT pg_temp.expect_accepted(
+SELECT pg_temp.expect_rejected(
   $q$UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000301'$q$,
-  '23. LIMITATION: approval can be set with no TechnicalReview');
+  '23. approval CANNOT be set with no TechnicalReview');
 SELECT pg_temp.verdict(
   (SELECT count(*) = 0 FROM "technical_reviews" WHERE "specification_id"='ffffffff-0000-4000-8000-000000000301')
-  AND (SELECT count(*) = 1 FROM "v_specification_public" WHERE "id"='ffffffff-0000-4000-8000-000000000301'),
-  '23. LIMITATION: it becomes public with zero review rows (see ADR-014)',
-  'deferred to PRODUCT-DATA-2B');
+  AND (SELECT count(*) = 0 FROM "v_specification_public" WHERE "id"='ffffffff-0000-4000-8000-000000000301'),
+  '23. it did NOT become public, and no review row was invented',
+  'gate held');
 SELECT pg_temp.verdict(
-  (SELECT obj_description('specifications'::regclass) IS NULL
+  (SELECT col_description('specifications'::regclass,
+            (SELECT attnum FROM pg_attribute WHERE attrelid='specifications'::regclass AND attname='review_status'))
+          NOT LIKE '%DOES NOT ENFORCE%'
       AND col_description('specifications'::regclass,
-            (SELECT attnum FROM pg_attribute WHERE attrelid='specifications'::regclass AND attname='review_status')) LIKE '%DOES NOT ENFORCE%'),
-  '23. the limitation is recorded as a database COMMENT',
+            (SELECT attnum FROM pg_attribute WHERE attrelid='specifications'::regclass AND attname='review_status'))
+          LIKE '%SAME transaction%'),
+  '23. the COMMENT now describes the enforcement, not the limitation',
   'documented in-schema');
 
 
@@ -1287,6 +1369,397 @@ SELECT pg_temp.verdict(
   '24. product_slug_claims is written only BY triggers, never by one',
   (SELECT count(*)::text FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
     WHERE c.relname='product_slug_claims' AND NOT t.tgisinternal));
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 25. PRODUCT-REVIEW-1A-H1: immutable review history
+--     Migration 20260825120000_harden_review_immutability_and_approval_gate.
+--
+--     `technical_reviews` accepted UPDATE and DELETE until this migration. That
+--     had been ASSUMED closed and was not — a probe deleted six rows and
+--     PostgreSQL accepted it. An audit table that can be rewritten is not audit
+--     history, and an assumption nobody tested is exactly how this survived.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── 25a. The trigger's shape, not just its effect ─────────────────────────
+-- The effect tests below would still pass if someone replaced the trigger with a
+-- plain ENABLE one, which a session setting `session_replication_role='replica'`
+-- silently skips. So the definition is asserted first, field by field.
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname='technical_reviews' AND t.tgname='technical_reviews_immutable_guard'),
+  '25. technical_reviews_immutable_guard exists',
+  (SELECT count(*)::text FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid
+    WHERE c.relname='technical_reviews' AND t.tgname='technical_reviews_immutable_guard'));
+
+-- tgtype is a bitmask: 1 = ROW, 2 = BEFORE, 8 = DELETE, 16 = UPDATE.
+SELECT pg_temp.verdict(
+  (SELECT (t.tgtype & 1) = 1 FROM pg_trigger t
+    WHERE t.tgname='technical_reviews_immutable_guard'),
+  '25. it is ROW-level, so every row is checked individually',
+  (SELECT (t.tgtype & 1)::text FROM pg_trigger t WHERE t.tgname='technical_reviews_immutable_guard'));
+SELECT pg_temp.verdict(
+  (SELECT (t.tgtype & 2) = 2 FROM pg_trigger t
+    WHERE t.tgname='technical_reviews_immutable_guard'),
+  '25. it fires BEFORE, so a refused write never touches the heap',
+  (SELECT (t.tgtype & 2)::text FROM pg_trigger t WHERE t.tgname='technical_reviews_immutable_guard'));
+SELECT pg_temp.verdict(
+  (SELECT (t.tgtype & 8) = 8 AND (t.tgtype & 16) = 16 FROM pg_trigger t
+    WHERE t.tgname='technical_reviews_immutable_guard'),
+  '25. it covers BOTH update and delete',
+  (SELECT ((t.tgtype & 8) = 8)::text || '/' || ((t.tgtype & 16) = 16)::text
+     FROM pg_trigger t WHERE t.tgname='technical_reviews_immutable_guard'));
+SELECT pg_temp.verdict(
+  (SELECT t.tgenabled = 'A' FROM pg_trigger t
+    WHERE t.tgname='technical_reviews_immutable_guard'),
+  '25. it is ENABLE ALWAYS, so session_replication_role cannot skip it',
+  (SELECT t.tgenabled::text FROM pg_trigger t WHERE t.tgname='technical_reviews_immutable_guard'));
+
+-- INSERT is untouched: the table must still be writable, or nothing could ever
+-- be approved.
+INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
+VALUES ('ffffffff-0000-4000-8000-000000000401','dddddddd-0000-4000-8000-000000000002','k','v','td_probe_report','reported','report_only',NULL);
+SELECT pg_temp.expect_accepted(
+  $q$INSERT INTO "technical_reviews"
+       ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+     VALUES ('7ec00000-0000-4000-8000-000000000401','ffffffff-0000-4000-8000-000000000401',
+             'dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','rejected',
+             "specification_evidence_set_hash"('ffffffff-0000-4000-8000-000000000401'))$q$,
+  '25. INSERT is still accepted');
+
+-- ── 25b. Every field a rewrite would target ───────────────────────────────
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "note"='rewritten' WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the note cannot be rewritten');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "evidence_set_hash"=repeat('0',64) WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the evidence hash cannot be rewritten');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "decision"='approved' WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the decision cannot be rewritten');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "reviewer_email_snapshot"='someone.else@example.invalid'
+      WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the reviewer snapshot cannot be rewritten');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "specification_id"='ffffffff-0000-4000-8000-000000000001'
+      WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the subject cannot be re-pointed at another row');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "reviewed_at"=now() - interval '1 year'
+      WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the timestamp cannot be back-dated');
+SELECT pg_temp.expect_rejected(
+  $q$DELETE FROM "technical_reviews" WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. a single review cannot be deleted');
+SELECT pg_temp.expect_rejected(
+  $q$DELETE FROM "technical_reviews"$q$,
+  '25. and neither can the whole table');
+SELECT pg_temp.verdict(
+  (SELECT "note" IS NULL AND "decision"='rejected'
+      AND "reviewer_email_snapshot"='td-gate-reviewer@example.invalid'
+      AND "reviewer_id"='dddddddd-0000-4000-8000-0000000000ab'
+     FROM "technical_reviews" WHERE "id"='7ec00000-0000-4000-8000-000000000401'),
+  '25. the row is byte-for-byte what was inserted',
+  (SELECT "decision"::text FROM "technical_reviews" WHERE "id"='7ec00000-0000-4000-8000-000000000401'));
+
+-- ── 25b-ii. The ONE permitted update, and its exact boundary ──────────────
+--
+-- `reviewer_id` is ON DELETE SET NULL, and PostgreSQL implements that as an
+-- UPDATE on this table. A blanket ban would make `DELETE FROM users` fail and
+-- would break ADR-012's strongest credential revocation — measured, not
+-- reasoned about: the first version of this trigger did exactly that and case 8
+-- failed. So clearing `reviewer_id` to NULL with every other column untouched is
+-- permitted, and nothing else is.
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "reviewer_id"='dddddddd-0000-4000-8000-0000000000aa'
+      WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. the reviewer cannot be re-pointed at a DIFFERENT user');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "technical_reviews" SET "reviewer_id"=NULL, "note"='and a rewrite'
+      WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. clearing it while touching anything else is still refused');
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "technical_reviews" SET "reviewer_id"=NULL
+      WHERE "id"='7ec00000-0000-4000-8000-000000000401'$q$,
+  '25. clearing reviewer_id alone IS permitted — it is the FK release');
+SELECT pg_temp.verdict(
+  (SELECT "reviewer_id" IS NULL
+      AND "reviewer_email_snapshot"='td-gate-reviewer@example.invalid'
+      AND "decision"='rejected' AND "note" IS NULL
+     FROM "technical_reviews" WHERE "id"='7ec00000-0000-4000-8000-000000000401'),
+  '25. ...and the snapshot still names the reviewer afterwards',
+  (SELECT coalesce("reviewer_email_snapshot",'LOST') FROM "technical_reviews"
+    WHERE "id"='7ec00000-0000-4000-8000-000000000401'));
+
+-- ── 25c. The subject still cannot be deleted out from under its history ───
+-- This was true before the migration (both subject FKs are ON DELETE RESTRICT)
+-- and must stay true: immutability of the review is worth nothing if the row it
+-- describes can be erased.
+SELECT pg_temp.expect_rejected(
+  $q$DELETE FROM "specifications" WHERE "id"='ffffffff-0000-4000-8000-000000000401'$q$,
+  '25. a reviewed Specification cannot be hard-deleted');
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "specifications" SET "deleted_at"=now() WHERE "id"='ffffffff-0000-4000-8000-000000000401'$q$,
+  '25. ...but it can be retired, which is the supported path');
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- 26. PRODUCT-REVIEW-1A-H1: the approval gate
+--
+--     ADR-014 §8 recorded that the database gated WHAT IS READ, not WHO
+--     DECIDED. `sam_platform_user` owns these tables, so the review service
+--     alone was never a boundary. Entry into `approved` now requires a
+--     TechnicalReview written in the SAME transaction, proved by `xmin`.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+-- ── 26a. Both gates exist, on both tables, ENABLE ALWAYS ──────────────────
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 2 FROM pg_trigger t
+    WHERE t.tgname IN ('specification_approval_gate_guard','product_claim_approval_gate_guard')
+      AND t.tgenabled = 'A'),
+  '26. both approval gates exist and are ENABLE ALWAYS',
+  (SELECT coalesce(string_agg(t.tgname || '=' || t.tgenabled::text, ','),'MISSING') FROM pg_trigger t
+    WHERE t.tgname IN ('specification_approval_gate_guard','product_claim_approval_gate_guard')));
+-- tgtype 4 = INSERT, 16 = UPDATE. Both are needed: gating only UPDATE would let
+-- a row be born approved.
+SELECT pg_temp.verdict(
+  (SELECT bool_and((t.tgtype & 4) = 4 AND (t.tgtype & 16) = 16 AND (t.tgtype & 2) = 2 AND (t.tgtype & 1) = 1)
+     FROM pg_trigger t
+    WHERE t.tgname IN ('specification_approval_gate_guard','product_claim_approval_gate_guard')),
+  '26. each is BEFORE INSERT OR UPDATE, row-level',
+  'tgtype checked');
+
+-- ── 26b. Specification: every way in is refused except the right one ──────
+INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","numeric_min")
+VALUES ('ffffffff-0000-4000-8000-000000000501','dddddddd-0000-4000-8000-000000000002','k','v','td_probe_viscosity_40c','11','point',11),
+       ('ffffffff-0000-4000-8000-000000000502','dddddddd-0000-4000-8000-000000000003','k','v','td_probe_viscosity_40c','12','point',12);
+
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "specifications" ("id","product_id","key","value","review_status")
+     VALUES ('ffffffff-0000-4000-8000-000000000503','dddddddd-0000-4000-8000-000000000002','k','v','approved')$q$,
+  '26. a Specification cannot be INSERTed already approved');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. a bare UPDATE to approved is refused');
+
+-- A review for ANOTHER subject, written in this transaction, must not help.
+INSERT INTO "technical_reviews"
+  ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+VALUES ('7ec00000-0000-4000-8000-000000000501','ffffffff-0000-4000-8000-000000000502',
+        'dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','approved',
+        "specification_evidence_set_hash"('ffffffff-0000-4000-8000-000000000502'));
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. another subject''s review cannot be borrowed');
+
+-- A review for the RIGHT subject with a STALE hash must not help either.
+INSERT INTO "technical_reviews"
+  ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+VALUES ('7ec00000-0000-4000-8000-000000000502','ffffffff-0000-4000-8000-000000000501',
+        'dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','approved',
+        repeat('b',64));
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. a review quoting a stale evidence hash cannot be reused');
+
+-- Right subject, right hash, but the decision is a REJECTION.
+INSERT INTO "technical_reviews"
+  ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+VALUES ('7ec00000-0000-4000-8000-000000000503','ffffffff-0000-4000-8000-000000000501',
+        'dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','rejected',
+        "specification_evidence_set_hash"('ffffffff-0000-4000-8000-000000000501'));
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "specifications" SET "review_status"='approved' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. a rejection decision does not authorize an approval');
+
+/*
+ * Everything right. This is the review service's exact sequence.
+ *
+ * ── Why this one is NOT wrapped in pg_temp.expect_accepted ─────────────────
+ *
+ * `expect_accepted` and `expect_rejected` catch exceptions, and a PL/pgSQL block
+ * with an EXCEPTION clause is a SUBTRANSACTION. A review inserted inside one
+ * carries a SUBtransaction id, which is not equal to `pg_current_xact_id()`, so
+ * the gate refuses it — fail-closed, and exactly the behaviour documented in the
+ * migration. Wrapping the positive control would therefore have tested the
+ * wrapper rather than the gate, and it would have made every negative case above
+ * pass for the wrong reason.
+ *
+ * So the legitimate approval runs at the TOP LEVEL, where the review service also
+ * runs it. If the gate ever wrongly refuses it, this statement raises and the
+ * whole script aborts loudly with a non-zero exit — which is the correct outcome
+ * for a broken approval path, not something to be swallowed into one FAIL line.
+ *
+ * The subtransaction behaviour is then asserted explicitly below, so it is a
+ * recorded, tested property instead of a hidden confound.
+ */
+SELECT pg_temp.approve_spec('ffffffff-0000-4000-8000-000000000501');
+SELECT pg_temp.verdict(
+  (SELECT "review_status" = 'approved' FROM "specifications" WHERE "id"='ffffffff-0000-4000-8000-000000000501'),
+  '26. a matching current-transaction approve review IS accepted',
+  (SELECT "review_status"::text FROM "specifications" WHERE "id"='ffffffff-0000-4000-8000-000000000501'));
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM "v_specification_public" WHERE "id"='ffffffff-0000-4000-8000-000000000501'),
+  '26. ...and only then does the public view contain it',
+  (SELECT count(*)::text FROM "v_specification_public" WHERE "id"='ffffffff-0000-4000-8000-000000000501'));
+
+-- The subtransaction property, stated and tested rather than left to surprise a
+-- future caller. A review written inside a savepoint or an EXCEPTION block does
+-- not satisfy the gate. That refuses a legitimate approval rather than admitting
+-- an illegitimate one, so the direction is safe; a caller that needs savepoints
+-- must insert the review and update the status at the same nesting level.
+INSERT INTO "specifications" ("id","product_id","key","value","property_key","display_value","value_type","pair_first","pair_second")
+VALUES ('ffffffff-0000-4000-8000-000000000504','dddddddd-0000-4000-8000-000000000002','k','v','td_probe_pair','1:1','pair',1,1);
+SELECT pg_temp.expect_rejected(
+  $q$SELECT pg_temp.approve_spec('ffffffff-0000-4000-8000-000000000504')$q$,
+  '26. a review written inside a SUBtransaction does not satisfy the gate (fail-closed)');
+SELECT pg_temp.verdict(
+  (SELECT "review_status" = 'source_recorded' FROM "specifications" WHERE "id"='ffffffff-0000-4000-8000-000000000504'),
+  '26. ...and that subject stayed unapproved',
+  (SELECT "review_status"::text FROM "specifications" WHERE "id"='ffffffff-0000-4000-8000-000000000504'));
+
+-- The residue check: three refused attempts wrote no status and left the row
+-- unapproved until the legitimate one. The reviews they inserted DO remain —
+-- they are real recorded decisions and the table is append-only — which is why
+-- this asserts the STATUS, not the review count.
+SELECT pg_temp.verdict(
+  (SELECT "review_status" = 'source_recorded' FROM "specifications"
+    WHERE "id"='ffffffff-0000-4000-8000-000000000502'),
+  '26. a subject whose approval was refused kept its original status',
+  (SELECT "review_status"::text FROM "specifications" WHERE "id"='ffffffff-0000-4000-8000-000000000502'));
+
+-- ── 26c. A HISTORICAL review cannot be replayed ───────────────────────────
+-- The heart of the same-transaction rule. The row above is approved now, on a
+-- review written in this transaction. Take it back out of `approved` — which is
+-- deliberately ungated — and try to put it back using that same, now-historical
+-- review. Within one transaction every row shares an xmin, so this case is
+-- proved against the REAL historical rows in the database instead: any review
+-- that exists in `technical_reviews` before this script opened its transaction.
+SELECT pg_temp.verdict(
+  (SELECT count(*) > 0 FROM "technical_reviews"
+    WHERE xmin = pg_current_xact_id()::xid),
+  '26. xmin identifies the reviews THIS transaction wrote — the gate''s mechanism',
+  (SELECT count(*)::text FROM "technical_reviews" WHERE xmin = pg_current_xact_id()::xid));
+
+-- The other half, and the one that makes a historical review unusable. Every
+-- review that already existed when this transaction opened must NOT be
+-- attributed to it. On a database with no review history this is vacuous and
+-- says so; on one with history it is the assertion that a six-month-old approval
+-- cannot be replayed to re-approve a row.
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM "technical_reviews" tr
+     JOIN td_reviews_before b ON b."id" = tr."id"
+    WHERE tr.xmin = pg_current_xact_id()::xid),
+  '26. no PRE-EXISTING review is attributed to this transaction',
+  (SELECT count(*)::text || ' of ' || (SELECT count(*)::text FROM td_reviews_before)
+     || ' pre-existing rows misattributed'
+     FROM "technical_reviews" tr JOIN td_reviews_before b ON b."id" = tr."id"
+    WHERE tr.xmin = pg_current_xact_id()::xid));
+
+-- ── 26d. Leaving `approved` is NOT gated ──────────────────────────────────
+-- Deliberate, and load-bearing: gating the exit would block the importer's
+-- evidence-driven invalidation and every rejection.
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "specifications" SET "review_status"='superseded' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. an approved row can still be superseded');
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "specifications" SET "review_status"='rejected' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. and rejected');
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "specifications" SET "review_status"='needs_review' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. and returned to review');
+SELECT pg_temp.expect_accepted(
+  $q$UPDATE "specifications" SET "review_status"='source_recorded' WHERE "id"='ffffffff-0000-4000-8000-000000000501'$q$,
+  '26. and reset to source_recorded');
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM "v_specification_public" WHERE "id"='ffffffff-0000-4000-8000-000000000501'),
+  '26. every one of those removed it from the public view',
+  (SELECT count(*)::text FROM "v_specification_public" WHERE "id"='ffffffff-0000-4000-8000-000000000501'));
+
+-- ── 26e. ProductClaim: the same gate, plus the forbidden kinds ────────────
+INSERT INTO "product_claims" ("id","product_id","kind","standard_body","standard_code")
+VALUES ('cafe0000-0000-4000-8000-000000000501','dddddddd-0000-4000-8000-000000000002','meets','API','CK-4'),
+       ('cafe0000-0000-4000-8000-000000000502','dddddddd-0000-4000-8000-000000000002','licensed_by','API','L-1'),
+       ('cafe0000-0000-4000-8000-000000000503','dddddddd-0000-4000-8000-000000000002','reference_only',NULL,NULL),
+       ('cafe0000-0000-4000-8000-000000000504','dddddddd-0000-4000-8000-000000000003','meets','ACEA','E9');
+
+SELECT pg_temp.expect_rejected(
+  $q$INSERT INTO "product_claims" ("id","product_id","kind","review_status")
+     VALUES ('cafe0000-0000-4000-8000-000000000505','dddddddd-0000-4000-8000-000000000002','meets','approved')$q$,
+  '26. a ProductClaim cannot be INSERTed already approved');
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "product_claims" SET "review_status"='approved' WHERE "id"='cafe0000-0000-4000-8000-000000000501'$q$,
+  '26. a bare UPDATE to approved is refused for claims too');
+
+INSERT INTO "technical_reviews"
+  ("id","product_claim_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+VALUES ('7ec00000-0000-4000-8000-000000000511','cafe0000-0000-4000-8000-000000000504',
+        'dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','approved',
+        "product_claim_evidence_set_hash"('cafe0000-0000-4000-8000-000000000504'));
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "product_claims" SET "review_status"='approved' WHERE "id"='cafe0000-0000-4000-8000-000000000501'$q$,
+  '26. another claim''s review cannot be borrowed');
+
+INSERT INTO "technical_reviews"
+  ("id","product_claim_id","reviewer_id","reviewer_email_snapshot","decision","evidence_set_hash")
+VALUES ('7ec00000-0000-4000-8000-000000000512','cafe0000-0000-4000-8000-000000000501',
+        'dddddddd-0000-4000-8000-0000000000ab','td-gate-reviewer@example.invalid','approved',
+        repeat('c',64));
+SELECT pg_temp.expect_rejected(
+  $q$UPDATE "product_claims" SET "review_status"='approved' WHERE "id"='cafe0000-0000-4000-8000-000000000501'$q$,
+  '26. a claim review with a stale hash cannot be reused');
+
+-- Top level, for the reason given above the Specification positive control.
+SELECT pg_temp.approve_claim('cafe0000-0000-4000-8000-000000000501');
+SELECT pg_temp.verdict(
+  (SELECT "review_status" = 'approved' FROM "product_claims" WHERE "id"='cafe0000-0000-4000-8000-000000000501'),
+  '26. a matching current-transaction approve review IS accepted for a claim',
+  (SELECT "review_status"::text FROM "product_claims" WHERE "id"='cafe0000-0000-4000-8000-000000000501'));
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 1 FROM "v_product_claim_public" WHERE "id"='cafe0000-0000-4000-8000-000000000501'),
+  '26. ...and the claim reaches the public claim view',
+  (SELECT count(*)::text FROM "v_product_claim_public" WHERE "id"='cafe0000-0000-4000-8000-000000000501'));
+
+/*
+ * The forbidden kinds, tested on the CORRECT path.
+ *
+ * Case 14 proves the CHECK refuses a bare write. These prove the trigger refuses
+ * even a perfectly formed approval attempt — the case that would actually be
+ * made by the review service, and the one a dropped CHECK would otherwise let
+ * through. The kind is checked BEFORE the same-transaction review lookup in
+ * `product_claim_approval_gate`, so the subtransaction wrapper cannot be what
+ * causes these rejections: the refusal happens on the kind, first.
+ */
+SELECT pg_temp.expect_rejected(
+  $q$SELECT pg_temp.approve_claim('cafe0000-0000-4000-8000-000000000502')$q$,
+  '26. LICENSED_BY is refused even with a valid current-transaction review');
+SELECT pg_temp.expect_rejected(
+  $q$SELECT pg_temp.approve_claim('cafe0000-0000-4000-8000-000000000503')$q$,
+  '26. REFERENCE_ONLY is refused even with a valid current-transaction review');
+SELECT pg_temp.verdict(
+  (SELECT count(*) = 0 FROM "v_product_claim_public"
+    WHERE "id" IN ('cafe0000-0000-4000-8000-000000000502','cafe0000-0000-4000-8000-000000000503')),
+  '26. neither forbidden kind reached the public claim view',
+  (SELECT count(*)::text FROM "v_product_claim_public"
+    WHERE "id" IN ('cafe0000-0000-4000-8000-000000000502','cafe0000-0000-4000-8000-000000000503')));
+SELECT pg_temp.verdict(
+  (SELECT bool_and("review_status" = 'source_recorded') FROM "product_claims"
+    WHERE "id" IN ('cafe0000-0000-4000-8000-000000000502','cafe0000-0000-4000-8000-000000000503')),
+  '26. and both kept their original status',
+  (SELECT string_agg("review_status"::text,',') FROM "product_claims"
+    WHERE "id" IN ('cafe0000-0000-4000-8000-000000000502','cafe0000-0000-4000-8000-000000000503')));
+
+-- ── 26f. The gate is not a privilege boundary, and says so ────────────────
+-- Everything above runs as the APPLICATION role, which owns these tables. That
+-- is the point: the guard holds against the credential the running platform
+-- actually uses, not merely against an unprivileged one.
+SELECT pg_temp.verdict(
+  (SELECT current_user = (SELECT rolname FROM pg_roles r
+                            JOIN pg_class c ON c.relowner = r.oid
+                           WHERE c.relname = 'specifications')),
+  '26. these probes ran as the table OWNER, not a restricted role',
+  current_user);
 ROLLBACK;
 SQL
 )
