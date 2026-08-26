@@ -28,6 +28,9 @@ This register supports product-page copy without changing a formulation or inven
 7. `publicationBlockedUntilTechnicalApproval` is always `true` in this research artifact. This register prepares copy; it grants no approval.
 8. Draft copy may restate a verified official feature descriptor or the existing family/type/grade classification. It may not introduce a new application, performance promise, OEM approval or technical value.
 9. Persian and Arabic translations remain `not_started` until the English source copy is reviewed; this prevents three independently generated versions from drifting technically.
+10. `currentName` is the public product name and must be reproduced exactly. An official series label or source-page title is supporting evidence and never replaces it.
+11. These records describe base catalog products. Any composition or formulation wording may only be transcribed from that product's bound source document; it is never synthesized from the name, category, neighbouring product, or general industry knowledge.
+12. Source-derived formulation wording remains a review candidate, not an approved formula. The public site does not display the external source or provenance locator.
 
 ## Reproduction
 

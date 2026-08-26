@@ -23,6 +23,8 @@ This register separates usable copy from facts that require evidence or a named 
 
 Owner evidence: approved TDS/SDS, certificate, laboratory record, supplied catalogue, or signed technical review.
 
+Product names are immutable in this content workflow: the exact `publicProductName` is used. The products are treated as base catalog products. Composition and formulation language is eligible only when it is present in the product's recorded source; no formulation may be inferred, combined, improved, or rewritten into a different technical meaning.
+
 ## Commercial approval required
 
 - MOQ, lead time, response time, payment terms, price validity, sample cost, and freight terms
@@ -73,3 +75,5 @@ Machine-generated legal text is not a substitute for counsel. Translations requi
 ## Product-copy generation
 
 `scripts/generate-branded-product-copy.ts` rebuilds the English product copy master from the internal research register. It generates no new formulation, approval, application, or technical value. Every output remains blocked until the applicable review status is cleared.
+
+Each generated record carries its internal `sourceRef`, `copyBasis`, `exactSourceNamePreserved`, and `formulationMayOnlyComeFromRecordedSource` controls. These fields make the content rule machine-reviewable without exposing an external source on the public page.

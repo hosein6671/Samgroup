@@ -9,6 +9,7 @@ type ResearchProduct = {
   gradeLabels: string[];
   conflictCount: number;
   withheldFactCount: number;
+  researchStatus: "official_web_verified" | "official_web_unavailable" | "supplied_catalogue";
   contentCandidate: {
     descriptor: string | null;
     api: string | null;
@@ -68,7 +69,15 @@ function cleanDescriptor(value: string | null | undefined): string | null {
     .replace(/\s+/g, " ")
     .replace(/^[-–—,:;\s]+|[-–—,:;\s]+$/g, "")
     .trim();
-  return cleaned ? cleaned.toLowerCase() : null;
+  return cleaned || null;
+}
+
+function indefiniteArticle(value: string): "a" | "an" {
+  return /^[aeiou]/i.test(value) ? "an" : "a";
+}
+
+function lowerInitial(value: string): string {
+  return value ? `${value[0]!.toLowerCase()}${value.slice(1)}` : value;
 }
 
 function gradeSentence(grades: string[]): string | null {
@@ -84,16 +93,19 @@ function summary(product: ResearchProduct): string {
     product.official?.feature ?? product.contentCandidate.descriptor,
   );
   const family = FAMILY[product.familyKey ?? ""]?.context ?? "product portfolio";
-  const first = descriptor
-    ? `${product.currentName} is presented as ${descriptor} within the ${family}.`
-    : `${product.currentName} is listed as a ${type} within the ${family}.`;
+  const first = `${product.currentName} is listed as ${indefiniteArticle(type)} ${type} within the ${family}.`;
+  const sourcedDescription = descriptor
+    ? /\b(?:is|are|formulated|contains|provides)\b/i.test(descriptor)
+      ? ` The recorded product description states: ${descriptor.replace(/[.\s]+$/g, "")}.`
+      : ` The recorded product description identifies it as ${lowerInitial(descriptor)}.`
+    : "";
   const grade = gradeSentence(product.gradeLabels);
-  return grade ? `${first} ${grade}` : first;
+  return [first, sourcedDescription, grade ? ` ${grade}` : ""].join("").trim();
 }
 
 function metaDescription(product: ResearchProduct): string {
   const type = TYPE[product.productTypeKey ?? ""] ?? "lubricant product";
-  const description = `Review ${product.currentName}, a ${type} in the SAM Group range. See recorded grades, available technical data, and enquiry options.`;
+  const description = `Review ${product.currentName}, ${indefiniteArticle(type)} ${type} in the SAM Group range. See recorded grades, available technical data, and enquiry options.`;
   if (description.length <= 160) return description;
   const shortened = `Review ${product.currentName} in the SAM Group range. See recorded grades, technical data, and enquiry options.`;
   if (shortened.length <= 160) return shortened;
@@ -107,6 +119,11 @@ async function main(): Promise<void> {
   const products = register.products.map((product) => ({
     sourceRef: product.sourceRef,
     productName: product.currentName,
+    exactSourceNamePreserved: true,
+    copyBasis:
+      product.researchStatus === "supplied_catalogue"
+        ? "supplied_catalogue"
+        : "official_product_source",
     familyKey: product.familyKey,
     productTypeKey: product.productTypeKey,
     locale: "en",
@@ -131,6 +148,7 @@ async function main(): Promise<void> {
       withheldFactCount: product.withheldFactCount,
       publicationBlocked: true,
       noFormulationChange: true,
+      formulationMayOnlyComeFromRecordedSource: true,
       noNewTechnicalClaim: true,
     },
   }));
@@ -145,6 +163,8 @@ async function main(): Promise<void> {
       sourcesAreInternalOnly: true,
       publicationRequiresTechnicalApproval: true,
       descriptionsDoNotChangeFormulation: true,
+      exactProductNamesArePreserved: true,
+      formulationContentUsesRecordedSourcesOnly: true,
     },
     counts: {
       products: products.length,
