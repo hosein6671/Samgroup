@@ -6,6 +6,7 @@ import {
   Panel,
   ProductContext,
   ReviewHistory,
+  ReviewInvalidations,
   ReviewWarnings,
   SubPanel,
   SubjectStatus,
@@ -165,6 +166,7 @@ export function SpecificationDetail({
       <ApprovalBlockers blockers={subject.approvalBlockers} />
       <ReviewWarnings warnings={subject.warnings} />
       <ReviewHistory history={subject.history} />
+      <ReviewInvalidations invalidations={subject.invalidations} />
     </div>
   );
 }

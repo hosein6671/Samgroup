@@ -199,8 +199,9 @@ suite("public Specification exposure", () => {
           /*
            * The gate's exact requirement: a TechnicalReview inserted in the SAME
            * transaction as the status change, naming this subject, recording an
-           * approve decision, with a non-blank reviewer snapshot and the
-           * evidence-set hash the database computes for this subject right now.
+           * approve decision, with a non-blank reviewer snapshot, the
+           * subject-specific `spec-review-v2` hash the database computes for
+           * this subject right now, and the version that produced it (ADR-017).
            *
            * `$transaction` is what makes it the same transaction — a sequence of
            * `$executeRawUnsafe` calls is a sequence of autocommits, and the gate
@@ -210,9 +211,9 @@ suite("public Specification exposure", () => {
             await tx.$executeRawUnsafe(
               `INSERT INTO technical_reviews
                  (id, specification_id, reviewer_id, reviewer_email_snapshot, decision,
-                  evidence_set_hash)
+                  evidence_set_hash, evidence_hash_version)
                VALUES (gen_random_uuid(), $1::uuid, $2::uuid, 'spec-sec-probe@samgp.test',
-                       'approved', specification_evidence_set_hash($1::uuid))`,
+                       'approved', specification_review_hash_v2($1::uuid), 'spec-review-v2')`,
               specId,
               REVIEWER_ID,
             );

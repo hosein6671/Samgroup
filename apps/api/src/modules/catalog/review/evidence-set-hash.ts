@@ -1,31 +1,44 @@
 /**
- * The evidence-set hash — one implementation, and it is not in this file.
+ * The review hash — one implementation, and it is not in this file.
  *
  * ── Why this is a thin wrapper and must stay one ────────────────────────────
  *
- * ADR-014 §7 fixes the definition and puts it in the DATABASE, as
- * `specification_evidence_set_hash(uuid)` and `product_claim_evidence_set_hash(uuid)`, installed
- * by migration `20260822120000_add_catalog_technical_data`. The reason it lives there rather than
- * in a service is stated in the migration itself: putting the definition in the database is what
- * stops two callers from disagreeing about it.
+ * ADR-017 fixes the definition and puts it in the DATABASE, as
+ * `specification_review_hash_v2(uuid)` and `product_claim_review_hash_v2(uuid)`, installed by
+ * migration `20260826120000_add_review_hash_v2_and_invalidation`. The reason it lives there rather
+ * than in a service is the one ADR-014 §7 gave and this gate strengthened: putting the definition
+ * in the database is what stops two callers from disagreeing about it — and the database is now
+ * also the thing that ACTS on it, so a second definition would be a second answer to a question
+ * only one answer may exist for.
  *
- * Re-implementing the five steps in TypeScript would create exactly the second definition that
- * decision exists to prevent — and it would be a definition that could drift from the one the
- * stored `technical_reviews.evidence_set_hash` values were computed with. So this module calls
- * the functions and does nothing else. The queue, the detail response and the decision
- * transaction all come through here, which is what makes "identical between queue/detail/decision
- * code" a structural property rather than a convention.
+ * Re-implementing the payload in TypeScript would create exactly that second definition, and it
+ * would be one that could drift from the values stored in `technical_reviews.evidence_set_hash`
+ * and `review_invalidations`. So this module calls the functions and does nothing else. The queue,
+ * the detail response, the decision transaction and the database's own approval gate all end up at
+ * the same SQL function, which makes "identical everywhere" a structural property rather than a
+ * convention. `review-hash-boundary.spec.ts` asserts that no TypeScript hash implementation exists
+ * anywhere in the repository.
  *
- * The definition, for a reader who should not have to open the migration:
+ * ── What v2 covers, and why v1 was not enough ───────────────────────────────
  *
- *   1. every evidence link for the subject
- *   2. per link, `<source_fact_id>:<sha256 of the SourceAsset behind that fact's SourceDocument>`,
- *      with the empty string where no asset was captured
- *   3. sorted by byte value ascending — so insertion order cannot change it
- *   4. joined with newline, encoded UTF-8, SHA-256, lowercase hex
+ * v1 hashed the EVIDENCE LINKS alone — a sorted list of `<sourceFactId>:<assetSha256>`. Everything
+ * else an approval rests on was invisible to it: the Specification's own value, unit, method and
+ * result basis; its soft-delete state; the dictionary entry behind its property; the raw-property
+ * mapping that resolves it; the role of each evidence link; and, for a ProductClaim, its kind,
+ * standard body, code, context and identity. Each of those could change after an approval without
+ * moving the hash by a bit.
  *
- * An empty evidence set hashes the empty string
- * (`e3b0c442…b855`), which is a real, stable value rather than NULL.
+ * v2 is a canonical JSONB payload covering all of it, digested as SHA-256 over its UTF-8 bytes,
+ * with a SEPARATE domain per subject type so the two hash spaces cannot collide. The exact payload
+ * is documented in the migration and in ADR-017 §4-5; it is deliberately not restated here, because
+ * a restatement is a second definition waiting to go stale.
+ *
+ * ── The version travels with the value ──────────────────────────────────────
+ *
+ * A fingerprint is only comparable against one computed the same way, so every `TechnicalReview`
+ * records `evidenceHashVersion` alongside `evidenceSetHash`, and both the database CHECK and the
+ * approval gate refuse a mismatch. The two constants below are the API's copy of those labels; the
+ * database is their authority and `catalog-review-integration.spec.ts` asserts the two agree.
  *
  * ── The client never computes it ────────────────────────────────────────────
  *
@@ -37,6 +50,24 @@
 
 /** A 64-character lowercase hex SHA-256, the only shape either function returns. */
 export const EVIDENCE_SET_HASH_PATTERN = /^[0-9a-f]{64}$/;
+
+/**
+ * The hash definition identifiers, one per subject domain.
+ *
+ * These are LABELS, not algorithms: they name which definition produced a stored value so that a
+ * future definition change is a detectable mismatch rather than a silent false match. Changing
+ * either string is changing the contract, and requires the database CHECK, the approval gate and
+ * every stored row to change with it.
+ */
+export const SPECIFICATION_REVIEW_HASH_VERSION = "spec-review-v2";
+export const PRODUCT_CLAIM_REVIEW_HASH_VERSION = "claim-review-v2";
+
+/** The version a review of the given subject type must carry. */
+export function reviewHashVersionFor(subjectType: "specification" | "product_claim"): string {
+  return subjectType === "specification"
+    ? SPECIFICATION_REVIEW_HASH_VERSION
+    : PRODUCT_CLAIM_REVIEW_HASH_VERSION;
+}
 
 /**
  * The narrow read surface this module needs.
@@ -59,31 +90,23 @@ async function scalar(
 }
 
 /**
- * The evidence-set hash of one Specification.
+ * The `spec-review-v2` hash of one Specification.
  *
- * `null` only when the SQL function itself answered NULL, which it cannot for a well-formed
- * subject — an empty evidence set still hashes. Callers treat `null` as "not computable" and
- * refuse the decision rather than substituting a value.
+ * `null` only when the SQL function itself answered NULL, which it does for a subject that does
+ * not exist. Callers treat `null` as "not computable" and refuse the decision rather than
+ * substituting a value.
  */
 export function specificationEvidenceSetHash(
   client: EvidenceHashClient,
   specificationId: string,
 ): Promise<string | null> {
-  return scalar(
-    client,
-    `SELECT "specification_evidence_set_hash"($1::uuid) AS hash`,
-    specificationId,
-  );
+  return scalar(client, `SELECT "specification_review_hash_v2"($1::uuid) AS hash`, specificationId);
 }
 
-/** The ProductClaim counterpart, over `claim_evidence`. */
+/** The ProductClaim counterpart — `claim-review-v2`. */
 export function productClaimEvidenceSetHash(
   client: EvidenceHashClient,
   productClaimId: string,
 ): Promise<string | null> {
-  return scalar(
-    client,
-    `SELECT "product_claim_evidence_set_hash"($1::uuid) AS hash`,
-    productClaimId,
-  );
+  return scalar(client, `SELECT "product_claim_review_hash_v2"($1::uuid) AS hash`, productClaimId);
 }

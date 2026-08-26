@@ -46,6 +46,8 @@ export type {
   ReviewGradeRef,
   ReviewHistoryDecision,
   ReviewHistoryEntry,
+  ReviewInvalidationEntry,
+  ReviewInvalidationReasonCode,
   ReviewLocatorType,
   ReviewMappingConfidence,
   ReviewMappingRef,

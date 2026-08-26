@@ -136,6 +136,20 @@ const SUBJECT: ReviewDetailResponse = {
       evidenceCurrent: true,
     },
   ],
+  /*
+   * One system invalidation, carrying the same bidi hazard the rest of this fixture does: it is
+   * rendered as a sentence next to a date, and it must not be able to reorder anything around it.
+   * It also proves the panel renders at all in the accessibility sweep — an empty array would let
+   * the whole surface pass by having nothing to check.
+   */
+  invalidations: [
+    {
+      id: "ffffffff-1111-4111-8111-ffffffffffff",
+      technicalReviewId: "eeeeeeee-1111-4111-8111-eeeeeeeeeeee",
+      reasonCode: "MAPPING_CHANGED",
+      createdAt: "2026-08-21T08:15:00.000Z",
+    },
+  ],
 };
 
 const CLAIM_SUBJECT: ReviewDetailResponse = {

@@ -13,6 +13,12 @@ import {
   HISTORY_EMPTY,
   HISTORY_EVIDENCE_LABEL,
   HISTORY_MEANING,
+  INVALIDATION_EMPTY,
+  INVALIDATION_HEADING,
+  INVALIDATION_MEANING,
+  INVALIDATION_REASON_LABEL,
+  INVALIDATION_REASON_UNKNOWN,
+  INVALIDATION_RETIRED_APPROVAL,
   LOCATOR_TYPE_LABEL,
   NOT_RECORDED,
   RESULT_BASIS_LABEL,
@@ -37,6 +43,7 @@ import type {
   ReviewEvidenceEntry,
   ReviewGradeRef,
   ReviewHistoryEntry,
+  ReviewInvalidationEntry,
   ReviewProductRef,
   ReviewWarning,
 } from "@sam-group/types";
@@ -640,6 +647,57 @@ export function ReviewHistory({
         <ol className="ad-history-list">
           {history.map((entry) => (
             <HistoryItem entry={entry} key={entry.id} />
+          ))}
+        </ol>
+      )}
+    </Panel>
+  );
+}
+
+/**
+ * System invalidations, newest first — and the reason they are their own panel.
+ *
+ * ## Not a decision, and never rendered as one
+ *
+ * These entries come from `review_invalidations`, which is a different table from
+ * `technical_reviews` for the reason ADR-017 gives: a `TechnicalReview` records that a named person
+ * decided something, and nobody decided this. The API keeps them in a separate array, and this
+ * keeps them in a separate panel, under a heading that says what they are, in wording that never
+ * uses a decision verb.
+ *
+ * Three things are therefore structurally absent rather than merely omitted: there is no reviewer
+ * name, because `ReviewInvalidationEntry` carries none; there is no decision label, because it
+ * carries none; and there is no way for this component to reach either, because it is handed
+ * nothing else.
+ *
+ * ## Still read-only, like everything on this surface
+ *
+ * No control, no link, no locator, no hash. A reason code becomes a sentence and nothing more.
+ * `phase-boundary.spec.ts` covers this file unchanged and none of its rules is relaxed for it.
+ */
+export function ReviewInvalidations({
+  invalidations,
+}: {
+  readonly invalidations: readonly ReviewInvalidationEntry[];
+}): ReactNode {
+  return (
+    <Panel heading={INVALIDATION_HEADING}>
+      <p className="ad-note">{INVALIDATION_MEANING}</p>
+
+      {invalidations.length === 0 ? (
+        <p className="ad-note ad-note--strong">{INVALIDATION_EMPTY}</p>
+      ) : (
+        <ol className="ad-history-list">
+          {invalidations.map((entry) => (
+            <li className="ad-history-item ad-history-item--system" key={entry.id}>
+              <p className="ad-history-what" data-invalidation-reason={entry.reasonCode}>
+                {INVALIDATION_REASON_LABEL[entry.reasonCode] ?? INVALIDATION_REASON_UNKNOWN}
+              </p>
+              <p className="ad-history-meta">
+                {INVALIDATION_RETIRED_APPROVAL} ·{" "}
+                <time dateTime={entry.createdAt}>{entry.createdAt.slice(0, 10)}</time>
+              </p>
+            </li>
           ))}
         </ol>
       )}

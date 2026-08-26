@@ -374,6 +374,54 @@ export interface ReviewHistoryEntry {
   evidenceCurrent: boolean;
 }
 
+/**
+ * Why the system retired an approval — a closed set, one value per class of change (ADR-017 §6).
+ *
+ * ## These are not decisions
+ *
+ * Every other vocabulary in this file describes something a person did or a rule a person must
+ * satisfy. This one describes something the DATABASE did, on its own, because a subject's
+ * `spec-review-v2` or `claim-review-v2` hash stopped matching the review that approved it. No
+ * reviewer is named because none exists.
+ *
+ * ## What each one means to a reviewer
+ *
+ * | code                     | what moved                                                        |
+ * | ------------------------ | ----------------------------------------------------------------- |
+ * | `SUBJECT_STATE_CHANGED`  | the specification or claim itself — value, unit, method, kind, …   |
+ * | `EVIDENCE_CHANGED`       | an evidence link was added, removed, or had its role changed       |
+ * | `DICTIONARY_CHANGED`     | the controlled property entry behind the specification             |
+ * | `MAPPING_CHANGED`        | the raw-property mapping that resolves the specification           |
+ * | `SOURCE_CAPTURE_CHANGED` | a cited source gained its captured file                            |
+ *
+ * `SOURCE_CAPTURE_CHANGED` names no document and no locator, exactly as `SOURCE_ASSET_ABSENT` names
+ * none on the blocker side.
+ */
+export type ReviewInvalidationReasonCode =
+  | "SUBJECT_STATE_CHANGED"
+  | "EVIDENCE_CHANGED"
+  | "DICTIONARY_CHANGED"
+  | "MAPPING_CHANGED"
+  | "SOURCE_CAPTURE_CHANGED";
+
+/**
+ * One system invalidation event.
+ *
+ * Deliberately NOT shaped like `ReviewHistoryEntry`: there is no `decision`, no `reviewerEmail`, no
+ * `reviewerId` and no `note`, because the row behind it has none of those columns. A UI that wanted
+ * to present this as a decision would have to invent every one of them, and the missing fields are
+ * what stops it.
+ *
+ * Neither hash is carried. They are internal fingerprints a reviewer cannot act on.
+ */
+export interface ReviewInvalidationEntry {
+  id: string;
+  /** The decision whose approval this event retired. */
+  technicalReviewId: string;
+  reasonCode: ReviewInvalidationReasonCode;
+  createdAt: string;
+}
+
 /* -------------------------------------------------------------------------- */
 /*  Eligibility — blockers and warnings                                        */
 /* -------------------------------------------------------------------------- */
@@ -500,5 +548,14 @@ export interface ReviewDetailResponse {
   eligibleForApproval: boolean;
   warnings: readonly ReviewWarning[];
 
+  /** Human decisions, newest first. */
   history: readonly ReviewHistoryEntry[];
+
+  /**
+   * System invalidation events, newest first.
+   *
+   * A separate array from `history` on purpose — see `ReviewInvalidationEntry`. Empty for every
+   * subject nothing has ever invalidated, which today is every subject in the catalogue.
+   */
+  invalidations: readonly ReviewInvalidationEntry[];
 }

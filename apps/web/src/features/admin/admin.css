@@ -796,6 +796,27 @@
   border-left: 2px solid var(--color-border-strong);
 }
 
+/*
+ * A SYSTEM invalidation, visually distinct from a decision a person made.
+ *
+ * The distinction is carried by two things at once, and never by colour alone —
+ * WCAG 2.2 §1.4.1. The border becomes dashed, which reads as "not a decision" at
+ * a glance and survives a greyscale print, a high-contrast mode and a
+ * forced-colours mode; and the wording of every entry says so in a sentence
+ * (`INVALIDATION_REASON_LABEL`), which is what a screen reader conveys. The
+ * panel heading is the third: these entries never appear inside "Review
+ * history".
+ *
+ * Deliberately no accent colour and no icon. An accent would read as a severity
+ * this event does not have — an approval being withdrawn is the system working
+ * correctly, not an error — and an icon would need a text alternative that
+ * duplicates the sentence already there.
+ */
+.ad-history-item--system {
+  border-left-style: dashed;
+  border-left-color: var(--color-border-hairline);
+}
+
 .ad-history-what {
   margin: 0;
   font-size: var(--text-body);

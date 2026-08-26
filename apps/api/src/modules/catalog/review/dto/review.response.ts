@@ -214,6 +214,43 @@ export interface ReviewHistoryEntry {
   evidenceCurrent: boolean;
 }
 
+/**
+ * The closed set of reasons an approval was retired by the system (ADR-017 §6).
+ *
+ * Each names the CLASS of change, never the row that made it. In particular `SOURCE_CAPTURE_CHANGED`
+ * says a cited source became captured and says nothing about which source, where it lives, or what
+ * it is called — the same boundary `SOURCE_ASSET_ABSENT` observes on the blocker side.
+ */
+export const REVIEW_INVALIDATION_REASON_CODES = [
+  "SUBJECT_STATE_CHANGED",
+  "EVIDENCE_CHANGED",
+  "DICTIONARY_CHANGED",
+  "MAPPING_CHANGED",
+  "SOURCE_CAPTURE_CHANGED",
+] as const;
+
+export type ReviewInvalidationReasonCode = (typeof REVIEW_INVALIDATION_REASON_CODES)[number];
+
+/**
+ * One SYSTEM event: an approval stopped describing its subject and was retired.
+ *
+ * **Not a decision, and never rendered as one.** It carries no reviewer, no email, no note and no
+ * decision verb, because none exists — the `review_invalidations` table has no such columns. What
+ * it names is the approval that was retired (`technicalReviewId`), the class of change that retired
+ * it, and when.
+ *
+ * Neither hash is served. They are internal fingerprints: a reviewer cannot act on one, and putting
+ * one on the wire would invite a client to compare or echo it.
+ */
+export interface ReviewInvalidationEntry {
+  id: string;
+  /** The `TechnicalReview` whose approval this event retired. Always present. */
+  technicalReviewId: string;
+  /** One of `REVIEW_INVALIDATION_REASON_CODES`. */
+  reasonCode: string;
+  createdAt: string;
+}
+
 /** One row of the queue. Narrower than the detail, deliberately. */
 export interface ReviewQueueItemResponse {
   subjectType: ReviewSubjectTypeResponse;
@@ -281,7 +318,15 @@ export interface ReviewDetailResponse {
    */
   warnings: ReviewWarning[];
 
+  /** Human decisions, newest first. */
   history: ReviewHistoryEntry[];
+
+  /**
+   * System invalidation events, newest first — kept in their own array so a client cannot render
+   * one as a human decision. Empty for every subject nothing has ever invalidated, which today is
+   * every subject in the catalogue.
+   */
+  invalidations: ReviewInvalidationEntry[];
 }
 
 /** What a successful decision answers with — the authoritative post-state, and nothing else. */

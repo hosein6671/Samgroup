@@ -6,6 +6,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 import {
   productClaimEvidenceSetHash,
+  reviewHashVersionFor,
   specificationEvidenceSetHash,
   type EvidenceHashClient,
 } from "./evidence-set-hash";
@@ -47,6 +48,7 @@ import type {
   ReviewDetailResponse,
   ReviewEvidenceEntry,
   ReviewHistoryEntry,
+  ReviewInvalidationEntry,
   ReviewMappingRef,
   ReviewQueueItemResponse,
 } from "./dto/review.response";
@@ -220,12 +222,13 @@ export class CatalogReviewService {
 
     if (row === null) throw notFound();
 
-    const [hash, eligibility, evidence, mappings, history] = await Promise.all([
+    const [hash, eligibility, evidence, mappings, history, invalidations] = await Promise.all([
       specificationEvidenceSetHash(this.prisma, id),
       this.specificationEligibility(this.prisma, id),
       this.evidenceEntries("specification", id),
       this.mappingRefs(id, row.propertyKey),
       this.history("specification", id),
+      this.invalidations("specification", id),
     ]);
 
     const currentHash = hash ?? "";
@@ -280,6 +283,7 @@ export class CatalogReviewService {
         ...entry,
         evidenceCurrent: entry.evidenceSetHash === currentHash,
       })),
+      invalidations,
     };
   }
 
@@ -291,11 +295,12 @@ export class CatalogReviewService {
 
     if (row === null) throw notFound();
 
-    const [hash, eligibility, evidence, history] = await Promise.all([
+    const [hash, eligibility, evidence, history, invalidations] = await Promise.all([
       productClaimEvidenceSetHash(this.prisma, id),
       this.productClaimEligibility(this.prisma, id),
       this.evidenceEntries("product_claim", id),
       this.history("product_claim", id),
+      this.invalidations("product_claim", id),
     ]);
 
     const currentHash = hash ?? "";
@@ -334,6 +339,7 @@ export class CatalogReviewService {
         ...entry,
         evidenceCurrent: entry.evidenceSetHash === currentHash,
       })),
+      invalidations,
     };
   }
 
@@ -501,6 +507,16 @@ export class CatalogReviewService {
             // point; taking the recomputed one makes that a property of the code rather than a
             // consequence of a check someone could later move.
             evidenceSetHash: currentHash,
+            /*
+             * WHICH definition produced that hash, stated rather than defaulted (ADR-017).
+             *
+             * Derived from `subjectType`, which is also what chose the hash function three steps
+             * above, so the two cannot disagree here. The database checks it twice regardless —
+             * `technical_reviews_hash_version_matches_subject` against the row's own subject, and
+             * the approval gate against the definition it just used — and both refuse rather than
+             * comparing a value computed one way against a value computed another.
+             */
+            evidenceHashVersion: reviewHashVersionFor(subjectType),
           },
           select: { id: true, reviewedAt: true, decision: true },
         });
@@ -662,6 +678,55 @@ export class CatalogReviewService {
       reviewedAt: row.reviewedAt.toISOString(),
       note: row.note,
       evidenceSetHash: row.evidenceSetHash,
+    }));
+  }
+
+  /**
+   * The SYSTEM events on this subject — approvals the database retired because what they rested on
+   * moved (ADR-017).
+   *
+   * ── Why this is a separate read and not part of `history()` ─────────────────
+   *
+   * They are different KINDS of record and the response keeps them apart, so that a client cannot
+   * render one as the other. A `TechnicalReview` says a named person decided something. A
+   * `ReviewInvalidation` says a hash stopped matching, and nobody decided anything. Merging them
+   * into one array would put the burden of telling them apart on whoever renders it, and the first
+   * renderer that forgot would be attributing a machine's arithmetic to a person.
+   *
+   * ── What is deliberately NOT projected ──────────────────────────────────────
+   *
+   * The table has no reviewer id, no reviewer email and no note to serve — but it does hold two
+   * hashes, and neither is served here. A hash is an internal fingerprint, it tells a reviewer
+   * nothing they can act on, and putting one on the wire would invite a client to compare or echo
+   * it. What a reviewer needs is WHICH approval was retired, WHY, and WHEN; that is exactly the
+   * projection below.
+   *
+   * `technicalReviewId` is served so the Admin screen can tie the event to the decision it retired,
+   * which is the one relationship that makes the entry readable at all.
+   */
+  private async invalidations(
+    subjectType: ReviewSubjectType,
+    id: string,
+  ): Promise<ReviewInvalidationEntry[]> {
+    const rows = await this.prisma.reviewInvalidation.findMany({
+      where: subjectType === "specification" ? { specificationId: id } : { productClaimId: id },
+      // Newest first, matching `history()`. `createdAt` then `id`: two events written by one
+      // statement share a timestamp, and without the tiebreaker their order would differ between
+      // two requests for the same subject.
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      select: {
+        id: true,
+        technicalReviewId: true,
+        reasonCode: true,
+        createdAt: true,
+      },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      technicalReviewId: row.technicalReviewId,
+      reasonCode: String(row.reasonCode).toUpperCase(),
+      createdAt: row.createdAt.toISOString(),
     }));
   }
 }

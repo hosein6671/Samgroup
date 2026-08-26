@@ -696,11 +696,12 @@ model Specification {
   /// delete would take its evidence and its review history with it.
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  product      Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productGrade ProductGrade?           @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
-  property     SpecProperty?           @relation(fields: [propertyKey], references: [key], onDelete: Restrict)
-  evidence     SpecificationEvidence[]
-  reviews      TechnicalReview[]
+  product       Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productGrade  ProductGrade?           @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
+  property      SpecProperty?           @relation(fields: [propertyKey], references: [key], onDelete: Restrict)
+  evidence      SpecificationEvidence[]
+  reviews       TechnicalReview[]
+  invalidations ReviewInvalidation[]
 
   // No unique on (productId, key) by decision: a product may carry the same key
   // more than once, e.g. one row per grade.
@@ -870,10 +871,11 @@ model ProductClaim {
   /// NULL for any claim not created by the importer.
   claimIdentityHash String? @map("claim_identity_hash") @db.Char(64)
 
-  product      Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productGrade ProductGrade?     @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
-  evidence     ClaimEvidence[]
-  reviews      TechnicalReview[]
+  product       Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productGrade  ProductGrade?        @relation(fields: [productGradeId, productId], references: [id, productId], onDelete: Restrict, onUpdate: Restrict)
+  evidence      ClaimEvidence[]
+  reviews       TechnicalReview[]
+  invalidations ReviewInvalidation[]
 
   @@index([productId])
   @@index([productGradeId])
@@ -1877,17 +1879,151 @@ model TechnicalReview {
   decision   TechnicalReviewDecision
   note       String?
 
+  /// The total order of decisions, and the reason it is not `reviewedAt`.
+  ///
+  /// Finding which review ESTABLISHED a standing approval means taking the
+  /// LATEST approve decision on a subject, and that phrase has to resolve to
+  /// exactly one row every time. `reviewedAt` defaults to `now()`, which in
+  /// PostgreSQL is the TRANSACTION timestamp: two decisions recorded in one
+  /// transaction carry the identical value, and two in separate transactions
+  /// can still collide inside one microsecond. The tiebreaker was `id DESC` —
+  /// a random uuid, so on a tie the "latest" review was decided by chance.
+  ///
+  /// Measured, not reasoned about: with that ordering, a probe that approved a
+  /// subject twice picked the WRONG establishing review roughly half the time
+  /// and invalidated a fresh approval the instant it was granted.
+  ///
+  /// A sequence is monotone within a transaction as well as across them, so
+  /// `ORDER BY sequence DESC LIMIT 1` is total. Gaps from rolled-back
+  /// transactions are expected and carry no meaning: this is an ORDER, not a
+  /// count, and nothing reads it as one.
+  sequence BigInt @unique @default(autoincrement())
+
   /// The deterministic fingerprint of the reviewed evidence set — 64 lowercase
   /// hex characters. See the model comment for the exact definition.
   evidenceSetHash String @map("evidence_set_hash")
 
+  /// WHICH hash definition produced `evidenceSetHash`. Never inferred.
+  ///
+  /// A fingerprint is only comparable against another fingerprint computed the
+  /// same way, and this project now has a subject-specific definition per
+  /// domain (ADR-017): `spec-review-v2` for a Specification review,
+  /// `claim-review-v2` for a ProductClaim review. Storing the version beside
+  /// the value is what makes a future definition change a detectable mismatch
+  /// rather than a silent false match.
+  ///
+  /// NOT NULL with no default, and no backfill: `technical_reviews` held ZERO
+  /// rows when this column was added, so there is no legacy value to guess and
+  /// no dual-read to maintain. Every writer states the version explicitly, and
+  /// `technical_reviews_hash_version_matches_subject` refuses a row whose
+  /// version does not match the subject it names.
+  evidenceHashVersion String @map("evidence_hash_version")
+
   specification Specification? @relation(fields: [specificationId], references: [id], onDelete: Restrict)
   productClaim  ProductClaim?  @relation(fields: [productClaimId], references: [id], onDelete: Restrict)
   reviewer      User?          @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  /// The system event that retired the approval this review established. At
+  /// most one, by unique index — see `ReviewInvalidation`.
+  invalidations ReviewInvalidation[]
 
   @@index([specificationId])
   @@index([productClaimId])
   @@index([reviewerId])
   @@index([reviewedAt])
   @@map("technical_reviews")
+}
+
+/// Why an approval stopped describing its subject. A closed set, chosen after
+/// walking every mutation path that can reach a review hash (ADR-017 §6).
+///
+/// Each value names the CLASS of change, never the row that made it: an
+/// invalidation event is a statement about this platform's own consistency, and
+/// it carries no provenance, no locator and no person.
+enum ReviewInvalidationReason {
+  /// The subject's own approval-meaningful columns changed — including a soft
+  /// delete, and including a ProductClaim's kind, body or identity.
+  SUBJECT_STATE_CHANGED  @map("subject_state_changed")
+  /// An evidence link was added, removed, or had its role changed.
+  EVIDENCE_CHANGED       @map("evidence_changed")
+  /// The controlled dictionary entry behind the subject's property changed.
+  DICTIONARY_CHANGED     @map("dictionary_changed")
+  /// The raw-property mapping that resolves the subject's property changed.
+  MAPPING_CHANGED        @map("mapping_changed")
+  /// A cited SourceDocument gained its captured file.
+  SOURCE_CAPTURE_CHANGED @map("source_capture_changed")
+
+  @@map("review_invalidation_reason")
+}
+
+/// One SYSTEM event: an approval was retired because what it rested on moved.
+///
+/// ── Why this is not a TechnicalReview ───────────────────────────────────────
+///
+/// The obvious shortcut is to write a `TechnicalReview` with decision
+/// `NEEDS_REVIEW` and a synthetic reviewer, and it is the one thing this model
+/// exists to refuse. `technical_reviews.reviewer_email_snapshot` is NOT NULL and
+/// means "the person who decided"; a row there naming `system@` would be a
+/// fabricated human attribution sitting in the audit trail that exists precisely
+/// to record who decided what. Nobody decided this. The database noticed.
+///
+/// So the two are separate tables with separate meanings, and this one carries
+/// NO reviewer id, NO reviewer email and NO note. What it carries is the
+/// arithmetic: which approval, what the hash was, what it is now, and which
+/// class of change moved it.
+///
+/// ── Immutable, and enforced ─────────────────────────────────────────────────
+///
+/// `review_invalidations_immutable_guard` (BEFORE UPDATE OR DELETE, FOR EACH
+/// ROW, ENABLE ALWAYS) refuses every UPDATE and every DELETE, exactly as
+/// `technical_reviews_immutable_guard` does. INSERT is the only write, and the
+/// only writer is the database itself.
+///
+/// ── At most one per approval transition ─────────────────────────────────────
+///
+/// `technicalReviewId` is UNIQUE. A subject can be approved, invalidated,
+/// re-approved and invalidated again — but each of those approvals is a distinct
+/// `TechnicalReview` row, because entering `approved` requires a review written
+/// in the same transaction. So "one event per approval transition" and "one
+/// event per establishing review" are the same statement, and the unique index
+/// is what makes it true rather than likely.
+///
+/// ── No external locators, ever ──────────────────────────────────────────────
+///
+/// Nothing here names a document, a URL, a file, an object-storage key or an
+/// asset. `SOURCE_CAPTURE_CHANGED` says a cited source became captured and says
+/// nothing whatever about where that source lives.
+model ReviewInvalidation {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Exactly one of these two is set — `review_invalidations_exactly_one_target`.
+  specificationId String? @map("specification_id") @db.Uuid
+  productClaimId  String? @map("product_claim_id") @db.Uuid
+
+  /// The human review whose approval this event retired. Required: an
+  /// invalidation with no approval behind it is not an invalidation of anything.
+  technicalReviewId String @map("technical_review_id") @db.Uuid
+
+  reasonCode ReviewInvalidationReason @map("reason_code")
+
+  /// The hash the retired approval was granted on, and the hash that stands now.
+  /// Both 64 lowercase hex, both CHECK-enforced, and always different.
+  previousEvidenceHash String @map("previous_evidence_hash") @db.Char(64)
+  currentEvidenceHash  String @map("current_evidence_hash") @db.Char(64)
+
+  /// The hash definition both values were computed with — `spec-review-v2` or
+  /// `claim-review-v2`, matched to the subject by CHECK.
+  evidenceHashVersion String @map("evidence_hash_version")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  specification   Specification?  @relation(fields: [specificationId], references: [id], onDelete: Restrict)
+  productClaim    ProductClaim?   @relation(fields: [productClaimId], references: [id], onDelete: Restrict)
+  technicalReview TechnicalReview @relation(fields: [technicalReviewId], references: [id], onDelete: Restrict)
+
+  @@unique([technicalReviewId])
+  @@index([specificationId])
+  @@index([productClaimId])
+  @@index([createdAt])
+  @@map("review_invalidations")
 }

@@ -3,6 +3,7 @@ import type {
   ReviewEvidenceRole,
   ReviewExtractionMethod,
   ReviewHistoryDecision,
+  ReviewInvalidationReasonCode,
   ReviewLocatorType,
   ReviewMappingConfidence,
   ReviewMethodRequirement,
@@ -545,6 +546,56 @@ export const HISTORY_EVIDENCE_LABEL = {
   current: "Evidence unchanged since this decision",
   stale: "Evidence has changed since this decision",
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/*  System invalidation events                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What the system did, said as something the system did.
+ *
+ * ## The wording rule these follow
+ *
+ * Every sentence is passive about the approval and explicit about the cause, and **none of them
+ * contains a person**. "Approval invalidated because mapping data changed" is a statement about
+ * data; "Returned for review by …" would be a statement about somebody, and there is nobody. The
+ * entries carry no reviewer because `review_invalidations` stores none — see ADR-017.
+ *
+ * They are also deliberately not phrased as decisions. A reviewer scanning this panel must be able
+ * to tell at a glance which entries are decisions people made and which are consequences the
+ * database drew, and the wording is the first thing doing that work — the visual treatment and the
+ * separate heading are the second and third.
+ *
+ * ## No locator, ever
+ *
+ * `SOURCE_CAPTURE_CHANGED` says a cited source gained its captured file and names no document, no
+ * URL, no file name and no hash — the same boundary the `SOURCE_ASSET_ABSENT` blocker observes.
+ */
+export const INVALIDATION_REASON_LABEL: Readonly<Record<ReviewInvalidationReasonCode, string>> = {
+  SUBJECT_STATE_CHANGED: "Approval invalidated because the recorded value changed.",
+  EVIDENCE_CHANGED: "Approval invalidated because the cited evidence changed.",
+  DICTIONARY_CHANGED: "Approval invalidated because the property dictionary changed.",
+  MAPPING_CHANGED: "Approval invalidated because mapping data changed.",
+  SOURCE_CAPTURE_CHANGED: "Approval invalidated because a cited source was captured.",
+};
+
+/** The fallback for a reason code this build does not know. Never a blank, never a guess. */
+export const INVALIDATION_REASON_UNKNOWN =
+  "Approval invalidated because something it depended on changed.";
+
+export const INVALIDATION_HEADING = "Automatic invalidations";
+
+export const INVALIDATION_MEANING =
+  "These are not decisions. When an approved value, its evidence, its dictionary entry, its " +
+  "mapping or its captured source changes, the platform withdraws the approval automatically and " +
+  "records why. No reviewer is named, because none was involved. The subject returns to the " +
+  "review queue and stops being published.";
+
+export const INVALIDATION_EMPTY =
+  "No approval on this subject has ever been withdrawn automatically.";
+
+/** What one entry says about the decision it retired, without naming who made it. */
+export const INVALIDATION_RETIRED_APPROVAL = "Withdrew an earlier approval of this subject";
 
 /* -------------------------------------------------------------------------- */
 /*  Shared field wording                                                       */

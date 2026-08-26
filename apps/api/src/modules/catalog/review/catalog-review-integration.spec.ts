@@ -924,6 +924,78 @@ suite("the catalog review service over the imported catalogue", () => {
     it(
       "does not depend on the order the evidence was linked",
       async () => {
+        /*
+         * ONE subject, linked twice in opposite orders.
+         *
+         * This used to build TWO throwaway Specifications on two Products and compare their
+         * hashes, which worked while the hash covered evidence links and nothing else. It cannot
+         * work against `spec-review-v2`: the payload carries `subjectId` and `productId`, so two
+         * different subjects are REQUIRED to hash differently and the old shape would have been
+         * asserting the opposite of a property this gate deliberately added.
+         *
+         * Isolating insertion order therefore means holding everything else identical, and the
+         * only way to do that is to use the same row: link, hash, unlink, relink in the reverse
+         * order, hash again. That is a strictly sharper test of the actual claim — nothing but the
+         * order changed between the two measurements.
+         */
+        const { first: hashFirst, second: hashSecond } = await withDisposableClient(
+          url,
+          async (client) => {
+            const facts = await client.$queryRawUnsafe<{ id: string }[]>(
+              `SELECT "id" FROM "source_facts" ORDER BY "id" LIMIT 2`,
+            );
+            const [a, b] = [facts[0]?.id ?? "", facts[1]?.id ?? ""];
+
+            const products = await client.$queryRawUnsafe<{ id: string }[]>(
+              `SELECT "id" FROM "products" ORDER BY "id" LIMIT 1`,
+            );
+            const rows = await client.$queryRawUnsafe<{ id: string }[]>(
+              `INSERT INTO "specifications" ("id", "product_id", "key", "value")
+               VALUES (gen_random_uuid(), $1::uuid, 'zz_hash_probe', 'probe') RETURNING "id"`,
+              products[0]?.id ?? "",
+            );
+            const id = rows[0]?.id ?? "";
+
+            const link = async (order: readonly string[]): Promise<string | null> => {
+              for (const factId of order) {
+                await client.$executeRawUnsafe(
+                  `INSERT INTO "specification_evidence"
+                     ("specification_id", "source_fact_id", "role")
+                   VALUES ($1::uuid, $2::uuid, 'primary')`,
+                  id,
+                  factId,
+                );
+              }
+              const hash = await specificationEvidenceSetHash(client, id);
+              await client.$executeRawUnsafe(
+                `DELETE FROM "specification_evidence" WHERE "specification_id" = $1::uuid`,
+                id,
+              );
+              return hash;
+            };
+
+            return { first: await link([a, b]), second: await link([b, a]) };
+          },
+        );
+
+        expect(hashFirst).not.toBeNull();
+        expect(hashFirst).toBe(hashSecond);
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * The other half of the same property, and the one v2 added: two different subjects with
+     * IDENTICAL evidence must NOT hash the same.
+     *
+     * Under the v1 definition they did, because the hash was the evidence set and nothing else —
+     * so a Specification and its neighbour could share a fingerprint, and a review of one quoted a
+     * value that described the other equally well. `subjectId` and `productId` in the payload are
+     * what ended that, and this is the assertion that says so.
+     */
+    it(
+      "gives two subjects with identical evidence two different hashes",
+      async () => {
         const { a, b } = await withDisposableClient(url, async (client) => {
           const facts = await client.$queryRawUnsafe<{ id: string }[]>(
             `SELECT "id" FROM "source_facts" ORDER BY "id" LIMIT 2`,
@@ -932,39 +1004,34 @@ suite("the catalog review service over the imported catalogue", () => {
            * TWO products, one probe each. `specifications_import_identity_key` is
            * `(product_id, product_grade_id, property_key) NULLS NOT DISTINCT WHERE deleted_at IS
            * NULL` (ADR-015 §2), so two probes on ONE product — both with a NULL grade and a NULL
-           * property key — are the same import identity and the second insert is refused. That is
-           * the constraint doing its job; the probe needed fixing, not the constraint.
+           * property key — are the same import identity and the second insert is refused.
            */
           const products = await client.$queryRawUnsafe<{ id: string }[]>(
-            `SELECT "id" FROM "products" ORDER BY "id" LIMIT 2`,
+            `SELECT "id" FROM "products" ORDER BY "id" DESC LIMIT 2`,
           );
-          const [first, second] = [facts[0]?.id ?? "", facts[1]?.id ?? ""];
 
-          const make = async (productId: string, order: readonly string[]): Promise<string> => {
+          const make = async (productId: string): Promise<string> => {
             const rows = await client.$queryRawUnsafe<{ id: string }[]>(
               `INSERT INTO "specifications" ("id", "product_id", "key", "value")
-               VALUES (gen_random_uuid(), $1::uuid, 'zz_hash_probe', 'probe') RETURNING "id"`,
+               VALUES (gen_random_uuid(), $1::uuid, 'zz_identity_probe', 'probe') RETURNING "id"`,
               productId,
             );
             const id = rows[0]?.id ?? "";
-            for (const factId of order) {
+            for (const fact of facts) {
               await client.$executeRawUnsafe(
                 `INSERT INTO "specification_evidence" ("specification_id", "source_fact_id", "role")
                  VALUES ($1::uuid, $2::uuid, 'primary')`,
                 id,
-                factId,
+                fact.id,
               );
             }
             return id;
           };
 
-          return {
-            a: await make(products[0]?.id ?? "", [first, second]),
-            b: await make(products[1]?.id ?? "", [second, first]),
-          };
+          return { a: await make(products[0]?.id ?? ""), b: await make(products[1]?.id ?? "") };
         });
 
-        expect(await specificationEvidenceSetHash(prisma, a)).toBe(
+        expect(await specificationEvidenceSetHash(prisma, a)).not.toBe(
           await specificationEvidenceSetHash(prisma, b),
         );
       },
@@ -1609,6 +1676,7 @@ suite("the catalog review service over the imported catalogue", () => {
                 reviewerEmailSnapshot: REVIEWER_EMAIL,
                 decision: "APPROVED",
                 evidenceSetHash: target.evidenceSetHash,
+                evidenceHashVersion: "spec-review-v2",
               },
             });
             await tx.specification.update({
@@ -1733,7 +1801,14 @@ suite("the catalog review service over the imported catalogue", () => {
       /** Runs `INSERT review; UPDATE status` in one transaction and returns the error, if any. */
       async function attempt(
         specId: string,
-        review: { subjectId: string; decision: string; hash: string; email: string },
+        review: {
+          subjectId: string;
+          decision: string;
+          hash: string;
+          email: string;
+          /** ADR-017. Defaults to the correct one, so only a case that means to get it wrong does. */
+          version?: string;
+        },
       ): Promise<string | null> {
         try {
           await withDisposableClient(url, (client) =>
@@ -1741,14 +1816,15 @@ suite("the catalog review service over the imported catalogue", () => {
               await tx.$executeRawUnsafe(
                 `INSERT INTO "technical_reviews"
                    ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision",
-                    "evidence_set_hash")
+                    "evidence_set_hash","evidence_hash_version")
                  VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3,
-                         $4::technical_review_decision, $5)`,
+                         $4::technical_review_decision, $5, $6)`,
                 review.subjectId,
                 REVIEWER_ID,
                 review.email,
                 review.decision,
                 review.hash,
+                review.version ?? "spec-review-v2",
               );
               await tx.$executeRawUnsafe(
                 `UPDATE "specifications" SET "review_status" = 'approved' WHERE "id" = $1::uuid`,
@@ -1819,6 +1895,41 @@ suite("the catalog review service over the imported catalogue", () => {
               email: "   ",
             }),
           ).toMatch(/reviewer_named|violates check constraint/i);
+
+          /*
+           * ADR-017 — the hash VERSION, wrong in each of the two ways it can be.
+           *
+           * A Specification review quoting `claim-review-v2` is refused by
+           * `technical_reviews_hash_version_matches_subject`: the row is inconsistent with its own
+           * subject and never reaches the gate.
+           *
+           * A review quoting a version this build does not implement passes that CHECK — the
+           * constraint only relates the column to the subject — and is refused by the GATE, which
+           * requires the version to equal the definition it just used. The two tests are not
+           * redundant: they diverge exactly when a hash definition changes, which is the moment
+           * they have to hold.
+           */
+          expect(
+            await attempt(subject.id, {
+              subjectId: subject.id,
+              decision: "approved",
+              hash: good,
+              email: REVIEWER_EMAIL,
+              version: "claim-review-v2",
+            }),
+          ).toMatch(/hash_version_matches_subject|violates check constraint/i);
+
+          expect(
+            await attempt(subject.id, {
+              subjectId: subject.id,
+              decision: "approved",
+              hash: good,
+              email: REVIEWER_EMAIL,
+              version: "spec-review-v3",
+            }),
+          ).toMatch(
+            /hash_version_matches_subject|violates check constraint|without a matching TechnicalReview recorded in this transaction/i,
+          );
 
           // Nothing above moved the row.
           expect(await status(url, "specifications", subject.id)).toBe(subject.reviewStatus);
@@ -1979,9 +2090,9 @@ suite("the catalog review service over the imported catalogue", () => {
           await client.$executeRawUnsafe(
             `INSERT INTO "technical_reviews"
                ("id","specification_id","reviewer_id","reviewer_email_snapshot","decision",
-                "evidence_set_hash")
+                "evidence_set_hash","evidence_hash_version")
              VALUES (gen_random_uuid(), $1::uuid, $2::uuid, $3, 'rejected',
-                     "specification_evidence_set_hash"($1::uuid))`,
+                     "specification_review_hash_v2"($1::uuid), 'spec-review-v2')`,
             target.id,
             secondId,
             secondEmail,

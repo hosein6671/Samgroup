@@ -6,6 +6,7 @@ import {
   Panel,
   ProductContext,
   ReviewHistory,
+  ReviewInvalidations,
   ReviewWarnings,
   SubPanel,
   SubjectStatus,
@@ -151,6 +152,7 @@ export function ProductClaimDetail({
       <ApprovalBlockers blockers={subject.approvalBlockers} prohibited={prohibited} />
       <ReviewWarnings warnings={subject.warnings} />
       <ReviewHistory history={subject.history} />
+      <ReviewInvalidations invalidations={subject.invalidations} />
     </div>
   );
 }

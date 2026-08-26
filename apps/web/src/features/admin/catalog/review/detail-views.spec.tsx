@@ -137,6 +137,7 @@ function specification(overrides: Partial<ReviewDetailResponse> = {}): ReviewDet
     eligibleForApproval: true,
     warnings: [],
     history: [],
+    invalidations: [],
     ...overrides,
   };
 }
@@ -170,6 +171,7 @@ function claim(overrides: Partial<ReviewDetailResponse> = {}): ReviewDetailRespo
     eligibleForApproval: true,
     warnings: [],
     history: [],
+    invalidations: [],
     ...overrides,
   };
 }

@@ -15,7 +15,28 @@
 #   revision -> NULL          DENIED
 #
 # and that every OTHER column stays updateable, because the future lead
-# workflow needs `status` and `assigned_to_id` to move.
+# workflow needs `status` and `assigned_to_id` to move. That half is a POSITIVE
+# CONTROL: case 3 performs a legal `status` update and case 3b reads the row
+# back to confirm the new value landed AND the consent evidence beside it did
+# not move. "The statement did not raise" would not have proved either.
+#
+# ── A denial only counts when it is the RIGHT denial ────────────────────────
+#
+# Every negative case asserts the SPECIFIC error the guard raises — SQLSTATE
+# 23001 (`restrict_violation`) together with the trigger's own message — and not
+# merely that something failed. Two defects made that necessary rather than
+# tidy, and both were real:
+#
+#   * case 3 wrote `status = 'probe-touched'`, which violates
+#     `inquiries_status_check` (`new` / `in_progress` / `closed`). It was denied
+#     with 23514 at an unrelated CHECK, before the consent trigger was ever
+#     reached, and the script reported FAIL for a guard that is in fact working;
+#   * the scoring compared only the first word of the observation, so any error
+#     at all satisfied a `DENIED` expectation.
+#
+# Together those meant a negative case could have gone green while the trigger
+# it names had been dropped. `inquiries_status_check` was NOT weakened to fix
+# this — the probe was corrected to use a value the column has always permitted.
 #
 # It connects as the APPLICATION role, which is the identity that matters: the
 # question is not whether a database administrator could disable a trigger —
@@ -85,11 +106,43 @@ VALUES
 
 CREATE TEMP TABLE "matrix"("expected" TEXT, "tbl" TEXT, "case" TEXT, "observed" TEXT);
 
+/*
+ * What a CORRECT denial looks like, in one place.
+ *
+ * The guard under test is the BEFORE UPDATE trigger
+ * `<table>_privacy_policy_version_immutable`, which executes
+ * `consent_policy_version_immutable` and raises with
+ * `ERRCODE = 'restrict_violation'` — SQLSTATE 23001 — and a fixed message.
+ *
+ * Both halves are required. The SQLSTATE alone is not enough: 23001 is
+ * `restrict_violation`, which a future ON DELETE RESTRICT foreign key on either
+ * table could also raise. The message alone is not enough either, because a
+ * message is prose and prose gets reworded. Together they identify this trigger
+ * and nothing else, which is what "assert the intended error" has to mean.
+ */
+CREATE FUNCTION pg_temp.classify_denial("p_sqlstate" TEXT, "p_message" TEXT) RETURNS TEXT
+  LANGUAGE sql IMMUTABLE
+AS $fn$
+  SELECT CASE
+    WHEN "p_sqlstate" = '23001'
+     AND "p_message" LIKE '%privacy_policy_version is immutable consent evidence%'
+      THEN 'DENIED 23001 consent-guard'
+    ELSE 'DENIED ' || "p_sqlstate" || ' other-guard'
+  END
+$fn$;
+
 DO $probe$
 DECLARE
   v_tbl  TEXT;
   v_null UUID;
   v_rev  UUID;
+  /* The positive control's read-back count. */
+  v_ok   INT;
+  /*
+   * The only observation a negative case may be scored a PASS on. Held in a
+   * variable so the expectation and the classifier cannot drift apart.
+   */
+  v_denied_expected CONSTANT TEXT := 'DENIED 23001 consent-guard';
 BEGIN
   FOREACH v_tbl IN ARRAY ARRAY['inquiries','custom_formulation_requests'] LOOP
     IF v_tbl = 'inquiries' THEN
@@ -105,34 +158,71 @@ BEGIN
       ('allowed', v_tbl, '1. INSERT with NULL revision', 'allowed'),
       ('allowed', v_tbl, '2. INSERT with a revision',    'allowed');
 
-    -- Each attempt runs in its own subtransaction, so a denial does not abort
-    -- the probe.
+    /*
+     * Each attempt runs in its own subtransaction, so a denial does not abort
+     * the probe.
+     *
+     * ── A denial is only a pass when it is THE RIGHT denial ──────────────────
+     *
+     * `pg_temp.classify_denial` classifies the error rather than merely recording
+     * that one happened. Every negative case below expects the exact string
+     * `DENIED 23001 consent-guard`, which requires BOTH the SQLSTATE of
+     * `restrict_violation` AND the trigger's own message. Any other failure —
+     * a CHECK violation, a foreign key, a typo in a column name — produces
+     * `DENIED <sqlstate> other-guard` and FAILS.
+     *
+     * This is not hypothetical tightening. Case 3 below used to write
+     * `status = 'probe-touched'`, which violates `inquiries_status_check`
+     * (`new` / `in_progress` / `closed`) and was denied with 23514 before the
+     * consent trigger was ever reached — an unrelated CHECK standing in for the
+     * guard under test. It was caught because case 3 expects `allowed`; had the
+     * same mistake been made in a negative case, "any SQL error" would have
+     * reported a green pass for a guard that never fired.
+     */
     BEGIN
-      EXECUTE format('UPDATE %I SET "status" = %L WHERE "id" = %L', v_tbl, 'probe-touched', v_rev);
+      EXECUTE format('UPDATE %I SET "status" = %L WHERE "id" = %L', v_tbl, 'in_progress', v_rev);
       INSERT INTO "matrix" VALUES ('allowed', v_tbl, '3. UPDATE another column, revision untouched', 'allowed');
     EXCEPTION WHEN OTHERS THEN
       INSERT INTO "matrix" VALUES ('allowed', v_tbl, '3. UPDATE another column, revision untouched', 'DENIED ' || SQLSTATE);
     END;
 
+    /*
+     * The POSITIVE CONTROL, and the reason case 3 alone is not one.
+     *
+     * "The statement did not raise" is a weaker claim than "the column changed":
+     * an UPDATE whose WHERE matched nothing also does not raise. This reads the
+     * row back and requires the new value to be there AND the consent evidence
+     * beside it to be untouched — which is the whole invariant stated
+     * positively, and the half a negative probe can never establish.
+     */
+    EXECUTE format(
+      'SELECT count(*) FROM %I WHERE "id" = %L AND "status" = %L '
+      || 'AND "privacy_policy_version" IS NOT DISTINCT FROM %L',
+      v_tbl, v_rev, 'in_progress', 'probe-rev-1')
+      INTO v_ok;
+    INSERT INTO "matrix" VALUES
+      ('allowed', v_tbl, '3b. the unrelated update actually persisted',
+       CASE WHEN v_ok = 1 THEN 'allowed' ELSE 'DENIED not-persisted' END);
+
     BEGIN
       EXECUTE format('UPDATE %I SET "privacy_policy_version" = %L WHERE "id" = %L', v_tbl, 'probe-rev-2', v_null);
-      INSERT INTO "matrix" VALUES ('DENIED', v_tbl, '4. NULL -> revision', 'allowed');
+      INSERT INTO "matrix" VALUES (v_denied_expected, v_tbl, '4. NULL -> revision', 'allowed');
     EXCEPTION WHEN OTHERS THEN
-      INSERT INTO "matrix" VALUES ('DENIED', v_tbl, '4. NULL -> revision', 'DENIED ' || SQLSTATE);
+      INSERT INTO "matrix" VALUES (v_denied_expected, v_tbl, '4. NULL -> revision', pg_temp.classify_denial(SQLSTATE, SQLERRM));
     END;
 
     BEGIN
       EXECUTE format('UPDATE %I SET "privacy_policy_version" = %L WHERE "id" = %L', v_tbl, 'probe-rev-2', v_rev);
-      INSERT INTO "matrix" VALUES ('DENIED', v_tbl, '5. revision -> different revision', 'allowed');
+      INSERT INTO "matrix" VALUES (v_denied_expected, v_tbl, '5. revision -> different revision', 'allowed');
     EXCEPTION WHEN OTHERS THEN
-      INSERT INTO "matrix" VALUES ('DENIED', v_tbl, '5. revision -> different revision', 'DENIED ' || SQLSTATE);
+      INSERT INTO "matrix" VALUES (v_denied_expected, v_tbl, '5. revision -> different revision', pg_temp.classify_denial(SQLSTATE, SQLERRM));
     END;
 
     BEGIN
       EXECUTE format('UPDATE %I SET "privacy_policy_version" = NULL WHERE "id" = %L', v_tbl, v_rev);
-      INSERT INTO "matrix" VALUES ('DENIED', v_tbl, '6. revision -> NULL', 'allowed');
+      INSERT INTO "matrix" VALUES (v_denied_expected, v_tbl, '6. revision -> NULL', 'allowed');
     EXCEPTION WHEN OTHERS THEN
-      INSERT INTO "matrix" VALUES ('DENIED', v_tbl, '6. revision -> NULL', 'DENIED ' || SQLSTATE);
+      INSERT INTO "matrix" VALUES (v_denied_expected, v_tbl, '6. revision -> NULL', pg_temp.classify_denial(SQLSTATE, SQLERRM));
     END;
 
     BEGIN
@@ -160,8 +250,21 @@ SELECT 'A', c.relname, '9. trigger is ENABLE ALWAYS', t.tgenabled
  WHERE NOT t.tgisinternal
    AND t.tgname LIKE '%privacy_policy_version_immutable';
 
+/*
+ * EXACT equality, not a prefix match.
+ *
+ * This used to compare `split_part(observed, ' ', 1)` against `expected`, which
+ * compared only the first WORD — so every negative case scored a PASS on the
+ * bare token `DENIED`, whatever error had actually been raised. That is the
+ * "any SQL error counts as success" shape, and it is precisely what would have
+ * hidden a guard that had been dropped and replaced by an incidental constraint.
+ *
+ * With full equality a negative case passes only on the exact string
+ * `DENIED 23001 consent-guard`, which `pg_temp.classify_denial` emits for the
+ * consent trigger and for nothing else.
+ */
 SELECT format('%s|%s|%s|%s',
-              CASE WHEN split_part("observed", ' ', 1) = "expected" THEN 'PASS' ELSE 'FAIL' END,
+              CASE WHEN "observed" = "expected" THEN 'PASS' ELSE 'FAIL' END,
               "tbl", "case", "observed")
   FROM "matrix"
  ORDER BY "tbl", "case";

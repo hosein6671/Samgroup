@@ -134,7 +134,11 @@ function harness(
     if (sql.includes("FOR UPDATE")) {
       return lockedStatus === null ? [] : [{ id: SUBJECT_ID, reviewStatus: lockedStatus }];
     }
-    if (sql.includes("evidence_set_hash")) return [{ hash: currentHash }];
+    // The two subject-specific v2 hash functions (ADR-017). Matched on `review_hash_v2` rather
+    // than on the old `evidence_set_hash` substring, which named the v1 functions the migration
+    // dropped — a double that still answered to the old name would keep passing against a
+    // function that no longer exists.
+    if (sql.includes("review_hash_v2")) return [{ hash: currentHash }];
     if (sql === SPECIFICATION_ELIGIBILITY_SQL) {
       return [options.specEligibility ?? ELIGIBLE_SPEC];
     }
