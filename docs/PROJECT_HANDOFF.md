@@ -428,6 +428,12 @@ The bootstrap, frontend design proof, canonical public routes, Payload foundatio
 
 Verification at this handoff: root lint passed; root type-check passed (5/5 tasks); the full workspace test run passed — all 80 active API suites with 1,687 tests, all 51 web suites with 1,109 tests, and all 113 CMS tests. The five database-backed API suites remain skipped under their existing environment gates. The focused source-capture set also passed 11/11, including transaction writer coverage.
 
+### Product content research — 27 August 2026
+
+The 100-name catalog manifest is now paired with an internal research artifact at [`content/PRODUCT_RESEARCH_REGISTER.json`](./content/PRODUCT_RESEARCH_REGISTER.json), documented by [`content/PRODUCT_RESEARCH_REGISTER.md`](./content/PRODUCT_RESEARCH_REGISTER.md). The allow-listed collector in `scripts/research-catalog-products.ts` checked 66 records against official King Power or Addilex pages and retained 34 HSB records on the supplied printed-catalog basis. It does not change the canonical workbook name, formulation, specification or claim; it separates official series/API/SAE/feature metadata from identity and copies no external locator into the artifact.
+
+This is a **copy-research gate, not publication**. Sixty-six records have no conflict or withheld fact and can proceed to a copy draft; 34 require data review before copy. Every record explicitly remains blocked until the existing technical-review workflow approves its Specification and Product Claim data. No database write and no public-site content change occurred in this research pass.
+
 Before starting it, read ADR-014 through ADR-017 and the relevant Admin/API contracts, identify every file involved, report the implementation plan, and obtain the separate code approval required by `CLAUDE.md`.
 
 ### Working conventions established here
