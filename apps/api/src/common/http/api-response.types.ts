@@ -26,10 +26,19 @@ export type ApiSuccessResponse<T> = {
   meta: ResponseMeta;
 };
 
-/** One field-level failure. `field` is the DTO path, so the frontend can map it to an input. */
+/**
+ * One field-level failure. `field` is the DTO path, so the frontend can map it to an input.
+ *
+ * `code` is optional and is the machine-readable identity of the rule that failed, for the
+ * refusals where the sentence in `issue` is a rendering rather than the contract. The catalog
+ * review's approval blockers are the first producer: a client — including one that never rendered
+ * a page — must be able to branch on WHY an approval was refused without matching English prose.
+ * Every other thrower omits it, and a consumer must treat it as absent rather than required.
+ */
 export type ApiErrorDetail = {
   field: string;
   issue: string;
+  code?: string;
 };
 
 export type ApiErrorResponse = {

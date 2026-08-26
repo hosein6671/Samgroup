@@ -52,12 +52,21 @@ import {
 } from "../import/apply/__tests__/disposable-database";
 import { CatalogReviewService } from "./catalog-review.service";
 import { specificationEvidenceSetHash } from "./evidence-set-hash";
+import {
+  PRODUCT_CLAIM_ELIGIBILITY_SQL,
+  REVIEW_BLOCKER_CODES,
+  REVIEW_WARNING_CODES,
+  SPECIFICATION_ELIGIBILITY_SQL,
+  productClaimApprovalBlockers,
+  specificationApprovalBlockers,
+} from "./review-eligibility";
 
 import type { ResolvedLocale } from "../../../common/locale/resolved-locale";
 import type { AuthenticatedUser } from "../../identity/authenticated-user";
 import type { DatabaseConfig } from "../import/apply/__tests__/disposable-database";
 import type { ConfigService } from "@nestjs/config";
 import type { ReviewDetailResponse, ReviewQueueItemResponse } from "./dto/review.response";
+import type { ProductClaimEligibilityRow, SpecificationEligibilityRow } from "./review-eligibility";
 
 const config = readDatabaseConfig();
 const suite = config === null ? describe.skip : describe;
@@ -104,6 +113,70 @@ const FORBIDDEN_PUBLIC_KEYS: readonly string[] = [
   "needs_review",
   "source_recorded",
 ];
+
+/**
+ * Candidate rows for the two new fail-closed rules — a PRE-FILTER, never the rule itself.
+ *
+ * These narrow 1,398 Specifications to the handful worth probing so the finder does not walk the
+ * whole table through the API. The verdict is still the service's: `findBlockedSpecification` loads
+ * each candidate's real detail response and keeps the first one whose `approvalBlockers` actually
+ * carries the code. A wrong pre-filter therefore makes the test FAIL to find a subject; it can
+ * never make it pass against a row the service does not block.
+ *
+ * Only undecided rows, so the decision reaches the eligibility step rather than being refused
+ * earlier for being non-decidable.
+ */
+const UNDECIDED = `"deleted_at" IS NULL AND "review_status" IN ('source_recorded', 'needs_review')`;
+
+const BLOCKED_CANDIDATE_SQL = {
+  SOURCE_ASSET_ABSENT: `
+    SELECT s."id" FROM "specifications" s
+     WHERE s.${UNDECIDED}
+       AND EXISTS (
+         SELECT 1 FROM "specification_evidence" se
+           LEFT JOIN "source_facts" sf     ON sf."id" = se."source_fact_id"
+           LEFT JOIN "source_documents" sd ON sd."id" = sf."source_document_id"
+          WHERE se."specification_id" = s."id"
+            AND se."role" <> 'superseded'
+            AND sd."source_asset_id" IS NULL)
+     ORDER BY s."id" LIMIT 20`,
+
+  REQUIRED_METHOD_ABSENT: `
+    SELECT s."id" FROM "specifications" s
+      JOIN "spec_properties" sp ON sp."key" = s."property_key"
+     WHERE s.${UNDECIDED}
+       AND sp."method_requirement" = 'required'
+       AND (s."method" IS NULL OR length(btrim(s."method")) = 0)
+     ORDER BY s."id" LIMIT 20`,
+} as const;
+
+/**
+ * One manually transcribed Specification on a captured document, and one on an uncaptured one.
+ *
+ * Manual transcription is 716 of the catalogue's source facts, and the ratified rule is that it is
+ * acceptable exactly when the bytes it was transcribed FROM are captured. Both halves need a real
+ * row to be proved, and both exist in the imported catalogue.
+ */
+const MANUAL_TRANSCRIPTION_SAMPLE_SQL = `
+  (SELECT s."id",
+          (sd."source_asset_id" IS NOT NULL) AS "captured"
+     FROM "specifications" s
+     JOIN "specification_evidence" se ON se."specification_id" = s."id" AND se."role" <> 'superseded'
+     JOIN "source_facts" sf      ON sf."id" = se."source_fact_id"
+     JOIN "source_documents" sd  ON sd."id" = sf."source_document_id"
+    WHERE sf."extraction_method" = 'manual_transcription'
+      AND sd."source_asset_id" IS NOT NULL
+    ORDER BY s."id" LIMIT 1)
+  UNION ALL
+  (SELECT s."id",
+          (sd."source_asset_id" IS NOT NULL) AS "captured"
+     FROM "specifications" s
+     JOIN "specification_evidence" se ON se."specification_id" = s."id" AND se."role" <> 'superseded'
+     JOIN "source_facts" sf      ON sf."id" = se."source_fact_id"
+     JOIN "source_documents" sd  ON sd."id" = sf."source_document_id"
+    WHERE sf."extraction_method" = 'manual_transcription'
+      AND sd."source_asset_id" IS NULL
+    ORDER BY s."id" LIMIT 1)`;
 
 async function status(url: string, table: string, id: string): Promise<string | null> {
   return withDisposableClient(url, async (client) => {
@@ -451,6 +524,352 @@ suite("the catalog review service over the imported catalogue", () => {
       TIMEOUT_MS,
     );
 
+    /* -------------------------------------------------------------- */
+    /* The dictionary metadata, and the contract separation            */
+    /* -------------------------------------------------------------- */
+
+    /**
+     * `valueKind` and `methodRequirement` come from the `SpecProperty` row, and they are two axes.
+     *
+     * What matters is not that the fields exist but that they are INDEPENDENT of `valueType`: the
+     * response must be able to say "this property is numeric" and "this recorded value is a range"
+     * at the same time, without either being computed from the other.
+     */
+    it(
+      "serves both dictionary axes on a Specification, independently of the value shape",
+      async () => {
+        const item = (await review.queue({ subjectType: "specification", limit: 1 }))
+          .items[0] as ReviewQueueItemResponse;
+        const detail = await review.detail("specification", item.id);
+        const value = detail.specification;
+
+        expect(value).not.toBeNull();
+        expect(["numeric", "textual", "coded"]).toContain(value?.valueKind);
+        expect(["required", "optional", "not_applicable"]).toContain(value?.methodRequirement);
+
+        /* The shape axis is served as it always was, and is not the kind axis. */
+        expect(value?.valueType).not.toBe(value?.valueKind);
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * The shape of the Specification projection, asserted as an EXACT key set.
+     *
+     * An exact set rather than a presence check: it is what stops a later gate from folding the
+     * kind axis into the shape axis, or from adding a third derived field nobody asked for.
+     */
+    it(
+      "serves an exact Specification value shape carrying both new axes",
+      async () => {
+        const item = (await review.queue({ subjectType: "specification", limit: 1 }))
+          .items[0] as ReviewQueueItemResponse;
+        const detail = await review.detail("specification", item.id);
+
+        expect(Object.keys(detail.specification ?? {}).sort()).toEqual(
+          [
+            "displayValue",
+            "method",
+            "methodRequirement",
+            "numericMax",
+            "numericMin",
+            "pairFirst",
+            "pairSecond",
+            "propertyKey",
+            "qualifier",
+            "resultBasis",
+            "unit",
+            "valueKind",
+            "valueType",
+          ].sort(),
+        );
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * A ProductClaim has no property key, so it has no dictionary record and must invent neither
+     * axis. Asserted as an exact key set on the claim projection, and as an absence anywhere in the
+     * serialized response.
+     */
+    it(
+      "never invents dictionary metadata on a ProductClaim",
+      async () => {
+        const item = (await review.queue({ subjectType: "product_claim", limit: 1 }))
+          .items[0] as ReviewQueueItemResponse;
+        const detail = await review.detail("product_claim", item.id);
+        const serialized = JSON.stringify(detail);
+
+        expect(detail.specification).toBeNull();
+        expect(Object.keys(detail.claim ?? {}).sort()).toEqual(
+          ["contextNote", "kind", "standardBody", "standardCode"].sort(),
+        );
+        expect(serialized).not.toContain("valueKind");
+        expect(serialized).not.toContain("methodRequirement");
+      },
+      TIMEOUT_MS,
+    );
+
+    /* -------------------------------------------------------------- */
+    /* Structured blockers and warnings                                */
+    /* -------------------------------------------------------------- */
+
+    /**
+     * Every blocker the live catalogue produces is a `{code, message}` pair drawn from the closed
+     * vocabulary — no bare string survives anywhere.
+     *
+     * Swept over a page of each subject type rather than one row, because the point is that the
+     * conversion was COMPLETE, not that one path was converted.
+     */
+    it(
+      "serves only structured blockers and warnings, over both subject types",
+      async () => {
+        for (const subjectType of ["specification", "product_claim"] as const) {
+          const page = await review.queue({ subjectType, limit: 25 });
+
+          for (const item of page.items) {
+            const detail = await review.detail(subjectType, item.id);
+
+            for (const entry of detail.approvalBlockers) {
+              expect(typeof entry).toBe("object");
+              expect(REVIEW_BLOCKER_CODES).toContain(entry.code);
+              expect(entry.message.length).toBeGreaterThan(0);
+            }
+            for (const entry of detail.warnings) {
+              expect(typeof entry).toBe("object");
+              expect(REVIEW_WARNING_CODES).toContain(entry.code);
+              expect(entry.message.length).toBeGreaterThan(0);
+            }
+
+            expect(detail.eligibleForApproval).toBe(detail.approvalBlockers.length === 0);
+          }
+        }
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * All 69 imported source documents record neither a date nor a revision label, so every subject
+     * carries both warnings — and NONE of them is made ineligible by that.
+     *
+     * This is the assertion that proves the warning channel does what it was separated out to do.
+     */
+    it(
+      "warns about every document's missing date and revision without blocking anything",
+      async () => {
+        const page = await review.queue({ subjectType: "specification", limit: 25 });
+        let eligibleSeen = 0;
+
+        for (const item of page.items) {
+          const detail = await review.detail("specification", item.id);
+          const warningCodes = detail.warnings.map((entry) => entry.code);
+          const blockerCodes = detail.approvalBlockers.map((entry) => entry.code);
+
+          expect(warningCodes).toContain("DOCUMENT_DATE_UNKNOWN");
+          expect(warningCodes).toContain("DOCUMENT_REVISION_UNKNOWN");
+          expect(blockerCodes).not.toContain("DOCUMENT_DATE_UNKNOWN");
+          expect(blockerCodes).not.toContain("DOCUMENT_REVISION_UNKNOWN");
+
+          if (detail.eligibleForApproval) eligibleSeen += 1;
+        }
+
+        /* If the warnings had frozen eligibility, this would be zero. */
+        expect(eligibleSeen).toBeGreaterThan(0);
+      },
+      TIMEOUT_MS,
+    );
+
+    /** A blocker and a warning both name the RULE. Neither ever names a source. */
+    it(
+      "leaks no locator or asset identity through a blocker or a warning",
+      async () => {
+        const page = await review.queue({ limit: 25 });
+
+        for (const item of page.items) {
+          const detail = await review.detail(item.subjectType, item.id);
+          const serialized = JSON.stringify({
+            approvalBlockers: detail.approvalBlockers,
+            warnings: detail.warnings,
+          });
+
+          expect(serialized).not.toMatch(/https?:\/\//);
+          expect(serialized).not.toMatch(/[0-9a-f]{64}/);
+          expect(serialized).not.toMatch(/\.(pdf|xlsx|xls|docx?|csv)/i);
+        }
+      },
+      TIMEOUT_MS,
+    );
+
+    /* -------------------------------------------------------------- */
+    /* The fail-closed rules, counted over the whole catalogue         */
+    /* -------------------------------------------------------------- */
+
+    /**
+     * The ratified figures, recomputed from the PRODUCTION SQL and the PRODUCTION builders.
+     *
+     * `eligibilityCensus` runs `SPECIFICATION_ELIGIBILITY_SQL` and `PRODUCT_CLAIM_ELIGIBILITY_SQL`
+     * — the exact strings the service runs inside the decision transaction — over every subject,
+     * and feeds each row to `specificationApprovalBlockers` / `productClaimApprovalBlockers`. It is
+     * therefore not a second implementation that could agree with the numbers while the service
+     * disagrees.
+     *
+     * Counting rather than sampling is the whole point: a rule that fired on 500 rows instead of 5
+     * would look identical on any single row.
+     */
+    it(
+      "blocks exactly the ratified rows on the required-method and capture rules",
+      async () => {
+        expect(await eligibilityCensus()).toEqual({
+          specifications: 1398,
+          specificationsEligible: 1338,
+          specificationsRequiredMethodAbsent: 5,
+          specificationsMethodNotEvidenced: 0,
+          specificationsSourceAssetAbsent: 60,
+          specificationsMethodOrSourceUnion: 60,
+          specificationsMappingUnresolved: 3,
+          specificationsMethodAbsentAndUncaptured: 5,
+          productClaims: 148,
+          productClaimsEligible: 102,
+          productClaimsSourceAssetAbsent: 46,
+          productClaimsNeverApprovable: 5,
+        });
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * A subject the capture rule blocks refuses a DIRECT approval, with the code, writing nothing.
+     *
+     * "Direct" is the load-bearing word: this call never rendered a page, so no UI wording took
+     * part in refusing it. The subject is found by the rule rather than hard-coded, so the test
+     * survives a re-import.
+     */
+    it(
+      "refuses a direct approval of an uncaptured subject with 409 and the code, writing nothing",
+      async () => {
+        const before = await counts(url);
+        const blocked = await findBlockedSpecification("SOURCE_ASSET_ABSENT");
+
+        const error = await refused(() =>
+          review.decide(
+            "specification",
+            blocked.id,
+            {
+              decision: "approve",
+              expectedReviewStatus: blocked.reviewStatus,
+              expectedEvidenceSetHash: blocked.evidenceSetHash,
+            },
+            ACTOR,
+          ),
+        );
+
+        expect(error.getStatus()).toBe(409);
+        expect(error.details?.map((detail) => detail.code)).toContain("SOURCE_ASSET_ABSENT");
+
+        /* No TechnicalReview, no status change, no publication. */
+        expect(await counts(url)).toEqual(before);
+        expect(await status(url, "specifications", blocked.id)).toBe(blocked.reviewStatus);
+      },
+      TIMEOUT_MS,
+    );
+
+    /** The same, for the required-method rule. */
+    it(
+      "refuses a direct approval of a required-method-absent subject with 409 and the code",
+      async () => {
+        const before = await counts(url);
+        const blocked = await findBlockedSpecification("REQUIRED_METHOD_ABSENT");
+
+        const error = await refused(() =>
+          review.decide(
+            "specification",
+            blocked.id,
+            {
+              decision: "approve",
+              expectedReviewStatus: blocked.reviewStatus,
+              expectedEvidenceSetHash: blocked.evidenceSetHash,
+            },
+            ACTOR,
+          ),
+        );
+
+        expect(error.getStatus()).toBe(409);
+        expect(error.details?.map((detail) => detail.code)).toContain("REQUIRED_METHOD_ABSENT");
+        expect(await counts(url)).toEqual(before);
+        expect(await status(url, "specifications", blocked.id)).toBe(blocked.reviewStatus);
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * The refusal carries no provenance beyond the approved Admin DTO.
+     *
+     * `SOURCE_ASSET_ABSENT` is the blocker most tempted to say WHICH document is uncaptured, and it
+     * must not. The whole serialized refusal is checked, not only the message.
+     */
+    it(
+      "leaks no source locator through a refusal",
+      async () => {
+        const blocked = await findBlockedSpecification("SOURCE_ASSET_ABSENT");
+
+        const error = await refused(() =>
+          review.decide(
+            "specification",
+            blocked.id,
+            {
+              decision: "approve",
+              expectedReviewStatus: blocked.reviewStatus,
+              expectedEvidenceSetHash: blocked.evidenceSetHash,
+            },
+            ACTOR,
+          ),
+        );
+        const serialized = JSON.stringify({ message: error.message, details: error.details });
+
+        expect(serialized).not.toMatch(/https?:\/\//);
+        expect(serialized).not.toMatch(/[0-9a-f]{64}/);
+        expect(serialized).not.toMatch(/\.(pdf|xlsx|xls|docx?|csv)/i);
+        expect(serialized).not.toContain("locatorValue");
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * A manual transcription is judged on capture and on nothing else.
+     *
+     * 716 of the catalogue's source facts were transcribed by hand. Those whose document names a
+     * captured asset are approvable; those whose document does not get exactly ONE blocker, not a
+     * second one restating the same condition from the transcription's side.
+     */
+    it(
+      "accepts a captured manual transcription and blocks an uncaptured one exactly once",
+      async () => {
+        const rows = await withDisposableClient(url, (client) =>
+          client.$queryRawUnsafe<{ id: string; captured: boolean }[]>(
+            MANUAL_TRANSCRIPTION_SAMPLE_SQL,
+          ),
+        );
+        const captured = rows.find((row) => row.captured);
+        const uncaptured = rows.find((row) => !row.captured);
+
+        expect(captured).toBeDefined();
+        expect(uncaptured).toBeDefined();
+
+        const capturedDetail = await review.detail("specification", captured!.id);
+        const uncapturedDetail = await review.detail("specification", uncaptured!.id);
+
+        expect(capturedDetail.approvalBlockers.map((entry) => entry.code)).not.toContain(
+          "SOURCE_ASSET_ABSENT",
+        );
+
+        const codes = uncapturedDetail.approvalBlockers.map((entry) => entry.code);
+        expect(codes).toContain("SOURCE_ASSET_ABSENT");
+        expect(codes.filter((code) => code === "SOURCE_ASSET_ABSENT")).toHaveLength(1);
+        expect(uncapturedDetail.eligibleForApproval).toBe(false);
+      },
+      TIMEOUT_MS,
+    );
+
     /**
      * `product_claims` in the imported catalogue includes five `reference_only` rows — the kind
      * that can never be approved. The detail must SAY so rather than let a reviewer discover it as
@@ -464,7 +883,12 @@ suite("the catalog review service over the imported catalogue", () => {
         const detail = await review.detail("product_claim", item.id);
 
         expect(detail.eligibleForApproval).toBe(false);
-        expect(detail.approvalBlockers.join(" ")).toContain("LICENSED_BY and REFERENCE_ONLY");
+        expect(detail.approvalBlockers.map((entry) => entry.code)).toContain(
+          "CLAIM_KIND_NEVER_APPROVABLE",
+        );
+        expect(detail.approvalBlockers.map((entry) => entry.message).join(" ")).toContain(
+          "LICENSED_BY and REFERENCE_ONLY",
+        );
       },
       TIMEOUT_MS,
     );
@@ -1750,6 +2174,132 @@ suite("the catalog review service over the imported catalogue", () => {
    * Found through the API on every call rather than cached: earlier tests approve and reject rows,
    * so a cached candidate would be stale and the failure would look like an eligibility bug.
    */
+  /**
+   * Every subject's eligibility, computed with the PRODUCTION SQL and the PRODUCTION builders.
+   *
+   * Not a second implementation of the rules: `SPECIFICATION_ELIGIBILITY_SQL` and
+   * `PRODUCT_CLAIM_ELIGIBILITY_SQL` are the exact strings the decision transaction runs, and the
+   * blockers are built by the same two exported functions the service calls. A divergence between
+   * this census and the service is therefore impossible by construction, which is what makes the
+   * ratified counts meaningful rather than merely reproduced.
+   *
+   * One statement per subject, run in bounded batches so 1,546 probes do not open 1,546
+   * connections. Slow by design, and inside a 180 s timeout.
+   */
+  async function eligibilityCensus(): Promise<Record<string, number>> {
+    return withDisposableClient(url, async (client) => {
+      const specificationIds = (
+        await client.$queryRawUnsafe<{ id: string }[]>(`SELECT "id" FROM "specifications"`)
+      ).map(({ id }) => id);
+      const claimIds = (
+        await client.$queryRawUnsafe<{ id: string }[]>(`SELECT "id" FROM "product_claims"`)
+      ).map(({ id }) => id);
+
+      const census = {
+        specifications: specificationIds.length,
+        specificationsEligible: 0,
+        specificationsRequiredMethodAbsent: 0,
+        specificationsMethodNotEvidenced: 0,
+        specificationsSourceAssetAbsent: 0,
+        specificationsMethodOrSourceUnion: 0,
+        specificationsMappingUnresolved: 0,
+        specificationsMethodAbsentAndUncaptured: 0,
+        productClaims: claimIds.length,
+        productClaimsEligible: 0,
+        productClaimsSourceAssetAbsent: 0,
+        productClaimsNeverApprovable: 0,
+      };
+
+      const BATCH = 25;
+
+      for (let index = 0; index < specificationIds.length; index += BATCH) {
+        const batch = specificationIds.slice(index, index + BATCH);
+        const rows = await Promise.all(
+          batch.map(async (id) => {
+            const [row] = await client.$queryRawUnsafe<SpecificationEligibilityRow[]>(
+              SPECIFICATION_ELIGIBILITY_SQL,
+              id,
+            );
+            return row as SpecificationEligibilityRow;
+          }),
+        );
+
+        for (const row of rows) {
+          const codes = specificationApprovalBlockers({
+            ...row,
+            evidenceLinks: Number(row.evidenceLinks),
+            evidenceOrphans: Number(row.evidenceOrphans),
+          }).map((entry) => entry.code);
+
+          const method = codes.includes("REQUIRED_METHOD_ABSENT");
+          const unevidenced = codes.includes("METHOD_NOT_EVIDENCED");
+          const uncaptured = codes.includes("SOURCE_ASSET_ABSENT");
+
+          if (codes.length === 0) census.specificationsEligible += 1;
+          if (method) census.specificationsRequiredMethodAbsent += 1;
+          if (unevidenced) census.specificationsMethodNotEvidenced += 1;
+          if (uncaptured) census.specificationsSourceAssetAbsent += 1;
+          if (method || unevidenced || uncaptured) census.specificationsMethodOrSourceUnion += 1;
+          if (method && uncaptured) census.specificationsMethodAbsentAndUncaptured += 1;
+          if (codes.includes("PROPERTY_MAPPING_UNRESOLVED")) {
+            census.specificationsMappingUnresolved += 1;
+          }
+        }
+      }
+
+      for (let index = 0; index < claimIds.length; index += BATCH) {
+        const batch = claimIds.slice(index, index + BATCH);
+        const rows = await Promise.all(
+          batch.map(async (id) => {
+            const [row] = await client.$queryRawUnsafe<ProductClaimEligibilityRow[]>(
+              PRODUCT_CLAIM_ELIGIBILITY_SQL,
+              id,
+            );
+            return row as ProductClaimEligibilityRow;
+          }),
+        );
+
+        for (const row of rows) {
+          const codes = productClaimApprovalBlockers({
+            ...row,
+            evidenceLinks: Number(row.evidenceLinks),
+            evidenceOrphans: Number(row.evidenceOrphans),
+          }).map((entry) => entry.code);
+
+          if (codes.length === 0) census.productClaimsEligible += 1;
+          if (codes.includes("SOURCE_ASSET_ABSENT")) census.productClaimsSourceAssetAbsent += 1;
+          if (codes.includes("CLAIM_KIND_NEVER_APPROVABLE")) {
+            census.productClaimsNeverApprovable += 1;
+          }
+        }
+      }
+
+      return census;
+    });
+  }
+
+  /**
+   * The first UNDECIDED Specification whose detail carries `code`.
+   *
+   * Undecided so the decision reaches the eligibility step rather than being refused earlier for
+   * being non-decidable, and found through the real detail response so the test cannot pass against
+   * a row the service does not actually block.
+   */
+  async function findBlockedSpecification(
+    code: keyof typeof BLOCKED_CANDIDATE_SQL,
+  ): Promise<ReviewDetailResponse> {
+    const rows = await withDisposableClient(url, (client) =>
+      client.$queryRawUnsafe<{ id: string }[]>(BLOCKED_CANDIDATE_SQL[code]),
+    );
+
+    for (const { id } of rows) {
+      const detail = await review.detail("specification", id);
+      if (detail.approvalBlockers.some((entry) => entry.code === code)) return detail;
+    }
+
+    throw new Error(`No undecided Specification carried the blocker ${code}.`);
+  }
+
   async function firstEligibleOtherThan(excludeId: string): Promise<ReviewDetailResponse> {
     const page = await review.queue({ subjectType: "specification", limit: 200 });
 

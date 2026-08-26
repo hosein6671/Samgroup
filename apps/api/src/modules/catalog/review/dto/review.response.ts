@@ -26,6 +26,20 @@
  * boundary test is extended to say exactly that rather than being weakened.
  */
 
+import type { ReviewBlocker, ReviewWarning } from "../review-eligibility";
+
+/**
+ * The structured eligibility shapes are re-exported from here so that a reader of the wire
+ * contract finds them where the rest of the contract lives, while `review-eligibility.ts` stays
+ * their single definition — the rules and the vocabulary they emit must not be able to drift apart.
+ */
+export type {
+  ReviewBlocker,
+  ReviewBlockerCode,
+  ReviewWarning,
+  ReviewWarningCode,
+} from "../review-eligibility";
+
 /** Which table a subject lives in, on the wire. */
 export type ReviewSubjectTypeResponse = "specification" | "product_claim";
 
@@ -70,9 +84,34 @@ export interface ReviewSpecificationValue {
   method: string | null;
   qualifier: string | null;
   resultBasis: string;
+
+  /**
+   * The `SpecProperty` dictionary metadata behind this Specification's property key.
+   *
+   * Two INDEPENDENT axes, both null when the key resolves to no dictionary entry:
+   *
+   *   * `valueKind` — `numeric` / `textual` / `coded`. What the PROPERTY carries, which is a
+   *     coarser question than `valueType`, which describes ONE recorded value. A numeric property
+   *     recorded as `text` is a discrepancy worth a reviewer's eye; in this gate it is
+   *     informational only, and no rule converts either axis into the other or infers one from the
+   *     other.
+   *   * `methodRequirement` — `required` / `optional` / `not_applicable`. The input to
+   *     `REQUIRED_METHOD_ABSENT` and to `METHOD_NOT_APPLICABLE_BUT_PRESENT`.
+   *
+   * Null is a stated absence and never a default. Such a subject is already blocked by
+   * `PROPERTY_NOT_IN_DICTIONARY`, so nothing needs to guess a value to stay fail-closed.
+   */
+  valueKind: string | null;
+  methodRequirement: string | null;
 }
 
-/** The claim under review, for a ProductClaim. */
+/**
+ * The claim under review, for a ProductClaim.
+ *
+ * **No dictionary metadata, ever.** A claim has no property key, so it has no `SpecProperty` row;
+ * a `valueKind` or a `methodRequirement` here would be a value nothing measured. The separation is
+ * asserted by `catalog-review.service.spec.ts` rather than left to reading.
+ */
 export interface ReviewClaimValue {
   kind: string;
   standardBody: string | null;
@@ -219,9 +258,28 @@ export interface ReviewDetailResponse {
   evidence: ReviewEvidenceEntry[];
   mappings: ReviewMappingRef[];
 
-  /** Why the subject cannot be approved right now. Empty means every rule passes. */
-  approvalBlockers: string[];
+  /**
+   * Why the subject cannot be approved right now. Empty means every mechanical rule passes.
+   *
+   * Structured rather than sentences: `code` is the rule's stable identity and `message` is its
+   * rendering. The codes are declared in `../review-eligibility.ts`, which is their authority, and
+   * the SAME codes are echoed in the 409 a refused approval answers with — so the refusal a client
+   * receives is identifiable without matching English text, and frontend wording is never the
+   * enforcement boundary.
+   */
+  approvalBlockers: ReviewBlocker[];
+
+  /** Exactly `approvalBlockers.length === 0`. `warnings` never participates in it. */
   eligibleForApproval: boolean;
+
+  /**
+   * Reasons to look twice that are NOT reasons to refuse.
+   *
+   * Every source document in the catalogue is missing both its date and its revision label, so a
+   * rule that made either a blocker would freeze the whole queue on a metadata gap that says
+   * nothing about whether the recorded value is right.
+   */
+  warnings: ReviewWarning[];
 
   history: ReviewHistoryEntry[];
 }

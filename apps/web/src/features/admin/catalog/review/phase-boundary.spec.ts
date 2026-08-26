@@ -249,6 +249,34 @@ describe("nothing here can change review state", () => {
       expect(source, path).not.toMatch(/\bplaceholder\s*=/);
     }
   });
+
+  /**
+   * PRODUCT-REVIEW-FOUNDATION-1B addition.
+   *
+   * This gate gave the surface a structured, machine-readable eligibility contract — exactly the
+   * input a decision control would consume. That makes it the moment at which a Phase C control is
+   * most likely to arrive "while we are here", so the absence is asserted against the ratified
+   * vocabulary rather than left to the generic rules above.
+   *
+   * The blocker CODES are legitimately present: they are rendered as text and mirrored into a
+   * `data-` attribute. What must not exist is anything that would ACT on one.
+   */
+  it("consumes the eligibility contract without offering a decision", () => {
+    for (const { path, source } of FILES) {
+      /* No decision request body, by any of its field names. */
+      expect(source, path).not.toContain("expectedEvidenceSetHash");
+      expect(source, path).not.toContain("expectedReviewStatus");
+      expect(source, path).not.toMatch(/\breturn_to_needs_review\b/);
+
+      /* No decision response type, and no decision vocabulary imported as a shape. */
+      expect(source, path).not.toContain("ReviewDecisionResponse");
+      expect(source, path).not.toContain("ReviewDecisionDto");
+
+      /* `eligibleForApproval` may be READ and displayed; it may not gate a control. */
+      expect(source, path).not.toMatch(/disabled=\{[^}]*eligibleForApproval/);
+      expect(source, path).not.toMatch(/eligibleForApproval[^\n]*\?\s*<(button|form|input)/);
+    }
+  });
 });
 
 /* ========================================================================== */

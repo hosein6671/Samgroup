@@ -12,6 +12,7 @@ import type {
   ReviewEvidenceEntry,
   ReviewHistoryEntry,
 } from "@sam-group/types";
+import type { ReactNode } from "react";
 
 /**
  * What the two detail screens put on the page, and what they must never put on it.
@@ -115,6 +116,8 @@ function specification(overrides: Partial<ReviewDetailResponse> = {}): ReviewDet
       method: "ASTM D445",
       qualifier: null,
       resultBasis: "typical",
+      valueKind: "numeric",
+      methodRequirement: "required",
     },
     claim: null,
     evidenceSetHash: "2222222222222222222222222222222222222222222222222222222222222222",
@@ -132,6 +135,7 @@ function specification(overrides: Partial<ReviewDetailResponse> = {}): ReviewDet
     ],
     approvalBlockers: [],
     eligibleForApproval: true,
+    warnings: [],
     history: [],
     ...overrides,
   };
@@ -164,6 +168,7 @@ function claim(overrides: Partial<ReviewDetailResponse> = {}): ReviewDetailRespo
     mappings: [],
     approvalBlockers: [],
     eligibleForApproval: true,
+    warnings: [],
     history: [],
     ...overrides,
   };
@@ -214,9 +219,105 @@ describe("the Specification detail", () => {
   it("shows the value shape and the numeric payload as stored", () => {
     const text = textOf(<SpecificationDetail subject={specification()} />);
 
-    expect(text).toContain("Value type");
+    expect(text).toContain("Recorded value shape");
     expect(text).toContain("Point value");
     expect(text).toContain("11.500000");
+  });
+
+  /* ------------------------------------------------------------------ */
+  /*  The two dictionary axes                                            */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * Both axes are displayed, and displayed as two DIFFERENT questions.
+   *
+   * The failure this guards against is a UI that renders one axis under the other's label — the
+   * two are called "value kind" and "value type" in the schema, which are the same two words to
+   * anyone who has not read it. So the labels are asserted, not only the values.
+   */
+  it("displays the property's value kind and the recorded value's shape independently", () => {
+    const text = textOf(<SpecificationDetail subject={specification()} />);
+
+    expect(text).toContain("Property value kind");
+    expect(text).toContain("Numeric");
+    expect(text).toContain("Recorded value shape");
+    expect(text).toContain("Point value");
+    expect(text).toContain("It is not the recorded value's shape");
+    expect(text).toContain("It is not the property's value kind above");
+  });
+
+  it("displays the test method requirement beside the method actually recorded", () => {
+    const text = textOf(<SpecificationDetail subject={specification()} />);
+
+    expect(text).toContain("Test method requirement");
+    expect(text).toContain("Required");
+    expect(text).toContain("Test method recorded here");
+    expect(text).toContain("ASTM D445");
+  });
+
+  it.each([
+    ["optional", "Optional"],
+    ["not_applicable", "Not applicable"],
+  ] as const)("renders the %s method requirement as its own words", (requirement, label) => {
+    const subject = specification({
+      specification: {
+        ...(specification().specification as NonNullable<ReviewDetailResponse["specification"]>),
+        methodRequirement: requirement,
+      },
+    });
+
+    expect(textOf(<SpecificationDetail subject={subject} />)).toContain(label);
+  });
+
+  /**
+   * An unresolved dictionary record is a STATED absence on both axes.
+   *
+   * Never "Required" by default, never blank, and never filled in from the value type — a guessed
+   * requirement on a review screen is a guess a reviewer would act on.
+   */
+  it("states both axes as absent when the property resolves to no dictionary entry", () => {
+    const subject = specification({
+      specification: {
+        ...(specification().specification as NonNullable<ReviewDetailResponse["specification"]>),
+        valueKind: null,
+        methodRequirement: null,
+      },
+    });
+    const text = textOf(<SpecificationDetail subject={subject} />);
+
+    expect(text).toContain("Property value kind");
+    expect(text).toContain("Test method requirement");
+    expect(text).toContain("Not recorded");
+    expect(text).not.toContain("Required");
+  });
+
+  /**
+   * A kind/shape discrepancy is reported as INFORMATION, and is in neither issue list.
+   *
+   * No rule about the combination has been ratified in this gate, so presenting it as a blocker or
+   * a warning would be inventing one.
+   */
+  it("reports a value-kind and value-shape discrepancy as informational only", () => {
+    const subject = specification({
+      specification: {
+        ...(specification().specification as NonNullable<ReviewDetailResponse["specification"]>),
+        valueKind: "numeric",
+        valueType: "text",
+      },
+    });
+    const text = textOf(<SpecificationDetail subject={subject} />);
+
+    expect(text).toContain("shown for information only");
+    expect(text).toContain("not an approval blocker and not a warning");
+    expect(text).toContain("No approval blocker recorded");
+    expect(text).toContain("No warning recorded.");
+  });
+
+  /** No discrepancy note when the two axes agree. */
+  it("says nothing about a discrepancy when the axes agree", () => {
+    const text = textOf(<SpecificationDetail subject={specification()} />);
+
+    expect(text).not.toContain("shown for information only");
   });
 
   /** Ambiguity is stated, never resolved. Nothing substitutes a plausible unit. */
@@ -249,8 +350,11 @@ describe("the Specification detail", () => {
     const subject = specification({
       eligibleForApproval: false,
       approvalBlockers: [
-        "The specification cites no evidence.",
-        "The property key is not an entry in the controlled dictionary.",
+        { code: "EVIDENCE_ABSENT", message: "The specification cites no evidence." },
+        {
+          code: "PROPERTY_NOT_IN_DICTIONARY",
+          message: "The property key is not an entry in the controlled dictionary.",
+        },
       ],
     });
     const text = textOf(<SpecificationDetail subject={subject} />);
@@ -351,12 +455,230 @@ describe("the ProductClaim detail", () => {
     const subject = claim({
       claim: { kind, standardBody: "API", standardCode: "CK-4", contextNote: null },
       eligibleForApproval: false,
-      approvalBlockers: ["This claim kind can never be approved (LICENSED_BY and REFERENCE_ONLY)."],
+      approvalBlockers: [
+        {
+          code: "CLAIM_KIND_NEVER_APPROVABLE",
+          message: "This claim kind can never be approved (LICENSED_BY and REFERENCE_ONLY).",
+        },
+      ],
     });
     const text = textOf(<ProductClaimDetail subject={subject} />);
 
     expect(text).toContain("No — this kind can never be approved");
     expect(text).toContain(reason);
+  });
+
+  /** A claim renders blockers and warnings, and never a dictionary axis. */
+  it("renders the warnings panel and no dictionary metadata", () => {
+    const subject = claim({
+      warnings: [
+        { code: "DOCUMENT_DATE_UNKNOWN", message: "A cited source document records no date." },
+      ],
+    });
+    const text = textOf(<ProductClaimDetail subject={subject} />);
+
+    expect(text).toContain("Review warnings");
+    expect(text).toContain("DOCUMENT_DATE_UNKNOWN");
+    expect(text).not.toContain("Property value kind");
+    expect(text).not.toContain("Test method requirement");
+  });
+});
+
+/* ========================================================================== */
+/*  Structured blockers and warnings                                           */
+/* ========================================================================== */
+
+/** Every `<li>` tagged as belonging to one channel, by the attribute that names it. */
+function issueCodes(node: ReactNode, attribute: string): string[] {
+  return findTags(node, "li")
+    .map((element) => element.props[attribute])
+    .filter((value): value is string => typeof value === "string");
+}
+
+/** The `<ul>` class names, in document order. */
+function listClasses(node: ReactNode): string[] {
+  return findTags(node, "ul")
+    .map((element) => element.props.className)
+    .filter((value): value is string => typeof value === "string");
+}
+
+/**
+ * The two issue channels, on both subject types.
+ *
+ * The code is asserted alongside the message throughout. That is the point of the structured
+ * contract: the wording may be reworded, and a test that only matched English would then be
+ * asserting the rendering rather than the rule.
+ */
+describe("blockers and warnings are two distinct channels", () => {
+  const BLOCKED: Partial<ReviewDetailResponse> = {
+    eligibleForApproval: false,
+    approvalBlockers: [
+      {
+        code: "REQUIRED_METHOD_ABSENT",
+        message: "This property requires a test method and the specification records none.",
+      },
+      {
+        code: "SOURCE_ASSET_ABSENT",
+        message: "A cited source is not captured: its document names no stored file.",
+      },
+    ],
+    warnings: [
+      {
+        code: "DOCUMENT_DATE_UNKNOWN",
+        message: "A cited source document records no publication date.",
+      },
+      {
+        code: "DOCUMENT_REVISION_UNKNOWN",
+        message: "A cited source document records no revision label.",
+      },
+    ],
+  };
+
+  it("renders every blocker's stable code next to its message", () => {
+    const text = textOf(<SpecificationDetail subject={specification(BLOCKED)} />);
+
+    expect(text).toContain("REQUIRED_METHOD_ABSENT");
+    expect(text).toContain("This property requires a test method");
+    expect(text).toContain("SOURCE_ASSET_ABSENT");
+    expect(text).toContain("2 blockers recorded");
+    expect(text).toContain("Cannot be approved as it stands");
+  });
+
+  it("renders every warning's stable code next to its message", () => {
+    const text = textOf(<SpecificationDetail subject={specification(BLOCKED)} />);
+
+    expect(text).toContain("DOCUMENT_DATE_UNKNOWN");
+    expect(text).toContain("records no publication date");
+    expect(text).toContain("DOCUMENT_REVISION_UNKNOWN");
+    expect(text).toContain("2 warnings recorded");
+  });
+
+  /**
+   * The distinction is carried by the MARKUP, not by styling.
+   *
+   * Two panels, two headings, two `<ul>`s, and each `<li>` tagged with the channel it belongs to. A
+   * screen reader, a high-contrast mode and a printout all discard styling and all keep this.
+   */
+  it("puts blockers and warnings in separate semantic lists", () => {
+    const node = <SpecificationDetail subject={specification(BLOCKED)} />;
+
+    expect(listClasses(node)).toContain("ad-issue-list ad-issue-list--blocker");
+    expect(listClasses(node)).toContain("ad-issue-list ad-issue-list--warning");
+
+    expect(issueCodes(node, "data-blocker-code")).toEqual([
+      "REQUIRED_METHOD_ABSENT",
+      "SOURCE_ASSET_ABSENT",
+    ]);
+    expect(issueCodes(node, "data-warning-code")).toEqual([
+      "DOCUMENT_DATE_UNKNOWN",
+      "DOCUMENT_REVISION_UNKNOWN",
+    ]);
+
+    /* No warning is ever tagged as a blocker, and no blocker as a warning. */
+    expect(issueCodes(node, "data-blocker-code")).not.toContain("DOCUMENT_DATE_UNKNOWN");
+    expect(issueCodes(node, "data-warning-code")).not.toContain("SOURCE_ASSET_ABSENT");
+  });
+
+  /** Both channels are real lists, so the count is announced rather than merely styled. */
+  it("renders each channel as a list of list items", () => {
+    const node = <SpecificationDetail subject={specification(BLOCKED)} />;
+    const items = findTags(node, "li").filter(
+      (element) =>
+        typeof element.props["data-blocker-code"] === "string" ||
+        typeof element.props["data-warning-code"] === "string",
+    );
+
+    expect(items).toHaveLength(4);
+  });
+
+  /** Each issue code is direction-isolated LTR, like every other identifier on this surface. */
+  it("isolates every issue code as LTR technical text", () => {
+    const node = <SpecificationDetail subject={specification(BLOCKED)} />;
+    const isolated = findTags(node, "bdi")
+      .filter((element) => element.props.dir === "ltr")
+      .map((element) => element.props.children);
+
+    for (const code of [
+      "REQUIRED_METHOD_ABSENT",
+      "SOURCE_ASSET_ABSENT",
+      "DOCUMENT_DATE_UNKNOWN",
+      "DOCUMENT_REVISION_UNKNOWN",
+    ]) {
+      expect(isolated).toContain(code);
+    }
+  });
+
+  /** A screen reader hears which channel it is before it hears the code. */
+  it("names the channel for a screen reader on every issue", () => {
+    const node = <SpecificationDetail subject={specification(BLOCKED)} />;
+    // JSX splits `{label}: ` into two text nodes, so each name is joined before comparison.
+    const hidden = findTags(node, "span")
+      .filter((element) => element.props.className === "ad-sr-only")
+      .map((element) => [element.props.children].flat(2).join("").trim());
+
+    expect(hidden).toContain("Blocker:");
+    expect(hidden).toContain("Warning:");
+    expect(hidden.filter((name) => name === "Blocker:")).toHaveLength(2);
+    expect(hidden.filter((name) => name === "Warning:")).toHaveLength(2);
+  });
+
+  /**
+   * A warning never moves eligibility, and the page never implies it does.
+   *
+   * A subject carrying both document warnings and no blocker still reads "No approval blocker
+   * recorded" — the state every subject in the catalogue is in today.
+   */
+  it("leaves an otherwise eligible subject reading as eligible", () => {
+    const subject = specification({ warnings: BLOCKED.warnings });
+    const text = textOf(<SpecificationDetail subject={subject} />);
+
+    expect(text).toContain("No approval blocker recorded");
+    expect(text).toContain("2 warnings recorded");
+    expect(text).not.toContain("Cannot be approved as it stands");
+  });
+
+  /** Both panels state an empty list rather than disappearing. */
+  it("states an empty warning list rather than omitting the panel", () => {
+    const text = textOf(<SpecificationDetail subject={specification()} />);
+
+    expect(text).toContain("Review warnings");
+    expect(text).toContain("No warning recorded.");
+    expect(text).toContain("They are not approval blockers");
+  });
+
+  /**
+   * No blocker or warning names a source.
+   *
+   * Asserted over the messages and codes the panels actually received, so a locator smuggled into
+   * a message would fail here even though the evidence panel legitimately shows the same document's
+   * file name elsewhere on the page.
+   */
+  it("puts no locator, URL or asset hash into either list", () => {
+    const subject = specification(BLOCKED);
+    const text = [...subject.approvalBlockers, ...subject.warnings]
+      .map((entry) => `${entry.code} ${entry.message}`)
+      .join(" ");
+
+    expect(text.length).toBeGreaterThan(0);
+    expect(text).not.toMatch(/https?:\/\//);
+    expect(text).not.toMatch(/[0-9a-f]{64}/);
+    expect(text).not.toMatch(/\.(pdf|xlsx|xls|docx?|csv)/i);
+    expect(text).not.toContain("hsb-2000-tds");
+  });
+
+  /** Still read-only: no control appears in either subject's detail, disabled or otherwise. */
+  it("adds no control to either detail", () => {
+    for (const node of [
+      <SpecificationDetail key="s" subject={specification(BLOCKED)} />,
+      <ProductClaimDetail key="c" subject={claim(BLOCKED)} />,
+    ]) {
+      expect(findTags(node, "button")).toHaveLength(0);
+      expect(findTags(node, "form")).toHaveLength(0);
+      expect(findTags(node, "input")).toHaveLength(0);
+      expect(findTags(node, "select")).toHaveLength(0);
+      expect(findTags(node, "textarea")).toHaveLength(0);
+      expect(findLinks(node)).toHaveLength(0);
+    }
   });
 });
 

@@ -1339,6 +1339,72 @@
   color: var(--color-text-secondary);
 }
 
+/* --- approval blockers and review warnings -------------------------------- */
+
+/*
+ * The two issue lists.
+ *
+ * They live in separate panels under separate `<h2>`s, so the panel already
+ * carries the distinction structurally. What is added here is a SECOND,
+ * non-colour signal for a sighted reader scanning the page: the weight of the
+ * leading rule, and the weight of the code. Never colour alone (WCAG 2.2
+ * §1.4.1) — and in fact never colour at all, because this palette has no
+ * danger/amber pair and inventing one would be an unapproved design decision.
+ *
+ * Each item's stable code is rendered as visible text, so the two lists are
+ * also distinguishable by their content without reference to any styling.
+ */
+.ad-issue-list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.ad-issue {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+}
+
+/* A blocker stops the decision. The heavier rule and the accent say so. */
+.ad-issue-list--blocker .ad-issue {
+  border-inline-start: 3px solid var(--color-border-accent);
+}
+
+/* A warning does not. A hairline rule, deliberately quieter than the blocker. */
+.ad-issue-list--warning .ad-issue {
+  border-inline-start: 1px solid var(--color-border-strong);
+}
+
+/*
+ * The stable machine-readable code, as an identifier rather than as prose. It
+ * carries `dir="ltr"` in the markup; this is the technical face and the
+ * uppercase rhythm the evidence titles already use.
+ */
+.ad-issue-code {
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  letter-spacing: var(--text-technical--letter-spacing);
+  color: var(--color-text-tertiary);
+}
+
+/* The blocker's code is the bolder of the two — the second non-colour signal. */
+.ad-issue-list--blocker .ad-issue-code {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.ad-issue-message {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-text-primary);
+}
+
 /*
  * Narrow widths. The detail screen is definition lists inside panels, so it
  * stacks on its own: `.ad-field-row` is a single column below 40rem and every
@@ -1353,6 +1419,10 @@
 
   .ad-evidence-item {
     padding: 12px;
+  }
+
+  .ad-issue {
+    padding: 10px 12px;
   }
 
   .ad-subgroup {

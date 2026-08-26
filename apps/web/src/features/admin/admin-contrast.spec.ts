@@ -119,6 +119,19 @@ const TEXT_PAIRS: [where: string, foreground: string, background: string][] = [
   ["timestamp cell on a hovered row", "--color-text-secondary", "--color-surface-inset"],
   ["table cell on a hovered row", "--color-text-primary", "--color-surface-inset"],
   ["filter chip (.ad-chip)", "--color-text-secondary", "--color-surface-sunken"],
+  // The blocker and warning cards sit on `--color-surface-sunken`, so all three of their
+  // foregrounds are measured against it rather than against the panel they are inside.
+  ["issue message (.ad-issue-message)", "--color-text-primary", "--color-surface-sunken"],
+  [
+    "blocker code (.ad-issue-list--blocker .ad-issue-code)",
+    "--color-text-secondary",
+    "--color-surface-sunken",
+  ],
+  [
+    "warning code (.ad-issue-list--warning .ad-issue-code)",
+    "--color-text-tertiary",
+    "--color-surface-sunken",
+  ],
   ["selected filter chip (.ad-chip--on)", "--color-text-primary", "--color-surface-inset"],
   ["current page step", "--color-text-on-accent", "--color-accent-default"],
   ["login banner (.ad-banner)", "--color-text-primary", "--color-surface-inset"],

@@ -6,6 +6,7 @@ import {
   Panel,
   ProductContext,
   ReviewHistory,
+  ReviewWarnings,
   SubPanel,
   SubjectStatus,
 } from "./detail-shell";
@@ -13,12 +14,22 @@ import {
   MAPPING_CONFIDENCE_LABEL,
   MAPPING_MEANING,
   MAPPING_RESOLVES_LABEL,
+  METHOD_REQUIREMENT_LABEL,
+  METHOD_REQUIREMENT_MEANING,
   RESULT_BASIS_LABEL,
   STATUS_LABEL,
+  VALUE_AXIS_DISCREPANCY,
+  VALUE_KIND_LABEL,
+  VALUE_KIND_MEANING,
   VALUE_TYPE_LABEL,
 } from "./review-vocabulary";
 
-import type { ReviewDetailResponse, ReviewMappingRef } from "@sam-group/types";
+import type {
+  ReviewDetailResponse,
+  ReviewMappingRef,
+  ReviewMethodRequirement,
+  ReviewValueKind,
+} from "@sam-group/types";
 import type { ReactNode } from "react";
 
 /**
@@ -106,20 +117,31 @@ export function SpecificationDetail({
               meaning; the others are empty by construction, not by omission.
             </p>
 
+            <PropertyDictionary
+              valueKind={value.valueKind}
+              methodRequirement={value.methodRequirement}
+              method={value.method}
+            />
+
             <SubPanel
               heading="Value shape"
               note="The shape of the recorded value, not the kind of quantity the property is."
             >
               <Fields>
                 <Field
-                  label="Value type"
+                  label="Recorded value shape"
                   value={
                     value.valueType === null
                       ? null
                       : (VALUE_TYPE_LABEL[value.valueType] ?? value.valueType)
                   }
+                  hint="What this one recorded value is. It is not the property's value kind above."
                 />
               </Fields>
+              {value.valueKind === "numeric" &&
+              (value.valueType === "text" || value.valueType === "report_only") ? (
+                <p className="ad-note">{VALUE_AXIS_DISCREPANCY}</p>
+              ) : null}
             </SubPanel>
 
             <SubPanel
@@ -141,8 +163,79 @@ export function SpecificationDetail({
 
       <EvidencePanel evidence={subject.evidence} />
       <ApprovalBlockers blockers={subject.approvalBlockers} />
+      <ReviewWarnings warnings={subject.warnings} />
       <ReviewHistory history={subject.history} />
     </div>
+  );
+}
+
+/**
+ * The controlled dictionary's two statements about this property.
+ *
+ * ## Two axes, displayed independently — this is the whole point of the sub-panel
+ *
+ * `valueKind` is what the PROPERTY carries (numeric, textual, coded). `valueType`, one sub-panel
+ * below, is the shape of the ONE value recorded here (point, range, minimum…). Viscosity is a
+ * numeric property that legitimately arrives as any of three shapes, so the two are not a
+ * consistency check on each other and neither is derived from the other.
+ *
+ * They are therefore rendered:
+ *
+ *  * **in separate sub-panels**, each with its own `<h3>`, so a linear read never puts one under
+ *    the other's heading;
+ *  * **under names that say which axis they are** — "Property value kind" against "Recorded value
+ *    shape" — because "Value kind" and "Value type" next to each other are two words for the same
+ *    thing to anyone who has not read the schema;
+ *  * **without any conversion**. Nothing here maps `numeric` onto `point`, fills a missing kind
+ *    from the shape, or hides one because the other is absent.
+ *
+ * Where the API served null — the property key resolves to no dictionary entry — the field says
+ * "Not recorded". It is never guessed, and it is never rendered as `required`.
+ *
+ * ## The kind/shape discrepancy is informational, and says so
+ *
+ * A numeric property whose value was stored in a textual shape is worth a reviewer's eye. It is
+ * NOT a blocker and NOT a warning in this gate — no rule about the combination has been ratified —
+ * so it appears as a plain note next to the two fields it is about, in neither issue list.
+ *
+ * ## Why the recorded method is repeated here
+ *
+ * It is already shown, verbatim, in the reviewed-value panel. It appears again beside the
+ * requirement because the requirement is unreadable without it: "Required" means nothing until you
+ * can see, in the same glance, whether one is recorded. The value shown is the same field, never a
+ * second interpretation of it.
+ */
+function PropertyDictionary({
+  valueKind,
+  methodRequirement,
+  method,
+}: {
+  readonly valueKind: ReviewValueKind | null;
+  readonly methodRequirement: ReviewMethodRequirement | null;
+  readonly method: string | null;
+}): ReactNode {
+  return (
+    <SubPanel heading="Controlled dictionary" note={VALUE_KIND_MEANING}>
+      <Fields>
+        <Field
+          label="Property value kind"
+          value={valueKind === null ? null : (VALUE_KIND_LABEL[valueKind] ?? valueKind)}
+          hint="What the dictionary says this property measures. It is not the recorded value's shape."
+        />
+        <Field
+          label="Test method requirement"
+          value={
+            methodRequirement === null
+              ? null
+              : (METHOD_REQUIREMENT_LABEL[methodRequirement] ?? methodRequirement)
+          }
+          hint={
+            methodRequirement === null ? undefined : METHOD_REQUIREMENT_MEANING[methodRequirement]
+          }
+        />
+        <Field label="Test method recorded here" value={method} technical />
+      </Fields>
+    </SubPanel>
   );
 }
 

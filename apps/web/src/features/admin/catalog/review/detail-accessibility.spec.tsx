@@ -73,6 +73,8 @@ const SUBJECT: ReviewDetailResponse = {
     method: "ASTM D445",
     qualifier: null,
     resultBasis: "typical",
+    valueKind: "numeric",
+    methodRequirement: "required",
   },
   claim: null,
   evidenceSetHash: "2222222222222222222222222222222222222222222222222222222222222222",
@@ -110,8 +112,18 @@ const SUBJECT: ReviewDetailResponse = {
     },
   ],
   mappings: [],
-  approvalBlockers: ["The specification cites no evidence."],
+  approvalBlockers: [{ code: "EVIDENCE_ABSENT", message: "The specification cites no evidence." }],
   eligibleForApproval: false,
+  warnings: [
+    {
+      code: "DOCUMENT_DATE_UNKNOWN",
+      message: "A cited source document records no publication date.",
+    },
+    {
+      code: "DOCUMENT_REVISION_UNKNOWN",
+      message: "A cited source document records no revision label.",
+    },
+  ],
   history: [
     {
       id: "eeeeeeee-1111-4111-8111-eeeeeeeeeeee",
@@ -205,6 +217,46 @@ describe("the page structure", () => {
     expect(findTags(page, "ul").length).toBeGreaterThan(0);
     expect(findTags(page, "ol").length).toBeGreaterThan(0);
     expect(findTags(page, "li").length).toBeGreaterThan(0);
+  });
+
+  /**
+   * Blockers and warnings are each a `<ul>` of their own, inside a `<section>` of their own.
+   *
+   * The two headings are what a screen reader's region list shows, and they are the only signal
+   * that survives when styling does not. A single merged list with two visual treatments would be
+   * indistinguishable at that point, which is why the structure is asserted rather than the CSS.
+   */
+  it("presents blockers and warnings as two separately named lists", () => {
+    const page = detailPage(SUBJECT);
+    const headings = findTags(page, "h2").map((heading) =>
+      textOf(heading.props.children as ReactNode),
+    );
+    const lists = findTags(page, "ul")
+      .map((element) => element.props.className)
+      .filter((value): value is string => typeof value === "string");
+
+    expect(headings).toContain("Approval blockers");
+    expect(headings).toContain("Review warnings");
+    expect(lists).toContain("ad-issue-list ad-issue-list--blocker");
+    expect(lists).toContain("ad-issue-list ad-issue-list--warning");
+  });
+
+  /** Every issue is a list item, and every list item carries exactly one channel tag. */
+  it("tags every issue with its channel and never with both", () => {
+    const items = findTags(detailPage(SUBJECT), "li").filter(
+      (element) =>
+        typeof element.props["data-blocker-code"] === "string" ||
+        typeof element.props["data-warning-code"] === "string",
+    );
+
+    expect(items.length).toBeGreaterThan(0);
+
+    for (const item of items) {
+      const isBlocker = typeof item.props["data-blocker-code"] === "string";
+      const isWarning = typeof item.props["data-warning-code"] === "string";
+
+      expect(isBlocker && isWarning).toBe(false);
+    }
   });
 
   it("marks a decision timestamp with a machine-readable time element", () => {
@@ -317,6 +369,41 @@ describe("nothing is carried by colour, hover or a pointer", () => {
 
     expect(text).toContain("Cannot be approved as it stands");
     expect(text).toContain("The specification cites no evidence.");
+  });
+
+  /**
+   * The blocker/warning distinction is in WORDS, not only in the border weight.
+   *
+   * `.ad-issue-list--blocker` and `.ad-issue-list--warning` differ by a rule width and a font
+   * weight, and this palette has no danger/amber pair — so if the sentences did not carry the
+   * difference, nothing would. They do: the warnings panel states outright that none of its entries
+   * blocks approval.
+   */
+  it("says in words that a warning is not a blocker", () => {
+    const text = textOf(detailPage(SUBJECT));
+
+    expect(text).toContain("Review warnings");
+    expect(text).toContain("They are not approval blockers and none of them makes a subject");
+    expect(text).toContain("Every one of these must be resolved");
+  });
+
+  /** Each issue's channel is announced before its code, not inferred from where it sits. */
+  it("names each issue's channel for a screen reader", () => {
+    const names = findTags(detailPage(SUBJECT), "span")
+      .filter((element) => element.props.className === "ad-sr-only")
+      .map((element) => [element.props.children].flat(2).join("").trim());
+
+    expect(names).toContain("Blocker:");
+    expect(names).toContain("Warning:");
+  });
+
+  /** Both dictionary axes are readable as text, each under a label that says which axis it is. */
+  it("states both dictionary axes as labelled text", () => {
+    const text = textOf(detailPage(SUBJECT));
+
+    expect(text).toContain("Property value kind");
+    expect(text).toContain("Test method requirement");
+    expect(text).toContain("Recorded value shape");
   });
 
   /** No `title` attribute anywhere: a tooltip is unreachable by keyboard and by touch. */

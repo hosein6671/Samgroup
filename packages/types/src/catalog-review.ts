@@ -168,12 +168,43 @@ export interface ReviewQueueItemResponse {
 /**
  * The shape of a normalized value — `SpecValueType`, as the API lowercases it.
  *
- * This is the *shape* axis: what the numeric columns mean. It is not the *kind* axis.
- * `SpecValueKind` — whether the property is numeric, textual or coded — is a `SpecProperty` column
- * and the review detail response does not serve it. Nothing here infers it.
+ * This is the *shape* axis: what the numeric columns of ONE recorded value mean. It is not the
+ * *kind* axis — that is `ReviewValueKind` below, and the two are served independently.
  */
 export type ReviewValueType =
   "point" | "range" | "minimum" | "maximum" | "text" | "report_only" | "code" | "pair";
+
+/**
+ * What kind of value the PROPERTY carries — `SpecValueKind`, as the API lowercases it.
+ *
+ * The coarser of the two value axes, and a column of the `SpecProperty` dictionary rather than of
+ * the Specification. Viscosity is `numeric` and may legitimately arrive as `point`, `range` or
+ * `minimum`; appearance is `textual`.
+ *
+ * ## The two axes are independent, and neither is derived from the other
+ *
+ * A `numeric` property recorded as `text` is a discrepancy worth a reviewer's attention, and the
+ * only way a surface can show it is by serving both axes side by side. Nothing in this platform
+ * converts one into the other, infers a missing one from the other, or renders one under the
+ * other's label. In this gate the discrepancy is **informational**: it is not a blocker and not a
+ * warning, because no rule about it has been ratified.
+ *
+ * Null when the Specification's property key resolves to no dictionary entry. That is a stated
+ * absence, never a default — `PROPERTY_NOT_IN_DICTIONARY` already blocks such a subject.
+ */
+export type ReviewValueKind = "numeric" | "textual" | "coded";
+
+/**
+ * Whether a test method must accompany a value for that property to mean anything —
+ * `MethodRequirement`, as the API lowercases it.
+ *
+ * A viscosity without its ASTM method is not the same fact as one with it. This is the dictionary's
+ * statement about the property, and it is the input to `REQUIRED_METHOD_ABSENT` and to
+ * `METHOD_NOT_APPLICABLE_BUT_PRESENT`.
+ *
+ * Null when the property key resolves to no dictionary entry, exactly as `ReviewValueKind` is.
+ */
+export type ReviewMethodRequirement = "required" | "optional" | "not_applicable";
 
 /** What a recorded number actually is. `unspecified` means the source did not say. */
 export type ReviewResultBasis =
@@ -229,6 +260,16 @@ export interface ReviewSpecificationValue {
   method: string | null;
   qualifier: string | null;
   resultBasis: ReviewResultBasis;
+
+  /**
+   * The `SpecProperty` dictionary metadata for this Specification's property key.
+   *
+   * Two INDEPENDENT axes, both null when the key resolves to no dictionary entry. They are served
+   * on the Specification shape and on no other: a ProductClaim has no property key, so it has no
+   * dictionary record, and `ReviewClaimValue` must never grow either field.
+   */
+  valueKind: ReviewValueKind | null;
+  methodRequirement: ReviewMethodRequirement | null;
 }
 
 /**
@@ -333,6 +374,94 @@ export interface ReviewHistoryEntry {
   evidenceCurrent: boolean;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Eligibility — blockers and warnings                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Every reason a subject cannot be approved, as a closed set of stable machine-readable codes.
+ *
+ * ## Why the codes exist at all
+ *
+ * The blockers used to be bare sentences. A sentence is what a reviewer reads; it is not what a
+ * client can branch on, and it is not what a refusal can carry back through an HTTP status. The
+ * ratified rule is that **frontend wording must never be the enforcement boundary** — a direct
+ * `POST` that never rendered a page must still be refused with the same reason the page would have
+ * shown. That requires an identifier the wording cannot drift away from.
+ *
+ * So each code is the rule's identity and the message is its rendering. Change the message freely;
+ * changing a code is changing the contract.
+ *
+ * ## The mapping from the sentences these replaced
+ *
+ * One code per rule, and the same code where the rule is genuinely the same on both subject types
+ * (the message still names the subject). Nothing was merged, nothing was split, and no rule's
+ * eligibility meaning moved:
+ *
+ * | code                           | the sentence it replaces                                          |
+ * | ------------------------------ | ----------------------------------------------------------------- |
+ * | `SUBJECT_RETIRED`              | "The specification/claim has been retired (deletedAt is set)."     |
+ * | `PRODUCT_UNRESOLVED`           | "The specification/claim does not resolve to a Product."           |
+ * | `GRADE_NOT_OF_PRODUCT`         | "The grade does not belong to this Product."                       |
+ * | `SPECIFICATION_NOT_NORMALIZED` | "…not normalized: it needs a value type and a display value."      |
+ * | `PROPERTY_NOT_IN_DICTIONARY`   | "The property key is not an entry in the controlled dictionary."   |
+ * | `VALUE_SHAPE_MISMATCH`         | "The numeric columns do not match the declared value type."        |
+ * | `EVIDENCE_ABSENT`              | "The specification/claim cites no evidence."                       |
+ * | `EVIDENCE_LINK_UNRESOLVED`     | "An evidence link does not resolve to a SourceFact and its …"      |
+ * | `PROPERTY_MAPPING_UNRESOLVED`  | "The source property does not resolve to this property key …"      |
+ * | `CLAIM_KIND_NEVER_APPROVABLE`  | "This claim kind can never be approved (LICENSED_BY and …)."       |
+ * | `NAMED_BODY_ABSENT`            | "An APPROVED_BY claim requires a named standard body."             |
+ * | `CLAIM_IDENTITY_ABSENT`        | "The claim carries no identifying body, code, context or hash."    |
+ *
+ * The last three below replace no sentence. They are this gate's new fail-closed rules.
+ */
+export type ReviewBlockerCode =
+  /* Shared by both subject types. */
+  | "SUBJECT_RETIRED"
+  | "PRODUCT_UNRESOLVED"
+  | "GRADE_NOT_OF_PRODUCT"
+  | "EVIDENCE_ABSENT"
+  | "EVIDENCE_LINK_UNRESOLVED"
+  /* Specification only. */
+  | "SPECIFICATION_NOT_NORMALIZED"
+  | "PROPERTY_NOT_IN_DICTIONARY"
+  | "VALUE_SHAPE_MISMATCH"
+  | "PROPERTY_MAPPING_UNRESOLVED"
+  | "REQUIRED_METHOD_ABSENT"
+  | "METHOD_NOT_EVIDENCED"
+  /* ProductClaim only. */
+  | "CLAIM_KIND_NEVER_APPROVABLE"
+  | "NAMED_BODY_ABSENT"
+  | "CLAIM_IDENTITY_ABSENT"
+  /* Source capture — both subject types. */
+  | "SOURCE_ASSET_ABSENT";
+
+/**
+ * Every reason a reviewer should look twice, none of which makes a subject ineligible.
+ *
+ * The distinction is load-bearing rather than cosmetic. All 69 source documents in the catalogue
+ * are missing both a document date and a revision label, so a rule that turned either into a
+ * blocker would freeze the entire queue on a metadata gap that says nothing about whether the value
+ * is right. Warnings are how that gap is reported without being an obstacle.
+ */
+export type ReviewWarningCode =
+  "METHOD_NOT_APPLICABLE_BUT_PRESENT" | "DOCUMENT_DATE_UNKNOWN" | "DOCUMENT_REVISION_UNKNOWN";
+
+/**
+ * One reason approval is unavailable: the code a client branches on, and the sentence a person
+ * reads. Both are always present; neither substitutes for the other.
+ */
+export interface ReviewBlocker {
+  code: ReviewBlockerCode;
+  message: string;
+}
+
+/** One reason to look twice. Never affects `eligibleForApproval`. */
+export interface ReviewWarning {
+  code: ReviewWarningCode;
+  message: string;
+}
+
 /**
  * The full review context for one subject.
  *
@@ -360,8 +489,16 @@ export interface ReviewDetailResponse {
   evidence: readonly ReviewEvidenceEntry[];
   mappings: readonly ReviewMappingRef[];
 
-  approvalBlockers: readonly string[];
+  /**
+   * Why the subject cannot be approved right now. Empty means every mechanical rule passes.
+   *
+   * `eligibleForApproval` is exactly `approvalBlockers.length === 0`, and it is served rather than
+   * left to be derived so that a client cannot arrive at a different answer than the API did.
+   * `warnings` never participates in it.
+   */
+  approvalBlockers: readonly ReviewBlocker[];
   eligibleForApproval: boolean;
+  warnings: readonly ReviewWarning[];
 
   history: readonly ReviewHistoryEntry[];
 }

@@ -6,6 +6,7 @@ import {
   Panel,
   ProductContext,
   ReviewHistory,
+  ReviewWarnings,
   SubPanel,
   SubjectStatus,
 } from "./detail-shell";
@@ -148,6 +149,7 @@ export function ProductClaimDetail({
 
       <EvidencePanel evidence={subject.evidence} />
       <ApprovalBlockers blockers={subject.approvalBlockers} prohibited={prohibited} />
+      <ReviewWarnings warnings={subject.warnings} />
       <ReviewHistory history={subject.history} />
     </div>
   );

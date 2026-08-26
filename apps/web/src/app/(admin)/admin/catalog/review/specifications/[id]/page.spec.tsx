@@ -81,6 +81,8 @@ const SUBJECT = {
     method: "ASTM D445",
     qualifier: null,
     resultBasis: "typical" as const,
+    valueKind: "numeric" as const,
+    methodRequirement: "required" as const,
   },
   claim: null,
   evidenceSetHash: "2".repeat(64),
@@ -88,6 +90,7 @@ const SUBJECT = {
   mappings: [],
   approvalBlockers: [],
   eligibleForApproval: true,
+  warnings: [],
   history: [],
 };
 

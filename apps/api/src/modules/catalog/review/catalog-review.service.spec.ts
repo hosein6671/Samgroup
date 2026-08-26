@@ -5,9 +5,13 @@ import { PrismaService } from "../../../prisma/prisma.service";
 import { CatalogReviewService } from "./catalog-review.service";
 import {
   PRODUCT_CLAIM_ELIGIBILITY_SQL,
+  REVIEW_BLOCKER_CODES,
+  REVIEW_WARNING_CODES,
   SPECIFICATION_ELIGIBILITY_SQL,
   productClaimApprovalBlockers,
+  productClaimApprovalWarnings,
   specificationApprovalBlockers,
+  specificationApprovalWarnings,
 } from "./review-eligibility";
 import {
   DECIDABLE_FROM_STATUSES,
@@ -19,7 +23,14 @@ import {
 
 import type { AuthenticatedUser } from "../../identity/authenticated-user";
 import type { ReviewDecisionDto } from "./dto/review-decision.dto";
-import type { ProductClaimEligibilityRow, SpecificationEligibilityRow } from "./review-eligibility";
+import type {
+  ProductClaimEligibilityRow,
+  ReviewBlocker,
+  ReviewBlockerCode,
+  ReviewWarning,
+  ReviewWarningCode,
+  SpecificationEligibilityRow,
+} from "./review-eligibility";
 
 /**
  * The decision path, with PostgreSQL faked.
@@ -47,6 +58,13 @@ const SUBJECT_ID = "11111111-1111-4111-8111-111111111111";
 const CURRENT_HASH = "a".repeat(64);
 const STALE_HASH = "b".repeat(64);
 
+/**
+ * A Specification that passes every rule.
+ *
+ * `methodRequirement: "required"` with a normalized method that IS evidenced is the realistic
+ * baseline — 1,367 of the 1,398 live Specifications sit on a required-method property — so a rule
+ * that fired on the common shape would be caught here rather than only in the integration suite.
+ */
 const ELIGIBLE_SPEC: SpecificationEligibilityRow = {
   live: true,
   productExists: true,
@@ -58,6 +76,12 @@ const ELIGIBLE_SPEC: SpecificationEligibilityRow = {
   evidenceOrphans: 0,
   mappingOk: true,
   plannerFlagged: true,
+  methodRequirement: "required",
+  normalizedMethodPresent: true,
+  rawMethodPresent: true,
+  sourceCaptured: true,
+  documentDateUnknown: false,
+  documentRevisionUnknown: false,
 };
 
 const ELIGIBLE_CLAIM: ProductClaimEligibilityRow = {
@@ -67,6 +91,9 @@ const ELIGIBLE_CLAIM: ProductClaimEligibilityRow = {
   kindApprovable: true,
   namedBodyOk: true,
   identityOk: true,
+  sourceCaptured: true,
+  documentDateUnknown: false,
+  documentRevisionUnknown: false,
   evidenceLinks: 1,
   evidenceOrphans: 0,
   plannerFlagged: true,
@@ -299,6 +326,114 @@ describe("decide — the refusals", () => {
     assertNothingWritten(h);
   });
 
+  /**
+   * The refusal carries the STABLE CODES, and that is what makes the boundary real.
+   *
+   * A caller reaching `decide` directly — a script, a second tab, a retry — rendered no page and
+   * knows none of the UI's wording. What it gets back is the same closed vocabulary the UI renders,
+   * so the enforcement lives here and the wording is only a rendering of it.
+   */
+  it("answers 409 carrying the stable blocker code for every refusal", async () => {
+    const h = harness({
+      specEligibility: { ...ELIGIBLE_SPEC, evidenceLinks: 0, mappingOk: false },
+    });
+
+    const error = await failure(() =>
+      h.service.decide("specification", SUBJECT_ID, decision(), ADMIN),
+    );
+
+    expect(error.details?.map((detail) => detail.code)).toEqual([
+      "EVIDENCE_ABSENT",
+      "PROPERTY_MAPPING_UNRESOLVED",
+    ]);
+    for (const detail of error.details ?? []) {
+      expect(detail.field).toBe("decision");
+      expect(REVIEW_BLOCKER_CODES).toContain(detail.code as ReviewBlockerCode);
+    }
+    assertNothingWritten(h);
+  });
+
+  /** The two new fail-closed rules refuse a DIRECT request, not only a rendered one. */
+  it.each([
+    [
+      "a required method that is absent",
+      { methodRequirement: "required" as const, normalizedMethodPresent: false },
+      "REQUIRED_METHOD_ABSENT",
+    ],
+    [
+      "a normalized method no evidence states",
+      { normalizedMethodPresent: true, rawMethodPresent: false },
+      "METHOD_NOT_EVIDENCED",
+    ],
+    ["an uncaptured source", { sourceCaptured: false }, "SOURCE_ASSET_ABSENT"],
+  ])("answers 409 with %s, and writes nothing", async (_label, overrides, code) => {
+    const h = harness({ specEligibility: { ...ELIGIBLE_SPEC, ...overrides } });
+
+    const error = await failure(() =>
+      h.service.decide("specification", SUBJECT_ID, decision(), ADMIN),
+    );
+
+    expect(error.getStatus()).toBe(409);
+    expect(error.code).toBe(ErrorCode.Conflict);
+    expect(error.details?.map((detail) => detail.code)).toContain(code);
+    assertNothingWritten(h);
+  });
+
+  /** The same rule on a claim, which has no method rules but the same capture rule. */
+  it("answers 409 for a claim whose source is uncaptured, and writes nothing", async () => {
+    const h = harness({ claimEligibility: { ...ELIGIBLE_CLAIM, sourceCaptured: false } });
+
+    const error = await failure(() =>
+      h.service.decide("product_claim", SUBJECT_ID, decision(), ADMIN),
+    );
+
+    expect(error.getStatus()).toBe(409);
+    expect(error.details?.map((detail) => detail.code)).toEqual(["SOURCE_ASSET_ABSENT"]);
+    assertNothingWritten(h);
+  });
+
+  /**
+   * A refusal never names a source.
+   *
+   * `SOURCE_ASSET_ABSENT` is the blocker most likely to want to be helpful about WHICH document is
+   * uncaptured, and it must not be. The whole serialized refusal is checked, not only the message.
+   */
+  it("leaks no locator, URL or asset hash in a refusal", async () => {
+    const h = harness({ specEligibility: { ...ELIGIBLE_SPEC, sourceCaptured: false } });
+
+    const error = await failure(() =>
+      h.service.decide("specification", SUBJECT_ID, decision(), ADMIN),
+    );
+    const serialized = JSON.stringify({ message: error.message, details: error.details });
+
+    expect(serialized).not.toMatch(/https?:\/\//);
+    expect(serialized).not.toMatch(/locatorValue|locator_value/);
+    expect(serialized).not.toMatch(/\.(pdf|xlsx|xls|docx?|csv)\b/i);
+    expect(serialized).not.toMatch(/[0-9a-f]{64}/);
+  });
+
+  /**
+   * Warnings are not blockers, and the decision path never consults them.
+   *
+   * A subject carrying all three warnings and no blocker is approved normally. That is the whole
+   * reason the two channels are separate: 69 of 69 documents carry both metadata warnings.
+   */
+  it("approves a subject that carries warnings but no blocker", async () => {
+    const h = harness({
+      specEligibility: {
+        ...ELIGIBLE_SPEC,
+        methodRequirement: "not_applicable",
+        documentDateUnknown: true,
+        documentRevisionUnknown: true,
+      },
+    });
+
+    const result = await h.service.decide("specification", SUBJECT_ID, decision(), ADMIN);
+
+    expect(result.reviewStatus).toBe("approved");
+    expect(h.createReview).toHaveBeenCalledTimes(1);
+  });
+
   it("refuses to approve a forbidden claim kind, and writes nothing", async () => {
     const h = harness({ claimEligibility: { ...ELIGIBLE_CLAIM, kindApprovable: false } });
 
@@ -510,6 +645,19 @@ describe("decide — a successful approval", () => {
   });
 });
 
+/* ========================================================================== */
+/*  Blockers — the structured, coded contract                                  */
+/* ========================================================================== */
+
+/** The codes a builder emitted, in order. Order is part of the contract; content is asserted too. */
+function codesOf(blockers: readonly ReviewBlocker[]): ReviewBlockerCode[] {
+  return blockers.map(({ code }) => code);
+}
+
+function warningCodesOf(warnings: readonly ReviewWarning[]): ReviewWarningCode[] {
+  return warnings.map(({ code }) => code);
+}
+
 describe("the approval blockers", () => {
   it("reports nothing for an eligible specification", () => {
     expect(specificationApprovalBlockers(ELIGIBLE_SPEC)).toEqual([]);
@@ -519,45 +667,66 @@ describe("the approval blockers", () => {
     expect(productClaimApprovalBlockers(ELIGIBLE_CLAIM)).toEqual([]);
   });
 
-  /** Every rule is independently fatal — one failing field is one blocker, and it is enough. */
+  /**
+   * Every rule is independently fatal, and every one of them now carries a STABLE CODE.
+   *
+   * The pairs below are the one-to-one mapping from the sentences these replaced — the codes are
+   * the contract and the fragments prove the wording still says the same thing, so a rename of one
+   * cannot silently change the other.
+   */
   it.each([
-    ["live", "retired"],
-    ["productExists", "Product"],
-    ["gradeOk", "grade"],
-    ["propertyInDictionary", "dictionary"],
-    ["normalized", "normalized"],
-    ["valueShapeOk", "value type"],
-    ["mappingOk", "HIGH-confidence mapping"],
-  ] as const)("blocks a specification when %s is false", (field, fragment) => {
+    ["live", "SUBJECT_RETIRED", "retired"],
+    ["productExists", "PRODUCT_UNRESOLVED", "does not resolve to a Product"],
+    ["gradeOk", "GRADE_NOT_OF_PRODUCT", "does not belong to this Product"],
+    ["propertyInDictionary", "PROPERTY_NOT_IN_DICTIONARY", "controlled dictionary"],
+    ["normalized", "SPECIFICATION_NOT_NORMALIZED", "not normalized"],
+    ["valueShapeOk", "VALUE_SHAPE_MISMATCH", "declared value type"],
+    ["mappingOk", "PROPERTY_MAPPING_UNRESOLVED", "HIGH-confidence mapping"],
+  ] as const)("blocks a specification when %s is false, as %s", (field, code, fragment) => {
     const blockers = specificationApprovalBlockers({ ...ELIGIBLE_SPEC, [field]: false });
-    expect(blockers.some((blocker) => blocker.includes(fragment))).toBe(true);
+    const found = blockers.find((entry) => entry.code === code);
+
+    expect(found).toBeDefined();
+    expect(found?.message).toContain(fragment);
   });
 
-  it("blocks a specification with no evidence", () => {
-    expect(specificationApprovalBlockers({ ...ELIGIBLE_SPEC, evidenceLinks: 0 })).toContain(
-      "The specification cites no evidence.",
-    );
+  it("blocks a specification with no evidence, as EVIDENCE_ABSENT", () => {
+    const blockers = specificationApprovalBlockers({ ...ELIGIBLE_SPEC, evidenceLinks: 0 });
+
+    expect(blockers).toContainEqual({
+      code: "EVIDENCE_ABSENT",
+      message: "The specification cites no evidence.",
+    });
   });
 
-  it("blocks a specification whose evidence does not resolve", () => {
-    expect(specificationApprovalBlockers({ ...ELIGIBLE_SPEC, evidenceOrphans: 1 })).toContain(
-      "An evidence link does not resolve to a SourceFact and its SourceDocument.",
-    );
+  it("blocks a specification whose evidence does not resolve, as EVIDENCE_LINK_UNRESOLVED", () => {
+    const blockers = specificationApprovalBlockers({ ...ELIGIBLE_SPEC, evidenceOrphans: 1 });
+
+    expect(blockers).toContainEqual({
+      code: "EVIDENCE_LINK_UNRESOLVED",
+      message: "An evidence link does not resolve to a SourceFact and its SourceDocument.",
+    });
   });
 
   it.each([
-    ["kindApprovable", "LICENSED_BY"],
-    ["namedBodyOk", "named standard body"],
-    ["identityOk", "identifying body"],
-  ] as const)("blocks a claim when %s is false", (field, fragment) => {
+    ["kindApprovable", "CLAIM_KIND_NEVER_APPROVABLE", "LICENSED_BY"],
+    ["namedBodyOk", "NAMED_BODY_ABSENT", "named standard body"],
+    ["identityOk", "CLAIM_IDENTITY_ABSENT", "identifying body"],
+  ] as const)("blocks a claim when %s is false, as %s", (field, code, fragment) => {
     const blockers = productClaimApprovalBlockers({ ...ELIGIBLE_CLAIM, [field]: false });
-    expect(blockers.some((blocker) => blocker.includes(fragment))).toBe(true);
+    const found = blockers.find((entry) => entry.code === code);
+
+    expect(found).toBeDefined();
+    expect(found?.message).toContain(fragment);
   });
 
-  it("blocks a claim with no evidence", () => {
-    expect(productClaimApprovalBlockers({ ...ELIGIBLE_CLAIM, evidenceLinks: 0 })).toContain(
-      "The claim cites no evidence.",
-    );
+  it("blocks a claim with no evidence, as EVIDENCE_ABSENT", () => {
+    const blockers = productClaimApprovalBlockers({ ...ELIGIBLE_CLAIM, evidenceLinks: 0 });
+
+    expect(blockers).toContainEqual({
+      code: "EVIDENCE_ABSENT",
+      message: "The claim cites no evidence.",
+    });
   });
 
   /**
@@ -567,5 +736,372 @@ describe("the approval blockers", () => {
   it("does not block on the planner's own flag", () => {
     expect(specificationApprovalBlockers({ ...ELIGIBLE_SPEC, plannerFlagged: true })).toEqual([]);
     expect(productClaimApprovalBlockers({ ...ELIGIBLE_CLAIM, plannerFlagged: true })).toEqual([]);
+  });
+
+  /**
+   * The contract itself: nothing is a bare string any more.
+   *
+   * The gate's requirement was to convert EVERY existing blocker to a code and leave no mixture of
+   * the two. This asserts the absence of the mixture directly, over a row that fails every rule at
+   * once, rather than trusting that the previous cases covered them all.
+   */
+  it("emits no bare string and no unknown code, on either subject type", () => {
+    const specBlockers = specificationApprovalBlockers({
+      live: false,
+      productExists: false,
+      gradeOk: false,
+      propertyInDictionary: false,
+      normalized: false,
+      valueShapeOk: false,
+      evidenceLinks: 1,
+      evidenceOrphans: 1,
+      mappingOk: false,
+      plannerFlagged: true,
+      methodRequirement: "required",
+      normalizedMethodPresent: false,
+      rawMethodPresent: false,
+      sourceCaptured: false,
+      documentDateUnknown: true,
+      documentRevisionUnknown: true,
+    });
+    const claimBlockers = productClaimApprovalBlockers({
+      live: false,
+      productExists: false,
+      gradeOk: false,
+      kindApprovable: false,
+      namedBodyOk: false,
+      identityOk: false,
+      evidenceLinks: 1,
+      evidenceOrphans: 1,
+      plannerFlagged: true,
+      sourceCaptured: false,
+      documentDateUnknown: true,
+      documentRevisionUnknown: true,
+    });
+
+    for (const entry of [...specBlockers, ...claimBlockers]) {
+      expect(typeof entry).toBe("object");
+      expect(REVIEW_BLOCKER_CODES).toContain(entry.code);
+      expect(entry.message.length).toBeGreaterThan(0);
+    }
+
+    /* Every specification rule fires at once, and each fires exactly once. */
+    expect(codesOf(specBlockers)).toEqual([
+      "SUBJECT_RETIRED",
+      "PRODUCT_UNRESOLVED",
+      "GRADE_NOT_OF_PRODUCT",
+      "SPECIFICATION_NOT_NORMALIZED",
+      "PROPERTY_NOT_IN_DICTIONARY",
+      "VALUE_SHAPE_MISMATCH",
+      "EVIDENCE_LINK_UNRESOLVED",
+      "PROPERTY_MAPPING_UNRESOLVED",
+      "REQUIRED_METHOD_ABSENT",
+      "SOURCE_ASSET_ABSENT",
+    ]);
+    expect(codesOf(claimBlockers)).toEqual([
+      "SUBJECT_RETIRED",
+      "PRODUCT_UNRESOLVED",
+      "GRADE_NOT_OF_PRODUCT",
+      "CLAIM_KIND_NEVER_APPROVABLE",
+      "NAMED_BODY_ABSENT",
+      "CLAIM_IDENTITY_ABSENT",
+      "EVIDENCE_LINK_UNRESOLVED",
+      "SOURCE_ASSET_ABSENT",
+    ]);
+  });
+});
+
+/* ========================================================================== */
+/*  The required-method rules                                                  */
+/* ========================================================================== */
+
+describe("the required-method rules", () => {
+  /** Rule 1, with no raw method either. */
+  it("blocks a required-method property that records no method", () => {
+    const blockers = specificationApprovalBlockers({
+      ...ELIGIBLE_SPEC,
+      methodRequirement: "required",
+      normalizedMethodPresent: false,
+      rawMethodPresent: false,
+    });
+
+    expect(codesOf(blockers)).toEqual(["REQUIRED_METHOD_ABSENT"]);
+  });
+
+  /**
+   * Rule 1 again, with a raw method PRESENT.
+   *
+   * The ratified rule applies "whether raw method is present or absent": a method the source stated
+   * but that this platform never normalized is not a recorded method, and approving would publish
+   * a required-method property with nothing in its method column.
+   */
+  it("blocks a required-method property with no normalized method even when the source stated one", () => {
+    const blockers = specificationApprovalBlockers({
+      ...ELIGIBLE_SPEC,
+      methodRequirement: "required",
+      normalizedMethodPresent: false,
+      rawMethodPresent: true,
+    });
+
+    expect(codesOf(blockers)).toEqual(["REQUIRED_METHOD_ABSENT"]);
+  });
+
+  /**
+   * Rule 2 — the guarded fabrication shape.
+   *
+   * A normalized method no current evidence carries is a value this platform produced rather than
+   * read. The live count is zero and the rule exists to keep it zero.
+   */
+  it("blocks a normalized method that no evidence states", () => {
+    const blockers = specificationApprovalBlockers({
+      ...ELIGIBLE_SPEC,
+      normalizedMethodPresent: true,
+      rawMethodPresent: false,
+    });
+
+    expect(codesOf(blockers)).toEqual(["METHOD_NOT_EVIDENCED"]);
+  });
+
+  /** Rule 2 applies regardless of the requirement, including where it is OPTIONAL. */
+  it.each(["required", "optional", "not_applicable"] as const)(
+    "blocks an unevidenced method when the requirement is %s",
+    (methodRequirement) => {
+      const blockers = specificationApprovalBlockers({
+        ...ELIGIBLE_SPEC,
+        methodRequirement,
+        normalizedMethodPresent: true,
+        rawMethodPresent: false,
+      });
+
+      expect(codesOf(blockers)).toContain("METHOD_NOT_EVIDENCED");
+    },
+  );
+
+  /** Rule 3 — optional and absent is simply fine. No blocker, and no warning either. */
+  it("permits an optional method that is absent, with no warning", () => {
+    const row: SpecificationEligibilityRow = {
+      ...ELIGIBLE_SPEC,
+      methodRequirement: "optional",
+      normalizedMethodPresent: false,
+      rawMethodPresent: false,
+    };
+
+    expect(specificationApprovalBlockers(row)).toEqual([]);
+    expect(specificationApprovalWarnings(row)).toEqual([]);
+  });
+
+  /** Rule 4 — a warning, and the subject stays eligible. */
+  it("warns, without blocking, when a not-applicable property carries a method", () => {
+    const row: SpecificationEligibilityRow = {
+      ...ELIGIBLE_SPEC,
+      methodRequirement: "not_applicable",
+      normalizedMethodPresent: true,
+      rawMethodPresent: true,
+    };
+
+    expect(specificationApprovalBlockers(row)).toEqual([]);
+    expect(warningCodesOf(specificationApprovalWarnings(row))).toEqual([
+      "METHOD_NOT_APPLICABLE_BUT_PRESENT",
+    ]);
+  });
+
+  /**
+   * An unresolved dictionary record does not fire a method rule, and does not need to.
+   *
+   * `PROPERTY_NOT_IN_DICTIONARY` already blocks such a row, so eligibility is false either way —
+   * and inferring `required` from a missing record would be inventing a dictionary entry.
+   */
+  it("infers no method requirement from a missing dictionary record", () => {
+    const blockers = specificationApprovalBlockers({
+      ...ELIGIBLE_SPEC,
+      propertyInDictionary: false,
+      methodRequirement: null,
+      normalizedMethodPresent: false,
+      rawMethodPresent: false,
+    });
+
+    expect(codesOf(blockers)).toEqual(["PROPERTY_NOT_IN_DICTIONARY"]);
+    expect(blockers.length).toBeGreaterThan(0);
+  });
+
+  /** A claim cannot receive either method blocker: its row shape carries neither fact. */
+  it("never applies a method rule to a claim", () => {
+    const blockers = productClaimApprovalBlockers({ ...ELIGIBLE_CLAIM, evidenceOrphans: 1 });
+
+    expect(codesOf(blockers)).not.toContain("REQUIRED_METHOD_ABSENT");
+    expect(codesOf(blockers)).not.toContain("METHOD_NOT_EVIDENCED");
+  });
+});
+
+/* ========================================================================== */
+/*  The captured-source rule                                                   */
+/* ========================================================================== */
+
+describe("the captured-source rule", () => {
+  it.each([
+    ["a specification", specificationApprovalBlockers, ELIGIBLE_SPEC],
+    ["a claim", productClaimApprovalBlockers, ELIGIBLE_CLAIM],
+  ] as const)("blocks %s whose cited source has no captured asset", (_label, build, eligible) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- one call over two row shapes
+    const blockers = (build as (row: any) => ReviewBlocker[])({
+      ...eligible,
+      sourceCaptured: false,
+    });
+
+    expect(codesOf(blockers)).toEqual(["SOURCE_ASSET_ABSENT"]);
+  });
+
+  /** An uploaded workbook backed by a real captured asset remains acceptable. */
+  it.each([
+    ["a specification", specificationApprovalBlockers, ELIGIBLE_SPEC],
+    ["a claim", productClaimApprovalBlockers, ELIGIBLE_CLAIM],
+  ] as const)("permits %s whose source is captured", (_label, build, eligible) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- one call over two row shapes
+    expect((build as (row: any) => ReviewBlocker[])(eligible)).toEqual([]);
+  });
+
+  /**
+   * Manual transcription is judged on capture and on nothing else.
+   *
+   * The extraction method is not an input to this rule at all — `SOURCE_ASSET_ABSENT` fires when
+   * the bytes behind the evidence are uncaptured, whether they were read by a spreadsheet parser,
+   * an OCR pass or a person. A transcription whose source IS captured is acceptable, and one whose
+   * source is not gets exactly ONE blocker rather than a second duplicate describing the same
+   * condition from the transcription's side.
+   */
+  it("emits exactly one blocker for an uncaptured manual transcription", () => {
+    const blockers = specificationApprovalBlockers({ ...ELIGIBLE_SPEC, sourceCaptured: false });
+
+    expect(blockers).toHaveLength(1);
+    expect(blockers[0]?.code).toBe("SOURCE_ASSET_ABSENT");
+  });
+
+  /** No locator, no URL, no file name, no title, no hash — the message names the rule only. */
+  it("leaks no locator or provenance in the blocker message", () => {
+    const message =
+      specificationApprovalBlockers({ ...ELIGIBLE_SPEC, sourceCaptured: false })[0]?.message ?? "";
+
+    expect(message.length).toBeGreaterThan(0);
+    expect(message).not.toMatch(/https?:\/\//);
+    expect(message).not.toMatch(/\.(pdf|xlsx|xls|docx?|csv)\b/i);
+    expect(message).not.toMatch(/[0-9a-f]{64}/);
+    expect(message).not.toMatch(/locator/i);
+  });
+
+  /**
+   * A subject citing nothing gets `EVIDENCE_ABSENT` alone.
+   *
+   * Two blockers for one absence would double-count it, and `SOURCE_ASSET_ABSENT` would be saying
+   * something untrue: there is no uncaptured source, there is no source.
+   */
+  it("does not add a capture blocker to a subject that cites no evidence", () => {
+    const blockers = specificationApprovalBlockers({
+      ...ELIGIBLE_SPEC,
+      evidenceLinks: 0,
+      sourceCaptured: false,
+    });
+
+    expect(codesOf(blockers)).toEqual(["EVIDENCE_ABSENT"]);
+  });
+
+  /**
+   * …but a subject whose links are ALL superseded is still blocked.
+   *
+   * `evidenceLinks` counts every link, so this row has evidence; the CURRENT set is empty, and the
+   * SQL coalesces `bool_and` over an empty set to false. Fail closed.
+   */
+  it("blocks a subject whose only evidence is superseded", () => {
+    const blockers = specificationApprovalBlockers({
+      ...ELIGIBLE_SPEC,
+      evidenceLinks: 2,
+      sourceCaptured: false,
+      rawMethodPresent: false,
+      normalizedMethodPresent: false,
+      methodRequirement: "optional",
+    });
+
+    expect(codesOf(blockers)).toEqual(["SOURCE_ASSET_ABSENT"]);
+  });
+});
+
+/* ========================================================================== */
+/*  Warnings                                                                   */
+/* ========================================================================== */
+
+describe("the document-metadata warnings", () => {
+  it("warns when a cited document records no date", () => {
+    const row: SpecificationEligibilityRow = { ...ELIGIBLE_SPEC, documentDateUnknown: true };
+
+    expect(warningCodesOf(specificationApprovalWarnings(row))).toEqual(["DOCUMENT_DATE_UNKNOWN"]);
+  });
+
+  it("warns when a cited document records no revision label", () => {
+    const row: SpecificationEligibilityRow = { ...ELIGIBLE_SPEC, documentRevisionUnknown: true };
+
+    expect(warningCodesOf(specificationApprovalWarnings(row))).toEqual([
+      "DOCUMENT_REVISION_UNKNOWN",
+    ]);
+  });
+
+  it("warns on both axes for a claim as well", () => {
+    const row: ProductClaimEligibilityRow = {
+      ...ELIGIBLE_CLAIM,
+      documentDateUnknown: true,
+      documentRevisionUnknown: true,
+    };
+
+    expect(warningCodesOf(productClaimApprovalWarnings(row))).toEqual([
+      "DOCUMENT_DATE_UNKNOWN",
+      "DOCUMENT_REVISION_UNKNOWN",
+    ]);
+  });
+
+  /**
+   * The load-bearing property of the whole warning channel.
+   *
+   * Every one of the 69 source documents in the catalogue is missing both fields, so if either
+   * could make a subject ineligible the entire queue would be frozen on a metadata gap that says
+   * nothing about whether the recorded value is right.
+   */
+  it("never makes an otherwise eligible subject ineligible", () => {
+    const spec: SpecificationEligibilityRow = {
+      ...ELIGIBLE_SPEC,
+      methodRequirement: "not_applicable",
+      documentDateUnknown: true,
+      documentRevisionUnknown: true,
+    };
+    const claim: ProductClaimEligibilityRow = {
+      ...ELIGIBLE_CLAIM,
+      documentDateUnknown: true,
+      documentRevisionUnknown: true,
+    };
+
+    expect(specificationApprovalWarnings(spec)).toHaveLength(3);
+    expect(specificationApprovalBlockers(spec)).toEqual([]);
+
+    expect(productClaimApprovalWarnings(claim)).toHaveLength(2);
+    expect(productClaimApprovalBlockers(claim)).toEqual([]);
+  });
+
+  it("emits only known warning codes, and no bare string", () => {
+    const warnings = specificationApprovalWarnings({
+      ...ELIGIBLE_SPEC,
+      methodRequirement: "not_applicable",
+      documentDateUnknown: true,
+      documentRevisionUnknown: true,
+    });
+
+    for (const entry of warnings) {
+      expect(typeof entry).toBe("object");
+      expect(REVIEW_WARNING_CODES).toContain(entry.code);
+      expect(entry.message.length).toBeGreaterThan(0);
+    }
+  });
+
+  /** A warning is never a blocker, on either subject type, whatever else is true of the row. */
+  it("shares no code with the blocker vocabulary", () => {
+    for (const code of REVIEW_WARNING_CODES) {
+      expect(REVIEW_BLOCKER_CODES).not.toContain(code as unknown as ReviewBlockerCode);
+    }
   });
 });

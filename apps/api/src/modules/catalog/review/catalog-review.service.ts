@@ -15,8 +15,11 @@ import {
   SPECIFICATION_ELIGIBILITY_SQL,
   SPECIFICATION_UNRESOLVED_SQL,
   productClaimApprovalBlockers,
+  productClaimApprovalWarnings,
   specificationApprovalBlockers,
+  specificationApprovalWarnings,
   type ProductClaimEligibilityRow,
+  type ReviewBlocker,
   type SpecificationEligibilityRow,
 } from "./review-eligibility";
 import {
@@ -226,6 +229,12 @@ export class CatalogReviewService {
     ]);
 
     const currentHash = hash ?? "";
+    /*
+     * Computed ONCE and reused for both fields. `eligibleForApproval` was previously derived by
+     * calling the builder a second time, which made the two fields two evaluations of the same
+     * rules rather than one — a shape that can only ever be equal by luck.
+     */
+    const blockers = specificationApprovalBlockers(eligibility);
 
     return {
       subjectType: "specification",
@@ -247,13 +256,26 @@ export class CatalogReviewService {
         method: row.method,
         qualifier: row.qualifier,
         resultBasis: String(row.resultBasis).toLowerCase(),
+        /*
+         * The dictionary metadata, projected from the `SpecProperty` relation.
+         *
+         * `specProperty` is a LEFT relation: a Specification whose `propertyKey` names no
+         * dictionary row reads `null`, and both axes are served as null rather than as a guessed
+         * default. Neither is derived from the other, and `valueType` above is left exactly as it
+         * was — the shape axis and the kind axis travel separately, and a mismatch between them is
+         * informational in this gate rather than a rule.
+         */
+        valueKind: row.property === null ? null : String(row.property.valueKind).toLowerCase(),
+        methodRequirement:
+          row.property === null ? null : String(row.property.methodRequirement).toLowerCase(),
       },
       claim: null,
       evidenceSetHash: currentHash,
       evidence,
       mappings,
-      approvalBlockers: specificationApprovalBlockers(eligibility),
-      eligibleForApproval: specificationApprovalBlockers(eligibility).length === 0,
+      approvalBlockers: blockers,
+      eligibleForApproval: blockers.length === 0,
+      warnings: specificationApprovalWarnings(eligibility),
       history: history.map((entry) => ({
         ...entry,
         evidenceCurrent: entry.evidenceSetHash === currentHash,
@@ -277,6 +299,7 @@ export class CatalogReviewService {
     ]);
 
     const currentHash = hash ?? "";
+    const blockers = productClaimApprovalBlockers(eligibility);
 
     return {
       subjectType: "product_claim",
@@ -287,6 +310,12 @@ export class CatalogReviewService {
       product: toProductRef(row.product),
       grade: toGradeRef(row.productGrade),
       specification: null,
+      /*
+       * A claim carries its own four fields and NOTHING from the property dictionary. There is no
+       * `valueKind` and no `methodRequirement` here, because a claim has no property key and
+       * therefore no `SpecProperty` row — inventing either would be serving a measurement of
+       * nothing.
+       */
       claim: {
         kind: String(row.kind).toLowerCase(),
         standardBody: row.standardBody,
@@ -298,8 +327,9 @@ export class CatalogReviewService {
       // A claim has no property key, so no mapping applies to it. An empty array rather than an
       // omitted field: the shape of the two subject types stays identical for the client.
       mappings: [],
-      approvalBlockers: productClaimApprovalBlockers(eligibility),
-      eligibleForApproval: productClaimApprovalBlockers(eligibility).length === 0,
+      approvalBlockers: blockers,
+      eligibleForApproval: blockers.length === 0,
+      warnings: productClaimApprovalWarnings(eligibility),
       history: history.map((entry) => ({
         ...entry,
         evidenceCurrent: entry.evidenceSetHash === currentHash,
@@ -421,17 +451,36 @@ export class CatalogReviewService {
         // A rejection and a return-to-review are always permitted on a decidable row: refusing to
         // let a reviewer REJECT something ineligible would trap the worst rows in the queue.
         if (dto.decision === "approve") {
-          const blockers =
+          const blockers: ReviewBlocker[] =
             subjectType === "specification"
               ? specificationApprovalBlockers(await this.specificationEligibility(tx, id))
               : productClaimApprovalBlockers(await this.productClaimEligibility(tx, id));
 
+          /*
+           * The refusal carries the CODES, not only the sentences.
+           *
+           * This is the point at which "frontend wording is never the enforcement boundary" stops
+           * being an aspiration. A caller that never rendered a detail page — a script, a retry, a
+           * second tab — reaches this branch with no knowledge of what the UI would have shown, and
+           * what it gets back is the same closed vocabulary the UI renders. Nothing is written: the
+           * throw leaves the transaction with no `TechnicalReview` row, the subject's status
+           * untouched, and the optimistic-concurrency checks above already passed on their own
+           * terms rather than being skipped.
+           *
+           * `message` is the reviewer's sentence and never a locator, a document title, an asset
+           * hash or any other provenance — `SOURCE_ASSET_ABSENT` in particular says that a source
+           * is uncaptured and says nothing about where that source lives.
+           */
           if (blockers.length > 0) {
             throw new ApiException(
               HttpStatus.CONFLICT,
               ErrorCode.Conflict,
               "This subject is not eligible for approval.",
-              blockers.map((issue) => ({ field: "decision", issue })),
+              blockers.map(({ code, message }) => ({
+                field: "decision",
+                code,
+                issue: message,
+              })),
             );
           }
         }
@@ -1014,6 +1063,15 @@ const SPECIFICATION_DETAIL_SELECT = {
   method: true,
   qualifier: true,
   resultBasis: true,
+  /*
+   * The controlled-dictionary entry behind `propertyKey`, and exactly two of its columns.
+   *
+   * An allow-list like every other select here: `canonicalMeaning`, `quantity` and `allowedUnits`
+   * are dictionary content this response was not asked for and does not serve. The relation is
+   * optional in the schema (a legacy row predates the dictionary), so this is `null` for exactly
+   * the rows `PROPERTY_NOT_IN_DICTIONARY` already blocks.
+   */
+  property: { select: { valueKind: true, methodRequirement: true } },
   product: {
     select: {
       name: true,

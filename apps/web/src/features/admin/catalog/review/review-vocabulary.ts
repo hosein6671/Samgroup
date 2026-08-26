@@ -5,12 +5,15 @@ import type {
   ReviewHistoryDecision,
   ReviewLocatorType,
   ReviewMappingConfidence,
+  ReviewMethodRequirement,
   ReviewQueueSort,
   ReviewResultBasis,
   ReviewStatus,
   ReviewSubjectType,
   ReviewUnitClassification,
+  ReviewValueKind,
   ReviewValueType,
+  ReviewWarningCode,
 } from "@sam-group/types";
 
 /**
@@ -197,6 +200,71 @@ export const VALUE_TYPE_LABEL: Readonly<Record<ReviewValueType, string>> = {
 };
 
 /* -------------------------------------------------------------------------- */
+/*  Value kind — the property's axis, not the value's                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What kind of value the PROPERTY carries, as opposed to the shape of the one recorded value.
+ *
+ * The two axes are shown side by side and are labelled so that neither can be read as the other:
+ * "Property value kind" against "Recorded value shape". Viscosity is a numeric property and may
+ * legitimately arrive as a point, a range or a minimum — that is not a contradiction, and a UI that
+ * rendered one axis under the other's name would make it look like one.
+ *
+ * Nothing on this surface converts one axis into the other, and nothing fills in a missing one from
+ * the other. Where the property key resolves to no dictionary entry the API serves null and the
+ * field says "Not recorded".
+ */
+export const VALUE_KIND_LABEL: Readonly<Record<ReviewValueKind, string>> = {
+  numeric: "Numeric",
+  textual: "Textual",
+  coded: "Coded",
+};
+
+export const VALUE_KIND_MEANING =
+  "What the controlled dictionary says this property measures. It is a different axis from the " +
+  "recorded value's shape, and neither is derived from the other.";
+
+/**
+ * The wording for a kind/shape mismatch.
+ *
+ * INFORMATIONAL in this gate, and it says so. No rule about the combination has been ratified, so
+ * this is neither a blocker nor a warning and must not be presented as either — it is a note that
+ * points at two fields the reviewer can already see.
+ */
+export const VALUE_AXIS_DISCREPANCY =
+  "The dictionary calls this property numeric, but the recorded value is stored in a textual " +
+  "shape. This is shown for information only in this release: it is not an approval blocker and " +
+  "not a warning, and nothing here has converted either field into the other.";
+
+/* -------------------------------------------------------------------------- */
+/*  Method requirement                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Whether a test method must accompany a value for that property to mean anything.
+ *
+ * A viscosity without its ASTM method is not the same fact as one with it, which is why this is a
+ * dictionary column and why `required` with no recorded method is a blocker rather than a warning.
+ */
+export const METHOD_REQUIREMENT_LABEL: Readonly<Record<ReviewMethodRequirement, string>> = {
+  required: "Required",
+  optional: "Optional",
+  not_applicable: "Not applicable",
+};
+
+/** What each requirement means for approval, in the reviewer's terms. */
+export const METHOD_REQUIREMENT_MEANING: Readonly<Record<ReviewMethodRequirement, string>> = {
+  required:
+    "This property means nothing without its test method. A specification that records none " +
+    "cannot be approved.",
+  optional: "A test method adds precision here but is not required for approval.",
+  not_applicable:
+    "No test method applies to this property. One recorded anyway is reported as a warning, not " +
+    "as an obstacle.",
+};
+
+/* -------------------------------------------------------------------------- */
 /*  Result basis                                                               */
 /* -------------------------------------------------------------------------- */
 
@@ -348,8 +416,62 @@ export const ELIGIBILITY_LABEL = {
  */
 export const ELIGIBILITY_MEANING =
   "Eligibility describes the platform's own checks only — evidence, dictionary mapping, value " +
-  "shape and claim identity. It is not an opinion about whether the value is correct, and it is " +
-  "not a recommendation to approve.";
+  "shape, claim identity, the required test method and whether the cited source was captured. It " +
+  "is not an opinion about whether the value is correct, and it is not a recommendation to " +
+  "approve.";
+
+/* -------------------------------------------------------------------------- */
+/*  Warnings — reasons to look twice, never reasons to refuse                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The warnings panel's own wording.
+ *
+ * The heading and this sentence carry the whole distinction, because it is the one a reviewer is
+ * most likely to get wrong in the direction that matters: a warning looks like a blocker, and a
+ * reviewer who reads it as one will leave a perfectly approvable value sitting in the queue.
+ *
+ * Every source document in the catalogue is missing both its date and its revision label, so every
+ * subject currently carries two warnings. If that read as "cannot approve", nothing would ever be
+ * approved.
+ */
+export const WARNINGS_HEADING = "Review warnings";
+
+export const WARNINGS_MEANING =
+  "Warnings are things to look at before approving. They are not approval blockers and none of " +
+  "them makes a subject ineligible.";
+
+export const WARNINGS_EMPTY = "No warning recorded.";
+
+/**
+ * What each warning means, beyond the sentence the API already sends.
+ *
+ * The API's message is authoritative and is what the list renders; this table is the standing
+ * explanation shown once per panel, and it exists so the two document warnings are not read as a
+ * defect in the catalogue. They describe what the source documents recorded, and no surface may
+ * invent a date or a revision that was never stated.
+ */
+export const WARNING_MEANING: Readonly<Record<ReviewWarningCode, string>> = {
+  METHOD_NOT_APPLICABLE_BUT_PRESENT:
+    "The dictionary says this property takes no test method, and one is recorded anyway. Neither " +
+    "field has been changed to agree with the other.",
+  DOCUMENT_DATE_UNKNOWN:
+    "The source document stated no publication date. None is inferred, and none is displayed.",
+  DOCUMENT_REVISION_UNKNOWN:
+    "The source document stated no revision label. None is inferred, and none is displayed.",
+};
+
+/**
+ * The blockers panel's own wording, kept beside the warnings' so the pair reads as a pair.
+ *
+ * The count sentence is rendered above the list. A blocker is never a colour, never an icon and
+ * never a tooltip.
+ */
+export const BLOCKERS_HEADING = "Approval blockers";
+
+export const BLOCKERS_MEANING =
+  "Every one of these must be resolved in the catalogue before this subject can be approved. " +
+  "They are the platform's mechanical checks, not a reviewer's judgement.";
 
 /* -------------------------------------------------------------------------- */
 /*  Claim kinds — the legal reading                                            */

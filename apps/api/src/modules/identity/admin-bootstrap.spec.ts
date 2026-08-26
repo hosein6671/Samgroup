@@ -447,14 +447,67 @@ withDatabase("against a disposable PostgreSQL database", () => {
 
     prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
 
-    // The clone starts where live DEV is: no accounts at all.
-    expect(await prisma.user.count()).toBe(0);
+    await establishEmptyAccountStore();
   }, 180_000);
 
   afterAll(async () => {
     await prisma?.$disconnect();
     if (url) await dropDisposableDatabase(databaseConfig, url);
   }, 120_000);
+
+  /**
+   * The suite's own clean auth state, established rather than inherited.
+   *
+   * ## Why this exists
+   *
+   * This block used to open with `expect(await prisma.user.count()).toBe(0)` and a comment saying
+   * "the clone starts where live DEV is: no accounts at all". That was true when it was written and
+   * is not true now — local DEV holds the ratified Admin account, so every clone inherits one user
+   * and the assertion failed in `beforeAll`, taking all 34 database cases down with it.
+   *
+   * The stale part was the FIXTURE, not the production guard. What this suite needs is an empty
+   * account store; what it was doing was *hoping* live DEV happened to be one. So the emptiness is
+   * now created here, and the assertions below it become a check on this function rather than a
+   * bet on somebody else's database. Whatever accounts DEV gains or loses from now on, this suite
+   * starts from the same place.
+   *
+   * ## Why deleting is safe here, and only here
+   *
+   * The identity gate is re-applied immediately before the delete, and it reads `current_database()`
+   * over the live connection rather than parsing the URL — so what is checked is the database the
+   * statement will actually reach, not what a connection string claimed. `assertDisposableDatabase`
+   * refuses `sam_platform`, `sam_cms`, `postgres` and both templates outright and accepts only the
+   * `sam_platform_disposable_*` shape the harness itself produces. The real DEV Admin is never
+   * reachable from this code path, and nothing here runs against a live database.
+   *
+   * The clone is dropped in `afterAll` whether the suite passes or fails, so these rows never
+   * outlive the run.
+   *
+   * ## What is deleted, and what is deliberately not
+   *
+   * Sessions first, then users — sessions cascade from users anyway, and doing both explicitly
+   * means the post-condition holds regardless of that cascade. Every other foreign key into `users`
+   * is `ON DELETE SET NULL` (leads, assignment history, blog authors, `technical_reviews.reviewer_id`),
+   * so a lead or a review row is nulled rather than removed and no non-auth invariant moves. The
+   * schema itself is untouched: this is a DELETE, not a truncate, not a migration, and not a
+   * reset — every table, constraint, trigger and view the migrations installed is still there,
+   * which is what the CMS-table and identity-guard cases below rely on.
+   */
+  async function establishEmptyAccountStore(): Promise<void> {
+    const [reached] = await prisma.$queryRawUnsafe<{ name: string }[]>(
+      `SELECT current_database() AS "name"`,
+    );
+
+    // The database this connection actually reached — asserted again, at the point of the write.
+    assertDisposableDatabase(reached?.name ?? "");
+
+    await prisma.authSession.deleteMany({});
+    await prisma.user.deleteMany({});
+
+    // The post-condition this whole block depends on, now a fact about the line above it.
+    expect(await prisma.user.count()).toBe(0);
+    expect(await prisma.authSession.count()).toBe(0);
+  }
 
   /** A fresh address per test, so no test depends on another's row. */
   function newEmail(label: string): string {
@@ -472,6 +525,92 @@ withDatabase("against a disposable PostgreSQL database", () => {
 
   const connect = (connectionString: string): PrismaClient =>
     new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+
+  /**
+   * The fixture itself, asserted as a test rather than only as a `beforeAll` side effect.
+   *
+   * A setup step that silently stopped emptying the store would otherwise surface as a confusing
+   * failure somewhere further down — a count that is one too high in a test about something else.
+   * Naming it makes the fixture's own contract the thing that fails.
+   */
+  describe("the disposable account store this suite establishes", () => {
+    it("starts with no users and no sessions", async () => {
+      expect(await prisma.user.count()).toBe(0);
+      expect(await prisma.authSession.count()).toBe(0);
+    });
+
+    /** The schema is intact: emptying the account store is a DELETE, never a reset. */
+    it("still has the migrated tables the rest of this suite reads", async () => {
+      const rows = await prisma.$queryRawUnsafe<{ present: string | null }[]>(
+        `SELECT to_regclass('public.users')::text AS present
+         UNION ALL SELECT to_regclass('public.auth_sessions')::text
+         UNION ALL SELECT to_regclass('public.technical_reviews')::text
+         UNION ALL SELECT to_regclass('public.specifications')::text`,
+      );
+
+      for (const row of rows) expect(row.present).not.toBeNull();
+    });
+  });
+
+  /**
+   * A store that is NOT empty — the shape live DEV is actually in.
+   *
+   * The correction above removed the suite's dependence on inheriting an empty store, so the
+   * behaviour that used to be exercised incidentally (bootstrap running where an account already
+   * exists) is now asserted deliberately instead of disappearing with the assumption.
+   *
+   * The contract is per-address, not per-store: `provisionAdmin` refuses a DUPLICATE EMAIL and is
+   * indifferent to how many other accounts exist. There is no whole-store emptiness rule in
+   * `admin-bootstrap.ts` — the guard there is the database identity — so none is asserted here.
+   */
+  describe("a store that already holds an account", () => {
+    const incumbent = newEmail("incumbent");
+    const password = trackedPassword();
+
+    beforeAll(async () => {
+      await provisionAdmin(prisma, { email: incumbent, password });
+    }, 60_000);
+
+    it("still creates a different admin, because the rule is per-address", async () => {
+      const before = await prisma.user.count();
+
+      expect(before).toBeGreaterThan(0);
+      await expect(
+        provisionAdmin(prisma, { email: newEmail("second"), password: trackedPassword() }),
+      ).resolves.toBe("created");
+
+      expect(await prisma.user.count()).toBe(before + 1);
+    }, 60_000);
+
+    it("refuses the incumbent's address without touching the row", async () => {
+      const before = await prisma.user.findUnique({
+        where: { email: incumbent },
+        select: { id: true, passwordHash: true, role: true, status: true },
+      });
+
+      await expect(
+        provisionAdmin(prisma, { email: incumbent, password: trackedPassword() }),
+      ).resolves.toBe("already-exists");
+
+      const after = await prisma.user.findUnique({
+        where: { email: incumbent },
+        select: { id: true, passwordHash: true, role: true, status: true },
+      });
+
+      expect(after).toEqual(before);
+    }, 60_000);
+
+    /** The database identity guard outranks everything, non-empty store included. */
+    it("is still refused by the identity guard, and writes nothing", async () => {
+      const before = await prisma.user.count();
+
+      await expect(
+        bootstrapAdmin(prisma, envFor(newEmail("nonempty"), trackedPassword())),
+      ).rejects.toBeInstanceOf(AdminBootstrapAbort);
+
+      expect(await prisma.user.count()).toBe(before);
+    }, 30_000);
+  });
 
   describe("the harness refuses a live target before anything else can happen", () => {
     it.each(["sam_platform", "sam_cms", "postgres", "template1", "sam_platform_backup"])(

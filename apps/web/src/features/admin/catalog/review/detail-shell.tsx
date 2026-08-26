@@ -3,6 +3,8 @@ import Link from "next/link";
 import { AdminShell } from "../../admin-shell";
 import { backToQueueHref } from "./review-query";
 import {
+  BLOCKERS_HEADING,
+  BLOCKERS_MEANING,
   ELIGIBILITY_LABEL,
   ELIGIBILITY_MEANING,
   EVIDENCE_ROLE_LABEL,
@@ -21,16 +23,22 @@ import {
   UNIT_CLASSIFICATION_LABEL,
   UNIT_CLASSIFICATION_MEANING,
   URL_LOCATOR_WITHHELD,
+  WARNINGS_EMPTY,
+  WARNINGS_HEADING,
+  WARNINGS_MEANING,
+  WARNING_MEANING,
   unitIsAmbiguous,
 } from "./review-vocabulary";
 
 import type { ReviewQueueQuery } from "./review-query";
 import type {
+  ReviewBlocker,
   ReviewDetailResponse,
   ReviewEvidenceEntry,
   ReviewGradeRef,
   ReviewHistoryEntry,
   ReviewProductRef,
+  ReviewWarning,
 } from "@sam-group/types";
 import type { ReactNode } from "react";
 
@@ -333,12 +341,12 @@ export function ApprovalBlockers({
   blockers,
   prohibited,
 }: {
-  readonly blockers: readonly string[];
+  readonly blockers: readonly ReviewBlocker[];
   /** A permanent reason this subject kind can never be approved, when one applies. */
   readonly prohibited?: string;
 }): ReactNode {
   return (
-    <Panel heading="Approval blockers">
+    <Panel heading={BLOCKERS_HEADING}>
       {prohibited === undefined ? null : <p className="ad-note ad-note--strong">{prohibited}</p>}
       {blockers.length === 0 ? (
         <p className="ad-note">
@@ -346,17 +354,98 @@ export function ApprovalBlockers({
         </p>
       ) : (
         <>
-          <p className="ad-note">
-            {blockers.length} {blockers.length === 1 ? "blocker" : "blockers"} recorded.
+          <p className="ad-note ad-note--strong">
+            {blockers.length} {blockers.length === 1 ? "blocker" : "blockers"} recorded.{" "}
+            {BLOCKERS_MEANING}
           </p>
-          <ul className="ad-warn-list">
-            {blockers.map((blocker) => (
-              <li key={blocker}>{blocker}</li>
+          <ul className="ad-issue-list ad-issue-list--blocker">
+            {blockers.map((entry) => (
+              <li className="ad-issue" data-blocker-code={entry.code} key={entry.code}>
+                <IssueCode code={entry.code} label="Blocker" />
+                <span className="ad-issue-message">{entry.message}</span>
+              </li>
             ))}
           </ul>
         </>
       )}
     </Panel>
+  );
+}
+
+/**
+ * Reasons to look twice, in their own panel — and the panel is separate for a reason.
+ *
+ * ## Why not one list with two styles
+ *
+ * A warning and a blocker answer different questions: one is "look at this before you decide", the
+ * other is "you cannot decide yes". Interleaving them in one list makes the difference carried by
+ * styling, and styling is exactly what a screen reader, a high-contrast mode and a printout all
+ * discard. Two `<section>`s with two `<h2>`s and two `<ul>`s put the difference in the STRUCTURE,
+ * so it survives every one of those.
+ *
+ * The distinction is also stated in words — `WARNINGS_MEANING` says outright that none of these
+ * makes the subject ineligible — because every subject in the catalogue currently carries two
+ * document warnings, and a reviewer who reads them as blockers will approve nothing at all.
+ *
+ * ## The code travels with the message
+ *
+ * The API sends `{code, message}`. The message is what a person reads; the code is the contract,
+ * and it is rendered as its own element and mirrored onto `data-warning-code` so the tests assert
+ * against the identity rather than against English prose. It is technical text and is
+ * direction-isolated LTR like every other identifier on this surface.
+ *
+ * ## Still nothing to act on
+ *
+ * No control, no dismissal, no "acknowledge". A warning is a statement, and Phase B has no writes.
+ */
+export function ReviewWarnings({
+  warnings,
+}: {
+  readonly warnings: readonly ReviewWarning[];
+}): ReactNode {
+  return (
+    <Panel heading={WARNINGS_HEADING}>
+      <p className="ad-note">{WARNINGS_MEANING}</p>
+
+      {warnings.length === 0 ? (
+        <p className="ad-note">{WARNINGS_EMPTY}</p>
+      ) : (
+        <>
+          <p className="ad-note">
+            {warnings.length} {warnings.length === 1 ? "warning" : "warnings"} recorded.
+          </p>
+          <ul className="ad-issue-list ad-issue-list--warning">
+            {warnings.map((entry) => (
+              <li className="ad-issue" data-warning-code={entry.code} key={entry.code}>
+                <IssueCode code={entry.code} label="Warning" />
+                <span className="ad-issue-message">{entry.message}</span>
+                {WARNING_MEANING[entry.code] === undefined ? null : (
+                  <span className="ad-field-hint">{WARNING_MEANING[entry.code]}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Panel>
+  );
+}
+
+/**
+ * One stable code, rendered as an identifier rather than as prose.
+ *
+ * `label` is visually hidden and is what a screen reader hears before the code, so "BLOCKER
+ * SOURCE_ASSET_ABSENT" is announced rather than a bare snake-case token that means nothing read
+ * aloud. The code itself is `dir="ltr"` technical text like every other identifier here.
+ */
+function IssueCode({ code, label }: { readonly code: string; readonly label: string }): ReactNode {
+  return (
+    <span className="ad-issue-code">
+      <span className="ad-sr-only">{label}: </span>
+      <bdi className="ad-value ad-value--technical" dir="ltr">
+        {code}
+      </bdi>
+    </span>
   );
 }
 

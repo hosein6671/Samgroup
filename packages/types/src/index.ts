@@ -34,6 +34,8 @@ export type {
   ProductTypeResponse,
 } from "./catalog";
 export type {
+  ReviewBlocker,
+  ReviewBlockerCode,
   ReviewClaimKind,
   ReviewClaimValue,
   ReviewDetailResponse,
@@ -47,6 +49,7 @@ export type {
   ReviewLocatorType,
   ReviewMappingConfidence,
   ReviewMappingRef,
+  ReviewMethodRequirement,
   ReviewProductRef,
   ReviewQueueItemResponse,
   ReviewQueueSort,
@@ -55,7 +58,10 @@ export type {
   ReviewStatus,
   ReviewSubjectType,
   ReviewUnitClassification,
+  ReviewValueKind,
   ReviewValueType,
+  ReviewWarning,
+  ReviewWarningCode,
 } from "./catalog-review";
 export type {
   AboutUsClosing,

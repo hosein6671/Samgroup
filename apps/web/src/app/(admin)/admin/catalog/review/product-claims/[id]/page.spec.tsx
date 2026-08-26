@@ -78,8 +78,9 @@ const SUBJECT = {
   evidenceSetHash: "3".repeat(64),
   evidence: [],
   mappings: [],
-  approvalBlockers: ["The claim cites no evidence."],
+  approvalBlockers: [{ code: "EVIDENCE_ABSENT" as const, message: "The claim cites no evidence." }],
   eligibleForApproval: false,
+  warnings: [],
   history: [],
 };
 
