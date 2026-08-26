@@ -434,6 +434,8 @@ The 100-name catalog manifest is now paired with an internal research artifact a
 
 This is a **copy-research gate, not publication**. Sixty-six records have no conflict or withheld fact and can proceed to a copy draft; 34 require data review before copy. Every record explicitly remains blocked until the existing technical-review workflow approves its Specification and Product Claim data. No database write and no public-site content change occurred in this research pass.
 
+The 66 eligible research records now include conservative English copy drafts. Each draft contains one factual summary derived only from official feature metadata or the existing family/type/grade classification, a selection note directing the buyer to approved technical data, and the CTAs “Request product information” / “Discuss supply requirements”. The 34 data-review records carry no draft. Persian and Arabic remain explicitly `not_started`; translation begins only after the English source copy is reviewed.
+
 Before starting it, read ADR-014 through ADR-017 and the relevant Admin/API contracts, identify every file involved, report the implementation plan, and obtain the separate code approval required by `CLAUDE.md`.
 
 ### Working conventions established here

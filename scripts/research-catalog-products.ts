@@ -21,6 +21,25 @@ type Manifest = { manifestHash: string; rows: ManifestRow[] };
 
 const ALLOWED_HOSTS = new Set(["kingpowerlub.com", "addilex.com"]);
 
+const FAMILY_LABELS: Record<string, string> = {
+  "engine-oils-automotive-lubricants": "automotive lubricants",
+  "industrial-oils-lubricants": "industrial lubricants",
+  "marine-oils-lubricants": "marine lubricants",
+  "lubricant-additives": "lubricant additives",
+  "antifreeze-coolants": "antifreeze and coolants",
+};
+
+const TYPE_LABELS: Record<string, string> = {
+  "engine-oils": "engine oil",
+  "industrial-oils": "industrial lubricant",
+  "gear-oils": "gear and transmission lubricant",
+  "hydraulic-oils": "hydraulic oil",
+  "marine-oils": "marine lubricant",
+  "lubricant-additives": "lubricant additive",
+  "antifreeze-coolants": "antifreeze and coolant product",
+  greases: "lubricating grease",
+};
+
 function argument(name: string): string {
   const index = process.argv.indexOf(name);
   const value = index < 0 ? undefined : process.argv[index + 1];
@@ -47,6 +66,43 @@ function decodeText(value: string): string {
 function cleanAddilexTitle(value: string | null): string | null {
   if (!value) return null;
   return value.replace(/\s*»\s*ADDILEX\s*$/i, "").trim() || null;
+}
+
+function sentenceCase(value: string): string {
+  const normalized = value.replace(/_/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+  return normalized ? normalized[0]!.toUpperCase() + normalized.slice(1) : normalized;
+}
+
+function copyDraft(
+  row: ManifestRow,
+  official: Record<string, string | null> | null,
+  draftingStatus: "needs_data_review_before_copy" | "ready_for_copy_draft",
+): Record<string, unknown> | null {
+  if (draftingStatus !== "ready_for_copy_draft") return null;
+  const family = FAMILY_LABELS[row.proposedProductFamilyKey ?? ""] ?? "lubricants";
+  const type = TYPE_LABELS[row.proposedProductTypeKey ?? ""] ?? "lubricant product";
+  const descriptor = official?.feature ? sentenceCase(official.feature) : null;
+  const gradeLabels = row.gradeCandidates.map((grade) => grade.label);
+  const gradeClause =
+    gradeLabels.length === 0
+      ? ""
+      : gradeLabels.length === 1
+        ? ` The recorded grade is ${gradeLabels[0]}.`
+        : ` The range includes ${String(gradeLabels.length)} recorded grades.`;
+  const summary = descriptor
+    ? `Official product metadata describes ${row.publicProductName} as “${descriptor}”. It is listed in the ${family} portfolio.${gradeClause}`
+    : `${row.publicProductName} is catalogued as a ${type} in the ${family} portfolio.${gradeClause}`;
+
+  return {
+    locale: "en",
+    summary,
+    selectionNote:
+      "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+    primaryCta: "Request product information",
+    secondaryCta: "Discuss supply requirements",
+    prohibitedClaimsAdded: false,
+    translationStatus: { fa: "not_started", ar: "not_started" },
+  };
 }
 
 function embedded(html: string, key: string): string | null {
@@ -125,6 +181,12 @@ async function main(): Promise<void> {
       }
     }
 
+    const draftingStatus =
+      Object.values(row.conflictsByCategory).some((value) => value > 0) ||
+      row.withheldSourceFacts.length > 0
+        ? "needs_data_review_before_copy"
+        : "ready_for_copy_draft";
+
     records.push({
       sourceRef: row.sourceRef,
       workbookRow: row.rowNumber,
@@ -143,13 +205,10 @@ async function main(): Promise<void> {
         api: official?.api ?? null,
         sae: official?.sae ?? null,
         officialSeriesLabel: official?.line ?? null,
-        draftingStatus:
-          Object.values(row.conflictsByCategory).some((value) => value > 0) ||
-          row.withheldSourceFacts.length > 0
-            ? "needs_data_review_before_copy"
-            : "ready_for_copy_draft",
+        draftingStatus,
         publicationBlockedUntilTechnicalApproval: true,
       },
+      copyDraft: copyDraft(row, official, draftingStatus),
       researchStatus,
       official,
       researchError,

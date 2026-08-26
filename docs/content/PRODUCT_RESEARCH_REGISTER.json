@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-26T22:20:53.937Z",
+  "generatedAt": "2026-08-26T22:25:43.717Z",
   "inputManifestHash": "232c973fc07a24d4594c1e8589ece339b54dad39a3ded001d8ffbcf0c8e1f26f",
   "policy": {
     "officialWebHosts": ["kingpowerlub.com", "addilex.com"],
@@ -36,6 +36,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CK-4 10W-40 as “Full syn diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "{PREMIUMUNIQE_TECH CK4 10W40",
@@ -67,6 +79,18 @@
         "officialSeriesLabel": "EUROVIUNIQE_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CJ-4 10W-40 as “Syn technology diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -100,6 +124,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CI-4 10W-40 as “High torque diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "EUROIIIUNIQE_TECH CI4 10W40",
@@ -131,6 +167,18 @@
         "officialSeriesLabel": "EUROIIIUNIQE_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CI-4 15W-40 as “High torque diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -164,6 +212,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CI-4 20W-50 as “High torque diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "EUROIIIUNIQE_TECH CI4 20W50",
@@ -195,6 +255,18 @@
         "officialSeriesLabel": "SUPERUNIQE_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CH-4 15W-40 as “Super heavy duty diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -228,6 +300,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CH-4 20W-50 as “Super heavy duty diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "SUPERUNIQE_TECH CH4 20W50",
@@ -259,6 +343,18 @@
         "officialSeriesLabel": "UNIQE_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CF-4 15W-40 as “Heavy duty diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -292,6 +388,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CF-4 20W-50 as “Heavy duty diesel engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "UNIQE_TECH CF4 20W50",
@@ -324,6 +432,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "CJ4 Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -348,6 +468,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "CI4 Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -374,6 +506,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "CH-4 Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -399,6 +543,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "CD Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -423,6 +579,18 @@
         "officialSeriesLabel": "ROYAL_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SN 5W-30 as “Synthetic based engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -456,6 +624,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SN 5W-40 as “Synthetic based engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "ROYAL_TECH SN 5W40",
@@ -487,6 +667,18 @@
         "officialSeriesLabel": "ROYAL_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SN 10W-40 as “Synthetic based engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -520,6 +712,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SM 10W-40 as “Semi synthetic based engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "ULTRA_TECH SM 10W40",
@@ -551,6 +755,18 @@
         "officialSeriesLabel": "ULTRA_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SM 20W-50 is catalogued as a engine oil in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -584,6 +800,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SL 10W-40 as “Premium performance engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "VITAL_TECH SL 10W40",
@@ -615,6 +843,18 @@
         "officialSeriesLabel": "VITAL_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SL 20W-50 is catalogued as a engine oil in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -648,6 +888,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SJ 10W-40 as “High performance engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "DRIVE_TECH SJ 10W40",
@@ -679,6 +931,18 @@
         "officialSeriesLabel": "DRIVE_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SJ 20W-50 as “High performance engine oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -712,6 +976,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -736,6 +1001,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SM Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -762,6 +1039,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SL Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -786,6 +1075,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SJ Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -812,6 +1113,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SG Grade is catalogued as a engine oil in the automotive lubricants portfolio. The recorded grade is SG/CD 20W50.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -836,6 +1149,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SF Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 3 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -862,6 +1187,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SC Grade is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -886,6 +1223,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "locomotive Oil is catalogued as a engine oil in the automotive lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -912,6 +1261,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -937,6 +1287,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SN Grade is catalogued as a engine oil in the automotive lubricants portfolio. The recorded grade is 10W40.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -961,6 +1323,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "SG Grade is catalogued as a engine oil in the automotive lubricants portfolio. The recorded grade is SG 20W50.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -996,6 +1370,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes Extreme Pressure (EP) as “Industrial gear oil”. It is listed in the industrial lubricants portfolio. The range includes 8 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "GEAR_TECH - Extreme Pressure (EP)",
@@ -1027,6 +1413,18 @@
         "officialSeriesLabel": "GEAR_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes Polyalphaolefin (PAO) as “Synthetic industrial gear oil”. It is listed in the industrial lubricants portfolio. The range includes 4 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1060,6 +1458,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes Polyalkylene Glycol (PAG) as “Synthetic industrial gear oil”. It is listed in the industrial lubricants portfolio. The range includes 3 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "GEAR_TECH - Polyalkylene Glycol (PAG)",
@@ -1092,6 +1502,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "TURBINE_TECH - Radial Flow",
@@ -1124,6 +1535,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "TURBINE_TECH - Gas Turbine (GT)",
@@ -1156,6 +1568,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "COMPRESSOR_TECH - -",
@@ -1188,6 +1601,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "COMPRESSOR_TECH - Polyalphaolefin - Synthetic (PAO-S)",
@@ -1220,6 +1634,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "COMPRESSOR_TECH - -",
@@ -1252,6 +1667,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "ROLLING_TECH - -",
@@ -1284,6 +1700,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "HEAT_TECH - -",
@@ -1316,6 +1733,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "HEAT_TECH - -",
@@ -1348,6 +1766,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "CUTTING_TECH - -",
@@ -1380,6 +1799,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "FLASHING_TECH - -",
@@ -1412,6 +1832,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "hydraulic oil- HL Grade is catalogued as a industrial lubricant in the industrial lubricants portfolio. The range includes 5 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -1436,6 +1868,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "hydraulic Oil- HH Grade is catalogued as a industrial lubricant in the industrial lubricants portfolio. The range includes 5 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -1462,6 +1906,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Circulating oil is catalogued as a industrial lubricant in the industrial lubricants portfolio. The range includes 5 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -1487,6 +1943,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Heat Transfer oil is catalogued as a industrial lubricant in the industrial lubricants portfolio. The recorded grade is HT 32.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -1511,6 +1979,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "quenching oil is catalogued as a industrial lubricant in the industrial lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -1545,6 +2025,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Turbine oil is catalogued as a industrial lubricant in the industrial lubricants portfolio. The range includes 7 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -1569,6 +2061,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Compressor oil -VB is catalogued as a industrial lubricant in the industrial lubricants portfolio. The range includes 6 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -1595,6 +2099,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -1619,6 +2124,18 @@
         "officialSeriesLabel": "GUARD_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes GL-5 75W-80 as “Manual gear oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1652,6 +2169,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes GL-5 75W-90 as “Manual gear oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "GUARD_TECH GL5 75W90",
@@ -1683,6 +2212,18 @@
         "officialSeriesLabel": "GUARD_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes GL-5 80W-90 as “Manual gear oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1716,6 +2257,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes GL-5 85W-90 as “Manual gear oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "GUARD_TECH GL5 85W90",
@@ -1747,6 +2300,18 @@
         "officialSeriesLabel": "GUARD_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes GL-5 85W-140 as “Manual gear oil”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1780,6 +2345,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Dual_TECH - DCT",
@@ -1811,6 +2377,18 @@
         "officialSeriesLabel": "PRO_TECH_VI",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes DEX VI as “Full synthetic automatic transmission fluid”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1844,6 +2422,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes SP-4 as “Automatic transmission fluid”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "TOP_TECH - SP4",
@@ -1875,6 +2465,18 @@
         "officialSeriesLabel": "ECO_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes CVT as “Full synthetic automatic transmission fluid”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1908,6 +2510,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes DEX III as “Semi synthetic automatic transmission fluid”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "PRIME_TECH_III - DEX III",
@@ -1939,6 +2553,18 @@
         "officialSeriesLabel": "MULTI_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes MV as “Synthetic blend premium automatic transmission fluid”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -1972,6 +2598,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "Official product metadata describes AL-4 as “Automatic transmission fluid”. It is listed in the automotive lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "SIGN_TECH - AL4",
@@ -2003,6 +2641,18 @@
         "officialSeriesLabel": "HYDRO_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "ISO VG 32 is catalogued as a hydraulic oil in the industrial lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -2036,6 +2686,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "ISO VG 46 is catalogued as a hydraulic oil in the industrial lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "HYDRO_TECH ISO VG 46",
@@ -2067,6 +2729,18 @@
         "officialSeriesLabel": "HYDRO_TECH",
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "ISO VG 68 is catalogued as a hydraulic oil in the industrial lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "official_web_verified",
       "official": {
@@ -2100,6 +2774,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "ISO VG 100 is catalogued as a hydraulic oil in the industrial lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "HYDRO_TECH - ISO VG 100",
@@ -2132,6 +2818,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "REWARD_TECH - MARINE-SPECIAL",
@@ -2164,6 +2851,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "REWARDSUPER_TECH - SEMI-SYNTHETIC",
@@ -2196,6 +2884,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "TWO-Stroke Engine Oil is catalogued as a marine lubricant in the marine lubricants portfolio.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -2220,6 +2920,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "LENJ oil is catalogued as a marine lubricant in the marine lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -2246,6 +2958,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "super trunk oil is catalogued as a marine lubricant in the marine lubricants portfolio. The recorded grade is 5W50.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -2270,6 +2994,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "trunk oil is catalogued as a marine lubricant in the marine lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -2296,6 +3032,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "special trunk oil is catalogued as a marine lubricant in the marine lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -2320,6 +3068,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "ATF Grade is catalogued as a gear and transmission lubricant in the marine lubricants portfolio. The range includes 3 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -2346,6 +3106,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "GL-5 Grade is catalogued as a gear and transmission lubricant in the marine lubricants portfolio. The range includes 5 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -2370,6 +3142,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "GL-4 Grade is catalogued as a gear and transmission lubricant in the marine lubricants portfolio. The range includes 3 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -2396,6 +3180,18 @@
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "GL-3 Grade is catalogued as a gear and transmission lubricant in the marine lubricants portfolio. The range includes 5 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
+      },
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null
@@ -2420,6 +3216,18 @@
         "officialSeriesLabel": null,
         "draftingStatus": "ready_for_copy_draft",
         "publicationBlockedUntilTechnicalApproval": true
+      },
+      "copyDraft": {
+        "locale": "en",
+        "summary": "GL-I Grade is catalogued as a gear and transmission lubricant in the marine lubricants portfolio. The range includes 2 recorded grades.",
+        "selectionNote": "Review the approved technical table and available grades to confirm suitability for the intended equipment and operating conditions.",
+        "primaryCta": "Request product information",
+        "secondaryCta": "Discuss supply requirements",
+        "prohibitedClaimsAdded": false,
+        "translationStatus": {
+          "fa": "not_started",
+          "ar": "not_started"
+        }
       },
       "researchStatus": "supplied_catalogue",
       "official": null,
@@ -2446,6 +3254,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex C-339 Ash-free Antioxidant",
@@ -2478,6 +3287,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex C-320 Dispersant",
@@ -2510,6 +3320,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex C-321 Ashless Dispersant",
@@ -2542,6 +3353,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex C-323 N-Molybdenum Compound",
@@ -2574,6 +3386,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "ADDILEX C-340 Zinc(ZDDP)",
@@ -2606,6 +3419,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex C-400 TBN400 Booster",
@@ -2638,6 +3452,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex D-520 Diesel Engine Oil Additive Package",
@@ -2670,6 +3485,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex D-540 Engine Oil Additive",
@@ -2702,6 +3518,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex G-720 Engine Oil Additive",
@@ -2734,6 +3551,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex G-730 Engine Oil Additive Package",
@@ -2766,6 +3584,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex G-740 Universal Engine Oil Additive",
@@ -2798,6 +3617,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex G-750 Engine Oil Additive",
@@ -2830,6 +3650,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex G-388 Gear Oil Additive",
@@ -2862,6 +3683,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex H 515 Anti-wear Hydraulic Oil Additive Package",
@@ -2894,6 +3716,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "Addilex T-961 Two-stroke Motor Oil",
@@ -2926,6 +3749,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "COOL_TECH MINERAL BASED ANTI FREEZE/ANTI BOIL",
@@ -2958,6 +3782,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "official_web_verified",
       "official": {
         "officialName": "LONGLIFE_TECH HIGH PERFORMANCE ANTI FREEZE/ANTI BOIL",
@@ -2990,6 +3815,7 @@
         "draftingStatus": "needs_data_review_before_copy",
         "publicationBlockedUntilTechnicalApproval": true
       },
+      "copyDraft": null,
       "researchStatus": "supplied_catalogue",
       "official": null,
       "researchError": null

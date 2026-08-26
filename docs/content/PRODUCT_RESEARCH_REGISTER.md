@@ -14,6 +14,7 @@ This register supports product-page copy without changing a formulation or inven
 - 34 HSB products tied to the supplied printed catalog already transcribed in the repository; no independently matchable official web catalog was found.
 - 66 records are structurally ready for a copy draft.
 - 34 records contain a conflict or withheld fact and require data review before copy is drafted.
+- The 66 structurally ready records carry a conservative English copy draft: summary, selection note and two B2B CTAs. The other 34 deliberately carry `copyDraft: null`.
 - Every record remains blocked from technical publication until its Specification and Product Claim decisions pass the existing review workflow.
 
 ## Rules
@@ -25,6 +26,8 @@ This register supports product-page copy without changing a formulation or inven
 5. Missing data stays missing. No inferred OEM approval, performance level, application, formulation or technical value is added.
 6. External URLs and source locators are not copied into the register or any public payload. The existing non-public provenance model remains authoritative.
 7. `publicationBlockedUntilTechnicalApproval` is always `true` in this research artifact. This register prepares copy; it grants no approval.
+8. Draft copy may restate a verified official feature descriptor or the existing family/type/grade classification. It may not introduce a new application, performance promise, OEM approval or technical value.
+9. Persian and Arabic translations remain `not_started` until the English source copy is reviewed; this prevents three independently generated versions from drifting technically.
 
 ## Reproduction
 
