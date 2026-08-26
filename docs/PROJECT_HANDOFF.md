@@ -458,3 +458,5 @@ Several documents contain `[TO CONFIRM]` and `[ESTIMATE — CONFIRM]` markers co
 - Created an approval register separating editorially usable copy from technical, commercial, corporate, certification, and legal facts that still require evidence.
 - No CMS/database write was performed. No legal policy was invented. Persian and Arabic translation is intentionally gated behind approval of the English semantic master and verified facts.
 - The existing Home demonstration fixture still contains unapproved numeric claims. It is documented as unsafe for production publication and was not silently rewritten in this content-only gate.
+- Added brand-aligned English copy for all 100 catalog products: card summary, page introduction, selection and document guidance, CTAs, and SEO metadata. All records remain publication-blocked; 66 require technical approval and 34 first require data-conflict review.
+- Added claim-controlled English SEO titles and descriptions for the public sitemap. Product metadata is capped at 160 characters and generated reproducibly by `scripts/generate-branded-product-copy.ts`.

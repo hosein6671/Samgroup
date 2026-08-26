@@ -8,6 +8,8 @@ This register separates usable copy from facts that require evidence or a named 
 - Navigation and footer labels
 - Claim-free Home, About, Products, Customized Solutions, Export & Logistics, Quality, Insights, FAQ, Contact, Distributor, Careers, Sitemap, 404, unavailable, thank-you, and cookie-interface copy
 - Shared product-family and product-detail language
+- Brand-aligned copy records for all 100 catalog products in `ENGLISH_PRODUCT_COPY_MASTER.json`
+- English metadata for the public sitemap in `ENGLISH_SEO_COPY.md`, plus product-level metadata in the product copy master
 - Form introductions, submit actions, success messages, and empty states
 
 ## Technical approval required
@@ -67,3 +69,7 @@ Machine-generated legal text is not a substitute for counsel. Translations requi
 4. Run native-language technical review; do not rely on locale fallback as approval.
 5. Load content into Payload through an explicitly approved content operation.
 6. Verify page rendering, SEO fields, forms, RTL layout, and locale-specific links before publication.
+
+## Product-copy generation
+
+`scripts/generate-branded-product-copy.ts` rebuilds the English product copy master from the internal research register. It generates no new formulation, approval, application, or technical value. Every output remains blocked until the applicable review status is cleared.

@@ -1,0 +1,2519 @@
+{
+  "generatedAt": "2026-08-26T23:29:21.868Z",
+  "sourceRegisterGeneratedAt": "2026-08-26T22:25:43.717Z",
+  "inputManifestHash": "232c973fc07a24d4594c1e8589ece339b54dad39a3ded001d8ffbcf0c8e1f26f",
+  "brandSystem": "docs/content/site-copy/BRAND_VOICE_AND_MESSAGING.md",
+  "policy": {
+    "englishIsSemanticMaster": true,
+    "sourcesAreInternalOnly": true,
+    "publicationRequiresTechnicalApproval": true,
+    "descriptionsDoNotChangeFormulation": true
+  },
+  "counts": {
+    "products": 100,
+    "dataReviewRequired": 34,
+    "technicalApprovalRequired": 66
+  },
+  "products": [
+    {
+      "sourceRef": "SAMCAT-W1-R003",
+      "productName": "CK-4 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CK-4 10W-40 is presented as full syn diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CK-4 10W-40 is presented as full syn diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CK-4 10W-40 | SAM Group",
+        "description": "Review CK-4 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R006",
+      "productName": "CJ-4 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CJ-4 10W-40 is presented as syn technology diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CJ-4 10W-40 is presented as syn technology diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CJ-4 10W-40 | SAM Group",
+        "description": "Review CJ-4 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R009",
+      "productName": "CI-4 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CI-4 10W-40 is presented as high torque diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CI-4 10W-40 is presented as high torque diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CI-4 10W-40 | SAM Group",
+        "description": "Review CI-4 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R012",
+      "productName": "CI-4 15W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CI-4 15W-40 is presented as high torque diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CI-4 15W-40 is presented as high torque diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CI-4 15W-40 | SAM Group",
+        "description": "Review CI-4 15W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R015",
+      "productName": "CI-4 20W-50",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CI-4 20W-50 is presented as high torque diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CI-4 20W-50 is presented as high torque diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CI-4 20W-50 | SAM Group",
+        "description": "Review CI-4 20W-50, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R018",
+      "productName": "CH-4 15W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CH-4 15W-40 is presented as heavy duty diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CH-4 15W-40 is presented as heavy duty diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CH-4 15W-40 | SAM Group",
+        "description": "Review CH-4 15W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R021",
+      "productName": "CH-4 20W-50",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CH-4 20W-50 is presented as heavy duty diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CH-4 20W-50 is presented as heavy duty diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CH-4 20W-50 | SAM Group",
+        "description": "Review CH-4 20W-50, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R024",
+      "productName": "CF-4 15W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CF-4 15W-40 is presented as heavy duty diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CF-4 15W-40 is presented as heavy duty diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CF-4 15W-40 | SAM Group",
+        "description": "Review CF-4 15W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R027",
+      "productName": "CF-4 20W-50",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CF-4 20W-50 is presented as heavy duty diesel engine oil within the automotive lubricant range.",
+      "pageIntroduction": "CF-4 20W-50 is presented as heavy duty diesel engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CF-4 20W-50 | SAM Group",
+        "description": "Review CF-4 20W-50, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R030",
+      "productName": "CJ4 Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CJ4 Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CJ4 10W40, CJ4 15W40.",
+      "pageIntroduction": "CJ4 Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CJ4 10W40, CJ4 15W40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CJ4 Grade | SAM Group",
+        "description": "Review CJ4 Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R033",
+      "productName": "CI4 Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CI4 Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CI4 10W40, CI4 15W40.",
+      "pageIntroduction": "CI4 Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CI4 10W40, CI4 15W40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CI4 Grade | SAM Group",
+        "description": "Review CI4 Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R036",
+      "productName": "CH-4 Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CH-4 Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CH4 15W40, CH4 20W50.",
+      "pageIntroduction": "CH-4 Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CH4 15W40, CH4 20W50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CH-4 Grade | SAM Group",
+        "description": "Review CH-4 Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R039",
+      "productName": "CD Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "CD Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CD 40, CD 50.",
+      "pageIntroduction": "CD Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: CD 40, CD 50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CD Grade | SAM Group",
+        "description": "Review CD Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R042",
+      "productName": "SN 5W-30",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SN 5W-30 is presented as synthetic based engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SN 5W-30 is presented as synthetic based engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SN 5W-30 | SAM Group",
+        "description": "Review SN 5W-30, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R045",
+      "productName": "SN 5W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SN 5W-40 is presented as synthetic based engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SN 5W-40 is presented as synthetic based engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SN 5W-40 | SAM Group",
+        "description": "Review SN 5W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R048",
+      "productName": "SN 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SN 10W-40 is presented as synthetic based engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SN 10W-40 is presented as synthetic based engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SN 10W-40 | SAM Group",
+        "description": "Review SN 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R051",
+      "productName": "SM 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SM 10W-40 is presented as semi synthetic based engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SM 10W-40 is presented as semi synthetic based engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SM 10W-40 | SAM Group",
+        "description": "Review SM 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R054",
+      "productName": "SM 20W-50",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SM 20W-50 is listed as a engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SM 20W-50 is listed as a engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SM 20W-50 | SAM Group",
+        "description": "Review SM 20W-50, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R057",
+      "productName": "SL 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SL 10W-40 is presented as performance engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SL 10W-40 is presented as performance engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SL 10W-40 | SAM Group",
+        "description": "Review SL 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R060",
+      "productName": "SL 20W-50",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SL 20W-50 is listed as a engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SL 20W-50 is listed as a engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SL 20W-50 | SAM Group",
+        "description": "Review SL 20W-50, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R063",
+      "productName": "SJ 10W-40",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SJ 10W-40 is presented as engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SJ 10W-40 is presented as engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SJ 10W-40 | SAM Group",
+        "description": "Review SJ 10W-40, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R066",
+      "productName": "SJ 20W-50",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SJ 20W-50 is presented as engine oil within the automotive lubricant range.",
+      "pageIntroduction": "SJ 20W-50 is presented as engine oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SJ 20W-50 | SAM Group",
+        "description": "Review SJ 20W-50, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R069",
+      "productName": "SN Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SN Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SN 10W40, SN 5W40, SN 5W30, SN 0W20.",
+      "pageIntroduction": "SN Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SN 10W40, SN 5W40, SN 5W30, SN 0W20. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SN Grade | SAM Group",
+        "description": "Review SN Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 1,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R072",
+      "productName": "SM Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SM Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SM/CF 10W40, SM/CF 5W40.",
+      "pageIntroduction": "SM Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SM/CF 10W40, SM/CF 5W40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SM Grade | SAM Group",
+        "description": "Review SM Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R075",
+      "productName": "SL Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SL Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SL/CF 10W40, SL/CF 20W50.",
+      "pageIntroduction": "SL Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SL/CF 10W40, SL/CF 20W50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SL Grade | SAM Group",
+        "description": "Review SL Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R078",
+      "productName": "SJ Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SJ Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SJ/CF 10W40, SJ/CF 20W50.",
+      "pageIntroduction": "SJ Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SJ/CF 10W40, SJ/CF 20W50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SJ Grade | SAM Group",
+        "description": "Review SJ Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R081",
+      "productName": "SG Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SG Grade is listed as a engine oil within the automotive lubricant range. The recorded grade is SG/CD 20W50.",
+      "pageIntroduction": "SG Grade is listed as a engine oil within the automotive lubricant range. The recorded grade is SG/CD 20W50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SG Grade | SAM Group",
+        "description": "Review SG Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R084",
+      "productName": "SF Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SF Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SF/CC 20W50, SF/CC 40, SF/CC 50.",
+      "pageIntroduction": "SF Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SF/CC 20W50, SF/CC 40, SF/CC 50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SF Grade | SAM Group",
+        "description": "Review SF Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R087",
+      "productName": "SC Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SC Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SC/CC 40, SC/CC 50.",
+      "pageIntroduction": "SC Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: SC/CC 40, SC/CC 50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SC Grade | SAM Group",
+        "description": "Review SC Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R090",
+      "productName": "locomotive Oil",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "locomotive Oil is listed as a engine oil within the automotive lubricant range. Recorded grades: SAE 40, SAE 15w-40.",
+      "pageIntroduction": "locomotive Oil is listed as a engine oil within the automotive lubricant range. Recorded grades: SAE 40, SAE 15w-40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "locomotive Oil | SAM Group",
+        "description": "Review locomotive Oil, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R093",
+      "productName": "Racing Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "Racing Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: 10W60, 5W60.",
+      "pageIntroduction": "Racing Grade is listed as a engine oil within the automotive lubricant range. Recorded grades: 10W60, 5W60. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Racing Grade | SAM Group",
+        "description": "Review Racing Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 2,
+        "withheldFactCount": 2,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R096",
+      "productName": "SN Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SN Grade is listed as a engine oil within the automotive lubricant range. The recorded grade is 10W40.",
+      "pageIntroduction": "SN Grade is listed as a engine oil within the automotive lubricant range. The recorded grade is 10W40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SN Grade | SAM Group",
+        "description": "Review SN Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R099",
+      "productName": "SG Grade",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "locale": "en",
+      "cardSummary": "SG Grade is listed as a engine oil within the automotive lubricant range. The recorded grade is SG 20W50.",
+      "pageIntroduction": "SG Grade is listed as a engine oil within the automotive lubricant range. The recorded grade is SG 20W50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SG Grade | SAM Group",
+        "description": "Review SG Grade, a engine oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R102",
+      "productName": "Extreme Pressure (EP)",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Extreme Pressure (EP) is presented as industrial gear oil within the industrial lubricant range. The recorded range contains 8 grades; review the grade table for the complete list.",
+      "pageIntroduction": "Extreme Pressure (EP) is presented as industrial gear oil within the industrial lubricant range. The recorded range contains 8 grades; review the grade table for the complete list. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Extreme Pressure (EP) | SAM Group",
+        "description": "Review Extreme Pressure (EP), a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R105",
+      "productName": "Polyalphaolefin (PAO)",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Polyalphaolefin (PAO) is presented as synthetic industrial gear oil within the industrial lubricant range. Recorded grades: ISO VG 150, ISO VG 220, ISO VG 320, ISO VG 460.",
+      "pageIntroduction": "Polyalphaolefin (PAO) is presented as synthetic industrial gear oil within the industrial lubricant range. Recorded grades: ISO VG 150, ISO VG 220, ISO VG 320, ISO VG 460. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Polyalphaolefin (PAO) | SAM Group",
+        "description": "Review Polyalphaolefin (PAO), a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R108",
+      "productName": "Polyalkylene Glycol (PAG)",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Polyalkylene Glycol (PAG) is presented as synthetic industrial gear oil within the industrial lubricant range. Recorded grades: ISO VG 150, ISO VG 220, ISO VG 320.",
+      "pageIntroduction": "Polyalkylene Glycol (PAG) is presented as synthetic industrial gear oil within the industrial lubricant range. Recorded grades: ISO VG 150, ISO VG 220, ISO VG 320. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Polyalkylene Glycol (PAG) | SAM Group",
+        "description": "Review Polyalkylene Glycol (PAG), a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R111",
+      "productName": "TURBINE TECH Radial Flow",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "TURBINE TECH Radial Flow is presented as industrial turbine oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46.",
+      "pageIntroduction": "TURBINE TECH Radial Flow is presented as industrial turbine oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "TURBINE TECH Radial Flow | SAM Group",
+        "description": "Review TURBINE TECH Radial Flow, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R114",
+      "productName": "TURBINE TECH Gas Turbine (GT)",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "TURBINE TECH Gas Turbine (GT) is presented as industrial turbine oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100.",
+      "pageIntroduction": "TURBINE TECH Gas Turbine (GT) is presented as industrial turbine oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "TURBINE TECH Gas Turbine (GT) | SAM Group",
+        "description": "Review TURBINE TECH Gas Turbine (GT), a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 8,
+        "withheldFactCount": 8,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R117",
+      "productName": "COMPRESSOR TECH",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "COMPRESSOR TECH is presented as industrial compressor oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100.",
+      "pageIntroduction": "COMPRESSOR TECH is presented as industrial compressor oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "COMPRESSOR TECH | SAM Group",
+        "description": "Review COMPRESSOR TECH, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 8,
+        "withheldFactCount": 8,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R120",
+      "productName": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S)",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S) is presented as industrial compressor s oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100.",
+      "pageIntroduction": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S) is presented as industrial compressor s oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S) | SAM Group",
+        "description": "Review COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S) in the SAM Group range. See recorded grades, technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R123",
+      "productName": "COMPRESSOR TECH Refrigeration Compressor Oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "COMPRESSOR TECH Refrigeration Compressor Oil is presented as refrigeration compressor oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100.",
+      "pageIntroduction": "COMPRESSOR TECH Refrigeration Compressor Oil is presented as refrigeration compressor oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46, ISO VG 68, ISO VG 100. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "COMPRESSOR TECH Refrigeration Compressor Oil | SAM Group",
+        "description": "Review COMPRESSOR TECH Refrigeration Compressor Oil in the SAM Group range. See recorded grades, technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R126",
+      "productName": "ROLLING TECH Rolling Oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "ROLLING TECH Rolling Oil is presented as rolling oil within the industrial lubricant range. Recorded grades: ISO VG 150, ISO VG 320, ISO VG 460.",
+      "pageIntroduction": "ROLLING TECH Rolling Oil is presented as rolling oil within the industrial lubricant range. Recorded grades: ISO VG 150, ISO VG 320, ISO VG 460. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "ROLLING TECH Rolling Oil | SAM Group",
+        "description": "Review ROLLING TECH Rolling Oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 6,
+        "withheldFactCount": 6,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R129",
+      "productName": "HEAT TECH Heat Transfer Oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "HEAT TECH Heat Transfer Oil is presented as heat transfer oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46.",
+      "pageIntroduction": "HEAT TECH Heat Transfer Oil is presented as heat transfer oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "HEAT TECH Heat Transfer Oil | SAM Group",
+        "description": "Review HEAT TECH Heat Transfer Oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R132",
+      "productName": "HEAT TECH Heat Metal Oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "HEAT TECH Heat Metal Oil is presented as heat metal oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46.",
+      "pageIntroduction": "HEAT TECH Heat Metal Oil is presented as heat metal oil within the industrial lubricant range. Recorded grades: ISO VG 32, ISO VG 46. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "HEAT TECH Heat Metal Oil | SAM Group",
+        "description": "Review HEAT TECH Heat Metal Oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R135",
+      "productName": "CUTTING TECH Cutting Oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "CUTTING TECH Cutting Oil is presented as cutting oil within the industrial lubricant range. Recorded grades: ISO VG 11, ISO VG 12, ISO VG 15, ISO VG 34.",
+      "pageIntroduction": "CUTTING TECH Cutting Oil is presented as cutting oil within the industrial lubricant range. Recorded grades: ISO VG 11, ISO VG 12, ISO VG 15, ISO VG 34. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CUTTING TECH Cutting Oil | SAM Group",
+        "description": "Review CUTTING TECH Cutting Oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R138",
+      "productName": "FLASHING TECH Flashing Oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "FLASHING TECH Flashing Oil is presented as flashing tech within the industrial lubricant range.",
+      "pageIntroduction": "FLASHING TECH Flashing Oil is presented as flashing tech within the industrial lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "FLASHING TECH Flashing Oil | SAM Group",
+        "description": "Review FLASHING TECH Flashing Oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 1,
+        "withheldFactCount": 1,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R141",
+      "productName": "hydraulic oil- HL Grade",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "hydraulic oil- HL Grade is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: HL 22, HL 32, HL 46, HL 68, HL 150.",
+      "pageIntroduction": "hydraulic oil- HL Grade is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: HL 22, HL 32, HL 46, HL 68, HL 150. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "hydraulic oil- HL Grade | SAM Group",
+        "description": "Review hydraulic oil- HL Grade, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R144",
+      "productName": "hydraulic Oil- HH Grade",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "hydraulic Oil- HH Grade is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: HH 22, HH 32, HH 46, HH 68, HH 150.",
+      "pageIntroduction": "hydraulic Oil- HH Grade is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: HH 22, HH 32, HH 46, HH 68, HH 150. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "hydraulic Oil- HH Grade | SAM Group",
+        "description": "Review hydraulic Oil- HH Grade, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R147",
+      "productName": "Circulating oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Circulating oil is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: Iso-68, Iso-100, Iso-150, Iso-220, Iso-320.",
+      "pageIntroduction": "Circulating oil is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: Iso-68, Iso-100, Iso-150, Iso-220, Iso-320. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Circulating oil | SAM Group",
+        "description": "Review Circulating oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R150",
+      "productName": "Heat Transfer oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Heat Transfer oil is listed as a industrial lubricant within the industrial lubricant range. The recorded grade is HT 32.",
+      "pageIntroduction": "Heat Transfer oil is listed as a industrial lubricant within the industrial lubricant range. The recorded grade is HT 32. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Heat Transfer oil | SAM Group",
+        "description": "Review Heat Transfer oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R153",
+      "productName": "quenching oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "quenching oil is listed as a industrial lubricant within the industrial lubricant range.",
+      "pageIntroduction": "quenching oil is listed as a industrial lubricant within the industrial lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "quenching oil | SAM Group",
+        "description": "Review quenching oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R156",
+      "productName": "Turbine oil",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Turbine oil is listed as a industrial lubricant within the industrial lubricant range. The recorded range contains 7 grades; review the grade table for the complete list.",
+      "pageIntroduction": "Turbine oil is listed as a industrial lubricant within the industrial lubricant range. The recorded range contains 7 grades; review the grade table for the complete list. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Turbine oil | SAM Group",
+        "description": "Review Turbine oil, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R159",
+      "productName": "Compressor oil -VB",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Compressor oil -VB is listed as a industrial lubricant within the industrial lubricant range. The recorded range contains 6 grades; review the grade table for the complete list.",
+      "pageIntroduction": "Compressor oil -VB is listed as a industrial lubricant within the industrial lubricant range. The recorded range contains 6 grades; review the grade table for the complete list. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Compressor oil -VB | SAM Group",
+        "description": "Review Compressor oil -VB, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R162",
+      "productName": "Refrigerator compressor oil-KD",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "locale": "en",
+      "cardSummary": "Refrigerator compressor oil-KD is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: KD-32, KD-68, KD-100.",
+      "pageIntroduction": "Refrigerator compressor oil-KD is listed as a industrial lubricant within the industrial lubricant range. Recorded grades: KD-32, KD-68, KD-100. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Refrigerator compressor oil-KD | SAM Group",
+        "description": "Review Refrigerator compressor oil-KD, a industrial lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 3,
+        "withheldFactCount": 3,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R165",
+      "productName": "GL-5 75W-80",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-5 75W-80 is presented as manual gear oil within the automotive lubricant range.",
+      "pageIntroduction": "GL-5 75W-80 is presented as manual gear oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-5 75W-80 | SAM Group",
+        "description": "Review GL-5 75W-80, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R168",
+      "productName": "GL-5 75W-90",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-5 75W-90 is presented as manual gear oil within the automotive lubricant range.",
+      "pageIntroduction": "GL-5 75W-90 is presented as manual gear oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-5 75W-90 | SAM Group",
+        "description": "Review GL-5 75W-90, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R171",
+      "productName": "GL-5 80W-90",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-5 80W-90 is presented as manual gear oil within the automotive lubricant range.",
+      "pageIntroduction": "GL-5 80W-90 is presented as manual gear oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-5 80W-90 | SAM Group",
+        "description": "Review GL-5 80W-90, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R174",
+      "productName": "GL-5 85W-90",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-5 85W-90 is presented as manual gear oil within the automotive lubricant range.",
+      "pageIntroduction": "GL-5 85W-90 is presented as manual gear oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-5 85W-90 | SAM Group",
+        "description": "Review GL-5 85W-90, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R177",
+      "productName": "GL-5 85W-140",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-5 85W-140 is presented as manual gear oil within the automotive lubricant range.",
+      "pageIntroduction": "GL-5 85W-140 is presented as manual gear oil within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-5 85W-140 | SAM Group",
+        "description": "Review GL-5 85W-140, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R180",
+      "productName": "DCT",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "DCT is presented as full synthetic automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "DCT is presented as full synthetic automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "DCT | SAM Group",
+        "description": "Review DCT, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 1,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R183",
+      "productName": "DEX VI",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "DEX VI is presented as full synthetic automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "DEX VI is presented as full synthetic automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "DEX VI | SAM Group",
+        "description": "Review DEX VI, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R186",
+      "productName": "SP-4",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "SP-4 is presented as automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "SP-4 is presented as automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SP-4 | SAM Group",
+        "description": "Review SP-4, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R189",
+      "productName": "CVT",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "CVT is presented as full synthetic automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "CVT is presented as full synthetic automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CVT | SAM Group",
+        "description": "Review CVT, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R192",
+      "productName": "DEX III",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "DEX III is presented as semi synthetic automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "DEX III is presented as semi synthetic automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "DEX III | SAM Group",
+        "description": "Review DEX III, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R195",
+      "productName": "MV",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "MV is presented as synthetic blend automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "MV is presented as synthetic blend automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "MV | SAM Group",
+        "description": "Review MV, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R198",
+      "productName": "AL-4",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "AL-4 is presented as automatic transmission fluid within the automotive lubricant range.",
+      "pageIntroduction": "AL-4 is presented as automatic transmission fluid within the automotive lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "AL-4 | SAM Group",
+        "description": "Review AL-4, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R201",
+      "productName": "ISO VG 32",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "locale": "en",
+      "cardSummary": "ISO VG 32 is listed as a hydraulic oil within the industrial lubricant range.",
+      "pageIntroduction": "ISO VG 32 is listed as a hydraulic oil within the industrial lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "ISO VG 32 | SAM Group",
+        "description": "Review ISO VG 32, a hydraulic oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R204",
+      "productName": "ISO VG 46",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "locale": "en",
+      "cardSummary": "ISO VG 46 is listed as a hydraulic oil within the industrial lubricant range.",
+      "pageIntroduction": "ISO VG 46 is listed as a hydraulic oil within the industrial lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "ISO VG 46 | SAM Group",
+        "description": "Review ISO VG 46, a hydraulic oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R207",
+      "productName": "ISO VG 68",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "locale": "en",
+      "cardSummary": "ISO VG 68 is listed as a hydraulic oil within the industrial lubricant range.",
+      "pageIntroduction": "ISO VG 68 is listed as a hydraulic oil within the industrial lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "ISO VG 68 | SAM Group",
+        "description": "Review ISO VG 68, a hydraulic oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R210",
+      "productName": "ISO VG 100",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "locale": "en",
+      "cardSummary": "ISO VG 100 is listed as a hydraulic oil within the industrial lubricant range.",
+      "pageIntroduction": "ISO VG 100 is listed as a hydraulic oil within the industrial lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "ISO VG 100 | SAM Group",
+        "description": "Review ISO VG 100, a hydraulic oil in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R213",
+      "productName": "REWARD TECH Marine Special",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "REWARD TECH Marine Special is presented as marine lubricants within the marine lubricant range.",
+      "pageIntroduction": "REWARD TECH Marine Special is presented as marine lubricants within the marine lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "REWARD TECH Marine Special | SAM Group",
+        "description": "Review REWARD TECH Marine Special, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 1,
+        "withheldFactCount": 1,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R216",
+      "productName": "REWARD SUPER TECH Semi Synthetic",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "REWARD SUPER TECH Semi Synthetic is presented as marine lubricants within the marine lubricant range.",
+      "pageIntroduction": "REWARD SUPER TECH Semi Synthetic is presented as marine lubricants within the marine lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "REWARD SUPER TECH Semi Synthetic | SAM Group",
+        "description": "Review REWARD SUPER TECH Semi Synthetic, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 1,
+        "withheldFactCount": 1,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R219",
+      "productName": "TWO-Stroke Engine Oil",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "TWO-Stroke Engine Oil is listed as a marine lubricant within the marine lubricant range.",
+      "pageIntroduction": "TWO-Stroke Engine Oil is listed as a marine lubricant within the marine lubricant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "TWO-Stroke Engine Oil | SAM Group",
+        "description": "Review TWO-Stroke Engine Oil, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R222",
+      "productName": "LENJ oil",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "LENJ oil is listed as a marine lubricant within the marine lubricant range. Recorded grades: SAE 30, SAE 40.",
+      "pageIntroduction": "LENJ oil is listed as a marine lubricant within the marine lubricant range. Recorded grades: SAE 30, SAE 40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "LENJ oil | SAM Group",
+        "description": "Review LENJ oil, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R225",
+      "productName": "super trunk oil",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "super trunk oil is listed as a marine lubricant within the marine lubricant range. The recorded grade is 5W50.",
+      "pageIntroduction": "super trunk oil is listed as a marine lubricant within the marine lubricant range. The recorded grade is 5W50. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "super trunk oil | SAM Group",
+        "description": "Review super trunk oil, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R228",
+      "productName": "trunk oil",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "trunk oil is listed as a marine lubricant within the marine lubricant range. Recorded grades: 30, 40.",
+      "pageIntroduction": "trunk oil is listed as a marine lubricant within the marine lubricant range. Recorded grades: 30, 40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "trunk oil | SAM Group",
+        "description": "Review trunk oil, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R231",
+      "productName": "special trunk oil",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "locale": "en",
+      "cardSummary": "special trunk oil is listed as a marine lubricant within the marine lubricant range. Recorded grades: 30, 40.",
+      "pageIntroduction": "special trunk oil is listed as a marine lubricant within the marine lubricant range. Recorded grades: 30, 40. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "special trunk oil | SAM Group",
+        "description": "Review special trunk oil, a marine lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R234",
+      "productName": "ATF Grade",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "ATF Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: ATF-3, ATF-2, ATF-CVT.",
+      "pageIntroduction": "ATF Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: ATF-3, ATF-2, ATF-CVT. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "ATF Grade | SAM Group",
+        "description": "Review ATF Grade, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R237",
+      "productName": "GL-5 Grade",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-5 Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL5 85W90, GL5 75W80, GL5 85W140, GL5 140, GL5 90.",
+      "pageIntroduction": "GL-5 Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL5 85W90, GL5 75W80, GL5 85W140, GL5 140, GL5 90. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-5 Grade | SAM Group",
+        "description": "Review GL-5 Grade, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R240",
+      "productName": "GL-4 Grade",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-4 Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL4 85W90, GL4 75W80, GL4 85W140.",
+      "pageIntroduction": "GL-4 Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL4 85W90, GL4 75W80, GL4 85W140. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-4 Grade | SAM Group",
+        "description": "Review GL-4 Grade, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R243",
+      "productName": "GL-3 Grade",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-3 Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL3 68, GL3 100, GL3 220, GL3 320, GL3 680.",
+      "pageIntroduction": "GL-3 Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL3 68, GL3 100, GL3 220, GL3 320, GL3 680. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-3 Grade | SAM Group",
+        "description": "Review GL-3 Grade, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R246",
+      "productName": "GL-I Grade",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "locale": "en",
+      "cardSummary": "GL-I Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL1 90, GL1 140.",
+      "pageIntroduction": "GL-I Grade is listed as a gear and transmission lubricant within the marine lubricant range. Recorded grades: GL1 90, GL1 140. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "GL-I Grade | SAM Group",
+        "description": "Review GL-I Grade, a gear and transmission lubricant in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "technical_approval_required",
+        "conflictCount": 0,
+        "withheldFactCount": 0,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R249",
+      "productName": "Ash-free Antioxidant",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Ash-free Antioxidant is presented as addilex c-339 ash-free antioxidant is a kind of multipurpose ash-free additive. it not only boasts outstanding antioxidation ... within the lubricant additive range.",
+      "pageIntroduction": "Ash-free Antioxidant is presented as addilex c-339 ash-free antioxidant is a kind of multipurpose ash-free additive. it not only boasts outstanding antioxidation ... within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Ash-free Antioxidant | SAM Group",
+        "description": "Review Ash-free Antioxidant, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 3,
+        "withheldFactCount": 3,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R252",
+      "productName": "Dispersant",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Dispersant is presented as addilex c-320 dispersant within the lubricant additive range.",
+      "pageIntroduction": "Dispersant is presented as addilex c-320 dispersant within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Dispersant | SAM Group",
+        "description": "Review Dispersant, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 1,
+        "withheldFactCount": 1,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R255",
+      "productName": "Ash-less Dispersant",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Ash-less Dispersant is presented as addilex c-321 ashless dispersant is boronized high molecular weight ashless dispersant prepared from high reactive isobutylene. it doesn’t contain chlorine. within the lubricant additive range.",
+      "pageIntroduction": "Ash-less Dispersant is presented as addilex c-321 ashless dispersant is boronized high molecular weight ashless dispersant prepared from high reactive isobutylene. it doesn’t contain chlorine. within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Ash-less Dispersant | SAM Group",
+        "description": "Review Ash-less Dispersant, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 4,
+        "withheldFactCount": 2,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R258",
+      "productName": "Molybdenum Compound",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Molybdenum Compound is presented as addilex c-323 is an oil-soluble, liquid and n-containing organic molybdenum lubricant additive. this product is manufactured through up-to-date chemical within the lubricant additive range.",
+      "pageIntroduction": "Molybdenum Compound is presented as addilex c-323 is an oil-soluble, liquid and n-containing organic molybdenum lubricant additive. this product is manufactured through up-to-date chemical within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Molybdenum Compound | SAM Group",
+        "description": "Review Molybdenum Compound, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 7,
+        "withheldFactCount": 7,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R261",
+      "productName": "zink-ZDDP",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "zink-ZDDP is presented as best zinc motor oil high zinc motor oil 5w30 high zinc motor oil for classic cars zinc in oil myth high zinc motor oil august 25, 2026 within the lubricant additive range.",
+      "pageIntroduction": "zink-ZDDP is presented as best zinc motor oil high zinc motor oil 5w30 high zinc motor oil for classic cars zinc in oil myth high zinc motor oil august 25, 2026 within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "zink-ZDDP | SAM Group",
+        "description": "Review zink-ZDDP, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 8,
+        "withheldFactCount": 8,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R264",
+      "productName": "TB N400 Booster",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "TB N400 Booster is presented as addilex c-400 with long-chain alkyl benzene sulfonic acid as a main raw material, overbased synthetic calcium sulfonate is prepared by neutralization within the lubricant additive range.",
+      "pageIntroduction": "TB N400 Booster is presented as addilex c-400 with long-chain alkyl benzene sulfonic acid as a main raw material, overbased synthetic calcium sulfonate is prepared by neutralization within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "TB N400 Booster | SAM Group",
+        "description": "Review TB N400 Booster, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 3,
+        "withheldFactCount": 3,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R267",
+      "productName": "diesel engine oil additive package",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "diesel engine oil additive package is presented as addilex d-520 is a compound of zinc-dithiophosphate, detergent, dispersant and antioxidant. it is primarily used in blending various low-grade and within the lubricant additive range.",
+      "pageIntroduction": "diesel engine oil additive package is presented as addilex d-520 is a compound of zinc-dithiophosphate, detergent, dispersant and antioxidant. it is primarily used in blending various low-grade and within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "diesel engine oil additive package | SAM Group",
+        "description": "Review diesel engine oil additive package, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 6,
+        "withheldFactCount": 3,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R270",
+      "productName": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive is presented as addilex d-540 is an all-purpose engine oil additive package with the main components of high based synthetic salt sulfonate and ash-less dispersant. within the lubricant additive range.",
+      "pageIntroduction": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive is presented as addilex d-540 is an all-purpose engine oil additive package with the main components of high based synthetic salt sulfonate and ash-less dispersant. within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive | SAM Group",
+        "description": "Review CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive in the SAM Group range. See recorded grades, technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 17,
+        "withheldFactCount": 5,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R273",
+      "productName": "SF , SE , SC/CC Engine oil additive",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "SF , SE , SC/CC Engine oil additive is presented as addilex g-720 is primarily used in blending various low-grade and middle-grade lubricant oils with very low dosage. within the lubricant additive range.",
+      "pageIntroduction": "SF , SE , SC/CC Engine oil additive is presented as addilex g-720 is primarily used in blending various low-grade and middle-grade lubricant oils with very low dosage. within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SF , SE , SC/CC Engine oil additive | SAM Group",
+        "description": "Review SF , SE , SC/CC Engine oil additive, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 13,
+        "withheldFactCount": 4,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R276",
+      "productName": "SL , SJ , SG Engine oil additive package",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "SL , SJ , SG Engine oil additive package is presented as addilex g-730 is the excellent additive package for the efficient formulation of passenger car oil. this product is formulated with high quality magnesium within the lubricant additive range.",
+      "pageIntroduction": "SL , SJ , SG Engine oil additive package is presented as addilex g-730 is the excellent additive package for the efficient formulation of passenger car oil. this product is formulated with high quality magnesium within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SL , SJ , SG Engine oil additive package | SAM Group",
+        "description": "Review SL , SJ , SG Engine oil additive package in the SAM Group range. See recorded grades, technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 11,
+        "withheldFactCount": 5,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R279",
+      "productName": "Universal Engine oil additive",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Universal Engine oil additive is presented as addilex g-740 universal internal combustion engine oil additive package is the excellent additive package which can blend the top-grade oils. this product is within the lubricant additive range.",
+      "pageIntroduction": "Universal Engine oil additive is presented as addilex g-740 universal internal combustion engine oil additive package is the excellent additive package which can blend the top-grade oils. this product is within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Universal Engine oil additive | SAM Group",
+        "description": "Review Universal Engine oil additive, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 8,
+        "withheldFactCount": 6,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R282",
+      "productName": "SN , SM , SL , SJ , SF…SC Engine oil additive",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "SN , SM , SL , SJ , SF…SC Engine oil additive is presented as addilex g-750 is an all-purpose engine oil additive package with the main components of high based synthetic salt sulfonate and ash-less dispersant. within the lubricant additive range.",
+      "pageIntroduction": "SN , SM , SL , SJ , SF…SC Engine oil additive is presented as addilex g-750 is an all-purpose engine oil additive package with the main components of high based synthetic salt sulfonate and ash-less dispersant. within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "SN , SM , SL , SJ , SF…SC Engine oil additive | SAM Group",
+        "description": "Review SN , SM , SL , SJ , SF…SC Engine oil additive in the SAM Group range. See recorded grades, technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 19,
+        "withheldFactCount": 5,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R285",
+      "productName": "Gear oil additive",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Gear oil additive is presented as addilex g388 has perfect antiwear, antirust, antioxidant ability . can be used for paraffine base crude oil, the intermediate base oil, naphthenic oil and within the lubricant additive range.",
+      "pageIntroduction": "Gear oil additive is presented as addilex g388 has perfect antiwear, antirust, antioxidant ability . can be used for paraffine base crude oil, the intermediate base oil, naphthenic oil and within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Gear oil additive | SAM Group",
+        "description": "Review Gear oil additive, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 7,
+        "withheldFactCount": 3,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R288",
+      "productName": "Anti-wear hydraulic oil additive package",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Anti-wear hydraulic oil additive package is presented as anti wear additives for hydraulic oil, h515 hydraulic fluid, hydraulic oil additives, additives for hydraulic oil, anti wear oil additives, anti wear additives within the lubricant additive range.",
+      "pageIntroduction": "Anti-wear hydraulic oil additive package is presented as anti wear additives for hydraulic oil, h515 hydraulic fluid, hydraulic oil additives, additives for hydraulic oil, anti wear oil additives, anti wear additives within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Anti-wear hydraulic oil additive package | SAM Group",
+        "description": "Review Anti-wear hydraulic oil additive package in the SAM Group range. See recorded grades, technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 8,
+        "withheldFactCount": 3,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R291",
+      "productName": "Two-stroke motor oil",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "locale": "en",
+      "cardSummary": "Two-stroke motor oil is presented as addilex t- 961 is a fine-tuned combination of detergent and dispersing agent at the best ratio. it has perfect detergency, lubricity with low-ash and within the lubricant additive range.",
+      "pageIntroduction": "Two-stroke motor oil is presented as addilex t- 961 is a fine-tuned combination of detergent and dispersing agent at the best ratio. it has perfect detergency, lubricity with low-ash and within the lubricant additive range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Two-stroke motor oil | SAM Group",
+        "description": "Review Two-stroke motor oil, a lubricant additive in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 5,
+        "withheldFactCount": 2,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R294",
+      "productName": "Mineral-Based",
+      "familyKey": "antifreeze-coolants",
+      "productTypeKey": "antifreeze-coolants",
+      "locale": "en",
+      "cardSummary": "Mineral-Based is listed as a antifreeze and coolant product within the coolant range.",
+      "pageIntroduction": "Mineral-Based is listed as a antifreeze and coolant product within the coolant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Mineral-Based | SAM Group",
+        "description": "Review Mineral-Based, a antifreeze and coolant product in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 2,
+        "withheldFactCount": 2,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R297",
+      "productName": "High-Performance",
+      "familyKey": "antifreeze-coolants",
+      "productTypeKey": "antifreeze-coolants",
+      "locale": "en",
+      "cardSummary": "High-Performance is listed as a antifreeze and coolant product within the coolant range.",
+      "pageIntroduction": "High-Performance is listed as a antifreeze and coolant product within the coolant range. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "High-Performance | SAM Group",
+        "description": "Review High-Performance, a antifreeze and coolant product in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 2,
+        "withheldFactCount": 2,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R300",
+      "productName": "Grease Based on Calcium",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "greases",
+      "locale": "en",
+      "cardSummary": "Grease Based on Calcium is listed as a lubricating grease within the industrial lubricant range. Recorded grades: NLGI 2, NLGI 3, NLGI 4.",
+      "pageIntroduction": "Grease Based on Calcium is listed as a lubricating grease within the industrial lubricant range. Recorded grades: NLGI 2, NLGI 3, NLGI 4. Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.",
+      "selectionNote": "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "documentPrompt": "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
+      "primaryCta": "Request a quote",
+      "secondaryCta": "Talk to technical sales",
+      "seo": {
+        "title": "Grease Based on Calcium | SAM Group",
+        "description": "Review Grease Based on Calcium, a lubricating grease in the SAM Group range. See recorded grades, available technical data, and enquiry options."
+      },
+      "review": {
+        "status": "data_review_required",
+        "conflictCount": 12,
+        "withheldFactCount": 12,
+        "publicationBlocked": true,
+        "noFormulationChange": true,
+        "noNewTechnicalClaim": true
+      }
+    }
+  ]
+}
