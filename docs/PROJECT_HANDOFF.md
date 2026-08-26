@@ -449,3 +449,12 @@ Before starting it, read ADR-014 through ADR-017 and the relevant Admin/API cont
 ### One caution
 
 Several documents contain `[TO CONFIRM]` and `[ESTIMATE — CONFIRM]` markers copied from the source spreadsheet — company statistics, certifications, milestones, contact details. **These are placeholders, not facts.** Do not treat them as real data, do not seed them into a database, and do not let them reach a page that could go live.
+
+### Content workstream update — 27 August 2026
+
+- Added the claim-controlled English website content system under `docs/content/site-copy/`.
+- Defined SAM Group's website voice, messaging hierarchy, terminology, and CTA system.
+- Drafted English master copy for the full public sitemap, shared product surfaces, forms, global components, system states, and cookie interface.
+- Created an approval register separating editorially usable copy from technical, commercial, corporate, certification, and legal facts that still require evidence.
+- No CMS/database write was performed. No legal policy was invented. Persian and Arabic translation is intentionally gated behind approval of the English semantic master and verified facts.
+- The existing Home demonstration fixture still contains unapproved numeric claims. It is documented as unsafe for production publication and was not silently rewritten in this content-only gate.
