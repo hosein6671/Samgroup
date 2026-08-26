@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getReviewQueue } from "./review-api";
+import { getProductClaimReview, getReviewQueue, getSpecificationReview } from "./review-api";
 import { DEFAULT_LIMIT, DEFAULT_SORT } from "./review-query";
 
 import type { ReviewQueueQuery } from "./review-query";
@@ -231,5 +231,206 @@ describe("what reaches the log", () => {
     await getReviewQueue(QUERY);
 
     expect(warn).not.toHaveBeenCalled();
+  });
+});
+
+/* ========================================================================== */
+/*  Detail                                                                     */
+/* ========================================================================== */
+
+/**
+ * The two detail reads.
+ *
+ * The classification is again the whole point, and a detail adds the one collapse that would do the
+ * most damage: **a missing subject rendered as an empty valid detail**. A page of blank panels says
+ * "this subject has no value, no evidence and no history", which is a claim about the catalogue.
+ * Nothing here may produce it.
+ */
+
+const DETAIL = {
+  subjectType: "specification",
+  id: "11111111-1111-4111-8111-111111111111",
+  reviewStatus: "source_recorded",
+  createdAt: "2026-08-24T09:00:00.000Z",
+  deletedAt: null,
+  product: {
+    slug: "hsb-2000",
+    name: "HSB 2000",
+    family: "industrial-oils-lubricants",
+    productType: null,
+  },
+  grade: null,
+  specification: {
+    propertyKey: "kinematic_viscosity_100c",
+    displayValue: "11.5",
+    valueType: "point",
+    numericMin: "11.500000",
+    numericMax: null,
+    pairFirst: null,
+    pairSecond: null,
+    unit: "mm2/s",
+    method: "ASTM D445",
+    qualifier: null,
+    resultBasis: "typical",
+  },
+  claim: null,
+  evidenceSetHash: "2222222222222222222222222222222222222222222222222222222222222222",
+  evidence: [],
+  mappings: [],
+  approvalBlockers: [],
+  eligibleForApproval: true,
+  history: [],
+};
+
+const CLAIM_DETAIL = {
+  ...DETAIL,
+  subjectType: "product_claim",
+  id: "22222222-2222-4222-8222-222222222222",
+  specification: null,
+  claim: { kind: "meets", standardBody: "API", standardCode: "CK-4", contextNote: null },
+};
+
+const SPEC_ID = "11111111-1111-4111-8111-111111111111";
+const CLAIM_ID = "22222222-2222-4222-8222-222222222222";
+
+describe("the Specification detail read", () => {
+  it("asks the specifications endpoint for that id, with the token in the options", async () => {
+    apiGet.mockResolvedValue(ok(DETAIL));
+
+    await getSpecificationReview(SPEC_ID);
+
+    expect(apiGet).toHaveBeenCalledWith(
+      `/admin/catalog/review/specifications/${SPEC_ID}`,
+      undefined,
+      { accessToken: TOKEN },
+    );
+  });
+
+  it("returns the curated detail unchanged on success", async () => {
+    apiGet.mockResolvedValue(ok(DETAIL));
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({
+      state: "ok",
+      value: DETAIL,
+    });
+  });
+
+  it("encodes an id that is not a plain identifier", async () => {
+    apiGet.mockResolvedValue(ok(DETAIL));
+
+    await getSpecificationReview("../users");
+
+    expect(apiGet).toHaveBeenCalledWith(
+      "/admin/catalog/review/specifications/..%2Fusers",
+      undefined,
+      { accessToken: TOKEN },
+    );
+  });
+});
+
+describe("the ProductClaim detail read", () => {
+  it("asks the product-claims endpoint, never the specifications one", async () => {
+    apiGet.mockResolvedValue(ok(CLAIM_DETAIL));
+
+    const result = await getProductClaimReview(CLAIM_ID);
+
+    expect(apiGet).toHaveBeenCalledWith(
+      `/admin/catalog/review/product-claims/${CLAIM_ID}`,
+      undefined,
+      { accessToken: TOKEN },
+    );
+    expect(result).toEqual({ state: "ok", value: CLAIM_DETAIL });
+  });
+});
+
+describe("a detail request that does not produce a subject", () => {
+  it("answers unauthenticated with no request when there is no cookie", async () => {
+    getAdminAccessToken.mockResolvedValue(null);
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({ state: "unauthenticated" });
+    expect(apiGet).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [401, "unauthenticated"],
+    [403, "forbidden"],
+    [404, "not-found"],
+    [400, "invalid-id"],
+    [418, "failed"],
+    [500, "failed"],
+  ])("maps HTTP %s to %s", async (status, state) => {
+    apiGet.mockResolvedValue(http(status));
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({ state });
+  });
+
+  it("keeps an outage distinct from a missing subject", async () => {
+    apiGet.mockResolvedValue({ ok: false, reason: "unreachable", detail: "ECONNREFUSED" });
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({ state: "unavailable" });
+
+    apiGet.mockResolvedValue(http(404));
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({ state: "not-found" });
+  });
+
+  it("treats a non-envelope body as a failure, not as a subject", async () => {
+    apiGet.mockResolvedValue({ ok: false, reason: "malformed", status: 200 });
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({ state: "failed" });
+  });
+
+  /**
+   * The collapse that matters most. A 200 that is not a subject must never become one — not an
+   * empty object, not an array, not null, and not the *other* subject type.
+   */
+  it.each([
+    ["null", null],
+    ["an empty object", {}],
+    ["an array", []],
+    ["a string", "nothing"],
+    ["the other subject type", CLAIM_DETAIL],
+    ["a subject with no id", { subjectType: "specification" }],
+  ])("refuses to render %s as an empty valid detail", async (_name, body) => {
+    apiGet.mockResolvedValue(ok(body));
+
+    await expect(getSpecificationReview(SPEC_ID)).resolves.toEqual({ state: "failed" });
+  });
+});
+
+describe("what a detail failure is allowed to say", () => {
+  /** A route template, a failure class, and nothing else. Never the id, never the body. */
+  it("logs no subject id, token, body or upstream message", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    apiGet.mockResolvedValue({
+      ok: false,
+      reason: "http",
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: "Prisma raised P2025 on specifications",
+      details: null,
+    });
+
+    await getSpecificationReview(SPEC_ID);
+
+    const logged = warn.mock.calls.map((call) => String(call[0])).join("\n");
+
+    expect(logged).toContain("/admin/catalog/review/specifications/:id");
+    expect(logged).not.toContain(SPEC_ID);
+    expect(logged).not.toContain(TOKEN);
+    expect(logged).not.toContain("Prisma");
+    expect(logged).not.toContain("INTERNAL_ERROR");
+
+    warn.mockRestore();
+  });
+
+  /** No transport detail crosses the boundary in the returned value either. */
+  it("returns a bare discriminant with no status, code or message attached", async () => {
+    apiGet.mockResolvedValue(http(403));
+
+    const result = await getSpecificationReview(SPEC_ID);
+
+    expect(Object.keys(result)).toEqual(["state"]);
   });
 });

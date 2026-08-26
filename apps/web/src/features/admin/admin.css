@@ -1196,3 +1196,166 @@
     padding: 8px 8px;
   }
 }
+
+/* --- the review detail screen --------------------------------------------- */
+
+/*
+ * Phase B. Same rule as everything above: every value resolves to a token from
+ * `@sam-group/ui`, and no colour, size, radius, duration or spacing literal is
+ * invented. Nothing here restyles an existing class — `.ad-detail`, `.ad-group`,
+ * `.ad-fields`, `.ad-field-row` and `.ad-history-*` are the lead detail's and
+ * keep their behaviour; the review detail composes them and adds what it needs.
+ *
+ * No animation and no transition is introduced, so the surface has nothing for a
+ * `prefers-reduced-motion` block to reduce. The one transition on this screen is
+ * `.ad-link`'s border colour, which the base stylesheet already scales.
+ */
+
+/*
+ * The back link — WCAG 2.2 §2.5.8 Target Size (Minimum).
+ *
+ * Measured at 150x22 as a bare inline link, which is under the 24px minimum.
+ * The spacing exception would have applied, and relying on it is the weaker
+ * position for the same reason `.ad-table .ad-link` refuses to: it holds only
+ * while nothing above or below tightens. Padding the link to a 26px target
+ * removes the argument. It changes no colour and no layout — the crumb's own
+ * bottom margin already exceeds the added height — and `.ad-crumb` is used by
+ * this screen alone, so nothing else on the surface is touched.
+ */
+.ad-crumb .ad-link {
+  display: inline-block;
+  padding-block: 2px;
+}
+
+/*
+ * A technical value, direction-isolated.
+ *
+ * `<bdi>` is already `unicode-bidi: isolate` in every browser's UA stylesheet;
+ * it is restated here because the property is what the isolation depends on and
+ * a UA default is not a place to leave a correctness guarantee. The values on
+ * this screen come from supplier documents, and a right-to-left run inside an
+ * LTR sentence reorders what is around it — a property key next to a unit can be
+ * rendered in the wrong order with no byte having changed.
+ *
+ * `overflow-wrap: anywhere` is why a SHA-256, a UUID or a long file name wraps
+ * inside its own cell instead of pushing the panel wider than the viewport.
+ */
+.ad-value {
+  unicode-bidi: isolate;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Identifiers, which are meaningless in any direction but left-to-right: keys,
+ * UUIDs, hashes, media types, numeric payloads. The element also carries
+ * `dir="ltr"`, which fixes the base direction inside the isolate rather than
+ * letting the first strong character choose it.
+ */
+.ad-value--technical {
+  font-family: var(--font-technical);
+}
+
+/*
+ * The sentence under a field that explains what the value means — a status, a
+ * result basis, a unit classification. Its own block so it never reads as part
+ * of the value, and never as a second value.
+ */
+.ad-field-hint {
+  display: block;
+  margin: 4px 0 0;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * A named part of a panel — "As the source stated it" against "Where in the
+ * document". The rule on the leading side is a logical property, so it follows
+ * the writing direction; it carries no information the heading does not.
+ */
+.ad-subgroup {
+  margin: 16px 0 0;
+  padding: 0 0 0 16px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ad-subgroup-title {
+  margin: 0 0 10px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Evidence entries and property mappings — an ordered list, because the order is
+ * the API's (primary before corroborating before superseded) and it means
+ * something. Numbering is suppressed visually because each item carries its own
+ * heading that already names it; the list semantics stay, so the count is still
+ * announced.
+ */
+.ad-evidence-list {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 20px;
+}
+
+.ad-evidence-item {
+  padding: 16px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-md);
+}
+
+.ad-evidence-title {
+  margin: 0;
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  letter-spacing: var(--text-technical--letter-spacing);
+  font-weight: var(--text-technical--font-weight);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/*
+ * A standing statement the reviewer must not miss — an approval-prohibited claim
+ * kind, an unsettled source unit, an empty history. Weight and colour, never a
+ * colour alone: the sentence itself says what it means, so nothing is carried by
+ * the styling (WCAG 2.2 §1.4.1).
+ */
+.ad-note--strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/*
+ * Fields inside an evidence card sit on `--color-surface-sunken` rather than on
+ * `--color-surface-raised`, so their label colour is measured against that
+ * surface in `admin-contrast.spec.ts`.
+ */
+.ad-evidence-item .ad-field-label {
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Narrow widths. The detail screen is definition lists inside panels, so it
+ * stacks on its own: `.ad-field-row` is a single column below 40rem and every
+ * panel is full width. What is added here is the padding relief a phone needs,
+ * and nothing that changes what is shown — no column is hidden, because on this
+ * screen a hidden field would be unreachable rather than deferred.
+ */
+@media (max-width: 26rem) {
+  .ad-group {
+    padding: 16px;
+  }
+
+  .ad-evidence-item {
+    padding: 12px;
+  }
+
+  .ad-subgroup {
+    padding: 0 0 0 12px;
+  }
+}

@@ -7,7 +7,11 @@ import { toQueueRequest } from "./review-query";
 
 import type { ReviewQueueQuery } from "./review-query";
 import type { ApiResult } from "@/lib/api-client";
-import type { ReviewQueueItemResponse } from "@sam-group/types";
+import type {
+  ReviewDetailResponse,
+  ReviewQueueItemResponse,
+  ReviewSubjectType,
+} from "@sam-group/types";
 
 /**
  * The Admin review queue's read path — `GET /api/v1/admin/catalog/review/queue`.
@@ -23,9 +27,11 @@ import type { ReviewQueueItemResponse } from "@sam-group/types";
  *
  * ## Reads only
  *
- * One function, one `apiGet`. There is no `apiPost`, no `apiPatch`, no Server Action and no import
- * of one anywhere in this feature — Phase A ships nothing that can change review state, and
- * `phase-boundary.spec.ts` fails the build if that stops being true.
+ * Three functions, three `apiGet` calls — the queue below, and the two subject details further
+ * down. There is no `apiPost`, no `apiPatch`, no Server Action and no import of one anywhere in this
+ * feature, and the decision sub-collection is not named in this module at all. Phases A and B ship
+ * nothing that can change review state, and `phase-boundary.spec.ts` fails the build if that stops
+ * being true.
  *
  * ## Six outcomes, because six things can happen
  *
@@ -149,4 +155,161 @@ export async function getReviewQueue(query: ReviewQueueQuery): Promise<ReviewQue
 /** A path and a description. Never a body, never a token, never a query value. */
 function report(description: string): void {
   console.warn(`[admin/catalog/review] GET ${QUEUE_PATH} — ${description}`);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Detail — one subject                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The two detail reads — `GET /api/v1/admin/catalog/review/{subject}/:id`.
+ *
+ * ## Everything the queue read establishes still holds
+ *
+ * Same `server-only` module, same HttpOnly cookie read inside a Server Component, same
+ * `Authorization` header applied by `apiGet`, same `no-store`. The token is never a prop, never in
+ * the RSC payload, never in browser JavaScript and never in storage. No route handler proxies any
+ * of this, so there is still no browser-to-NestJS path.
+ *
+ * ## Seven outcomes, because a detail can fail in one way a list cannot
+ *
+ * The queue has six. A detail adds `not-found`, and that addition is the whole reason this is not
+ * the queue's mapper with a different path:
+ *
+ * | outcome           | cause                                                   | what the page says            |
+ * | ----------------- | ------------------------------------------------------- | ----------------------------- |
+ * | `ok`              | 200 with an envelope carrying the detail object          | the subject                   |
+ * | `unauthenticated` | 401, or no cookie at all                                 | hand back to the session      |
+ * | `forbidden`       | 403 — authenticated, wrong role                          | a refusal                     |
+ * | `invalid-id`      | 400 — the API refused the id in the path                 | the address is not a subject  |
+ * | `not-found`       | 404 — authenticated, authorized, no such subject         | this subject does not exist   |
+ * | `unavailable`     | nothing answered at all                                  | outage, you are not signed out |
+ * | `failed`          | any other status, or a 2xx that was not the envelope     | a safe generic failure        |
+ *
+ * **`not-found` and `unavailable` are never collapsed.** A reviewer told a subject does not exist
+ * stops looking for it, and a container restart must not be able to say that — the same rule
+ * ADR-010 §7 fixes for Product Detail and the lead detail already follows.
+ *
+ * **A missing subject can never look like an empty valid detail.** There is no branch that
+ * synthesizes a `ReviewDetailResponse`, no default object, and no `?? {}`. A 200 whose `data` is not
+ * an object with the two discriminating fields is reported as `failed` rather than rendered, so a
+ * body that arrived without a subject in it produces a failure state and not a page of empty panels.
+ *
+ * ## What crosses this boundary
+ *
+ * The curated detail DTO, and nothing else. No status code, no upstream message, no URL, no base
+ * address, no token. Diagnostics carry a route **template** — `specifications/:id`, never the id —
+ * and a failure class. A subject id is not secret, but it is not useful in a log either, and the
+ * response body carries unapproved technical data that a log's retention rules were never written
+ * for.
+ */
+
+export type ReviewDetailResult =
+  | { readonly state: "ok"; readonly value: ReviewDetailResponse }
+  | { readonly state: "unauthenticated" }
+  | { readonly state: "forbidden" }
+  | { readonly state: "invalid-id" }
+  | { readonly state: "not-found" }
+  | { readonly state: "unavailable" }
+  | { readonly state: "failed" };
+
+const NOT_FOUND = 404;
+
+const SPECIFICATION_PATH = "/admin/catalog/review/specifications";
+const PRODUCT_CLAIM_PATH = "/admin/catalog/review/product-claims";
+
+/** One Specification's full review context. */
+export async function getSpecificationReview(id: string): Promise<ReviewDetailResult> {
+  return getSubjectReview("specification", id);
+}
+
+/** One ProductClaim's full review context. */
+export async function getProductClaimReview(id: string): Promise<ReviewDetailResult> {
+  return getSubjectReview("product_claim", id);
+}
+
+/**
+ * The shared read.
+ *
+ * The subject type picks the base path rather than being interpolated into one: the two endpoints
+ * are two controllers on the API side, and a caller here supplies a union member, never a segment.
+ *
+ * `encodeURIComponent` on the id for the same reason `reviewSubjectHref` applies it — an
+ * interpolated segment is encoded because of what a future value might be, not because of what this
+ * one is.
+ */
+async function getSubjectReview(
+  subjectType: ReviewSubjectType,
+  id: string,
+): Promise<ReviewDetailResult> {
+  const base = subjectType === "specification" ? SPECIFICATION_PATH : PRODUCT_CLAIM_PATH;
+
+  const accessToken = await getAdminAccessToken();
+  if (accessToken === null) {
+    // No cookie. Middleware has already had its chance to refresh, so there is no credential to
+    // present and no reason to spend a round trip being told so.
+    return { state: "unauthenticated" };
+  }
+
+  const result: ApiResult<ReviewDetailResponse> = await apiGet<ReviewDetailResponse>(
+    `${base}/${encodeURIComponent(id)}`,
+    undefined,
+    { accessToken },
+  );
+
+  if (result.ok) {
+    if (!isDetail(result.data, subjectType)) {
+      reportDetail(base, "answered 200 with a body that is not a review subject");
+      return { state: "failed" };
+    }
+    return { state: "ok", value: result.data };
+  }
+
+  if (result.reason === "unreachable") {
+    reportDetail(base, `could not be reached (${result.detail})`);
+    return { state: "unavailable" };
+  }
+
+  if (result.reason === "malformed") {
+    reportDetail(base, `answered ${String(result.status)} with a non-envelope body`);
+    return { state: "failed" };
+  }
+
+  if (result.status === UNAUTHORIZED) return { state: "unauthenticated" };
+  if (result.status === FORBIDDEN) return { state: "forbidden" };
+  if (result.status === NOT_FOUND) return { state: "not-found" };
+
+  if (result.status === BAD_REQUEST) {
+    // The API validates `:id` as a UUID and answers 400 for anything else. That is a statement
+    // about the address, not about the platform, and it is not a 404 either: "this is not a subject
+    // address" and "no such subject" are different sentences and lead a reviewer to different next
+    // steps.
+    reportDetail(base, "refused the subject id");
+    return { state: "invalid-id" };
+  }
+
+  reportDetail(base, `answered ${String(result.status)}`);
+  return { state: "failed" };
+}
+
+/**
+ * Whether a 200 body is actually a review subject.
+ *
+ * Deliberately narrow: the discriminant, the id, and that the subject type is the one that was
+ * asked for. It is not a schema validation — the API is the contract and this app does not
+ * re-litigate it — it is the check that stops an unexpected body from being rendered as a subject
+ * with every panel empty. The one thing this must never do is let "nothing came back" look like
+ * "a subject with nothing in it".
+ */
+function isDetail(data: unknown, subjectType: ReviewSubjectType): data is ReviewDetailResponse {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) return false;
+
+  const candidate = data as { subjectType?: unknown; id?: unknown };
+
+  return candidate.subjectType === subjectType && typeof candidate.id === "string";
+}
+
+/** A route template and a description. Never an id, never a body, never a token. */
+function reportDetail(base: string, description: string): void {
+  console.warn(`[admin/catalog/review] GET ${base}/:id — ${description}`);
 }

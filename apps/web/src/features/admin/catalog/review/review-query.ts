@@ -1,4 +1,8 @@
-import { CATALOG_REVIEW_PATH } from "./review-routes";
+import {
+  CATALOG_REVIEW_PATH,
+  PRODUCT_CLAIM_REVIEW_PATH,
+  SPECIFICATION_REVIEW_PATH,
+} from "./review-routes";
 
 import type {
   ReviewClaimKind,
@@ -325,7 +329,20 @@ export function reviewQueueHref(query: ReviewQueueQuery, patch: QueryPatch = {})
   const merged: Record<string, unknown> = { ...query, ...patch };
   if (!("page" in patch)) merged.page = 1;
 
+  const serialized = serializeQuery(merged);
+  return serialized === "" ? CATALOG_REVIEW_PATH : `${CATALOG_REVIEW_PATH}?${serialized}`;
+}
+
+/**
+ * The query state as a query string, with every default omitted.
+ *
+ * Extracted so the detail href and the queue href serialize identically. Two spellings of the same
+ * state would produce two URLs for one screen, and the Back link would stop matching the URL the
+ * reader arrived from.
+ */
+function serializeQuery(merged: Record<string, unknown>): string {
   const search = new URLSearchParams();
+
   for (const key of HREF_ORDER) {
     const value = merged[key];
     if (value === undefined) continue;
@@ -335,8 +352,7 @@ export function reviewQueueHref(query: ReviewQueueQuery, patch: QueryPatch = {})
     search.set(key, String(value));
   }
 
-  const serialized = search.toString();
-  return serialized === "" ? CATALOG_REVIEW_PATH : `${CATALOG_REVIEW_PATH}?${serialized}`;
+  return search.toString();
 }
 
 /** A link to another page of the same filtered, sorted queue. */
@@ -358,6 +374,73 @@ export function toggleHref<K extends keyof ReviewQueueQuery>(
   return reviewQueueHref(query, {
     [key]: query[key] === value ? undefined : value,
   } as QueryPatch);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Outbound — the two detail routes                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A link from a queue row to that subject's detail page.
+ *
+ * ## The path carries the subject id, and only the subject id
+ *
+ * `encodeURIComponent` on the id, always, even though the API validates it as a UUID and every id
+ * this app puts here came from a response rather than from a reader. Encoding an interpolated
+ * segment is not a judgement about the current data; it is what stops the next value that is not a
+ * UUID from changing the shape of the path.
+ *
+ * **Nothing else identifies the subject in the URL.** Not the property key, not the claim kind, not
+ * the product slug, and — categorically — not the source reference. That column is displayed inside
+ * the Review UI and enters no route segment, no query string, no browser history and no
+ * reverse-proxy log; this module does not know the field exists, and `phase-boundary.spec.ts`
+ * asserts that it does not.
+ *
+ * ## The queue context rides along, and it is the SAME state the queue validated
+ *
+ * A reader on page 43 of "unresolved findings, product claims" who opens a subject must come back
+ * to page 43 of that list. The alternatives were both worse:
+ *
+ * - a `returnTo` parameter carrying an arbitrary URL — an open-redirect surface on an
+ *   authenticated screen, and one that would have to be validated against a prefix on every read;
+ * - `history.back()` — a script dependency on a Server-Component page, wrong after a reload, wrong
+ *   when the detail URL was opened directly, and silent when it fails.
+ *
+ * What is carried instead is the **already-parsed, already-validated query object**, re-serialized
+ * by the same function the queue's own links use. The detail page re-parses it with
+ * `readReviewQueueQuery`, so every value is checked against the closed vocabulary a second time,
+ * and the Back href is then rebuilt from `CATALOG_REVIEW_PATH`. A hand-edited parameter cannot make
+ * the Back link point anywhere but at the queue: the destination is a constant, and the only thing
+ * the URL can influence is which filters survive validation.
+ *
+ * `query` is optional. A detail page reached without it — a bookmark, a pasted link — still renders
+ * and still offers a Back link, to the unfiltered queue.
+ */
+export function reviewSubjectHref(
+  subjectType: ReviewSubjectType,
+  id: string,
+  query?: ReviewQueueQuery,
+): string {
+  const base =
+    subjectType === "specification" ? SPECIFICATION_REVIEW_PATH : PRODUCT_CLAIM_REVIEW_PATH;
+  const path = `${base}/${encodeURIComponent(id)}`;
+
+  if (query === undefined) return path;
+
+  // The reader's actual page, not page 1: this is a link out of a list, not a change to the list.
+  const serialized = serializeQuery({ ...query });
+
+  return serialized === "" ? path : `${path}?${serialized}`;
+}
+
+/**
+ * The Back link's destination — the queue, in the state the reader left it.
+ *
+ * Built from `CATALOG_REVIEW_PATH` and the validated query, never from anything the URL supplied
+ * verbatim. There is no parameter that can redirect it, and no branch in which it points off-site.
+ */
+export function backToQueueHref(query: ReviewQueueQuery): string {
+  return reviewQueueHref(query, { page: query.page });
 }
 
 /* -------------------------------------------------------------------------- */

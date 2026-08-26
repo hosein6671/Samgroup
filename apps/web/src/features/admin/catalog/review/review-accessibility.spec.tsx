@@ -86,7 +86,13 @@ function queuePage(): ReactNode {
       <StatusLegend total={1546} />
       <ReviewFilters query={QUERY} />
       <ActiveFilterSummary query={QUERY} filters={filters} total={1546} />
-      <ReviewQueueTable items={[SPECIFICATION, CLAIM]} total={1546} page={1} pages={62} />
+      <ReviewQueueTable
+        items={[SPECIFICATION, CLAIM]}
+        total={1546}
+        page={1}
+        pages={62}
+        query={QUERY}
+      />
       <ReviewPagination query={QUERY} page={1} pages={62} total={1546} />
     </ReviewFrame>
   );
@@ -163,7 +169,8 @@ describe("table semantics", () => {
   it("scopes every column header", () => {
     const headers = findTags(queuePage(), "th").filter((header) => header.props.scope === "col");
 
-    expect(headers).toHaveLength(10);
+    // Eleven since Phase B added the Review column, which links each row to its detail screen.
+    expect(headers).toHaveLength(11);
   });
 
   it("makes the product cell the row header, so each row is identified", () => {
@@ -378,7 +385,7 @@ describe("the whole page", () => {
  */
 describe("the source reference is internal metadata, not product content", () => {
   const rowWithRef = (): ReactNode => (
-    <ReviewQueueTable items={[SPECIFICATION]} total={1} page={1} pages={1} />
+    <ReviewQueueTable items={[SPECIFICATION]} total={1} page={1} pages={1} query={QUERY} />
   );
 
   it("is labelled in full, so it cannot be read as a part number", () => {
@@ -430,7 +437,7 @@ describe("the source reference is internal metadata, not product content", () =>
       product: { ...SPECIFICATION.product, sourceRef: null },
     };
     const text = visibleTextOf(
-      <ReviewQueueTable items={[withoutRef]} total={1} page={1} pages={1} />,
+      <ReviewQueueTable items={[withoutRef]} total={1} page={1} pages={1} query={QUERY} />,
     );
 
     expect(text).not.toContain("Source reference");
@@ -530,5 +537,101 @@ describe("AdminNav — Leads is unchanged and Technical Review is its sibling", 
       .map((link) => String(link.props.href));
 
     expect(current).toEqual(["/admin/leads/inquiries"]);
+  });
+});
+
+/* ========================================================================== */
+/*  Phase B — the row's link into the detail screen                            */
+/* ========================================================================== */
+
+/**
+ * Every queue row now ends in a link to that subject's detail route.
+ *
+ * The two things a table of twenty-five identical links gets wrong are both asserted here: that
+ * each link is **named for what it opens** rather than "Review" twenty-five times (WCAG 2.2 §2.4.4),
+ * and that each goes to the route matching its own subject type rather than to a single generic
+ * one.
+ */
+describe("the queue links into the detail screens", () => {
+  const table = (): ReactNode => (
+    <ReviewQueueTable items={[SPECIFICATION, CLAIM]} total={2} page={1} pages={1} query={QUERY} />
+  );
+
+  it("sends a Specification row to the specifications route", () => {
+    const href = findLinks(table())
+      .map((link) => String(link.props.href))
+      .find((candidate) => candidate.includes("/specifications/"));
+
+    expect(href).toBe(`/admin/catalog/review/specifications/${SPECIFICATION.id}`);
+  });
+
+  it("sends a ProductClaim row to the product-claims route", () => {
+    const href = findLinks(table())
+      .map((link) => String(link.props.href))
+      .find((candidate) => candidate.includes("/product-claims/"));
+
+    expect(href).toBe(`/admin/catalog/review/product-claims/${CLAIM.id}`);
+  });
+
+  it("names each link by the product and what is under review", () => {
+    const names = findLinks(table())
+      .filter((link) => String(link.props.href).includes("/review/s"))
+      .map((link) => String(link.props["aria-label"]));
+
+    expect(names).toEqual(["Review Specification kinematic_viscosity_100c for HSB 2000"]);
+  });
+
+  it("gives the claim row a name that says it is a claim", () => {
+    const name = findLinks(table())
+      .filter((link) => String(link.props.href).includes("/product-claims/"))
+      .map((link) => String(link.props["aria-label"]));
+
+    expect(name).toEqual(["Review Product claim Reference only for HSB 2000"]);
+  });
+
+  it("carries the queue state forward so the reader can come back to it", () => {
+    const filtered: ReviewQueueQuery = {
+      page: 4,
+      limit: DEFAULT_LIMIT,
+      sort: DEFAULT_SORT,
+      unresolvedFindings: true,
+    };
+    const href = findLinks(
+      <ReviewQueueTable items={[SPECIFICATION]} total={1} page={4} pages={9} query={filtered} />,
+    )
+      .map((link) => String(link.props.href))
+      .find((candidate) => candidate.includes("/specifications/"));
+
+    expect(href).toContain("unresolvedFindings=true");
+    expect(href).toContain("page=4");
+  });
+
+  /** The internal import identity is in none of them, filtered or not. */
+  it("puts the source reference in no detail link", () => {
+    for (const link of findLinks(table())) {
+      expect(String(link.props.href)).not.toContain("HSB-001");
+      expect(String(link.props.href)).not.toContain("sourceRef");
+    }
+  });
+
+  /** Every link is an internal Admin path — no scheme, no protocol-relative authority. */
+  it("emits only internal Admin paths", () => {
+    for (const link of findLinks(table())) {
+      const href = String(link.props.href);
+
+      expect(href.startsWith("/admin/")).toBe(true);
+      expect(href.startsWith("//")).toBe(false);
+      expect(href).not.toMatch(/^https?:/);
+    }
+  });
+
+  /** A header cell was added with the column, so the row and the header still agree. */
+  it("keeps a column header for the new cell", () => {
+    const headers = findTags(table(), "th")
+      .filter((cell) => cell.props.scope === "col")
+      .map((cell) => visibleTextOf(cell.props.children as ReactNode));
+
+    expect(headers).toContain("Review");
+    expect(headers).toHaveLength(11);
   });
 });

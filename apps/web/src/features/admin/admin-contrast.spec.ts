@@ -159,6 +159,21 @@ const TEXT_PAIRS: [where: string, foreground: string, background: string][] = [
   ["rejected-parameter list (.ad-warn-list)", "--color-text-secondary", "--color-surface-raised"],
   ["source reference value (.ad-cell-ref)", "--color-text-secondary", "--color-surface-raised"],
   ["source reference on a hovered row", "--color-text-secondary", "--color-surface-inset"],
+  // Catalog technical review — the subject detail screen.
+  ["detail field value (.ad-field-value)", "--color-text-primary", "--color-surface-raised"],
+  ["detail field hint (.ad-field-hint)", "--color-text-secondary", "--color-surface-raised"],
+  ["sub-panel title (.ad-subgroup-title)", "--color-text-secondary", "--color-surface-raised"],
+  ["standing statement (.ad-note--strong)", "--color-text-primary", "--color-surface-raised"],
+  ["evidence card heading (.ad-evidence-title)", "--color-text-tertiary", "--color-surface-sunken"],
+  ["evidence card label (.ad-field-label)", "--color-text-secondary", "--color-surface-sunken"],
+  ["evidence card value (.ad-field-value)", "--color-text-primary", "--color-surface-sunken"],
+  ["evidence card hint (.ad-field-hint)", "--color-text-secondary", "--color-surface-sunken"],
+  [
+    "evidence card absent value (.ad-field-value--absent)",
+    "--color-text-tertiary",
+    "--color-surface-sunken",
+  ],
+  ["back to queue link (.ad-link in .ad-crumb)", "--color-text-accent", "--color-surface-sunken"],
 ];
 
 /**

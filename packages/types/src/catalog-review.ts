@@ -131,3 +131,237 @@ export interface ReviewQueueItemResponse {
   hasUnresolvedFindings: boolean;
   reviewCount: number;
 }
+
+/* ========================================================================== */
+/*  Detail — `GET /api/v1/admin/catalog/review/{subject}/:id`                  */
+/* ========================================================================== */
+
+/**
+ * The curated detail response, added for the Phase B detail routes.
+ *
+ * ── Why these arrive now and not with the queue ────────────────────────────
+ *
+ * The note at the top of this file said the detail shapes "arrive with the gate that renders
+ * them". This is that gate. Nothing below is speculative: every field is read by
+ * `specification-detail.tsx` or `product-claim-detail.tsx`, or by the shared shell they compose.
+ *
+ * ── Still transcribed, still not a Prisma model ────────────────────────────
+ *
+ * `apps/api/src/modules/catalog/review/dto/review.response.ts` remains the authority and is not
+ * imported from here. These are the projections the service assembles field by field — there is no
+ * spread on either side and no passthrough, so a column added to `specifications` or
+ * `source_facts` does not appear here by accident.
+ *
+ * ── No decision shape, deliberately ────────────────────────────────────────
+ *
+ * The API's decision response and decision request body are NOT transcribed here. Phase B ships no
+ * write, and an unused decision shape sitting in a shared package is a capability waiting to be
+ * picked up by the next person who greps for one.
+ *
+ * ── `sourceRef` reaches this file through `ReviewProductRef` and nowhere else ─
+ *
+ * Both detail responses carry the same `ReviewProductRef` the queue carries. The boundary is
+ * unchanged: it is displayed inside the authenticated Review UI and it enters no URL, no log and no
+ * generic Product type. See the note on `ReviewProductRef` above.
+ */
+
+/**
+ * The shape of a normalized value — `SpecValueType`, as the API lowercases it.
+ *
+ * This is the *shape* axis: what the numeric columns mean. It is not the *kind* axis.
+ * `SpecValueKind` — whether the property is numeric, textual or coded — is a `SpecProperty` column
+ * and the review detail response does not serve it. Nothing here infers it.
+ */
+export type ReviewValueType =
+  "point" | "range" | "minimum" | "maximum" | "text" | "report_only" | "code" | "pair";
+
+/** What a recorded number actually is. `unspecified` means the source did not say. */
+export type ReviewResultBasis =
+  "average" | "typical" | "specification_limit" | "measured" | "unspecified";
+
+/** How one `SourceFact` supports the subject. `superseded` evidence is retained, never unlinked. */
+export type ReviewEvidenceRole = "primary" | "corroborating" | "superseded";
+
+/** How the reading was got out of its document. An OCR reading is not a spreadsheet cell. */
+export type ReviewExtractionMethod =
+  "spreadsheet_cell" | "pdf_text_layer" | "pdf_ocr" | "manual_transcription";
+
+/**
+ * What the source said about units for one extracted fact.
+ *
+ * `absent` and `unrecognized` are the two that matter to a reviewer: the first means the source
+ * gave no unit at all, the second means it gave one this platform cannot yet interpret. Neither is
+ * a licence to guess, and no surface may render either as a resolved unit.
+ */
+export type ReviewUnitClassification = "stated" | "absent" | "dimensionless" | "unrecognized";
+
+/** How a `SourceDocument` is addressed. The ratified workbook is an uploaded file with no URL. */
+export type ReviewLocatorType = "url" | "uploaded_file";
+
+/** How confident a raw-property to `SpecProperty` mapping is. Only `high` ever resolves one. */
+export type ReviewMappingConfidence = "high" | "medium" | "low";
+
+/**
+ * What a reviewer decided, as opposed to what state a row is in.
+ *
+ * Read-only here: it is the wire spelling of a recorded, immutable decision, carried so history can
+ * be rendered. It is not a request vocabulary, and no type in this package accepts it as input.
+ */
+export type ReviewHistoryDecision = "approved" | "rejected" | "needs_review" | "superseded";
+
+/**
+ * The normalized Specification under review.
+ *
+ * Both the display string and the numeric payload are served because neither is derivable from the
+ * other, and a reviewer shown only one of them is shown half of what they would be approving. The
+ * decimals are strings: `numeric(20,6)` does not survive a JavaScript double, and a limit that
+ * changes when it is round-tripped is not a limit.
+ */
+export interface ReviewSpecificationValue {
+  propertyKey: string | null;
+  displayValue: string | null;
+  valueType: ReviewValueType | null;
+  numericMin: string | null;
+  numericMax: string | null;
+  pairFirst: string | null;
+  pairSecond: string | null;
+  unit: string | null;
+  method: string | null;
+  qualifier: string | null;
+  resultBasis: ReviewResultBasis;
+}
+
+/**
+ * The ProductClaim under review.
+ *
+ * `kind` is the legal strength of the statement, and it is the field this platform is least willing
+ * to let a UI blur: "formulated for" is an additive target level and "approved by" is a named
+ * body's approval. No surface may present one as the other.
+ */
+export interface ReviewClaimValue {
+  kind: ReviewClaimKind;
+  standardBody: string | null;
+  standardCode: string | null;
+  contextNote: string | null;
+}
+
+/**
+ * The cited source document.
+ *
+ * No bytes and no link. ADR-014 stores no document bytes and the API creates no proxy, no redirect
+ * and no signed URL, so there is nothing here to open. `locatorValue` is the URL or the file name
+ * the document was recorded under; what the Review UI does with it is decided by `locatorType`, and
+ * it is never an anchor.
+ */
+export interface ReviewDocumentRef {
+  id: string;
+  title: string;
+  publisher: string | null;
+  locatorType: ReviewLocatorType;
+  locatorValue: string;
+  revisionLabel: string | null;
+  documentDate: string | null;
+  retrievedAt: string;
+  assetSha256: string | null;
+  assetMediaType: string | null;
+  assetByteSize: number | null;
+  supersededById: string | null;
+}
+
+/**
+ * One immutable `SourceFact` supporting the subject.
+ *
+ * Every raw field is verbatim source text, and that is the reason a review surface exists at all:
+ * the reviewer compares the normalized value against what the document actually said. A UI showing
+ * only the normalized side would be asking someone to approve the platform's own output.
+ */
+export interface ReviewEvidenceEntry {
+  sourceFactId: string;
+  role: ReviewEvidenceRole;
+  note: string | null;
+
+  rawProperty: string | null;
+  rawValue: string;
+  rawUnit: string | null;
+  rawMethod: string | null;
+  rawGrade: string | null;
+
+  extractionMethod: ReviewExtractionMethod;
+  unitClassification: ReviewUnitClassification;
+  resultBasis: ReviewResultBasis;
+
+  pageNumber: number | null;
+  sheetName: string | null;
+  rowNumber: number | null;
+  columnLabel: string | null;
+
+  document: ReviewDocumentRef;
+}
+
+/**
+ * How a raw property reached the controlled dictionary — the durable half of the importer's
+ * findings, and the only half that survives as rows.
+ *
+ * `reviewStatus` here is the mapping's own status, not the subject's. Conflating the two is the
+ * specific misreading this field invites, so the Review UI labels it in full.
+ */
+export interface ReviewMappingRef {
+  rawProperty: string;
+  rawUnit: string | null;
+  specPropertyKey: string | null;
+  confidence: ReviewMappingConfidence;
+  reviewStatus: ReviewStatus;
+  note: string | null;
+  resolvesSubjectProperty: boolean;
+}
+
+/**
+ * One prior decision. Newest first, never filtered and never trimmed — this is the audit trail.
+ *
+ * `reviewerEmail` is a snapshot taken when the decision was recorded, not a join: it still names
+ * the reviewer after the account is deleted, which is when `reviewerId` becomes null.
+ * `evidenceCurrent` says whether the evidence behind that decision still hashes to the same value.
+ */
+export interface ReviewHistoryEntry {
+  id: string;
+  decision: ReviewHistoryDecision;
+  reviewerEmail: string;
+  reviewerId: string | null;
+  reviewedAt: string;
+  note: string | null;
+  evidenceSetHash: string;
+  evidenceCurrent: boolean;
+}
+
+/**
+ * The full review context for one subject.
+ *
+ * `specification` and `claim` are exclusive and match `subjectType`; `mappings` is always empty for
+ * a ProductClaim, because a claim has no property key for a mapping to bear on.
+ *
+ * `evidenceSetHash` is recomputed on every read. It is carried as the identity of the evidence set
+ * as it currently stands, which is what makes each history entry's `evidenceCurrent` meaningful.
+ * Phase B never sends it anywhere.
+ */
+export interface ReviewDetailResponse {
+  subjectType: ReviewSubjectType;
+  id: string;
+  reviewStatus: ReviewStatus;
+  createdAt: string;
+  deletedAt: string | null;
+
+  product: ReviewProductRef;
+  grade: ReviewGradeRef | null;
+
+  specification: ReviewSpecificationValue | null;
+  claim: ReviewClaimValue | null;
+
+  evidenceSetHash: string;
+  evidence: readonly ReviewEvidenceEntry[];
+  mappings: readonly ReviewMappingRef[];
+
+  approvalBlockers: readonly string[];
+  eligibleForApproval: boolean;
+
+  history: readonly ReviewHistoryEntry[];
+}

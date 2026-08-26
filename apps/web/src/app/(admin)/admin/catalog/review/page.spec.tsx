@@ -473,22 +473,50 @@ describe("nothing on this page can write", () => {
     }
   });
 
-  it("links nowhere near the unbuilt detail routes", async () => {
+  /**
+   * Phase B built the two detail routes, so the rows now link at them.
+   *
+   * This test previously asserted the opposite — that nothing linked at an unbuilt route — and it
+   * is amended rather than deleted, because the property that actually matters is unchanged and is
+   * what it now checks: **every link on this page is a read**. A detail route is a page; the
+   * decision sub-collection is not a page and is still named nowhere.
+   */
+  it("links only at the two detail routes, and never at the decision endpoint", async () => {
     const hrefs = findLinks(await render()).map((link) => String(link.props.href));
+    const subjectLinks = hrefs.filter(
+      (href) => href.includes("/specifications/") || href.includes("/product-claims/"),
+    );
+
+    expect(subjectLinks).toEqual([
+      `/admin/catalog/review/specifications/${SPECIFICATION.id}`,
+      `/admin/catalog/review/product-claims/${CLAIM.id}`,
+    ]);
 
     for (const href of hrefs) {
-      expect(href).not.toContain("/specifications/");
-      expect(href).not.toContain("/product-claims/");
       expect(href).not.toContain("/decisions");
+      // `/admin` itself is the dashboard entry in the module navigation, so the prefix has no
+      // trailing separator.
+      expect(href.startsWith("/admin")).toBe(true);
     }
   });
 
-  it("puts no subject id into a link", async () => {
+  /**
+   * A subject id belongs in a detail path and nowhere else — not in a query parameter, and above
+   * all not carrying the Product's internal import identity alongside it.
+   */
+  it("puts a subject id only in its own detail path", async () => {
     const hrefs = findLinks(await render()).map((link) => String(link.props.href));
 
     for (const href of hrefs) {
-      expect(href).not.toContain(SPECIFICATION.id);
-      expect(href).not.toContain(CLAIM.id);
+      for (const id of [SPECIFICATION.id, CLAIM.id]) {
+        if (!href.includes(id)) continue;
+
+        expect(href.endsWith(`/${id}`) || href.includes(`/${id}?`)).toBe(true);
+        expect(href).not.toContain(`=${id}`);
+      }
+
+      expect(href).not.toContain("HSB-001");
+      expect(href).not.toContain("sourceRef");
     }
   });
 });

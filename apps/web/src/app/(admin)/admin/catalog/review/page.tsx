@@ -126,6 +126,7 @@ export default async function CatalogReviewQueuePage({
               total={result.value.total}
               page={result.value.page}
               pages={lastPage(result.value.total, result.value.limit)}
+              query={query}
             />
           )}
 

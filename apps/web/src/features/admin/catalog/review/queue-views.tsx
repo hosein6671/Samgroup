@@ -6,6 +6,7 @@ import {
   REVIEW_STATUSES,
   reviewPageHref,
   reviewQueueHref,
+  reviewSubjectHref,
   SORTS,
   SUBJECT_TYPES,
   toggleHref,
@@ -37,11 +38,14 @@ import type { ReactNode } from "react";
  * the detail response carries, and there is no detail route yet.
  *
  * This file renders no form at all — the only one on the page is the shell's sign-out, which
- * `AdminShell` owns. Every filter is a link, so the whole control set is a set of navigations.
+ * `AdminShell` owns. Every filter is a link, so the whole control set is a set of navigations, and
+ * so is the way into a subject.
  *
- * For the same reason **no row links anywhere**. `/admin/catalog/review/specifications/:id` is
- * Phase B; a row linking at it today would be a link to a 404, which is worse than a row that is
- * plainly a row.
+ * Each row now ends in a link to that subject's Phase B detail route — a Specification to
+ * `/admin/catalog/review/specifications/:id`, a ProductClaim to
+ * `/admin/catalog/review/product-claims/:id`. Both routes exist; nothing here links at a 404. The
+ * href is built by `reviewSubjectHref`, carries the subject id and the current queue state, and
+ * carries nothing else.
  *
  * ## What is deliberately not on screen
  *
@@ -576,11 +580,17 @@ export function ReviewQueueTable({
   total,
   page,
   pages,
+  query,
 }: {
   readonly items: readonly ReviewQueueItemResponse[];
   readonly total: number;
   readonly page: number;
   readonly pages: number;
+  /**
+   * The queue state the rows were fetched with. Carried into each detail link so the reader comes
+   * back to the list they left, and never used for anything else.
+   */
+  readonly query: ReviewQueueQuery;
 }): ReactNode {
   return (
     <div
@@ -605,11 +615,12 @@ export function ReviewQueueTable({
             <th scope="col">Evidence</th>
             <th scope="col">Decisions</th>
             <th scope="col">Recorded</th>
+            <th scope="col">Review</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
-            <QueueRow item={item} key={`${item.subjectType}:${item.id}`} />
+            <QueueRow item={item} key={`${item.subjectType}:${item.id}`} query={query} />
           ))}
         </tbody>
       </table>
@@ -618,14 +629,37 @@ export function ReviewQueueTable({
 }
 
 /**
- * One row.
+ * One row, ending in a link to that subject's detail page.
  *
- * `id` is present in the props and reaches the DOM only as the React key — it is a UUID, it names
- * nothing a person recognises, and it becomes useful furniture in Phase B when it is what a detail
- * link is built from. There is no human label it is standing in for here.
+ * ## Where the link goes, and how it is named
+ *
+ * A Specification links to `/admin/catalog/review/specifications/:id`, a ProductClaim to
+ * `/admin/catalog/review/product-claims/:id`. `reviewSubjectHref` picks the base from the row's own
+ * `subjectType`, so the two can never cross.
+ *
+ * The accessible name identifies **the product and what is under review** — "Review Specification
+ * kinematic_viscosity_100c for HSB 2000" — rather than being "Review" repeated down the column.
+ * WCAG 2.2 §2.4.4 asks a link to make sense from its own text, and twenty-five identical links do
+ * not. The visible text stays short because the row around it carries the same information; the
+ * full sentence is in `aria-label`, which is what a screen reader's link list reads.
+ *
+ * ## What the URL carries
+ *
+ * The subject id, and the queue state so the reader can come back to the page and filters they
+ * left. **Not the source reference**: that column is displayed on this screen and enters no URL,
+ * no browser history and no access log. `review-query.ts`, which builds this href, does not know
+ * the field exists.
  */
-function QueueRow({ item }: { readonly item: ReviewQueueItemResponse }): ReactNode {
+function QueueRow({
+  item,
+  query,
+}: {
+  readonly item: ReviewQueueItemResponse;
+  readonly query: ReviewQueueQuery;
+}): ReactNode {
   const neverApprovable = item.claimKind !== null && claimKindIsNeverApprovable(item.claimKind);
+  const subject =
+    item.propertyKey ?? (item.claimKind === null ? null : CLAIM_KIND_LABEL[item.claimKind]);
 
   return (
     <tr>
@@ -677,6 +711,17 @@ function QueueRow({ item }: { readonly item: ReviewQueueItemResponse }): ReactNo
       <td className="ad-cell-stamp">{item.reviewCount}</td>
       <td className="ad-cell-stamp">
         <time dateTime={item.createdAt}>{item.createdAt.slice(0, 10)}</time>
+      </td>
+      <td>
+        <Link
+          className="ad-link"
+          href={reviewSubjectHref(item.subjectType, item.id, query)}
+          aria-label={`Review ${SUBJECT_TYPE_LABEL[item.subjectType]}${
+            subject === null ? "" : ` ${subject}`
+          } for ${item.product.name}`}
+        >
+          Review
+        </Link>
       </td>
     </tr>
   );

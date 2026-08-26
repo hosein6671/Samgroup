@@ -35,12 +35,27 @@ export type {
 } from "./catalog";
 export type {
   ReviewClaimKind,
+  ReviewClaimValue,
+  ReviewDetailResponse,
+  ReviewDocumentRef,
+  ReviewEvidenceEntry,
+  ReviewEvidenceRole,
+  ReviewExtractionMethod,
   ReviewGradeRef,
+  ReviewHistoryDecision,
+  ReviewHistoryEntry,
+  ReviewLocatorType,
+  ReviewMappingConfidence,
+  ReviewMappingRef,
   ReviewProductRef,
   ReviewQueueItemResponse,
   ReviewQueueSort,
+  ReviewResultBasis,
+  ReviewSpecificationValue,
   ReviewStatus,
   ReviewSubjectType,
+  ReviewUnitClassification,
+  ReviewValueType,
 } from "./catalog-review";
 export type {
   AboutUsClosing,
