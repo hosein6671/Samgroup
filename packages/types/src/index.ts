@@ -34,6 +34,15 @@ export type {
   ProductTypeResponse,
 } from "./catalog";
 export type {
+  ReviewClaimKind,
+  ReviewGradeRef,
+  ReviewProductRef,
+  ReviewQueueItemResponse,
+  ReviewQueueSort,
+  ReviewStatus,
+  ReviewSubjectType,
+} from "./catalog-review";
+export type {
   AboutUsClosing,
   AboutUsContent,
   AboutUsExpertise,

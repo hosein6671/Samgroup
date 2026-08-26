@@ -41,10 +41,10 @@ export const CUSTOMER_ROLE = "customer";
 /**
  * The parts of the Admin surface that have their own entry rule.
  *
- * Two today. A third arrives with the next module, and adding one is meant to be a line here plus
- * the matching `@Roles()` in NestJS — not a change to how any page is written.
+ * Three today. A fourth arrives with the next module, and adding one is meant to be a line here
+ * plus the matching `@Roles()` in NestJS — not a change to how any page is written.
  */
-export type AdminArea = "shell" | "leads";
+export type AdminArea = "shell" | "leads" | "review";
 
 /**
  * Area → the roles permitted to open it.
@@ -56,10 +56,17 @@ export type AdminArea = "shell" | "leads";
  * `leads` is `/admin/leads/**`: the "Forms & Leads" row of the RBAC matrix — Admin (all), Content
  * Manager (read), Sales Expert (own leads only). `customer` is in neither list, and its cell in
  * that row is the public submission form, not this surface.
+ *
+ * `review` is `/admin/catalog/review`: Admin only, mirroring `@Roles(UserRole.ADMIN)` on all three
+ * NestJS review controllers. It is a **separate entry from `shell`** even though the two lists are
+ * identical today, and deliberately so — they are identical by coincidence, not by rule. Folding
+ * review into `shell` would mean that the day the dashboard admits another role, that role silently
+ * gains the screen where technical data is approved for publication.
  */
 export const AREA_ROLES: Readonly<Record<AdminArea, readonly string[]>> = {
   shell: [ADMIN_ROLE],
   leads: [ADMIN_ROLE, CONTENT_MANAGER_ROLE, SALES_EXPERT_ROLE],
+  review: [ADMIN_ROLE],
 };
 
 /** Whether a role may open an area. Unknown roles are refused — the list is an allow-list. */

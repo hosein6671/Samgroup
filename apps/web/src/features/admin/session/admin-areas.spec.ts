@@ -42,8 +42,27 @@ describe("the area role lists follow the RBAC matrix", () => {
     expect(AREA_ROLES.shell).not.toEqual(AREA_ROLES.leads);
   });
 
+  /**
+   * The technical-review queue mirrors `@Roles(UserRole.ADMIN)` on all three NestJS review
+   * controllers. Nothing on it is meant for another role: approving a Specification publishes it to
+   * the public site.
+   */
+  it("keeps the technical-review queue Admin-only", () => {
+    expect(AREA_ROLES.review).toEqual(["admin"]);
+  });
+
+  /**
+   * `shell` and `review` hold the same one role today, and that is a coincidence rather than a
+   * rule. They are separate entries so that the day the dashboard admits another role, that role
+   * does not silently gain the screen where technical data is approved. This asserts they are
+   * distinct objects, not equal contents — equality is exactly what is expected right now.
+   */
+  it("keeps the shell and the review queue as separate entries, not one list shared", () => {
+    expect(AREA_ROLES.review).not.toBe(AREA_ROLES.shell);
+  });
+
   it("admits no role outside the four the platform defines", () => {
-    for (const area of ["shell", "leads"] as const) {
+    for (const area of ["shell", "leads", "review"] as const) {
       for (const role of AREA_ROLES[area]) {
         expect(ROLES).toContain(role);
       }
@@ -55,12 +74,16 @@ describe("roleMayEnter", () => {
   it.each([
     ["admin", "shell", true],
     ["admin", "leads", true],
+    ["admin", "review", true],
     ["content_manager", "shell", false],
     ["content_manager", "leads", true],
+    ["content_manager", "review", false],
     ["sales_expert", "shell", false],
     ["sales_expert", "leads", true],
+    ["sales_expert", "review", false],
     ["customer", "shell", false],
     ["customer", "leads", false],
+    ["customer", "review", false],
   ] as const)("%s may enter %s: %s", (role, area, expected) => {
     expect(roleMayEnter(role, area)).toBe(expected);
   });
@@ -69,7 +92,9 @@ describe("roleMayEnter", () => {
   it("refuses an unknown role everywhere", () => {
     expect(roleMayEnter("superadmin", "shell")).toBe(false);
     expect(roleMayEnter("superadmin", "leads")).toBe(false);
+    expect(roleMayEnter("superadmin", "review")).toBe(false);
     expect(roleMayEnter("", "leads")).toBe(false);
+    expect(roleMayEnter("", "review")).toBe(false);
   });
 });
 

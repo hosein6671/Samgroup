@@ -142,6 +142,23 @@ const TEXT_PAIRS: [where: string, foreground: string, background: string][] = [
     "--color-text-secondary",
     "--color-surface-raised",
   ],
+  // Catalog technical review.
+  ["review status badge (.ad-badge)", "--color-text-primary", "--color-surface-inset"],
+  ["review legend title (.ad-legend-title)", "--color-text-tertiary", "--color-surface-raised"],
+  ["review legend term (.ad-legend-term)", "--color-text-primary", "--color-surface-raised"],
+  ["cleared-findings note (.ad-quiet)", "--color-text-tertiary", "--color-surface-raised"],
+  ["queue secondary line (.ad-cell-sub)", "--color-text-tertiary", "--color-surface-raised"],
+  ["queue secondary line on a hovered row", "--color-text-tertiary", "--color-surface-inset"],
+  ["filter group label (.ad-filter-label)", "--color-text-tertiary", "--color-surface-sunken"],
+  [
+    "active-filter summary (.ad-filter-summary)",
+    "--color-text-secondary",
+    "--color-surface-sunken",
+  ],
+  ["rejected-parameter title (.ad-warn-title)", "--color-text-primary", "--color-surface-raised"],
+  ["rejected-parameter list (.ad-warn-list)", "--color-text-secondary", "--color-surface-raised"],
+  ["source reference value (.ad-cell-ref)", "--color-text-secondary", "--color-surface-raised"],
+  ["source reference on a hovered row", "--color-text-secondary", "--color-surface-inset"],
 ];
 
 /**

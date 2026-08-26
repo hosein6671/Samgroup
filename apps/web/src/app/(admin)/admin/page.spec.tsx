@@ -129,7 +129,9 @@ describe("authenticated admin", () => {
 
     const { text } = await renderAdmin();
 
-    expect(text).toContain("The lead inbox is the only operational module built so far");
+    expect(text).toContain(
+      "the catalog technical-review queue are the operational modules built so far",
+    );
   });
 
   /**
@@ -181,7 +183,9 @@ describe("authenticated non-admin", () => {
       const { text } = await renderAdmin();
 
       expect(text).toContain("Access denied");
-      expect(text).not.toContain("The lead inbox is the only operational module built so far");
+      expect(text).not.toContain(
+        "the catalog technical-review queue are the operational modules built so far",
+      );
       // The shell's own module navigation is not rendered for a role it refuses.
       expect(text).not.toContain("Custom formulation requests");
     }

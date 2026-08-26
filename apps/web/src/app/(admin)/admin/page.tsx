@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { signOut } from "@/features/admin/actions";
 import { LOGIN_PATH, SESSION_END_PATH } from "@/features/admin/admin-routes";
+import { CATALOG_REVIEW_PATH } from "@/features/admin/catalog/review/review-routes";
 import {
   CUSTOM_FORMULATION_REQUESTS_PATH,
   INQUIRIES_PATH,
@@ -172,9 +173,12 @@ export default async function AdminPage(): Promise<ReactNode> {
       <h1 className="ad-heading">Admin Dashboard</h1>
 
       {/*
-       * The navigation, and the smallest thing that reaches the only built module. Two links, no
+       * The navigation, and the smallest thing that reaches each built module. Three links, no
        * sidebar, no section headings, no counts — an operator needs a way in, and everything beyond
        * that is a navigation architecture this gate has no basis to design.
+       *
+       * Leads and Technical Review are siblings, not a hierarchy: they are separate areas with
+       * separate role lists, and neither is reached through the other.
        *
        * Visibility here is an affordance, never the boundary: this page is Admin-only, so an Admin
        * is the only role that reaches it, and every link's destination re-checks entry for itself.
@@ -186,11 +190,15 @@ export default async function AdminPage(): Promise<ReactNode> {
         <Link className="ad-nav-link" href={CUSTOM_FORMULATION_REQUESTS_PATH}>
           Custom formulation requests
         </Link>
+        <Link className="ad-nav-link" href={CATALOG_REVIEW_PATH}>
+          Technical review
+        </Link>
       </nav>
 
       <p className="ad-note">
-        Your session is active. The lead inbox is the only operational module built so far —
-        catalog, blog, users, locales and translations are not available yet.
+        Your session is active. The lead inbox and the catalog technical-review queue are the
+        operational modules built so far — catalog editing, blog, users, locales and translations
+        are not available yet.
       </p>
     </main>
   );

@@ -18,13 +18,26 @@
  * granted — `admits the review module only behind an Admin guard` below re-reads those files and
  * fails if any of them serves the column without `@Roles(UserRole.ADMIN)` and both guards.
  *
+ * ── The frontend half of the exemption (ADMIN-REVIEW-UI-1B-H1) ─────────────
+ *
+ * The Architect ruled that the column is the stable internal import identity a reviewer needs to
+ * tell two subjects apart and locate them in the ratified workbook, so the authenticated Technical
+ * Review Admin surface may render it. It is **not** public product content, and it stays forbidden
+ * in public web routes and components, in Payload, in the public shared content types, in the
+ * public API DTOs, in SEO/sitemap/metadata, in analytics, in logs, in public URLs, and in browser
+ * storage.
+ *
+ * The exemption is therefore **three exact locations**, not a folder and not an app — see
+ * `REVIEW_SURFACE_ALLOWLIST`. `apps/cms` gains nothing; `packages/types/catalog.ts` gains nothing;
+ * no ancestor directory of an approved path gains anything. The negative mutation test below
+ * writes the column into a real public Product component and proves this file still catches it.
+ *
  * ADR-015 §1's rule is unchanged and every other assertion here is untouched: the column stays
- * out of `products.service.ts`, out of every public Product DTO, out of SEO and the sitemap, out
- * of `apps/web`, out of `apps/cms` and out of `packages/types`.
+ * out of `products.service.ts`, out of every public Product DTO, and out of SEO and the sitemap.
  */
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join, relative as relative_, sep } from "node:path";
 
 const CATALOG_DIR = __dirname;
 const API_SRC = join(__dirname, "..", "..");
@@ -69,6 +82,40 @@ const ASSERTS_ABSENCE: readonly string[] = [
 
 /** The Admin review surface, which serves the column deliberately — see the module note above. */
 const REVIEW_DIR_SEGMENT = `${require("node:path").sep}review${require("node:path").sep}`;
+
+/**
+ * The three locations outside `apps/api` permitted to name the column — the Architect's ruling for
+ * ADMIN-REVIEW-UI-1B-H1, transcribed exactly.
+ *
+ * Two directory prefixes and **one exact file**. Everything else in `apps/web`, everything in
+ * `apps/cms`, and every other file in `packages/types` stays closed. Deliberately NOT exempted, and
+ * each of these was offered and refused:
+ *
+ * - all of `apps/web` — the public routes and the Product components live there;
+ * - all Admin routes — the lead inbox has no business knowing an import identity;
+ * - all of `packages/types` — `catalog.ts` is what every public consumer imports;
+ * - `apps/cms` — Payload owns editorial content, and no exemption reaches it;
+ * - the public Product components, under any framing.
+ *
+ * Written as repository-relative POSIX strings so the ruling is legible next to the ruling, and
+ * compared after normalising the candidate path. `isApprovedReviewPath` requires a directory entry
+ * to match as a **path prefix ending in a separator**, so `…/catalog/review-notes.ts` and
+ * `…/catalog/reviewer.tsx` are not exempt, and a file entry to match in full, so
+ * `catalog-review-extra.ts` is not exempt either.
+ */
+const REVIEW_SURFACE_ALLOWLIST: readonly string[] = [
+  "apps/web/src/app/(admin)/admin/catalog/review/",
+  "apps/web/src/features/admin/catalog/review/",
+  "packages/types/src/catalog-review.ts",
+];
+
+function isApprovedReviewPath(absolute: string): boolean {
+  const relative = relative_(REPO_ROOT, absolute).split(sep).join("/");
+
+  return REVIEW_SURFACE_ALLOWLIST.some((entry) =>
+    entry.endsWith("/") ? relative.startsWith(entry) : relative === entry,
+  );
+}
 
 describe("Product.sourceRef stays internal", () => {
   it("is not named anywhere in the public catalog module outside the importer", () => {
@@ -141,17 +188,134 @@ describe("Product.sourceRef stays internal", () => {
     expect(seo).toEqual([]);
   });
 
-  it("is absent from web and the CMS entirely", () => {
-    for (const app of ["web", "cms"]) {
-      const dir = join(REPO_ROOT, "apps", app, "src");
-      const offenders = sourceFiles(dir, () => false).filter(mentionsSourceRef);
-      expect(offenders).toEqual([]);
-    }
+  it("is absent from apps/web outside the three approved Review paths", () => {
+    const dir = join(REPO_ROOT, "apps", "web", "src");
+    const offenders = sourceFiles(dir, () => false)
+      .filter((path) => !isApprovedReviewPath(path))
+      .filter(mentionsSourceRef);
+    expect(offenders).toEqual([]);
   });
 
-  it("is absent from the shared types package, which both apps consume", () => {
-    const dir = join(REPO_ROOT, "packages", "types", "src");
+  /** Payload owns editorial content. No import identity belongs in it, under any exemption. */
+  it("is absent from the CMS entirely — no path there is exempt", () => {
+    const dir = join(REPO_ROOT, "apps", "cms", "src");
     expect(sourceFiles(dir, () => false).filter(mentionsSourceRef)).toEqual([]);
+  });
+
+  it("is absent from the shared types package outside the Review wire type", () => {
+    const dir = join(REPO_ROOT, "packages", "types", "src");
+    const offenders = sourceFiles(dir, () => false)
+      .filter((path) => !isApprovedReviewPath(path))
+      .filter(mentionsSourceRef);
+    expect(offenders).toEqual([]);
+  });
+
+  /**
+   * The generic Product shapes, named individually.
+   *
+   * `catalog.ts` is what every public consumer imports, and it is the file an exemption would most
+   * plausibly leak into — a `ProductListItemResponse` carrying the column would put it on the
+   * public Product pages without anyone editing a Product component. Checked by name rather than
+   * by folder, so a rename is a failure rather than a silent gap.
+   */
+  it("is absent from the generic shared Product types", () => {
+    const offenders = ["catalog.ts", "content.ts", "seo.ts", "blog.ts", "api.ts"].filter((name) =>
+      mentionsSourceRef(join(REPO_ROOT, "packages", "types", "src", name)),
+    );
+
+    expect(offenders).toEqual([]);
+  });
+
+  /* ------------------------------------------------------------------ */
+  /* The allowlist itself                                                */
+  /* ------------------------------------------------------------------ */
+
+  it("exempts exactly three locations, and no ancestor of them", () => {
+    expect(REVIEW_SURFACE_ALLOWLIST).toEqual([
+      "apps/web/src/app/(admin)/admin/catalog/review/",
+      "apps/web/src/features/admin/catalog/review/",
+      "packages/types/src/catalog-review.ts",
+    ]);
+  });
+
+  it.each([
+    // The three approved locations.
+    ["apps/web/src/app/(admin)/admin/catalog/review/page.tsx", true],
+    ["apps/web/src/features/admin/catalog/review/queue-views.tsx", true],
+    ["packages/types/src/catalog-review.ts", true],
+    // Ancestors of them, which the ruling explicitly refuses to exempt.
+    ["apps/web/src/app/(admin)/admin/leads/inquiries/page.tsx", false],
+    ["apps/web/src/app/(admin)/admin/page.tsx", false],
+    ["apps/web/src/features/admin/admin-shell.tsx", false],
+    ["apps/web/src/features/admin/leads/inbox-frame.tsx", false],
+    ["packages/types/src/catalog.ts", false],
+    ["packages/types/src/index.ts", false],
+    // Public surfaces.
+    ["apps/web/src/app/[locale]/products/[slug]/page.tsx", false],
+    ["apps/web/src/features/products/product-card.tsx", false],
+    ["apps/cms/src/collections/Media.ts", false],
+    // Near-misses that must not slip through a loose prefix or a substring match.
+    ["apps/web/src/features/admin/catalog/review-notes.ts", false],
+    ["apps/web/src/features/admin/catalog/reviewer.tsx", false],
+    ["packages/types/src/catalog-review-extra.ts", false],
+    ["apps/web/src/app/(admin)/admin/catalog/review.tsx", false],
+  ])("classifies %s as exempt: %s", (relative, exempt) => {
+    expect(isApprovedReviewPath(join(REPO_ROOT, ...relative.split("/")))).toBe(exempt);
+  });
+
+  /**
+   * Negative mutation coverage.
+   *
+   * An allowlist that is never exercised against a violation is a list, not a guard. This writes
+   * the column into a **real, representative public Product file**, re-runs the same scan the test
+   * above runs, asserts it is caught, and restores the file — so the proof is that the guard fails
+   * on a public Product component, not that it would.
+   *
+   * The restore is in `finally` and the assertion is deferred until after it, so a failing
+   * expectation cannot leave the working tree modified.
+   */
+  it("still fails when the column appears in a representative public Product component", () => {
+    const victim = join(
+      REPO_ROOT,
+      "apps",
+      "web",
+      "src",
+      "features",
+      "products",
+      "product-card.tsx",
+    );
+    const original = readFileSync(victim, "utf8");
+
+    let caught: string[] = [];
+    try {
+      writeFileSync(victim, `${original}\n// sourceRef\n`, "utf8");
+      caught = sourceFiles(join(REPO_ROOT, "apps", "web", "src"), () => false)
+        .filter((path) => !isApprovedReviewPath(path))
+        .filter(mentionsSourceRef);
+    } finally {
+      writeFileSync(victim, original, "utf8");
+    }
+
+    expect(caught).toEqual([victim]);
+    expect(readFileSync(victim, "utf8")).toBe(original);
+  });
+
+  /** The same mutation inside an approved Review path is permitted — the exemption is real. */
+  it("permits the column inside an approved Review path", () => {
+    const allowed = join(
+      REPO_ROOT,
+      "apps",
+      "web",
+      "src",
+      "features",
+      "admin",
+      "catalog",
+      "review",
+      "queue-views.tsx",
+    );
+
+    expect(isApprovedReviewPath(allowed)).toBe(true);
+    expect(mentionsSourceRef(allowed)).toBe(true);
   });
 
   it("is declared on the Prisma model, so the boundary is a choice and not an accident", () => {

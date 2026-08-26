@@ -1,16 +1,19 @@
 import Link from "next/link";
 
-import { signOut } from "@/features/admin/actions";
-
-import { ADMIN_PATH } from "../admin-routes";
-import { roleMayEnter } from "../session/admin-areas";
-
-import { CUSTOM_FORMULATION_REQUESTS_PATH, INQUIRIES_PATH } from "./lead-routes";
+import { AdminShell } from "../admin-shell";
 
 import type { ReactNode } from "react";
 
 /**
- * The chrome and the non-happy states every inbox page shares.
+ * The non-happy states every inbox page shares, and the inbox's page frame.
+ *
+ * ── The chrome is no longer here ───────────────────────────────────────────
+ *
+ * The header, the identity line, the sign-out control and the module navigation moved to
+ * `features/admin/admin-shell.tsx` and `features/admin/admin-nav.tsx` when Technical Review arrived
+ * as a sibling area. Neither is re-exported from this file: nothing imported them through it, and a
+ * pass-through export would leave two plausible owners for one component. Import them from the
+ * neutral Admin area.
  *
  * ── One frame, so the states cannot drift ──────────────────────────────────
  *
@@ -42,23 +45,16 @@ import type { ReactNode } from "react";
 export type LeadSection = "inquiries" | "custom-formulation-requests";
 
 /**
- * The bar at the top of every inbox page: who you are, the way out, and the way between modules.
+ * The lead inbox page frame.
  *
- * `user` is nullable because one state has no identity to show: when the platform could not answer,
- * the page knows a credential exists but not whose it is. Inventing a placeholder identity for that
- * case would be asserting something the render does not know.
+ * Chrome comes from the neutral `AdminShell`; this adds nothing to it but the inbox vocabulary.
+ * The rendered markup is byte-for-byte what this component produced before the extraction — same
+ * landmark, same bar, same identity line, same sign-out form, same navigation, same `<h1>` — which
+ * is what the lead specs pin and why they needed no change.
  *
- * ── Landmarks ──────────────────────────────────────────────────────────────
- *
- * One `<main id="main-content">` per page — the target the root layout's skip link already points
- * at — and one `<nav>` with an accessible name. No `role="main"` or `role="navigation"` is added on
- * top: the native elements already carry those roles, and duplicating them is noise.
- *
- * ── Headings ───────────────────────────────────────────────────────────────
- *
- * `title` is the page's only `<h1>`, and every state rendered inside the frame uses `<h2>`. Nothing
- * skips a level for styling: the wordmark above it is a `<p>`, because it names the product rather
- * than the page.
+ * `section` stays named `section` rather than being renamed to the shell's `current`: four call
+ * sites pass it, it is the inbox's own word, and renaming it would be churn in files this gate has
+ * no business touching. It is a subset of `AdminNavKey`, so it passes straight through.
  */
 export function InboxFrame({
   title,
@@ -72,96 +68,9 @@ export function InboxFrame({
   readonly children: ReactNode;
 }): ReactNode {
   return (
-    <main className="ad-shell ad-shell--wide" id="main-content">
-      <div className="ad-bar">
-        <div>
-          <p className="ad-mark">SAM Group Admin</p>
-          {user === null ? null : (
-            <p className="ad-identity">
-              {user.email} · <span className="ad-role">{user.role}</span>
-            </p>
-          )}
-        </div>
-        <form action={signOut}>
-          <button className="ad-signout" type="submit">
-            Sign out
-          </button>
-        </form>
-      </div>
-
-      {user === null ? null : <AdminNav role={user.role} section={section} />}
-
-      <h1 className="ad-heading">{title}</h1>
-
+    <AdminShell title={title} user={user} current={section}>
       {children}
-    </main>
-  );
-}
-
-/**
- * The Admin navigation.
- *
- * ── Affordance, not a boundary ─────────────────────────────────────────────
- *
- * **Every entry is filtered by the same area rule the destination enforces**, so nobody is offered a
- * link to a page that will refuse them. That is usability: the security boundary is the NestJS
- * guard, and hiding a link protects nothing.
- *
- * Two consequences, and the second was found in a browser rather than reasoned about:
- *
- * - The Admin-shell entry appears only for a role that may enter `/admin`. A Content Manager or
- *   Sales Expert working the inbox is not shown a link to a page that would answer "Access denied"
- *   — which is what the previous "← Admin" crumb would have done once those roles could get here.
- * - **A Customer sees no navigation at all.** They can reach this frame: `/admin/leads/inquiries`
- *   renders the refusal *inside* it, so the page still has its chrome and its sign-out control. If
- *   the entries were unconditional, the one role with no admin access anywhere would be looking at
- *   a menu of two pages that both refuse them. With no entry to render, the `<nav>` is omitted
- *   rather than emitted empty — an unlabelled empty landmark is noise in the landmark list.
- *
- * `aria-current="page"` marks the entry for the inbox being viewed, so a screen-reader user knows
- * where they are in the set without inferring it from the heading.
- */
-function AdminNav({
-  role,
-  section,
-}: {
-  readonly role: string;
-  readonly section?: LeadSection;
-}): ReactNode {
-  const entries: { href: string; label: string; current: boolean }[] = [];
-
-  if (roleMayEnter(role, "shell")) {
-    entries.push({ href: ADMIN_PATH, label: "Admin", current: false });
-  }
-
-  if (roleMayEnter(role, "leads")) {
-    entries.push(
-      { href: INQUIRIES_PATH, label: "Inquiries", current: section === "inquiries" },
-      {
-        href: CUSTOM_FORMULATION_REQUESTS_PATH,
-        label: "Custom formulation requests",
-        current: section === "custom-formulation-requests",
-      },
-    );
-  }
-
-  if (entries.length === 0) {
-    return null;
-  }
-
-  return (
-    <nav className="ad-nav ad-nav--inline" aria-label="Admin modules">
-      {entries.map((entry) => (
-        <Link
-          className="ad-nav-link"
-          href={entry.href}
-          aria-current={entry.current ? "page" : undefined}
-          key={entry.href}
-        >
-          {entry.label}
-        </Link>
-      ))}
-    </nav>
+    </AdminShell>
   );
 }
 

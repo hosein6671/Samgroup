@@ -818,3 +818,381 @@
 .ad-cell-assigned {
   white-space: nowrap;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CATALOG TECHNICAL REVIEW
+   --------------------------------------------------------------------------
+   The review queue's additions. Same rule as everything above: every value
+   resolves to a token from `@sam-group/ui`, and no colour, size, radius,
+   duration or spacing literal is invented.
+
+   Nothing here restyles an existing class. `.ad-table` keeps its padding and
+   its rhythm for the lead inbox; the queue opts into `.ad-table--dense`
+   instead, so a denser operational screen cannot make the inbox denser too.
+
+   No animation is introduced. The surface has none to reduce, which is why
+   there is still no `prefers-reduced-motion` block in this file — one that
+   disabled nothing would be a claim rather than a safeguard.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* --- status and findings badges ------------------------------------------ */
+
+/*
+ * A badge is not a control: it is never focusable, never activatable, and it
+ * identifies nothing the reader can operate. §1.4.11 therefore does not reach
+ * its border, which is why the boundary tokens below are not added to the
+ * component table in admin-contrast.spec.ts. Its *text* is normal text and is
+ * measured — `--color-text-primary` on `--color-surface-inset`, the pairing the
+ * selected filter chip already uses.
+ *
+ * The variants differ by border weight and by their words, never by hue alone
+ * (§1.4.1). Delete every colour from this block and the queue still reads
+ * correctly, because the label is the information.
+ */
+.ad-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  letter-spacing: var(--text-technical--letter-spacing);
+  font-weight: var(--text-technical--font-weight);
+  color: var(--color-text-primary);
+  background: var(--color-surface-inset);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/*
+ * The two statuses the catalogue actually holds. Both mean unapproved, and
+ * neither is styled as the quieter of the two: `source_recorded` is 1,416 of
+ * the 1,546 rows and dimming it would read as "already handled".
+ */
+.ad-badge--source-recorded,
+.ad-badge--approved,
+.ad-badge--rejected,
+.ad-badge--superseded {
+  border-color: var(--color-border-strong);
+}
+
+/* The importer attached a reason. Heavier boundary, and the word says so. */
+.ad-badge--needs-review,
+.ad-badge--finding {
+  border-color: var(--color-border-accent);
+  font-weight: 600;
+}
+
+/* The absence of a finding — quieter than the badge, and still a full phrase. */
+.ad-quiet {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+/* Property keys and parameter names, which are identifiers rather than prose. */
+.ad-mono {
+  font-family: var(--font-technical);
+}
+
+/* --- the legend ----------------------------------------------------------- */
+
+/*
+ * What the queue contains, and why it opens on all of it. This is the ratified
+ * D8 explanation, rendered rather than left to a convention nobody can see.
+ */
+.ad-legend {
+  margin: 0 0 24px;
+  padding: 20px 24px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+}
+
+.ad-legend-title {
+  margin: 0 0 12px;
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  letter-spacing: var(--text-technical--letter-spacing);
+  font-weight: var(--text-technical--font-weight);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.ad-legend-list {
+  margin: 16px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+/* Term beside definition on a wide screen, stacked below it on a narrow one. */
+.ad-legend-row {
+  display: grid;
+  gap: 4px 20px;
+}
+
+@media (min-width: 48rem) {
+  .ad-legend-row {
+    grid-template-columns: minmax(10rem, 14rem) 1fr;
+    align-items: start;
+  }
+}
+
+.ad-legend-row dd {
+  margin: 0;
+}
+
+.ad-legend-term {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* --- filters -------------------------------------------------------------- */
+
+.ad-filter-panel {
+  margin: 0 0 20px;
+  display: grid;
+  gap: 12px;
+}
+
+/*
+ * Each row is a labelled group of chips. The label is real text with an id, and
+ * the chip group references it with `aria-labelledby`, so "Subject type" is the
+ * accessible name of that navigation rather than something a sighted reader
+ * infers from proximity.
+ */
+.ad-filter-row {
+  display: grid;
+  gap: 6px 16px;
+}
+
+@media (min-width: 48rem) {
+  .ad-filter-row {
+    grid-template-columns: minmax(7rem, 9rem) 1fr;
+    align-items: baseline;
+  }
+}
+
+.ad-filter-label {
+  margin: 0;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-tertiary);
+}
+
+/* The chip group keeps `.ad-filters`; only its trailing margin is neutralised. */
+.ad-filter-row .ad-filters {
+  margin: 0;
+}
+
+/* --- the active-filter summary -------------------------------------------- */
+
+/*
+ * Why the count is the count, in words. Rendered whether or not anything is
+ * filtered, because "no filter is applied" is the answer to the same question.
+ */
+.ad-filter-summary {
+  margin: 0 0 16px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-secondary);
+}
+
+.ad-filter-summary p {
+  margin: 0 0 6px;
+}
+
+.ad-filter-active {
+  margin: 0 0 6px;
+  padding: 0 0 0 20px;
+  display: grid;
+  gap: 2px;
+}
+
+.ad-filter-active-label {
+  color: var(--color-text-tertiary);
+}
+
+/*
+ * Target size (§2.5.8). Every link in the summary and in a queue notice is a
+ * short word or phrase in prose, and an inline link there measures about 18px
+ * tall — under the 24px minimum. Measured in a browser at 375px, not assumed.
+ */
+.ad-filter-active .ad-link,
+.ad-filter-summary .ad-link,
+.ad-notice .ad-link {
+  display: inline-block;
+  padding-block: 4px;
+}
+
+/* --- the rejected-parameter notice ---------------------------------------- */
+
+/*
+ * Parameters the page refused before building the request. A standing
+ * condition, not a form outcome, so it is not `.ad-feedback`: the accent edge
+ * is on the leading side, as a logical property, so it follows the writing
+ * direction if the Admin chrome is ever anything other than LTR.
+ */
+.ad-warn {
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-hairline);
+  border-inline-start: 3px solid var(--color-border-accent);
+  border-radius: var(--radius-md);
+}
+
+.ad-warn-title {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.ad-warn-list {
+  margin: 8px 0 0;
+  padding: 0 0 0 20px;
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-text-secondary);
+}
+
+/* --- the dense queue table ------------------------------------------------ */
+
+/*
+ * A modifier, never a change to `.ad-table`. The queue carries ten columns over
+ * up to a hundred rows and the inbox carries six over twenty-five; one rhythm
+ * cannot serve both, and loosening the queue to match the inbox would push half
+ * its columns off any screen.
+ */
+.ad-table--dense th,
+.ad-table--dense td {
+  padding: 8px 12px;
+}
+
+/*
+ * The scroll region is focusable, so a keyboard-only reader can scroll it
+ * (§2.1.1 — a scrollable box reachable only by pointer is operable only by
+ * pointer). It carries `role="region"` and a name in the markup; the ring is
+ * drawn here.
+ */
+.ad-table-scroll:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/*
+ * The Product cell stacks its name, its slug and its taxonomy. It is the row
+ * header, and it is the one cell allowed to be tall — everything else in the row
+ * is a single value.
+ *
+ * Scoped to the dense modifier, not to the bare class: `.ad-cell-name` already
+ * exists for the lead inbox and means something narrower there. Every queue cell
+ * rule below is scoped the same way, so nothing about the inbox moves.
+ */
+.ad-table--dense .ad-cell-name {
+  min-width: 13rem;
+  max-width: 20rem;
+  white-space: normal;
+}
+
+.ad-table--dense .ad-cell-strong {
+  display: block;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.ad-table--dense .ad-cell-sub {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-technical);
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+
+/*
+ * The one cell that wraps. A specification summary is a phrase-shaped value and
+ * forcing it onto one line pushes every column after it off the screen for no
+ * benefit.
+ */
+.ad-table--dense .ad-cell-summary {
+  white-space: normal;
+  min-width: 14rem;
+  max-width: 22rem;
+}
+
+/* --- the source reference in a queue row ---------------------------------- */
+
+/*
+ * The value itself, inside the `Source reference` line of the Product cell.
+ *
+ * Monospace, because it is an identifier and its characters have to be
+ * distinguishable one at a time. One step stronger than the `.ad-cell-sub`
+ * label around it so the value reads as the value — and still well below the
+ * Product name, which stays the cell's only strong text.
+ *
+ * No link, no button, no copy affordance: the ruling forbids all three in this
+ * phase, and each would invite treating an internal identity as something to
+ * hand to somebody outside this screen.
+ */
+.ad-table--dense .ad-cell-ref {
+  font-family: var(--font-technical);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Narrow viewports — the three triage columns must be readable without scrolling.
+ *
+ * Product, Status and Findings are the columns that identify a row and say what
+ * to do about it, and at 375px their desktop widths overflow the region by about
+ * 30px — which puts Status half off-screen and makes the first thing a reader
+ * needs the first thing they have to scroll for. The remaining seven columns
+ * still scroll, and nothing is hidden: with no Phase B detail route yet, a hidden
+ * column would be unreachable rather than merely deferred.
+ *
+ * Everything here is scoped to the dense modifier, so the lead inbox is untouched.
+ */
+@media (max-width: 47.99rem) {
+  .ad-table--dense .ad-cell-name {
+    min-width: 9rem;
+    max-width: 12rem;
+  }
+
+  .ad-table--dense .ad-cell-summary {
+    min-width: 10rem;
+  }
+
+  /* Two short lines beat one line the reader has to scroll to finish. */
+  .ad-table--dense .ad-cell-status {
+    white-space: normal;
+  }
+
+  .ad-table--dense .ad-cell-status .ad-badge {
+    white-space: normal;
+  }
+}
+
+/*
+ * Phone widths. At 375px the three triage columns still overran the region by
+ * about 26px, so the Product cell gives up another 2rem — it is the column with
+ * a second and third line to fall back on, and the one that reads correctly at
+ * any width because the name wraps.
+ */
+@media (max-width: 26rem) {
+  .ad-table--dense .ad-cell-name {
+    min-width: 8rem;
+    max-width: 10rem;
+  }
+
+  /* The last 24px, taken from horizontal padding rather than from a column. */
+  .ad-table--dense th,
+  .ad-table--dense td {
+    padding: 8px 8px;
+  }
+}
