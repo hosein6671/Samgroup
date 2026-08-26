@@ -152,7 +152,24 @@ An independent module consuming **only** the public API — never a database con
 
 ## 4. Current Repository State
 
-### Exists
+**Authoritative snapshot: 27 August 2026 on `feature/design-system`.** The implementation and [ROADMAP.md](./ROADMAP.md) Current Status override the historical bootstrap snapshot retained below.
+
+- `apps/api` is a working NestJS application with public catalog/blog/content/SEO reads, two public lead-write flows, email notifications, JWT/RBAC, refresh sessions, lead administration, guarded catalog import and the catalog technical-review API.
+- `apps/web` is a working Next.js 15 application with canonical locale routes, Product Family/Product Detail/Product Finder, Insights, CMS-backed company pages, a BFF Admin session shell, lead workflow screens, and catalog technical-review queue/detail screens with explicit decision controls.
+- `apps/cms` is a Payload 3 application isolated in `sam_cms`. Media/SEO foundations plus `AboutUs`, `CustomizedSolutions` and `QualityCertifications` Globals are wired end to end through NestJS. The remaining content model is incomplete.
+- `sam_platform` includes the taxonomy, slug registry, auth sessions, lead workflow, consent revision, catalog provenance/import/review schema and the ADR-017 review-invalidation machinery.
+- ADR-001 through ADR-017 are accepted. The latest delivered boundary is ADR-017: versioned subject-specific review hashes, atomic stale-approval invalidation and immutable source identity.
+- Current catalog review state is intentionally empty: no `TechnicalReview`, approved Specification or approved ProductClaim exists in live DEV. The external sources remain uncaptured.
+- **Latest completed gates:** Phase C, the technical-review decision UI, followed by the guarded source-capture operator path. Specification and Product Claim details can approve, reject or return eligible subjects through the existing NestJS endpoints, with status/hash concurrency protection and no browser-held API credential. `pnpm catalog:sources:capture` can inspect an explicitly supplied artifact and, after separate database/hash confirmations, attach its immutable identity to an existing uncaptured `SourceDocument`. No source bytes are stored, no locator is fetched or printed, and no approval is created. No live database capture has been executed; the 16 external sources remain uncaptured.
+- Still absent or unresolved: approved commercial Product data and Product Type vocabulary; approved legal/contact content; the remaining Payload Globals/collections; several contracted form/Admin surfaces; application Dockerfiles, CI Phases 2–3 and production deployment.
+
+Git at this snapshot: `feature/design-system` and `origin/feature/design-system` both point to `73b3e3622805f348590df09a2ccaa350ab11cdb2`; the branch is 78 commits ahead of `origin/main` (`8fd74d7`) and not behind. The tracked worktree is clean. Local untracked workspace-control files are not project implementation and must not be treated as repository status.
+
+### Historical bootstrap snapshot — superseded
+
+The remainder of this section records the state when the design-system foundation first landed. It is retained for provenance only. Statements below that `apps/web`/`apps/cms` are `.gitkeep` placeholders, that authentication/forms/Admin do not exist, or that only two commits are unpushed are **not current**.
+
+### Exists at the historical snapshot
 
 ```
 sam-group-platform/
@@ -191,7 +208,7 @@ sam-group-platform/
     └── config/               shared Tailwind v4 entry + PostCSS config
 ```
 
-### Runs today
+### Ran at the historical snapshot
 
 The infrastructure stack is functional, not just declared:
 
@@ -216,7 +233,7 @@ Supporting these: a global response-envelope interceptor and exception filter, l
 
 **The frontend design system exists** in `packages/ui` — design tokens authored in TypeScript and generated into a Tailwind v4 theme layer, plus 13 Server-Component primitives. Consumed through `packages/config`'s shared Tailwind entry. Full record: [design/DESIGN_SYSTEM.md](./design/DESIGN_SYSTEM.md).
 
-### Does not exist
+### Did not exist at the historical snapshot
 
 - **`apps/web` and `apps/cms` contain only `.gitkeep`.** No Next.js scaffold, no Payload config. The design system has therefore **never been rendered in a browser** — it is verified by compiled-CSS inspection and a measured contrast audit, not by looking at it.
 - **No authentication.** No `auth` module, no JWT issuance, no RBAC guards. Every endpoint above is an unauthenticated public read.
@@ -224,7 +241,7 @@ Supporting these: a global response-envelope interceptor and exception filter, l
 - No application Dockerfiles, no CI Phases 2–3, no `docker-compose.prod.yml`, no TLS configuration (only a `.example` template).
 - Root `README.md` is still a zero-byte placeholder.
 
-### Git state
+### Git state at the historical snapshot
 
 |                 |                                                                                                            |
 | --------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -239,7 +256,7 @@ Unpushed on `feature/design-system`: `75d6d23` (design system foundation) and `d
 
 **Note on branching.** Every commit before `75d6d23` was made directly on `main`, which contradicts [CODING_STANDARDS.md](./CODING_STANDARDS.md#branching)'s `feature/<short-name>` rule. The A-2 work is the first to follow the documented convention. If direct-to-main is actually the intent for a solo build, `CODING_STANDARDS.md` should say so rather than leaving the two to disagree.
 
-### Bootstrap phase status
+### Bootstrap phase status at the historical snapshot
 
 **Infrastructure and tooling bootstrap is complete**, and implementation has moved past it. The original 15-step plan's numbering no longer maps cleanly onto what was actually executed — several later steps (tooling, CI, Docker) landed before the app scaffolds. Track by capability instead:
 
@@ -258,7 +275,9 @@ Unpushed on `feature/design-system`: `75d6d23` (design system foundation) and `d
 
 ---
 
-## 5. Implementation Order
+## 5. Historical Implementation Order — superseded
+
+This dependency plan is retained to explain how the repository reached its present state. Its “Next” markers are historical and must not be used for current planning. Phase C, formerly the current next gate, is now implemented as described in §4; a subsequent product gate has not yet been selected.
 
 Dependency order, not a schedule. Each step assumes the previous ones landed.
 
@@ -396,11 +415,20 @@ This project has an unusually complete specification. Nearly every implementatio
 
 ### Continue from the current phase
 
-**Infrastructure, database and the backend read layer are built** — monorepo, tooling, CI Phase 1, the Docker stack with the ADR-002 boundary verified, the Prisma schema and initial migration, and a NestJS application serving public reads for health, locales, catalog and SEO. The **frontend design system foundation** is built too, in `packages/ui`/`packages/config`.
+The bootstrap, frontend design proof, canonical public routes, Payload foundation, three CMS-backed company Globals, public lead writes, authentication/session lifecycle, lead Admin workflow, catalog import and the read-only technical-review surface are implemented. ADR-014 through ADR-017 now govern the active catalog work.
 
-**The next implementation boundary is the frontend design proof, step A-3** (§5 step 8): scaffold `apps/web` (Next.js 15, App Router, Tailwind) and render the design system. This matters more than it sounds — the design system has never been displayed in a browser, so its rhythm, glass, gradients, midnight sections and scroll reveals are verified only by inspecting compiled CSS.
+**The latest completed UI implementation boundary is Phase C: the technical-review decision UI.** `apps/web/src/features/admin/catalog/review/phase-boundary.spec.ts` now enforces the write boundary rather than forbidding it: one server-only decision POST path, one Server Action, explicit status/hash concurrency inputs, no generic status mutation, no bulk or superseded-subject decision, display-only provenance and no browser-held credential. Specification and Product Claim detail screens expose approve, reject and return-to-review without combining this gate with catalog content approval, source capture, Product Type vocabulary or unrelated Admin work. Choose and approve the next product gate separately.
 
-Two things remain available out of order and depend on nothing above: the **form submission endpoints** (§5 step 4's remainder) and **authentication** (§5 step 5). Otherwise follow §5's order. Do not skip ahead to page work — building UI against endpoints that don't exist produces throwaway work. Verify §4 against the repository before trusting it; status in this project has gone stale before.
+**The following gate adds source capture without broadening the public or Admin API.** Its executable is `pnpm catalog:sources:capture`; it takes `--document-id`, `--file`, `--media-type` and optional `--page-count`. Exactly one mode is required:
+
+- `--dry-run` reads the local artifact in memory, computes its lowercase SHA-256 and metadata, verifies the `SourceDocument` exists, prints no locator or file path, and performs no write.
+- `--apply` additionally requires `--target-database sam_platform` and `--confirm-sha256 <digest>`. The connected database is checked independently. Inside one SERIALIZABLE transaction the writer locks the document, reuses an identical immutable `SourceAsset` or creates it, and applies only `sourceAssetId: NULL → asset id`. ADR-017's database triggers own any `SOURCE_CAPTURE_CHANGED` invalidation.
+- Identical replay is a no-op. A different hash or different immutable metadata is refused; that situation is a new `SourceDocument` revision, never an in-place rewrite.
+- The CLI does not download URLs, retain source bytes, write object storage, expose locators, create evidence, change review status directly or approve anything. Real source artifacts and explicit per-run apply authorization are still required, so all 16 external sources remain uncaptured.
+
+Verification at this handoff: root lint passed; root type-check passed (5/5 tasks); the full workspace test run passed — all 80 active API suites with 1,687 tests, all 51 web suites with 1,109 tests, and all 113 CMS tests. The five database-backed API suites remain skipped under their existing environment gates. The focused source-capture set also passed 11/11, including transaction writer coverage.
+
+Before starting it, read ADR-014 through ADR-017 and the relevant Admin/API contracts, identify every file involved, report the implementation plan, and obtain the separate code approval required by `CLAUDE.md`.
 
 ### Working conventions established here
 

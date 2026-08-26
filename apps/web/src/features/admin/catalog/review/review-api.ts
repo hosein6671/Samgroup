@@ -1,6 +1,6 @@
 import "server-only";
 
-import { apiGet } from "@/lib/api-client";
+import { apiGet, apiPost } from "@/lib/api-client";
 
 import { getAdminAccessToken } from "../../session/session";
 import { toQueueRequest } from "./review-query";
@@ -9,6 +9,8 @@ import type { ReviewQueueQuery } from "./review-query";
 import type { ApiResult } from "@/lib/api-client";
 import type {
   ReviewDetailResponse,
+  ReviewDecisionRequest,
+  ReviewDecisionResponse,
   ReviewQueueItemResponse,
   ReviewSubjectType,
 } from "@sam-group/types";
@@ -312,4 +314,80 @@ function isDetail(data: unknown, subjectType: ReviewSubjectType): data is Review
 /** A route template and a description. Never an id, never a body, never a token. */
 function reportDetail(base: string, description: string): void {
   console.warn(`[admin/catalog/review] GET ${base}/:id — ${description}`);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Phase C — one immutable decision                                           */
+/* -------------------------------------------------------------------------- */
+
+export type ReviewDecisionResult =
+  | { readonly state: "ok"; readonly value: ReviewDecisionResponse }
+  | { readonly state: "unauthenticated" }
+  | { readonly state: "forbidden" }
+  | { readonly state: "invalid"; readonly field: string | null; readonly issue: string | null }
+  | { readonly state: "not-found" }
+  | {
+      readonly state: "conflict";
+      readonly blockers: readonly string[];
+    }
+  | { readonly state: "unavailable" }
+  | { readonly state: "failed" };
+
+/**
+ * POST one decision from a Server Action. The caller's status and hash are comparison values only;
+ * NestJS recomputes the hash under the subject lock and persists that value, never this request's.
+ */
+export async function decideReviewSubject(
+  subjectType: ReviewSubjectType,
+  id: string,
+  body: ReviewDecisionRequest,
+): Promise<ReviewDecisionResult> {
+  const base = subjectType === "specification" ? SPECIFICATION_PATH : PRODUCT_CLAIM_PATH;
+  const accessToken = await getAdminAccessToken();
+  if (accessToken === null) return { state: "unauthenticated" };
+
+  const result = await apiPost<ReviewDecisionResponse>(
+    `${base}/${encodeURIComponent(id)}/decisions`,
+    body,
+    { accessToken },
+  );
+
+  if (result.ok) return { state: "ok", value: result.data };
+
+  if (result.reason === "unreachable") {
+    reportDecision(base, `could not be reached (${result.detail})`);
+    return { state: "unavailable" };
+  }
+
+  if (result.reason === "malformed") {
+    reportDecision(base, `answered ${String(result.status)} with a non-envelope body`);
+    return { state: "failed" };
+  }
+
+  if (result.status === UNAUTHORIZED) return { state: "unauthenticated" };
+  if (result.status === FORBIDDEN) return { state: "forbidden" };
+  if (result.status === NOT_FOUND) return { state: "not-found" };
+
+  if (result.status === BAD_REQUEST) {
+    return {
+      state: "invalid",
+      field: result.details?.[0]?.field ?? null,
+      issue: result.details?.[0]?.issue ?? null,
+    };
+  }
+
+  if (result.status === 409) {
+    return {
+      state: "conflict",
+      blockers: result.details?.map((detail) => detail.issue) ?? [],
+    };
+  }
+
+  reportDecision(base, `answered ${String(result.status)}`);
+  return { state: "failed" };
+}
+
+/** A route template and a failure class. Never an id, request body, hash, token or response body. */
+function reportDecision(base: string, description: string): void {
+  console.warn(`[admin/catalog/review] POST ${base}/:id/decisions — ${description}`);
 }

@@ -747,6 +747,66 @@
   outline-offset: 2px;
 }
 
+/* Catalog review Phase C. One vertical decision flow keeps the status/hash comparison,
+ * immutable note and submit action readable at phone width and at 200% zoom. */
+.ad-review-decision-form {
+  display: grid;
+  gap: 10px;
+  max-width: var(--container-measure);
+  margin-top: 20px;
+}
+
+.ad-review-decision-form .ad-label {
+  margin: 0;
+}
+
+.ad-review-decision-form .ad-select,
+.ad-review-decision-form .ad-textarea {
+  width: 100%;
+}
+
+.ad-textarea {
+  min-height: 112px;
+  resize: vertical;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-text-primary);
+  background: var(--color-surface-canvas);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.ad-textarea:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.ad-textarea[aria-invalid="true"] {
+  border-color: var(--color-text-accent);
+  border-width: 2px;
+}
+
+.ad-review-decision-form .ad-workflow-submit {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.ad-review-decision-form .ad-feedback {
+  margin-top: 4px;
+}
+
+.ad-review-decision-form .ad-feedback p,
+.ad-review-decision-form .ad-feedback ul {
+  margin: 0;
+}
+
+.ad-review-decision-form .ad-feedback ul {
+  padding-inline-start: 20px;
+  margin-top: 8px;
+}
+
 /* The live region. It takes the full row so an announcement never squeezes the
  * control it describes off the line. */
 .ad-feedback {

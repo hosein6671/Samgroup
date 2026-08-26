@@ -24,6 +24,7 @@ import {
   VALUE_KIND_MEANING,
   VALUE_TYPE_LABEL,
 } from "./review-vocabulary";
+import { ReviewDecisionControl } from "./decision-control";
 
 import type {
   ReviewDetailResponse,
@@ -165,6 +166,19 @@ export function SpecificationDetail({
       <EvidencePanel evidence={subject.evidence} />
       <ApprovalBlockers blockers={subject.approvalBlockers} />
       <ReviewWarnings warnings={subject.warnings} />
+      <Panel heading="Record a decision">
+        <p className="ad-note">
+          Decisions are permanent audit events. Approval is available only when every mechanical
+          eligibility rule above passes; rejection and return-to-review remain available.
+        </p>
+        <ReviewDecisionControl
+          subjectType={subject.subjectType}
+          id={subject.id}
+          reviewStatus={subject.reviewStatus}
+          evidenceSetHash={subject.evidenceSetHash}
+          eligibleForApproval={subject.eligibleForApproval}
+        />
+      </Panel>
       <ReviewHistory history={subject.history} />
       <ReviewInvalidations invalidations={subject.invalidations} />
     </div>

@@ -559,3 +559,30 @@ export interface ReviewDetailResponse {
    */
   invalidations: readonly ReviewInvalidationEntry[];
 }
+
+/* ========================================================================== */
+/*  Phase C — decision command                                                 */
+/* ========================================================================== */
+
+/** The three decisions the Admin review API accepts. Superseding is never a UI decision. */
+export type ReviewDecisionInput = "approve" | "reject" | "return_to_needs_review";
+
+/** The optimistic-concurrency body sent to one subject's decisions sub-collection. */
+export interface ReviewDecisionRequest {
+  decision: ReviewDecisionInput;
+  expectedReviewStatus: ReviewStatus;
+  expectedEvidenceSetHash: string;
+  note?: string;
+}
+
+/** The authoritative post-state returned after one immutable decision is recorded. */
+export interface ReviewDecisionResponse {
+  subjectType: ReviewSubjectType;
+  id: string;
+  reviewStatus: ReviewStatus;
+  decision: ReviewHistoryDecision;
+  reviewId: string;
+  reviewedAt: string;
+  evidenceSetHash: string;
+  reviewerEmail: string;
+}

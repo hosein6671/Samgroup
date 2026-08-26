@@ -17,6 +17,7 @@
     "test": "turbo run test",
     "seed:catalog": "tsx prisma/seed-catalog.ts",
     "catalog:import": "tsx apps/api/src/modules/catalog/import/catalog-import.run.ts",
+    "catalog:sources:capture": "tsx apps/api/src/modules/catalog/import/capture/source-capture.run.ts",
     "seed:admin": "tsx prisma/seed-admin.ts",
     "seed:categories": "tsx prisma/seed-categories.ts",
     "seed:products:demo": "tsx prisma/seed-products-demo.ts",

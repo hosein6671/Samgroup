@@ -17,6 +17,7 @@ import {
   CLAIM_KIND_PROHIBITED_REASON,
   claimKindIsNeverApprovable,
 } from "./review-vocabulary";
+import { ReviewDecisionControl } from "./decision-control";
 
 import type { ReviewDetailResponse } from "@sam-group/types";
 import type { ReactNode } from "react";
@@ -151,6 +152,19 @@ export function ProductClaimDetail({
       <EvidencePanel evidence={subject.evidence} />
       <ApprovalBlockers blockers={subject.approvalBlockers} prohibited={prohibited} />
       <ReviewWarnings warnings={subject.warnings} />
+      <Panel heading="Record a decision">
+        <p className="ad-note">
+          Decisions are permanent audit events. Approval is available only when every mechanical
+          eligibility rule above passes; rejection and return-to-review remain available.
+        </p>
+        <ReviewDecisionControl
+          subjectType={subject.subjectType}
+          id={subject.id}
+          reviewStatus={subject.reviewStatus}
+          evidenceSetHash={subject.evidenceSetHash}
+          eligibleForApproval={subject.eligibleForApproval}
+        />
+      </Panel>
       <ReviewHistory history={subject.history} />
       <ReviewInvalidations invalidations={subject.invalidations} />
     </div>

@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getProductClaimReview, getReviewQueue, getSpecificationReview } from "./review-api";
+import {
+  decideReviewSubject,
+  getProductClaimReview,
+  getReviewQueue,
+  getSpecificationReview,
+} from "./review-api";
 import { DEFAULT_LIMIT, DEFAULT_SORT } from "./review-query";
 
 import type { ReviewQueueQuery } from "./review-query";
@@ -24,10 +29,10 @@ import type { ReviewQueueQuery } from "./review-query";
  * API's own `details[].field` — a DTO property name it authored.
  */
 
-const { apiGet } = vi.hoisted(() => ({ apiGet: vi.fn() }));
+const { apiGet, apiPost } = vi.hoisted(() => ({ apiGet: vi.fn(), apiPost: vi.fn() }));
 const { getAdminAccessToken } = vi.hoisted(() => ({ getAdminAccessToken: vi.fn() }));
 
-vi.mock("@/lib/api-client", () => ({ apiGet }));
+vi.mock("@/lib/api-client", () => ({ apiGet, apiPost }));
 vi.mock("../../session/session", () => ({ getAdminAccessToken }));
 
 const TOKEN = "access-token-value";
@@ -432,5 +437,76 @@ describe("what a detail failure is allowed to say", () => {
     const result = await getSpecificationReview(SPEC_ID);
 
     expect(Object.keys(result)).toEqual(["state"]);
+  });
+});
+
+describe("the Phase C decision write", () => {
+  const body = {
+    decision: "approve" as const,
+    expectedReviewStatus: "source_recorded" as const,
+    expectedEvidenceSetHash: "2".repeat(64),
+  };
+
+  it("posts one subject decision with the server-held token", async () => {
+    const response = {
+      subjectType: "specification",
+      id: SPEC_ID,
+      reviewStatus: "approved",
+      decision: "approved",
+      reviewId: "33333333-3333-4333-8333-333333333333",
+      reviewedAt: "2026-08-26T20:00:00.000Z",
+      evidenceSetHash: body.expectedEvidenceSetHash,
+      reviewerEmail: "admin@samgp.com",
+    };
+    apiPost.mockResolvedValue(ok(response));
+
+    await expect(decideReviewSubject("specification", SPEC_ID, body)).resolves.toEqual({
+      state: "ok",
+      value: response,
+    });
+    expect(apiPost).toHaveBeenCalledWith(
+      `/admin/catalog/review/specifications/${SPEC_ID}/decisions`,
+      body,
+      { accessToken: TOKEN },
+    );
+  });
+
+  it("carries approval blocker issues out of a 409 without its upstream message", async () => {
+    apiPost.mockResolvedValue({
+      ok: false,
+      reason: "http",
+      status: 409,
+      code: "CONFLICT",
+      message: "This subject is not eligible for approval.",
+      details: [
+        { field: "decision", issue: "A cited source has no captured asset." },
+        { field: "decision", issue: "A required test method is absent." },
+      ],
+    });
+
+    await expect(decideReviewSubject("specification", SPEC_ID, body)).resolves.toEqual({
+      state: "conflict",
+      blockers: ["A cited source has no captured asset.", "A required test method is absent."],
+    });
+  });
+
+  it.each([
+    [400, "invalid"],
+    [401, "unauthenticated"],
+    [403, "forbidden"],
+    [404, "not-found"],
+    [500, "failed"],
+  ])("maps decision HTTP %s to %s", async (status, state) => {
+    apiPost.mockResolvedValue(http(status));
+    const result = await decideReviewSubject("specification", SPEC_ID, body);
+    expect(result.state).toBe(state);
+  });
+
+  it("does not post when the access cookie is absent", async () => {
+    getAdminAccessToken.mockResolvedValue(null);
+    await expect(decideReviewSubject("specification", SPEC_ID, body)).resolves.toEqual({
+      state: "unauthenticated",
+    });
+    expect(apiPost).not.toHaveBeenCalled();
   });
 });
