@@ -42,12 +42,12 @@ export function ProductRegister({ locale }: { readonly locale: string }): ReactN
           <div>
             <p className="fs-eyebrow">The range</p>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "13ch" }}>
-              Six families, one refining chain.
+              Start with the product family.
             </h2>
           </div>
           <p className="fs-lead">
-            Each family below is a page in its own right, with grades, typical properties, packaging
-            and documentation held together rather than scattered across a catalogue.
+            Each family brings its published grades, applications, typical properties, packaging
+            context, and available documents into one review path.
           </p>
         </header>
 

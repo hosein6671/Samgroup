@@ -21,7 +21,7 @@ import { describe, expect, it } from "vitest";
  * ## Why the two rules are asserted together
  *
  * They are the same control in two stylesheets: `.pr-consent` serves the Customized Solutions
- * request form and the Products download gate, `.fm-consent` the Contact Us inquiry form. A
+ * request form, and `.fm-consent` the Contact Us inquiry form. A
  * consent control that meets the target size on one page and not the other is exactly the
  * divergence that made this a shared fix rather than a page-level one.
  */
@@ -95,7 +95,6 @@ describe("every consent checkbox uses a shared construction", () => {
       className: "pr-consent",
     },
     { file: join(FEATURES, "forms", "inquiry-form.tsx"), className: "fm-consent" },
-    { file: join(FEATURES, "products", "sections", "documentation.tsx"), className: "pr-consent" },
   ] as const;
 
   it.each(MARKUP)("$className wraps the checkbox in $file", ({ file, className }) => {
@@ -111,7 +110,7 @@ describe("every consent checkbox uses a shared construction", () => {
     expect(after).toContain("<label htmlFor=");
   });
 
-  it("finds no consent checkbox outside those three sites", () => {
+  it("finds no consent checkbox outside those two sites", () => {
     const sites = MARKUP.map((entry) => entry.file);
     const found = collectCheckboxFiles(FEATURES);
 

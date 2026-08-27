@@ -28,7 +28,7 @@ function landingBody(locale: string): string {
     renderHtml(<ProductsHero locale={locale} />),
     renderHtml(<ProductRegister locale={locale} />),
     renderHtml(<FinderTeaser locale={locale} />),
-    renderHtml(<Documentation />),
+    renderHtml(<Documentation locale={locale} />),
     renderHtml(<ClosingCta locale={locale} />),
   ].join("");
 }

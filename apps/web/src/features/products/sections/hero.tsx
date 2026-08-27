@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { BrandedPhoto } from "@/features/home/branded-photo";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
@@ -29,11 +30,11 @@ export function ProductsHero({ locale }: { readonly locale: string }): ReactNode
       <div className="fs-wrap pr-hero-inner">
         <div className="pr-hero-copy reveal-fade-rise">
           <p className="fs-eyebrow">Products</p>
-          <h1 className="fs-d1">A Complete Range of Petroleum Products</h1>
+          <h1 className="fs-d1">Find the product. Define the requirement.</h1>
           <p className="fs-lead">
-            Six product families, each one a page of its own — base stocks, the additives that turn
-            them into finished fluids, and the finished fluids themselves. Start with the family, or
-            go straight to a grade.
+            Browse base oils, additives, automotive and industrial lubricants, marine oils, and
+            coolants by family—or use the Product Finder when you already know the grade,
+            application, or public specification you need.
           </p>
 
           <div className="pr-hero-actions">
@@ -47,6 +48,18 @@ export function ProductsHero({ locale }: { readonly locale: string }): ReactNode
           </div>
         </div>
 
+        <div className="pr-hero-visual reveal-fade-rise">
+          <BrandedPhoto
+            src="/images/products-portfolio-review.webp"
+            alt="Industrial lubricant containers and oil samples arranged for product review."
+            caption="BASE OILS · ADDITIVES · AUTOMOTIVE · INDUSTRIAL · MARINE · COOLANTS"
+            className="pr-hero-photo"
+            sizes="(max-width: 1180px) 100vw, 48vw"
+          />
+        </div>
+      </div>
+
+      <div className="fs-wrap pr-hero-index">
         <ProductArchitecture />
       </div>
     </section>
@@ -86,7 +99,7 @@ function ProductArchitecture(): ReactNode {
         Product architecture
       </p>
 
-      <p className="pr-arch-note">One refining chain, six engineered branches.</p>
+      <p className="pr-arch-note">Choose a family to review its range and available information.</p>
 
       <ol className="pr-arch-stem">
         {FAMILIES.map((family, i) => (

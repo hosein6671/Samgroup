@@ -1,7 +1,9 @@
-import { VisuallyHidden } from "@sam-group/ui";
 import type { ReactNode } from "react";
 
-import { DOCUMENT_TIERS, DOWNLOAD_FIELDS } from "../products-data";
+import { Arrow } from "@/features/site/logo-mark";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
+
+import { DOCUMENT_TIERS } from "../products-data";
 
 /**
  * 4 · Documentation and catalogue access.
@@ -16,15 +18,10 @@ import { DOCUMENT_TIERS, DOWNLOAD_FIELDS } from "../products-data";
  * ranks the data model above SITE_STRUCTURE, so this block splits into two tiers accordingly.
  * The conflict is reported, not resolved in passing.
  *
- * ── Why the form is disabled rather than wired to nothing ────────────────────
- *
- * There is no submission endpoint until M4. A form that accepts input and silently discards it is
- * worse than no form: it teaches a real buyer that they have made contact when they have not. So
- * the `<fieldset>` carries a real `disabled` attribute — every control drops out of the tab order
- * and out of submission at the platform level, not by styling — and a notice above the fields
- * says so before anyone starts typing. No fake success state, no `preventDefault` theatre.
+ * Catalogue access still has no dedicated DownloadRequest endpoint. The page therefore sends the
+ * buyer to the working enquiry route instead of presenting a disabled or silently inert form.
  */
-export function Documentation(): ReactNode {
+export function Documentation({ locale }: { readonly locale: string }): ReactNode {
   return (
     <section className="fs-sec pr-docs" id="documentation" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -61,7 +58,7 @@ export function Documentation(): ReactNode {
                 ))}
               </ul>
 
-              {tier.kind === "gated" && <DownloadGate />}
+              {tier.kind === "gated" && <CatalogueRoute locale={locale} />}
             </div>
           ))}
         </div>
@@ -71,54 +68,19 @@ export function Documentation(): ReactNode {
 }
 
 /**
- * The qualifying form, in its visual state only.
- *
- * Fields are exactly the set the approved `DownloadRequest` entity records — name, company,
- * country, email, consent — and no more. Every extra field on a lead form is a field the lead
- * does not fill in.
+ * The honest route to catalogue access until the dedicated DownloadRequest contract is shipped.
  */
-function DownloadGate(): ReactNode {
+function CatalogueRoute({ locale }: { readonly locale: string }): ReactNode {
   return (
-    <>
-      <p className="pr-inert">
-        <span aria-hidden="true">◇</span>
-        <span>
-          <strong>Not connected.</strong> This is the design proof — the form is shown in its
-          finished visual state and is deliberately inoperative. Submission endpoints arrive with
-          the backend work; nothing typed here would be sent or stored.
-        </span>
+    <div className="pr-catalogue-route">
+      <p>
+        Share your company, market, and product interest through the enquiry route. Catalogue access
+        can then be handled against a reviewable business request.
       </p>
-
-      <fieldset className="pr-gate-fieldset" disabled>
-        <VisuallyHidden as="legend">Request the catalogue</VisuallyHidden>
-
-        <div className="pr-gate">
-          {DOWNLOAD_FIELDS.map((field) => (
-            <div className="fs-field" key={field.name}>
-              <label htmlFor={`dl-${field.name}`}>{field.label}</label>
-              <input
-                id={`dl-${field.name}`}
-                name={field.name}
-                type={field.type}
-                autoComplete={field.autoComplete}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="pr-consent">
-          <input id="dl-consent" name="consent" type="checkbox" />
-          <label htmlFor="dl-consent">
-            I agree to be contacted about this request and accept the privacy policy.
-          </label>
-        </div>
-
-        <div className="fs-cta-actions">
-          <button type="button" className="fs-btn fs-btn--gold">
-            Download catalogue
-          </button>
-        </div>
-      </fieldset>
-    </>
+      <a href={localeHref(locale, ROUTES.contactUs)} className="fs-btn fs-btn--gold">
+        Request catalogue access
+        <Arrow size={15} />
+      </a>
+    </div>
   );
 }

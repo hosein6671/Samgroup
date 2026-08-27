@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { FAMILIES } from "@/features/products/products-data";
 import { ProductsExperience } from "@/features/products/products-experience";
+import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { getActiveLocales } from "@/lib/locales";
 
 /**
@@ -55,6 +57,7 @@ import { getActiveLocales } from "@/lib/locales";
 const PRODUCTS_TITLE = "Petroleum Products & Lubricants | SAM Group";
 const PRODUCTS_DESCRIPTION =
   "Browse SAM Group base oils, lubricant additives, automotive and industrial lubricants, marine oils, antifreeze, and coolants by family, application, or grade.";
+const PRODUCTS_IMAGE = "/images/products-portfolio-review.webp";
 
 /**
  * Locale-aware search and sharing metadata. The canonical is structural; language alternates stay
@@ -77,13 +80,15 @@ export async function generateMetadata({
       siteName: "SAM Group",
       title: PRODUCTS_TITLE,
       description: PRODUCTS_DESCRIPTION,
+      images: [{ url: PRODUCTS_IMAGE, alt: "SAM Group petroleum and lubricant product portfolio" }],
       url: canonical,
       locale,
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: PRODUCTS_TITLE,
       description: PRODUCTS_DESCRIPTION,
+      images: [PRODUCTS_IMAGE],
     },
   };
 }
@@ -102,6 +107,31 @@ export default async function ProductsPage({
 }): Promise<ReactNode> {
   const { locale } = await params;
   const locales = await getActiveLocales();
+  const canonical = `/${locale}/products`;
+  const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+  const schema: JsonLdObject = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${absoluteUrl}#collectionpage`,
+    url: absoluteUrl,
+    name: PRODUCTS_TITLE,
+    description: PRODUCTS_DESCRIPTION,
+    inLanguage: locale,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: FAMILIES.map((family, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: family.name,
+        url: new URL(`/${locale}${family.href}`, "https://samgp.com").href,
+      })),
+    },
+  };
 
-  return <ProductsExperience locale={locale} locales={locales} />;
+  return (
+    <>
+      <JsonLd data={schema} />
+      <ProductsExperience locale={locale} locales={locales} />
+    </>
+  );
 }

@@ -33,9 +33,9 @@ import { ProductRegister } from "./sections/register";
  * ── What this page is, and is not ───────────────────────────────────────────
  *
  * **It is entirely server-rendered.** Not one component here carries `"use client"`. The register
- * is links, the finder teaser is a picture and a link, the gate is a disabled fieldset, and every
- * reveal is `packages/ui`'s scroll-driven CSS. The only client JavaScript on the page is the
- * header's, which it inherits from the shared chrome.
+ * is links, the finder teaser is a picture and a link, catalogue access uses the working enquiry
+ * route, and every reveal is `packages/ui`'s scroll-driven CSS. The only client JavaScript on the
+ * page is the header's, which it inherits from the shared chrome.
  *
  * **It reuses the homepage's language rather than restating it.** Wrapper, section rhythm,
  * eyebrows, display scale, buttons, blueprint ground, glass and surface switching are all
@@ -61,7 +61,7 @@ export function ProductsExperience({ locale, locales }: SiteNavProps): ReactNode
         <ProductsHero locale={locale} />
         <ProductRegister locale={locale} />
         <FinderTeaser locale={locale} />
-        <Documentation />
+        <Documentation locale={locale} />
         <ClosingCta locale={locale} />
       </main>
 
