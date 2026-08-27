@@ -240,7 +240,7 @@ export function Network(): ReactNode {
         </div>
 
         <BrandedPhoto
-          src="/images/home/network-export-logistics.png"
+          src="/images/home/network-export-logistics.webp"
           alt="Sealed lubricant drums and an IBC prepared beside a shipping container"
           caption="Product packaging and export preparation"
           className="fs-network-photo fs-rv"

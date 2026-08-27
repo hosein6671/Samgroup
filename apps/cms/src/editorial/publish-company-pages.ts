@@ -67,7 +67,7 @@ if (serviceApiKey) {
   );
 }
 
-const teamImageFilename = "sam-group-team-collaboration.png";
+const teamImageFilename = "sam-group-team-collaboration.webp";
 const existingTeamImage = await payload.find({
   collection: "media",
   overrideAccess: true,
@@ -85,12 +85,12 @@ const teamImage =
     },
     file: {
       data: readFileSync(
-        new URL("../../../web/public/images/about-team-collaboration.png", import.meta.url),
+        new URL("../../../web/public/images/about-team-collaboration.webp", import.meta.url),
       ),
-      mimetype: "image/png",
+      mimetype: "image/webp",
       name: teamImageFilename,
       size: readFileSync(
-        new URL("../../../web/public/images/about-team-collaboration.png", import.meta.url),
+        new URL("../../../web/public/images/about-team-collaboration.webp", import.meta.url),
       ).length,
     },
   }));

@@ -36,7 +36,7 @@ export function ContactHero(): ReactNode {
 
         <figure className="ct-hero-media">
           <Image
-            src="/images/home/cta-technical-conversation.png"
+            src="/images/home/cta-technical-conversation.webp"
             alt="Technical sales discussion about a petroleum product requirement"
             fill
             priority

@@ -112,7 +112,7 @@ export function Lab(): ReactNode {
 
         <figure className="fs-lab-photo fs-rv">
           <Image
-            src="/images/home/lab-refrigerator-compressor-oil.png"
+            src="/images/home/lab-refrigerator-compressor-oil.webp"
             alt="Laboratory sample of Refrigerator Compressor Oil KD with a glass pipette"
             fill
             sizes="(max-width: 900px) calc(100vw - 40px), 42vw"

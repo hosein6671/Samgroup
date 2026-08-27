@@ -28,7 +28,7 @@ export async function generateMetadata({
       locale,
       images: [
         {
-          url: "/images/home/network-export-logistics.png",
+          url: "/images/home/network-export-logistics.webp",
           width: 1672,
           height: 941,
           alt: "SAM Group export and logistics planning for petroleum products",
@@ -39,7 +39,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: TITLE,
       description: DESCRIPTION,
-      images: ["/images/home/network-export-logistics.png"],
+      images: ["/images/home/network-export-logistics.webp"],
     },
   };
 }

@@ -79,7 +79,7 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
             </div>
             <figure className="el-hero-media">
               <Image
-                src="/images/home/network-export-logistics.png"
+                src="/images/home/network-export-logistics.webp"
                 alt="Petroleum product logistics planning with containers and industrial packaging"
                 fill
                 priority

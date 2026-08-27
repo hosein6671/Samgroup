@@ -159,7 +159,7 @@ export function Journey(): ReactNode {
 
           <figure className="fs-jrny-photo">
             <Image
-              src="/images/home/journey-requirement-to-supply.png"
+              src="/images/home/journey-requirement-to-supply.webp"
               alt="Oil sample review beside packaged lubricants and an export container"
               fill
               sizes="(max-width: 900px) calc(100vw - 40px), 54vw"

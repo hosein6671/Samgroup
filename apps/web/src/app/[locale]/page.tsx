@@ -59,7 +59,7 @@ export async function generateMetadata({
       locale,
       images: [
         {
-          url: "/images/home/journey-requirement-to-supply.png",
+          url: "/images/home/journey-requirement-to-supply.webp",
           width: 1672,
           height: 941,
           alt: "SAM Group petroleum product review and supply planning",
@@ -70,7 +70,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: HOME_TITLE,
       description: HOME_DESCRIPTION,
-      images: ["/images/home/journey-requirement-to-supply.png"],
+      images: ["/images/home/journey-requirement-to-supply.webp"],
     },
   };
 }

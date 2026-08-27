@@ -77,7 +77,7 @@ export function Story(): ReactNode {
 
         <div className="fs-story-right">
           <BrandedPhoto
-            src="/images/home/story-product-portfolio.png"
+            src="/images/home/story-product-portfolio.webp"
             alt="Industrial lubricant samples and packaging formats arranged in a clean warehouse"
             caption="SAM Group product portfolio"
             className="fs-story-photo fs-rv"

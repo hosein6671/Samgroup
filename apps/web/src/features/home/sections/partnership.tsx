@@ -91,7 +91,7 @@ export function Partnership({ locale }: { readonly locale: string }): ReactNode 
           </p>
 
           <BrandedPhoto
-            src="/images/home/cta-technical-conversation.png"
+            src="/images/home/cta-technical-conversation.webp"
             alt="Two professionals reviewing a lubricant sample and technical document"
             caption="Product and technical enquiry"
             className="fs-cta-photo"
