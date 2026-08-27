@@ -325,6 +325,9 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(24px, 4vw, 56px);
 }
 
 .ab-families a {
@@ -510,7 +513,115 @@
 }
 
 /* ============================================================================
-   5 · QUALITY & STANDARDS
+   5 · TEAM
+   ============================================================================ */
+
+.ab-team {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 68% at 88% 10%, rgba(18, 41, 110, 0.46), transparent 64%),
+    var(--color-surface-canvas);
+}
+
+.ab-team-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(30px, 5vw, 88px);
+  align-items: start;
+}
+
+.ab-team-head {
+  position: static;
+}
+
+.ab-team-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 12ch;
+}
+
+.ab-team-head .fs-lead {
+  margin-top: clamp(18px, 2vw, 26px);
+  max-width: 46ch;
+}
+
+.ab-team-visual {
+  position: relative;
+}
+
+.ab-team-visual .ab-slot-frame {
+  aspect-ratio: 16 / 9;
+  padding: 0;
+}
+
+.ab-team-brand {
+  position: absolute;
+  inset-inline-start: clamp(16px, 2vw, 26px);
+  bottom: clamp(42px, 5vw, 62px);
+  display: grid;
+  place-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-md);
+  background: rgba(3, 12, 34, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.ab-team-functions {
+  grid-column: 2;
+  list-style: none;
+  margin: clamp(24px, 3vw, 40px) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border-hairline);
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ab-team-functions li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 156px;
+  padding: clamp(18px, 2vw, 26px);
+  border-inline-end: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
+  transition:
+    background var(--t-micro) var(--e-micro),
+    transform var(--t-micro) var(--e-micro);
+}
+
+.ab-team-functions li:hover {
+  background: var(--color-glass-fill);
+  transform: translateY(-3px);
+}
+
+.ab-team-functions .fs-tnum {
+  padding-top: 3px;
+  color: var(--color-text-accent);
+}
+
+.ab-team-functions h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 300;
+  line-height: 1.15;
+  color: var(--color-text-primary);
+}
+
+.ab-team-functions p {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   6 · QUALITY & STANDARDS
    ============================================================================ */
 
 .ab-quality-grid {
@@ -649,7 +760,7 @@
 }
 
 /* ============================================================================
-   6 · CLOSING
+   7 · CLOSING
    ============================================================================ */
 
 .ab-close {
@@ -745,7 +856,7 @@
 }
 
 /* ============================================================================
-   7 · RESPONSIVE
+   8 · RESPONSIVE
    The same breakpoints the four pages before this use: 1180, 980, 900, 620.
    ============================================================================ */
 
@@ -753,13 +864,18 @@
   /* Who We Are drops its third column first — the media slot and the family list move under the
      prose rather than being squeezed to a strip. */
   .ab-who-grid {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .ab-who-aside {
     grid-column: 1 / -1;
-    grid-template-columns: clamp(280px, 40vw, 380px) minmax(0, 1fr);
+    grid-template-columns: 1fr;
     align-items: start;
+    max-width: none;
+  }
+
+  .ab-who-head h2 {
+    max-width: 18ch;
   }
 
   .ab-expertise-head {
@@ -770,6 +886,18 @@
 }
 
 @media (max-width: 980px) {
+  .ab-team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-team-head {
+    position: static;
+  }
+
+  .ab-team-functions {
+    grid-column: 1;
+  }
+
   .ab-hero-inner {
     grid-template-columns: 1fr;
     gap: clamp(32px, 5vw, 48px);
@@ -807,9 +935,21 @@
     grid-template-columns: 1fr;
     max-width: 520px;
   }
+
+  .ab-families ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
+  .ab-families ul {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-team-functions {
+    grid-template-columns: 1fr;
+  }
+
   .ab-register-row {
     /* Number above name rather than beside it: at this width the two-column row leaves the name
        four or five words to the line. */
@@ -866,12 +1006,41 @@
 }
 
 .ab-quality-grid[data-figure="no"] {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+}
+
+.ab-quality-grid[data-figure="no"] .ab-quality-head {
+  grid-column: 1;
+}
+
+.ab-quality-grid[data-figure="no"] .ab-quality-body {
+  grid-column: 2;
 }
 
 /* The Who We Are aside still carries the six families when there is no photograph above them. */
 .ab-who-grid[data-figure="no"] .ab-who-aside {
   grid-column: 1 / -1;
+}
+
+/* The CMS-state selector above is more specific than the responsive base selector. Restate the
+   compact-layout contract here so a page without a Who We Are photograph follows the same single
+   content rail as the sections around it. */
+@media (max-width: 1180px) {
+  .ab-who-grid[data-figure="no"] {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .ab-quality-grid[data-figure="no"] {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-quality-grid[data-figure="no"] .ab-quality-head,
+  .ab-quality-grid[data-figure="no"] .ab-quality-body {
+    grid-column: 1;
+  }
 }
 
 /* Rich text from the CMS: the same measure and rhythm the section's own paragraphs had. */

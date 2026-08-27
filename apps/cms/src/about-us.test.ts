@@ -127,12 +127,20 @@ describe("access", () => {
 });
 
 describe("schema", () => {
-  test("it carries the five sections the About page renders, and the SEO group", () => {
+  test("it carries the six sections the About page renders, and the SEO group", () => {
     const top = AboutUs.fields
       .filter((entry): entry is Field & { name: string } => "name" in entry)
       .map((entry) => entry.name);
 
-    assert.deepEqual(top, ["hero", "whoWeAre", "expertise", "qualityStandards", "closing", "seo"]);
+    assert.deepEqual(top, [
+      "hero",
+      "whoWeAre",
+      "expertise",
+      "team",
+      "qualityStandards",
+      "closing",
+      "seo",
+    ]);
   });
 
   test("nothing is modelled for content that has never been approved", () => {
@@ -140,7 +148,7 @@ describe("schema", () => {
       .filter((entry): entry is Field & { name: string } => "name" in entry)
       .map((entry) => entry.name);
 
-    for (const absent of ["milestones", "team", "competitiveAdvantages"]) {
+    for (const absent of ["milestones", "competitiveAdvantages"]) {
       assert.ok(!top.includes(absent), `${absent} must not be modelled before its copy exists`);
     }
   });
@@ -158,6 +166,9 @@ describe("schema", () => {
       "whoWeAre.body",
       "expertise.heading",
       "expertise.lead",
+      "team.eyebrow",
+      "team.heading",
+      "team.lead",
       "qualityStandards.footnote",
       "closing.heading",
     ]) {
@@ -177,6 +188,7 @@ describe("schema", () => {
       "qualityStandards.footnoteCta.route",
       "hero.image",
       "whoWeAre.image",
+      "team.image",
       "qualityStandards.image",
     ]) {
       assert.equal(attribute(path, "localized"), false, `${path} is a fact, not copy`);
@@ -224,6 +236,7 @@ describe("schema", () => {
     for (const path of [
       "whoWeAre.positions",
       "expertise.items",
+      "team.functions",
       "qualityStandards.items",
       "closing.routes",
     ]) {

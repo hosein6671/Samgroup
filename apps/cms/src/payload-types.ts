@@ -480,7 +480,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * The About Us page. Milestones, competitive advantages and team are deliberately not modelled — they have no approved content yet.
+ * The About Us page. Team functions are modelled without invented names or biographies; milestones and competitive advantages remain unmodelled until their facts are approved.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-us".
@@ -562,6 +562,29 @@ export interface AboutUs {
           id?: string | null;
         }[]
       | null;
+  };
+  team?: {
+    eyebrow?: string | null;
+    heading?: string | null;
+    lead?: string | null;
+    /**
+     * Describe accountable functions, not invented people. Add names and biographies only when the real roster and photography are approved.
+     */
+    functions?:
+      | {
+          name: string;
+          note: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * Optional. The section renders without a figure when this is empty.
+     */
+    image?: (number | null) | Media;
+    /**
+     * Optional caption shown under the image.
+     */
+    imageCaption?: string | null;
   };
   qualityStandards?: {
     heading?: string | null;
@@ -1119,6 +1142,22 @@ export interface AboutUsSelect<T extends boolean = true> {
               name?: T;
               id?: T;
             };
+      };
+  team?:
+    | T
+    | {
+        eyebrow?: T;
+        heading?: T;
+        lead?: T;
+        functions?:
+          | T
+          | {
+              name?: T;
+              note?: T;
+              id?: T;
+            };
+        image?: T;
+        imageCaption?: T;
       };
   qualityStandards?:
     | T

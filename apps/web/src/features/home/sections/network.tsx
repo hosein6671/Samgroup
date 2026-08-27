@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { BrandedPhoto } from "../branded-photo";
 import { HQ, HUBS, LAND, NETWORK_STATS } from "../home-data";
 import { useCanvas } from "../motion/use-canvas";
 
@@ -222,29 +223,34 @@ export function Network(): ReactNode {
   return (
     <section className="fs-sec fs-globe" id="network" data-surface="midnight">
       <div className="fs-wrap">
-        <div className="fs-globe-head fs-rv">
+        <div className="fs-globe-head fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Global Export Network</div>
+            <div className="fs-eyebrow">Export enquiry and logistics planning</div>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "15ch" }}>
-              Six terminals. Fifty-two destinations.
+              Define the product. Prepare the shipment brief.
             </h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "36ch" }}>
-            Routing is planned around vessel schedules and port congestion, not around a sales map.{" "}
+            Bring the grade, required quantity, packaging format, destination, and preferred trade
+            term into the same conversation.{" "}
             {/* Explicit space: JSX trims the whitespace before an expression, which ran the
                 sentences together as "sales map.Tap a hub". */}
             {verb} a hub to read its lane.
           </p>
         </div>
 
+        <BrandedPhoto
+          src="/images/home/network-export-logistics.png"
+          alt="Sealed lubricant drums and an IBC prepared beside a shipping container"
+          caption="Product packaging and export preparation"
+          className="fs-network-photo fs-rv"
+          sizes="(max-width: 700px) calc(100vw - 32px), calc(100vw - 128px)"
+        />
+
         <div className="fs-map-shell fs-rv">
           <div className="fs-map-hud">
-            <span className="fs-hud-chip">
-              <b>52</b> markets
-            </span>
-            <span className="fs-hud-chip">
-              <b>6</b> terminals
-            </span>
+            <span className="fs-hud-chip">Product + grade</span>
+            <span className="fs-hud-chip">Packaging + destination</span>
             <span className="fs-hud-chip" aria-live="polite">
               {hovered ? (
                 <>
@@ -282,11 +288,11 @@ export function Network(): ReactNode {
           <div className="fs-map-legend">
             <span className="fs-lg">
               <i style={{ background: "#7FA8FF" }} />
-              <span>Export hub</span>
+              <span>Illustrative route hub</span>
             </span>
             <span className="fs-lg">
               <i style={{ background: "rgba(199,205,214,.5)" }} />
-              <span>Distribution market</span>
+              <span>Illustrative destination</span>
             </span>
           </div>
         </div>

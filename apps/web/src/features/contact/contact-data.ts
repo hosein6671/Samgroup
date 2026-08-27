@@ -48,8 +48,8 @@ export type ContactIntro = {
  */
 export const INTRO: ContactIntro = {
   eyebrow: "Contact",
-  heading: "Start the conversation.",
-  lead: "Product questions, quotations, and sample requests all arrive through one form. The more of a requirement it carries, the fewer rounds it takes to answer.",
+  heading: "Start with the details that shape the answer.",
+  lead: "Product questions, quotations, sample requests, and documentation requests use one enquiry route. Include as much of the requirement as you currently know.",
 };
 
 /**
@@ -63,17 +63,17 @@ export const FORM_HEADINGS = {
   general: {
     eyebrow: "Inquiry",
     heading: "Tell us what you need.",
-    lead: "One form for every kind of inquiry. Choose the type that fits and give as much of the requirement as you have.",
+    lead: "Choose the enquiry type and share the product, application, or question behind it.",
   },
   quote: {
     eyebrow: "Request a quote",
-    heading: "Ask for a price.",
-    lead: "A quotation needs a grade, a quantity and a destination. Anything you can add beyond that shortens the exchange.",
+    heading: "Request commercial terms.",
+    lead: "Add the grade, quantity, packaging, destination, and preferred Incoterm for a focused quotation.",
   },
   sample: {
     eyebrow: "Request a sample",
-    heading: "Ask for a sample.",
-    lead: "A sample is issued before commitment, so your own testing decides. Tell us where it should go.",
+    heading: "Request a product sample.",
+    lead: "Add the product, application, evaluation purpose, and destination so availability can be assessed.",
   },
 } as const;
 

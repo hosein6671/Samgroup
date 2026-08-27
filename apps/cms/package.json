@@ -10,7 +10,9 @@
     "type-check": "tsc --noEmit",
     "test": "node --import tsx --test src/*.test.ts",
     "generate:types": "payload generate:types",
-    "seed:demo": "payload run src/seed/seed-cms-demo.ts"
+    "seed:demo": "payload run src/seed/seed-cms-demo.ts",
+    "publish:company-content": "node --env-file=.env --import tsx src/editorial/publish-company-pages.ts",
+    "rotate:content-service-key": "node --env-file=.env --import tsx src/editorial/rotate-content-service-key.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.88.0",

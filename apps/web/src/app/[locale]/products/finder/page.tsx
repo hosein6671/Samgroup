@@ -64,11 +64,33 @@ import { getActiveLocales } from "@/lib/locales";
  * canonical decision when indexing is switched on, and making that decision here would be making it
  * silently.
  */
-export const metadata: Metadata = {
-  title: "Product Finder — Sam Group",
-  description:
-    "Narrow the published product range by product family and by segment, and open any grade's own page.",
-};
+const FINDER_TITLE = "Product Finder | SAM Group";
+const FINDER_DESCRIPTION =
+  "Search SAM Group products by name, grade, or public specification, then narrow the published range by product family and buyer segment.";
+
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const canonical = `/${locale}/products/finder`;
+
+  return {
+    title: FINDER_TITLE,
+    description: FINDER_DESCRIPTION,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      siteName: "SAM Group",
+      title: FINDER_TITLE,
+      description: FINDER_DESCRIPTION,
+      url: canonical,
+      locale,
+    },
+    twitter: { card: "summary", title: FINDER_TITLE, description: FINDER_DESCRIPTION },
+  };
+}
 
 export default async function ProductFinderPage({
   params,
@@ -102,6 +124,7 @@ export default async function ProductFinderPage({
   const products = getProducts(locale, {
     category: query.category ?? undefined,
     segment: query.segment ?? undefined,
+    q: query.q ?? undefined,
   });
 
   return (

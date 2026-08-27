@@ -52,9 +52,9 @@ import { getActiveLocales } from "@/lib/locales";
  * address or telephone would be an empty claim besides.
  */
 export const metadata: Metadata = {
-  title: "Contact Us — Sam Group",
+  title: "Contact SAM Group | Product & Quote Enquiries",
   description:
-    "Send a product inquiry, request a quotation, or ask for a sample. One form for every kind of inquiry.",
+    "Send a product question, quotation request, sample request, or documentation enquiry with the details needed for review.",
 };
 
 export default async function ContactUsPage({

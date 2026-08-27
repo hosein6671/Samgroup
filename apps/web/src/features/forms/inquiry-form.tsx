@@ -64,6 +64,7 @@ export function InquiryForm({
   inquiryType,
   lockInquiryType = false,
   product = null,
+  variant = "full",
 }: {
   /** The preselected `inquiryType`. Already validated against the vocabulary by the caller. */
   readonly inquiryType: string;
@@ -74,8 +75,11 @@ export function InquiryForm({
    */
   readonly lockInquiryType?: boolean;
   readonly product?: ProductContext | null;
+  /** A shorter homepage treatment; it keeps every API-required field and the message. */
+  readonly variant?: "full" | "compact";
 }): ReactNode {
   const [state, action] = useActionState<SubmissionState, FormData>(submitInquiry, IDLE);
+  const compact = variant === "compact";
 
   if (state.status === "success") {
     return <FormStatus state={state} />;
@@ -87,7 +91,7 @@ export function InquiryForm({
 
       {product !== null && (
         <p className="fm-context">
-          <span>This inquiry will reference</span>
+          <span>This enquiry references</span>
           <b>{product.name}</b>
           <a href={product.href}>View the product</a>
         </p>
@@ -107,7 +111,9 @@ export function InquiryForm({
         {lockInquiryType && <input type="hidden" name="inquiryType" value={inquiryType} />}
 
         <div className="fm-group">
-          <h3 className="fm-group-head">Who is asking</h3>
+          <h3 className="fm-group-head">
+            {compact ? "Contact and requirement" : "Contact details"}
+          </h3>
 
           <div className="fm-grid">
             <Field
@@ -146,19 +152,21 @@ export function InquiryForm({
               required
               autoComplete="email"
             />
-            <Field
-              label="Phone / WhatsApp"
-              name="phone"
-              type="tel"
-              state={state}
-              autoComplete="tel"
-            />
+            {!compact && (
+              <Field
+                label="Phone / WhatsApp"
+                name="phone"
+                type="tel"
+                state={state}
+                autoComplete="tel"
+              />
+            )}
             <Field label="Industry" name="industry" state={state} required />
 
             {!lockInquiryType && (
               <div className="fs-field">
                 <label htmlFor="inq-inquiryType">
-                  Inquiry type
+                  Enquiry type
                   <Required />
                 </label>
                 <select
@@ -177,49 +185,69 @@ export function InquiryForm({
                 <FieldError id="inq-inquiryType-error" issues={issuesFor(state, "inquiryType")} />
               </div>
             )}
+
+            {compact && (
+              <div className="fs-field fm-field--wide">
+                <label htmlFor="inq-message">Product requirement</label>
+                <textarea
+                  id="inq-message"
+                  name="message"
+                  rows={4}
+                  defaultValue={valueFor(state, "message")}
+                  {...invalidProps(state, "message", "inq-message-error")}
+                />
+                <FieldError id="inq-message-error" issues={issuesFor(state, "message")} />
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="fm-group">
-          <h3 className="fm-group-head">What is required</h3>
+        {!compact && (
+          <div className="fm-group">
+            <h3 className="fm-group-head">Product and supply details</h3>
 
-          <div className="fm-grid">
-            <Field label="Required quantity" name="requiredQuantity" state={state} />
-            <Field label="Destination country / port" name="destinationCountryPort" state={state} />
-
-            <div className="fs-field">
-              <label htmlFor="inq-preferredIncoterm">Preferred Incoterm</label>
-              <select
-                id="inq-preferredIncoterm"
-                name="preferredIncoterm"
-                defaultValue={valueFor(state, "preferredIncoterm") ?? ""}
-              >
-                <option value="">Select</option>
-                {INQUIRY_INCOTERMS.map((incoterm) => (
-                  <option key={incoterm} value={incoterm}>
-                    {incoterm}
-                  </option>
-                ))}
-              </select>
-              <FieldError
-                id="inq-preferredIncoterm-error"
-                issues={issuesFor(state, "preferredIncoterm")}
+            <div className="fm-grid">
+              <Field label="Required quantity" name="requiredQuantity" state={state} />
+              <Field
+                label="Destination country / port"
+                name="destinationCountryPort"
+                state={state}
               />
-            </div>
 
-            <div className="fs-field fm-field--wide">
-              <label htmlFor="inq-message">Message</label>
-              <textarea
-                id="inq-message"
-                name="message"
-                rows={5}
-                defaultValue={valueFor(state, "message")}
-                {...invalidProps(state, "message", "inq-message-error")}
-              />
-              <FieldError id="inq-message-error" issues={issuesFor(state, "message")} />
+              <div className="fs-field">
+                <label htmlFor="inq-preferredIncoterm">Preferred Incoterm</label>
+                <select
+                  id="inq-preferredIncoterm"
+                  name="preferredIncoterm"
+                  defaultValue={valueFor(state, "preferredIncoterm") ?? ""}
+                >
+                  <option value="">Select</option>
+                  {INQUIRY_INCOTERMS.map((incoterm) => (
+                    <option key={incoterm} value={incoterm}>
+                      {incoterm}
+                    </option>
+                  ))}
+                </select>
+                <FieldError
+                  id="inq-preferredIncoterm-error"
+                  issues={issuesFor(state, "preferredIncoterm")}
+                />
+              </div>
+
+              <div className="fs-field fm-field--wide">
+                <label htmlFor="inq-message">Product requirement</label>
+                <textarea
+                  id="inq-message"
+                  name="message"
+                  rows={5}
+                  defaultValue={valueFor(state, "message")}
+                  {...invalidProps(state, "message", "inq-message-error")}
+                />
+                <FieldError id="inq-message-error" issues={issuesFor(state, "message")} />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="fm-consent">
           <input id="inq-consent" name="consentGiven" type="checkbox" required />
@@ -228,7 +256,7 @@ export function InquiryForm({
         <FieldError id="inq-consent-error" issues={issuesFor(state, "consentGiven")} />
 
         <div className="fm-actions">
-          <SubmitButton label="Send inquiry" pendingLabel="Sending…" />
+          <SubmitButton label="Send enquiry" pendingLabel="Sending…" />
           <p className="fm-required-note">Fields marked required must be completed.</p>
         </div>
       </form>
@@ -244,7 +272,7 @@ export function InquiryForm({
  * legal review as a launch blocker. A link to a 404 beside a consent checkbox is worse than no
  * link. The same wording the Custom Product Request form already carries.
  */
-const CONSENT_LABEL = "I agree to be contacted about this request and accept the privacy policy.";
+const CONSENT_LABEL = "I agree to be contacted about this enquiry and accept the privacy policy.";
 
 /**
  * The required marker. The asterisk is decorative; the word is what a screen reader reads — an

@@ -8,6 +8,7 @@ import { AboutClosing } from "./sections/closing";
 import { AboutExpertise } from "./sections/expertise";
 import { AboutHero } from "./sections/hero";
 import { AboutQualityStandards } from "./sections/quality-standards";
+import { AboutTeam } from "./sections/team";
 import { AboutWhoWeAre } from "./sections/who-we-are";
 
 import type { AboutUsContent } from "@sam-group/types";
@@ -33,9 +34,9 @@ import type { ReactNode } from "react";
  * cutover rule, and it is what lets this page be published a section at a time. It also means the
  * page cannot render a heading over an empty band.
  *
- * Three sections SITE_STRUCTURE §2 specifies — Company Milestones, Competitive Advantages, Our
- * Team — have no fields in the Global and no components here. Each is blocked on approved content,
- * not on this gate.
+ * Company Milestones and Competitive Advantages remain absent until their factual content is
+ * approved. Team is represented by accountable functions and approved editorial photography,
+ * without fictional names or biographies.
  *
  * ── Still entirely server-rendered ──────────────────────────────────────────
  *
@@ -95,6 +96,7 @@ export function AboutExperience({
         <AboutHero hero={content.hero} locale={locale} />
         {content.whoWeAre !== null && <AboutWhoWeAre whoWeAre={content.whoWeAre} locale={locale} />}
         {content.expertise !== null && <AboutExpertise expertise={content.expertise} />}
+        {content.team !== null && <AboutTeam team={content.team} />}
         {content.qualityStandards !== null && (
           <AboutQualityStandards qualityStandards={content.qualityStandards} locale={locale} />
         )}

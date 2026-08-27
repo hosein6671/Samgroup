@@ -65,6 +65,7 @@ const CONTENT: AboutUsContent = {
   },
   whoWeAre: null,
   expertise: null,
+  team: null,
   qualityStandards: null,
   closing: null,
   seo: {
@@ -243,6 +244,29 @@ describe("/{locale}/about-us", () => {
 
       expect(metadata.title).toBe("VERIFICATION META TITLE");
       expect(metadata.description).toBe("VERIFICATION META DESCRIPTION");
+      expect(metadata.alternates).toEqual({ canonical: "/en/about-us" });
+      expect(metadata.openGraph).toMatchObject({
+        type: "website",
+        siteName: "SAM Group",
+        url: "/en/about-us",
+        locale: "en",
+      });
+    });
+
+    it("emits one shared AboutPage and Organization JSON-LD graph", async () => {
+      getAboutUsContent.mockResolvedValue({ ok: true, content: CONTENT, localeFallback: false });
+
+      const scripts = findTags(await AboutUsPage({ params: params() }), "script");
+      const jsonLd = scripts.find((script) => script.props.type === "application/ld+json");
+      const scriptPayload = jsonLd?.props.dangerouslySetInnerHTML as
+        { readonly __html: string } | undefined;
+      const graph = JSON.parse(scriptPayload?.__html ?? "{}") as {
+        "@graph": readonly { "@type": string; url?: string }[];
+      };
+
+      expect(jsonLd).toBeDefined();
+      expect(graph["@graph"].map((item) => item["@type"])).toEqual(["Organization", "AboutPage"]);
+      expect(graph["@graph"][1]?.url).toBe("https://samgp.com/en/about-us");
     });
 
     it("falls back to the hero heading when no meta title is set", async () => {

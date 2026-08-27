@@ -2,7 +2,10 @@
 
 import { useState, type ReactNode } from "react";
 
+import type { ProductFamilyKey } from "@sam-group/types";
+
 import { Arrow } from "@/features/site/logo-mark";
+import { localeHref, productFamilyByKey } from "@/features/site/site-routes";
 
 import { FAMILIES } from "../home-data";
 import { OrbitVisual } from "../visuals/orbit-visual";
@@ -17,26 +20,33 @@ import { OrbitVisual } from "../visuals/orbit-visual";
  * `<OrbitVisual>`, rebuilt from the approved `sam-group.html` reference. Selection state and
  * the panel/tab wiring around it are untouched.
  */
-export function Ecosystem(): ReactNode {
+const CATEGORY_BY_BRANCH: Readonly<Record<string, ProductFamilyKey>> = {
+  lub: "engine-oils-automotive-lubricants",
+  pet: "base-oils",
+  ind: "industrial-oils-lubricants",
+  aut: "engine-oils-automotive-lubricants",
+  spe: "lubricant-additives",
+};
+
+export function Ecosystem({ locale }: { readonly locale: string }): ReactNode {
   const [active, setActive] = useState<string>(FAMILIES[0]?.id ?? "lub");
 
   const current = FAMILIES.find((f) => f.id === active) ?? FAMILIES[0];
   const index = FAMILIES.findIndex((f) => f.id === active);
+  const category = current ? productFamilyByKey(CATEGORY_BY_BRANCH[current.id] ?? "") : undefined;
 
   return (
     <section className="fs-sec fs-eco" id="products" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
       <div className="fs-wrap">
-        <div className="fs-eco-head fs-rv">
+        <div className="fs-eco-head fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Product Ecosystem</div>
-            <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "16ch" }}>
-              One base oil. Five engineered destinations.
-            </h2>
+            <div className="fs-eyebrow">SAM Group product portfolio</div>
+            <h2 className="fs-d2">Five routes to the product your requirement calls for.</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "38ch" }}>
-            Our portfolio is not a catalogue — it is a single refining chain that branches. Select a
-            branch to inspect its specification envelope.
+            Start with the application or product family. Select a route to review its scope,
+            available grades, and the details needed for a more precise enquiry.
           </p>
         </div>
 
@@ -49,7 +59,7 @@ export function Ecosystem(): ReactNode {
             {current && (
               <>
                 <div className="k">
-                  Branch 0{index + 1} · {current.sub}
+                  Product route 0{index + 1} · {current.sub}
                 </div>
                 <h3>{current.name}</h3>
                 <p>{current.body}</p>
@@ -61,14 +71,17 @@ export function Ecosystem(): ReactNode {
                     </li>
                   ))}
                 </ul>
-                <a
-                  href="#partnership"
-                  className="fs-btn fs-btn--glass"
-                  style={{ marginTop: 24, minHeight: 46 }}
-                >
-                  Request specification
-                  <Arrow size={14} />
-                </a>
+                {category && (
+                  <a
+                    href={localeHref(locale, category.href)}
+                    className="fs-btn fs-btn--glass"
+                    style={{ marginTop: 24, minHeight: 46 }}
+                    aria-label={`View ${category.label}`}
+                  >
+                    Explore this range
+                    <Arrow size={14} />
+                  </a>
+                )}
               </>
             )}
           </div>

@@ -138,6 +138,60 @@
   margin-top: clamp(4px, 1vw, 12px);
 }
 
+.pf-search {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.28fr) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+  align-items: center;
+  padding-block: clamp(16px, 1.8vw, 22px);
+  border-top: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pf-search label {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.pf-search-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.pf-search-control input {
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+.pf-search-control button {
+  min-height: 46px;
+  padding-inline: 22px;
+  border: 1px solid var(--color-border-accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-accent);
+  font: 500 12px var(--font-technical);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pf-search-control input:focus-visible,
+.pf-search-control button:focus-visible {
+  outline: 2px solid var(--color-border-accent);
+  outline-offset: 3px;
+}
+
 .pf-filters .pl-filter {
   margin-top: 0;
 }
@@ -183,4 +237,15 @@
  */
 .pf-results {
   margin-top: clamp(22px, 2.4vw, 32px);
+}
+
+@media (max-width: 700px) {
+  .pf-search {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pf-search-control {
+    grid-template-columns: 1fr;
+  }
 }

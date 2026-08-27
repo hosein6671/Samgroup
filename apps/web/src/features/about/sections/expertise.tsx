@@ -29,7 +29,7 @@ export function AboutExpertise({ expertise }: { readonly expertise: AboutUsExper
         {expertise.items.length > 0 && (
           <div className="ab-register reveal-fade-rise">
             <p className="ab-register-head">
-              <span>Named areas</span>
+              <span>Capability map</span>
               <span className="fs-tnum">{String(expertise.items.length).padStart(2, "0")}</span>
             </p>
             <ol className="ab-register-list">

@@ -43,12 +43,11 @@ export function DemoDataNotice(): ReactNode {
       aria-label="About the figures on this page"
     >
       <div className="fs-wrap fs-demo-note-inner">
-        <span className="fs-demo-tag">Placeholder data</span>
+        <span className="fs-demo-tag">Prototype figures</span>
         <p>
-          Figures, statistics and technical values on this page are{" "}
-          <strong>illustrative placeholder content</strong> from the design prototype — not audited
-          company data. They make no capacity, capability, certification, market or performance
-          claim, and will be replaced with confirmed figures before launch.
+          Figures and technical values shown in interactive diagrams are{" "}
+          <strong>illustrative prototype data</strong>, not audited company information. Confirmed
+          commercial and technical values will replace them before launch.
         </p>
       </div>
     </aside>

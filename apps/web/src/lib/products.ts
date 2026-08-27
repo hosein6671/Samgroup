@@ -103,6 +103,8 @@ export type ProductFilters = {
    * filtering, so this never sends two.
    */
   readonly segment?: string;
+  /** Free-text search supported by the public catalogue endpoint. */
+  readonly q?: string;
 };
 
 /**
@@ -135,6 +137,7 @@ export async function getProducts(
     // in the request at all.
     ...(filters.category === undefined ? {} : { category: filters.category }),
     ...(filters.segment === undefined ? {} : { segment: filters.segment }),
+    ...(filters.q === undefined ? {} : { q: filters.q }),
   });
 
   if (!result.ok) {

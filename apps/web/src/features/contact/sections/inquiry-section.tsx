@@ -28,17 +28,30 @@ export function InquirySection({
   readonly product?: ProductContext | null;
 }): ReactNode {
   return (
-    <section className="fs-sec ct-form" id={ANCHORS.form} data-surface="midnight">
-      <div className="fs-blueprint" aria-hidden="true" />
-
+    <section className="fs-sec ct-form" id={ANCHORS.form} data-surface="light">
       <div className="fs-wrap ct-form-inner">
-        <header className="ct-form-head reveal-fade-rise">
-          <p className="fs-eyebrow">{copy.eyebrow}</p>
-          <h2 className="fs-d2">{copy.heading}</h2>
-          <p className="fs-lead">{copy.lead}</p>
-        </header>
+        <div className="ct-form-intro">
+          <header className="ct-form-head reveal-fade-rise">
+            <p className="fs-eyebrow">{copy.eyebrow}</p>
+            <h2 className="fs-d2">{copy.heading}</h2>
+            <p className="fs-lead">{copy.lead}</p>
+          </header>
 
-        <div className="ct-form-panel reveal-fade-rise">
+          <aside className="ct-brief" aria-labelledby="ct-brief-title">
+            <p className="ct-brief-label" id="ct-brief-title">
+              Useful details
+            </p>
+            <ul>
+              <li>Product, grade, or application</li>
+              <li>Required quantity and packaging</li>
+              <li>Destination country or port</li>
+              <li>Specification or preferred Incoterm</li>
+            </ul>
+            <p>Share only what is known. Missing details can be clarified during review.</p>
+          </aside>
+        </div>
+
+        <div className="ct-form-panel reveal-fade-rise" data-surface="midnight">
           <InquiryForm
             inquiryType={inquiryType}
             lockInquiryType={lockInquiryType}

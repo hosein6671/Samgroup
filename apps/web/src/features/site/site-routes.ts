@@ -125,6 +125,7 @@ export type NavItem = {
 
 export const PRIMARY_NAV: readonly NavItem[] = [
   { label: "Home Page", href: ROUTES.home },
+  { label: "About Us", href: ROUTES.aboutUs },
   { label: "Products", href: ROUTES.products, mega: true },
   { label: "Customized Solutions", href: ROUTES.customizedSolutions },
   { label: "Export & Logistics", href: ROUTES.exportLogistics },
@@ -145,8 +146,8 @@ export const PRIMARY_NAV: readonly NavItem[] = [
  * until the About Us page was built, nothing on the platform linked to any of these three.
  */
 export const SECONDARY_NAV: readonly NavItem[] = [
-  { label: "Quality & Certifications", href: ROUTES.qualityCertifications },
   { label: "About Us", href: ROUTES.aboutUs },
+  { label: "Quality & Certifications", href: ROUTES.qualityCertifications },
   { label: "Insights", href: ROUTES.insights },
 ] as const;
 

@@ -220,10 +220,8 @@ export type Facet = {
 };
 
 export const FINDER_FACETS: readonly Facet[] = [
-  { name: "Category", sample: ["Base Oils", "Industrial", "Marine"] },
-  { name: "Industry", sample: ["Automotive", "Manufacturing", "Shipping"] },
-  { name: "Application", sample: ["Hydraulic", "Gear", "Engine"] },
-  { name: "Packaging", sample: ["Drum", "IBC", "Flexitank", "ISO tank"] },
+  { name: "Product family", sample: ["Base Oils", "Industrial", "Marine"] },
+  { name: "Buyer segment", sample: ["Passenger Cars", "Industry", "Marine"] },
 ];
 
 /* ----------------------------------------------------------- documentation */

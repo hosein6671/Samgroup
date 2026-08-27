@@ -65,7 +65,7 @@ export function AboutWhoWeAre({
 
           <nav className="ab-families reveal-fade-rise" aria-labelledby="ab-families-title">
             <p className="ab-families-head" id="ab-families-title">
-              <span>The published range</span>
+              <span>Product families</span>
               <span className="fs-tnum">{String(PRODUCT_CATEGORIES.length).padStart(2, "0")}</span>
             </p>
             <ul>

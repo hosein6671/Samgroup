@@ -74,6 +74,7 @@ export type {
   AboutUsExpertise,
   AboutUsHero,
   AboutUsQualityStandards,
+  AboutUsTeam,
   AboutUsResponse,
   AboutUsWhoWeAre,
   ContentAnchorCta,

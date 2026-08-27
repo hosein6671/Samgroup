@@ -2,51 +2,26 @@
 
 import { useRef, type ReactNode } from "react";
 
-import { Arrow } from "@/features/site/logo-mark";
-import { localeHref, ROUTES } from "@/features/site/site-routes";
+import { InquiryForm } from "@/features/forms/inquiry-form";
+import { DEFAULT_INQUIRY_TYPE } from "@/features/forms/inquiry-vocabulary";
+import { localeHref } from "@/features/site/site-routes";
 
+import "../../forms/forms.css";
+
+import { BrandedPhoto } from "../branded-photo";
 import { CTA_LINKS } from "../home-data";
 import { useCanvas } from "../motion/use-canvas";
 
 /**
- * 9 · Partnership — the closing moment.
+ * 9 · Partnership — the closing inquiry.
  *
- * Rising particles over a deep radial bloom, with a glass panel at the trailing five columns.
- * The particles wrap when they leave the top, so the field never empties.
+ * The panel embeds the platform's single real `InquiryForm`; it does not duplicate fields,
+ * validation or submission state. The Server Action forwards the approved payload to
+ * `POST /inquiries`, so the homepage and Contact Us share one write path and one success/error
+ * contract. No response-time promise is made because none is confirmed.
  *
- * ── The form is gone, and why ───────────────────────────────────────────────
- *
- * This section used to hold a second inquiry form. It validated in the browser, called
- * `form.reset()`, raised a success toast reading "Request logged. An engineer will reply within one
- * business day" — and **discarded the lead**. That was defensible while no submission endpoint
- * existed anywhere and the note under the button said so plainly.
- *
- * It stopped being defensible the moment `POST /inquiries` shipped. A visitor who filled this in
- * was told their request had been logged when nothing had been stored and nobody would ever see it,
- * while an identical request three clicks away on Contact Us would have been persisted. A form that
- * fakes success is the one thing worse than no form.
- *
- * **The panel is now a route into the real flow**, not a second submission path. There is exactly
- * one Inquiry write path on this platform (`features/forms`), and this section deliberately does
- * not duplicate a field of it — the fields a buyer needs are the ones Contact Us already collects,
- * validated server-side against the DTO, stored with consent.
- *
- * ── Two claims removed with it ──────────────────────────────────────────────
- *
- * The lead said "An engineer — not a mailbox — replies within one business day", and the toast
- * repeated the same promise. **Response time is unconfirmed** — SITE_STRUCTURE's Outstanding
- * Confirmations lists it, and it is why the real forms' success copy is "Your inquiry has been
- * received" and nothing more. Promising one business day here while the form that actually stores
- * the lead promises nothing would have been the site contradicting itself.
- */
-/**
- * `locale` is the route's own locale segment, threaded down from `HomeExperience`.
- *
- * The three `CTA_LINKS` destinations and the two panel actions are structural paths owned by
- * `site-routes.ts`, and until now they were rendered raw. On `/fa` that emitted `/contact-us`,
- * which `middleware.ts` re-negotiates from the cookie and `Accept-Language` — so a Persian reader
- * could be answered in English. `localeHref` is the one prefix rule the header and footer already
- * go through; the paths in `CTA_LINKS` stay locale-less, and the locale is applied here.
+ * `locale` addresses the three supporting links through the same canonical prefix helper used by
+ * the header and footer. Form submission itself is locale-independent and remains server-side.
  */
 export function Partnership({ locale }: { readonly locale: string }): ReactNode {
   const particles = useRef<
@@ -98,22 +73,30 @@ export function Partnership({ locale }: { readonly locale: string }): ReactNode 
       <canvas ref={canvasRef} aria-hidden="true" />
       <div className="fs-wrap fs-grid12" style={{ alignItems: "center" }}>
         <div className="fs-cta-copy fs-rv">
-          <div className="fs-eyebrow">Partnership</div>
+          <div className="fs-eyebrow">Start a focused product enquiry</div>
           <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "13ch" }}>
             <span className="fs-line-mask">
-              <span>Building the future</span>
+              <span>Share the product,</span>
             </span>
             <span className="fs-line-mask">
-              <span>of industrial</span>
+              <span>specification, or</span>
             </span>
             <span className="fs-line-mask">
-              <span style={{ color: "var(--fs-gold-2)" }}>performance.</span>
+              <span style={{ color: "var(--fs-gold-2)" }}>application you need.</span>
             </span>
           </h2>
           <p className="fs-lead" style={{ marginTop: 26, color: "rgba(238,241,246,.72)" }}>
-            Tell us the specification and the destination port. The more of a requirement an inquiry
-            carries, the fewer rounds it takes to answer.
+            Add the details you already know. Grade, quantity, packaging, and destination help SAM
+            Group route the enquiry to the right commercial or technical next step.
           </p>
+
+          <BrandedPhoto
+            src="/images/home/cta-technical-conversation.png"
+            alt="Two professionals reviewing a lubricant sample and technical document"
+            caption="Product and technical enquiry"
+            className="fs-cta-photo"
+            sizes="(max-width: 1180px) calc(100vw - 40px), 31vw"
+          />
 
           <div className="fs-cta-links">
             {CTA_LINKS.map((link) => (
@@ -125,27 +108,16 @@ export function Partnership({ locale }: { readonly locale: string }): ReactNode 
           </div>
         </div>
 
-        {/*
-         * The panel keeps its position in the composition and sends people to the one form that
-         * stores what they write. No fields, no local state, no second endpoint.
-         */}
         <div className="fs-cta-panel fs-rv">
-          <div className="fs-panel">
-            <h3 className="fs-d4">Send an inquiry</h3>
+          <div className="fs-panel" aria-labelledby="home-inquiry-heading">
+            <h3 className="fs-d4" id="home-inquiry-heading">
+              Send your requirement
+            </h3>
             <p className="fs-small" style={{ color: "rgba(238,241,246,.72)", marginTop: 10 }}>
-              Product questions, quotations and sample requests all go through one form. Give the
-              grade, the volume, the packaging and the destination port, and the exchange starts a
-              round further on.
+              Use one concise form for product questions, quotation requests, and sample enquiries.
             </p>
-
-            <div className="fs-cta-actions" style={{ marginTop: 26 }}>
-              <a href={localeHref(locale, ROUTES.contactUs)} className="fs-btn fs-btn--gold">
-                Contact Us
-                <Arrow size={15} />
-              </a>
-              <a href={localeHref(locale, ROUTES.requestQuote)} className="fs-btn fs-btn--glass">
-                Request a quote
-              </a>
+            <div className="fs-cta-form">
+              <InquiryForm inquiryType={DEFAULT_INQUIRY_TYPE} variant="compact" />
             </div>
           </div>
         </div>

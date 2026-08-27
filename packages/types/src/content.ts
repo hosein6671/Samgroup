@@ -122,6 +122,14 @@ export type AboutUsExpertise = {
   items: { name: string }[];
 };
 
+export type AboutUsTeam = {
+  eyebrow: string | null;
+  heading: string | null;
+  lead: string | null;
+  functions: { name: string; note: string }[];
+  figure: ContentFigure | null;
+};
+
 export type AboutUsQualityStandards = {
   heading: string | null;
   lead: string | null;
@@ -161,6 +169,7 @@ export type AboutUsContent = {
   hero: AboutUsHero;
   whoWeAre: AboutUsWhoWeAre | null;
   expertise: AboutUsExpertise | null;
+  team: AboutUsTeam | null;
   qualityStandards: AboutUsQualityStandards | null;
   closing: AboutUsClosing | null;
   /**

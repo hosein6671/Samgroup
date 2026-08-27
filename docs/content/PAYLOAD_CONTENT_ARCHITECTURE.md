@@ -538,15 +538,14 @@ holding no awareness that Payload exists ([ADR-003](../ADR/ADR-003-api-gateway.m
 
 ### The schema is the page, and nothing more
 
-`apps/cms/src/globals/about-us.ts` models `hero`, `whoWeAre`, `expertise`, `qualityStandards`,
-`closing` and the shared `seoFields()` group. Every field is one the About page renders today.
+`apps/cms/src/globals/about-us.ts` models `hero`, `whoWeAre`, `expertise`, `team`,
+`qualityStandards`, `closing` and the shared `seoFields()` group. Every field is one the About page
+renders today.
 
-**`milestones`, `competitiveAdvantages` and `team` are deliberately absent**, though §About Us
-specifies all three. None has approved content — the timeline is marked an estimate end to end and
-named a launch blocker, the six advantages are named in no document, and the roster is blocked on
-photography. Modelling a field for content that cannot be written is how an empty repeater becomes a
-placeholder somebody eventually fills with a guess. Each is one field plus one section component on
-the day its copy is approved.
+**`milestones` and `competitiveAdvantages` remain deliberately absent.** Their factual content is
+still unapproved. `team` was added on 27 August 2026 after explicit editorial approval and models
+four accountable functions plus one Payload-owned photograph. It deliberately has no person name,
+biography, tenure, title, or customer claim; a real roster remains a later editorial gate.
 
 Two things the page shows are **not** editorial content and stay in code:
 
@@ -619,7 +618,7 @@ Optional sections behave the same way one level down: a section the editor has w
 `null` on the wire and is not rendered, so the page can be published a section at a time and never
 shows a heading over an empty band.
 
-### The fixture is gone, and no About Us copy exists anywhere
+### The fixture is gone; published copy stays in Payload
 
 `apps/web/src/features/about/about-data.ts` — the typed fixture the page rendered until this gate —
 **was deleted, not kept as a fallback.** Two sources of truth for one published page is precisely
@@ -627,10 +626,11 @@ what the cutover policy exists to prevent, and a page that silently falls back t
 from everyone that the CMS is empty. `/design-proof/about-us` reads the same endpoint, so it shows
 what a visitor would see.
 
-**No fixture copy was seeded into `sam_cms`, and none may be.** Publishing the About Us page is an
-editorial act performed in the admin UI — the same rule the legal pages already carry. Verification
-content used to prove this gate was explicitly labelled as such and removed afterwards; `sam_cms`
-holds no `about_us` row today.
+**No frontend fixture is a fallback.** On 27 August 2026 the user explicitly approved the English
+editorial master and its publication. `apps/cms/src/editorial/publish-company-pages.ts` performs the
+same Payload update as an editor, behind an explicit arming variable, and leaves the Global under
+normal draft/publish control. It also registers the approved generated team photograph in Payload
+Media; it performs no direct SQL write.
 
 ### Still not implemented
 

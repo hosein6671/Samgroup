@@ -69,6 +69,11 @@ export async function generateStaticParams(): Promise<{ locale: string }[]> {
 export const dynamicParams = false;
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://samgp.com"),
+  applicationName: "SAM Group",
+  authors: [{ name: "SAM Group", url: "https://samgp.com" }],
+  creator: "SAM Group",
+  publisher: "SAM Group",
   // Inherited by every page in this tree. See the module note: P1 is not the SEO launch.
   robots: { index: false, follow: false },
 };

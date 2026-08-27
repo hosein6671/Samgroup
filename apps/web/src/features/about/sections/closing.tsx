@@ -43,7 +43,7 @@ export function AboutClosing({
         {closing.routes.length > 0 && (
           <nav className="ab-close-routes reveal-fade-rise" aria-labelledby="ab-close-routes-title">
             <p className="ab-close-head" id="ab-close-routes-title">
-              <span>Or take another route</span>
+              <span>Other ways to continue</span>
               <span className="fs-tnum">{String(closing.routes.length).padStart(2, "0")}</span>
             </p>
             <ul>

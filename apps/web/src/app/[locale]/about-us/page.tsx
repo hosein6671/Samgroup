@@ -2,6 +2,7 @@ import { cache } from "react";
 
 import { AboutExperience } from "@/features/about/about-experience";
 import { AboutUnavailable } from "@/features/about/about-unavailable";
+import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { getAboutUsContent } from "@/lib/content";
 import { defaultLocale } from "@/lib/locale-contract";
 import { getActiveLocales } from "@/lib/locales";
@@ -44,9 +45,9 @@ import type { ReactNode } from "react";
  * Composed from the Global's `SeoFields`, falling back to the hero title — the same mapping the
  * legal route uses, and no second vocabulary for it. **No `robots`**: `app/[locale]/layout.tsx`
  * declares `noindex, nofollow` for this whole tree and a route-level override would be a second
- * answer to a settled question. **No canonical and no `hreflang`** — ADR-010 Non-Goals, and the SEO
- * launch is not this gate. **No JSON-LD** — `AboutPage` + `Organization` structured data waits on
- * the shared `<JsonLd>` component FRONTEND_ARCHITECTURE §4 specifies, which does not exist.
+ * answer to a settled question. The locale-aware canonical and social URL are emitted now;
+ * `hreflang` remains absent until reviewed translations exist. `AboutPage` and the minimum factual
+ * `Organization` graph render through the shared `<JsonLd>` component.
  *
  * ── No `generateStaticParams`, and no `dynamicParams` ───────────────────────
  *
@@ -67,6 +68,7 @@ export async function generateMetadata({
   if (!result.ok) return {};
 
   const { hero, seo } = result.content;
+  const canonical = seo.canonicalUrl ?? `/${locale}/about-us`;
 
   const ogImage = seo.socialImage
     ? {
@@ -87,13 +89,17 @@ export async function generateMetadata({
   return {
     title: seo.metaTitle ?? hero.title,
     ...(seo.metaDescription !== null && { description: seo.metaDescription }),
-    ...(seo.canonicalUrl !== null && { alternates: { canonical: seo.canonicalUrl } }),
+    alternates: { canonical },
     openGraph: {
+      type: "website",
+      siteName: "SAM Group",
       title: seo.ogTitle ?? seo.metaTitle ?? hero.title,
       ...(seo.ogDescription !== null || seo.metaDescription !== null
         ? { description: seo.ogDescription ?? seo.metaDescription ?? undefined }
         : {}),
       ...(ogImage !== undefined && { images: [ogImage] }),
+      url: canonical,
+      locale,
     },
     twitter: {
       card: seo.twitterCardType,
@@ -122,14 +128,44 @@ export default async function AboutUsPage({
      * served locale is passed down so the content itself can be annotated with it.
      */
     const served = result.localeFallback ? defaultLocale(await getActiveLocales()) : null;
+    const canonical = result.content.seo.canonicalUrl ?? `/${locale}/about-us`;
+    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const schema: JsonLdObject = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://samgp.com/#organization",
+          name: "SAM Group",
+          url: "https://samgp.com/",
+          logo: "https://samgp.com/brand/sam-group-mark.png",
+        },
+        {
+          "@type": "AboutPage",
+          "@id": `${absoluteUrl}#aboutpage`,
+          url: absoluteUrl,
+          name: result.content.seo.metaTitle ?? result.content.hero.title,
+          ...(result.content.seo.metaDescription !== null && {
+            description: result.content.seo.metaDescription,
+          }),
+          inLanguage: served?.code ?? locale,
+          about: { "@id": "https://samgp.com/#organization" },
+        },
+      ],
+    };
 
     return (
-      <AboutExperience
-        locales={locales}
-        content={result.content}
-        locale={locale}
-        fallbackLocale={served === null ? null : { code: served.code, direction: served.direction }}
-      />
+      <>
+        <JsonLd data={schema} />
+        <AboutExperience
+          locales={locales}
+          content={result.content}
+          locale={locale}
+          fallbackLocale={
+            served === null ? null : { code: served.code, direction: served.direction }
+          }
+        />
+      </>
     );
   }
 

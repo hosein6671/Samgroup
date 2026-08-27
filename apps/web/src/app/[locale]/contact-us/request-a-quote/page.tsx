@@ -26,9 +26,9 @@ import { getActiveLocales } from "@/lib/locales";
 
 /** Same inheritance and same omissions as the parent route — see its note. */
 export const metadata: Metadata = {
-  title: "Request a Quote — Sam Group",
+  title: "Request a Product Quote | SAM Group",
   description:
-    "Ask for a quotation on a published grade. Give the grade, the quantity and the destination.",
+    "Request commercial terms by sharing the product or grade, quantity, packaging, destination, and preferred Incoterm.",
 };
 
 export default async function RequestAQuotePage({

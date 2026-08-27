@@ -101,8 +101,8 @@ function surfaces(locale: string): Record<string, string> {
 
   return {
     home: [
-      renderHtml(<HomeHero />),
-      renderHtml(<Ecosystem />),
+      renderHtml(<HomeHero locale={locale} />),
+      renderHtml(<Ecosystem locale={locale} />),
       renderHtml(<Lab />),
       renderHtml(<Insights locale={locale} />),
       renderHtml(<Partnership locale={locale} />),

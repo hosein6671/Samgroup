@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -16,20 +17,36 @@ import { ANCHORS, INTRO } from "../contact-data";
  */
 export function ContactHero(): ReactNode {
   return (
-    <section className="fs-sec ct-hero" data-surface="midnight">
+    <section className="ct-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap ct-hero-inner">
-        <p className="fs-eyebrow">{INTRO.eyebrow}</p>
-        <h1 className="fs-d1">{INTRO.heading}</h1>
-        <p className="fs-lead ct-hero-lead">{INTRO.lead}</p>
+        <div className="ct-hero-copy">
+          <p className="fs-eyebrow">{INTRO.eyebrow}</p>
+          <h1 className="fs-d1">{INTRO.heading}</h1>
+          <p className="fs-lead ct-hero-lead">{INTRO.lead}</p>
 
-        <p className="ct-hero-action">
-          <a href={`#${ANCHORS.form}`} className="fs-btn fs-btn--gold">
-            Go to the form
-            <Arrow size={15} />
-          </a>
-        </p>
+          <p className="ct-hero-action">
+            <a href={`#${ANCHORS.form}`} className="fs-btn fs-btn--gold">
+              Open the enquiry form
+              <Arrow size={15} />
+            </a>
+          </p>
+        </div>
+
+        <figure className="ct-hero-media">
+          <Image
+            src="/images/home/cta-technical-conversation.png"
+            alt="Technical sales discussion about a petroleum product requirement"
+            fill
+            priority
+            sizes="(max-width: 900px) calc(100vw - 40px), 42vw"
+          />
+          <figcaption>
+            <span>One enquiry route</span>
+            Product · quote · sample · documentation
+          </figcaption>
+        </figure>
       </div>
     </section>
   );

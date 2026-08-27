@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { FAMILIES } from "../../products-data";
 import { SEGMENTS } from "../../segments-data";
 import { finderHref, hasFilters } from "../finder-query";
+import { finderPath } from "../finder-query";
 
 import type { FinderQuery } from "../finder-query";
 
@@ -118,6 +119,23 @@ export function FinderFilters({
 }): ReactNode {
   return (
     <div className="pf-filters">
+      <form className="pf-search" action={finderPath(locale)} method="get" role="search">
+        {query.category !== null && <input type="hidden" name="category" value={query.category} />}
+        {query.segment !== null && <input type="hidden" name="segment" value={query.segment} />}
+        <label htmlFor="product-search">Search the published catalogue</label>
+        <div className="pf-search-control">
+          <input
+            id="product-search"
+            name="q"
+            type="search"
+            defaultValue={query.q ?? ""}
+            placeholder="Product name, grade, or specification"
+            autoComplete="off"
+          />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+
       <FilterRow
         label="Family"
         legend="Filter products by product family"
@@ -145,7 +163,9 @@ export function FinderFilters({
        */}
       {hasFilters(query) && (
         <p className="pf-reset">
-          <a href={finderHref(locale, { category: null, segment: null })}>Clear all filters</a>
+          <a href={finderHref(locale, { category: null, segment: null, q: null })}>
+            Clear search and filters
+          </a>
         </p>
       )}
     </div>

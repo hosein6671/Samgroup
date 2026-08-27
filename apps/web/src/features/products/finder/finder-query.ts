@@ -41,10 +41,12 @@ export type FinderQuery = {
   readonly category: string | null;
   /** An approved `Segment.slug` (ADR-008 §4), or `null`. */
   readonly segment: string | null;
+  /** Free-text search across published product names, slugs and public specification values. */
+  readonly q: string | null;
 };
 
 /** The unfiltered view — every published product, which is what the bare route serves. */
-export const NO_FILTERS: FinderQuery = { category: null, segment: null };
+export const NO_FILTERS: FinderQuery = { category: null, segment: null, q: null };
 
 /**
  * One `searchParams` value, normalized to what may be sent to the API.
@@ -81,12 +83,13 @@ export function readFinderQuery(
   return {
     category: readFinderParam(params.category),
     segment: readFinderParam(params.segment),
+    q: readFinderParam(params.q),
   };
 }
 
 /** Whether anything is being filtered on — what decides if a reset control is offered at all. */
 export function hasFilters(query: FinderQuery): boolean {
-  return query.category !== null || query.segment !== null;
+  return query.category !== null || query.segment !== null || query.q !== null;
 }
 
 /**
@@ -117,6 +120,7 @@ export function finderHref(locale: string, query: FinderQuery): string {
 
   if (query.category !== null) params.set("category", query.category);
   if (query.segment !== null) params.set("segment", query.segment);
+  if (query.q !== null) params.set("q", query.q);
 
   const search = params.toString();
 

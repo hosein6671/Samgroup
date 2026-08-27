@@ -38,18 +38,15 @@ export type Fact = { readonly value: string; readonly label: string };
 /* ------------------------------------------------------------------ 1 · hero */
 
 export const HERO_SPEC: readonly Fact[] = [
-  { label: "Blending capacity", value: "240,000 MT/yr" },
-  { label: "Base oil groups", value: "I · II · III" },
-  { label: "Batch traceability", value: "100%" },
-  { label: "Lab tests / month", value: "12,400+" },
-  { label: "Export terminals", value: "6" },
+  { label: "Product families", value: "6" },
+  { label: "Catalogue products", value: "100" },
+  { label: "Structured enquiry route", value: "1" },
 ];
 
 export const HERO_STATS: readonly Stat[] = [
-  { value: 52, suffix: "", label: "Countries served" },
-  { value: 240, suffix: "K MT", label: "Annual output" },
-  { value: 27, suffix: "", label: "Years of manufacturing" },
-  { value: 480, suffix: "+", label: "Product formulations" },
+  { value: 6, suffix: "", label: "Product families" },
+  { value: 100, suffix: "", label: "Catalogue products" },
+  { value: 1, suffix: "", label: "Structured enquiry route" },
 ];
 
 /* `CERTS` is deleted, not emptied — an empty array is a slot a plausible guess gets dropped into
@@ -58,8 +55,11 @@ export const HERO_STATS: readonly Stat[] = [
 /* ----------------------------------------------------------------- 2 · story */
 
 export type Module = {
+  readonly phase: string;
   readonly title: string;
   readonly body: string;
+  readonly input: string;
+  readonly outcome: string;
   readonly tags: readonly string[];
   /** Schematic drawn in the panel corner. Path data only; stroke comes from CSS. */
   readonly diagram: string;
@@ -67,29 +67,41 @@ export type Module = {
 
 export const MODULES: readonly Module[] = [
   {
-    title: "Quality control",
-    body: "Two independent release gates. A batch that misses the window is re-blended, never re-labelled.",
-    tags: ["COA per batch", "5-year retention", "Third-party audit"],
+    phase: "Discover",
+    title: "Locate the relevant catalogue route",
+    body: "Start from a known product name, application, equipment type, or grade. The catalogue narrows the search to the family and product records that match that context.",
+    input: "Product, application, equipment, or grade",
+    outcome: "Relevant family and product records",
+    tags: ["6 product families", "Grade discovery", "Application context"],
     diagram:
       '<circle cx="95" cy="95" r="70"/><circle cx="95" cy="95" r="46"/><path d="M25 95h140M95 25v140"/>',
   },
   {
-    title: "Advanced manufacturing",
-    body: "Automated gravimetric dosing across four blending lines, with nitrogen blanketing on sensitive grades.",
-    tags: ["4 lines", "±0.15% dosing", "N₂ blanketing"],
+    phase: "Evaluate",
+    title: "Review the product record in context",
+    body: "Read the product description alongside its recorded grades, typical properties, claims, and available documents. Final suitability is checked against the applicable requirement and specification.",
+    input: "Candidate product and applicable specification",
+    outcome: "Comparable technical context",
+    tags: ["Recorded grades", "Typical properties", "TDS and SDS"],
     diagram:
       '<rect x="30" y="30" width="130" height="130" rx="14"/><path d="M30 82h130M82 30v130"/>',
   },
   {
-    title: "Research & development",
-    body: "Formulation, accelerated ageing and field-return analysis run on the same bench, so lab data meets road data.",
-    tags: ["34 engineers", "1,000h ageing", "Four-ball wear"],
+    phase: "Specify",
+    title: "Turn the selection into a complete requirement",
+    body: "Connect the selected product or application to the required specification, quantity, packaging format, and destination. Unknown details can remain open for review.",
+    input: "Specification, quantity, packaging, destination",
+    outcome: "Structured product requirement",
+    tags: ["Required specification", "Requested quantity", "Destination"],
     diagram: '<path d="M95 22 168 62v76l-73 40-73-40V62z"/><circle cx="95" cy="100" r="30"/>',
   },
   {
-    title: "Global export network",
-    body: "Six loading terminals and a routing desk that plans around vessel schedules rather than sales targets.",
-    tags: ["52 markets", "6 terminals", "98.6% on-time"],
+    phase: "Plan",
+    title: "Prepare the commercial and supply brief",
+    body: "Add the preferred Incoterm and any delivery constraints to the product requirement. This gives commercial review a clear basis without presenting an unconfirmed lead time or route as fact.",
+    input: "Product brief and preferred trade term",
+    outcome: "Commercially reviewable enquiry",
+    tags: ["Packaging format", "Preferred Incoterm", "Delivery context"],
     diagram:
       '<circle cx="95" cy="95" r="66"/><path d="M29 95h132M95 29c26 26 26 106 0 132M95 29c-26 26-26 106 0 132"/>',
   },
@@ -99,18 +111,20 @@ export const MODULES: readonly Module[] = [
    * so there was nothing left of it once those went. Five modules, not six.
    */
   {
-    title: "Laboratory technology",
-    body: "Viscometry, FTIR, ICP elemental analysis and oxidation rigs — 12,400 tests a month under one roof.",
-    tags: ["FTIR", "ICP-OES", "Rotary bomb"],
+    phase: "Control",
+    title: "Keep published technical content traceable",
+    body: "Product names remain exact. Specifications, typical properties, and claims retain their recorded source, technical-review state, and publication decision before appearing on a product page.",
+    input: "Source document and exact product identity",
+    outcome: "Reviewed buyer-facing information",
+    tags: ["Recorded source", "Technical review", "Publication decision"],
     diagram: '<path d="M60 30h70v40l40 90H20l40-90z"/><path d="M52 118h86"/>',
   },
 ];
 
 export const STORY_META: readonly Fact[] = [
-  { value: "4", label: "Production lines" },
-  { value: "18", label: "Lab instruments" },
-  { value: "99.4%", label: "First-pass yield" },
-  { value: "24/7", label: "Process monitoring" },
+  { value: "6", label: "Product families" },
+  { value: "100", label: "Catalogue products" },
+  { value: "5", label: "Buyer pathways" },
 ];
 
 /* ------------------------------------------------------------- 3 · ecosystem */
@@ -133,7 +147,7 @@ export const FAMILIES: readonly Family[] = [
     name: "Lubricants",
     sub: "Engine & transmission",
     angle: -90,
-    body: "Passenger car, heavy-duty diesel and transmission fluids blended against API, ACEA and OEM sequences. Formulated for extended drain intervals in high-ambient markets.",
+    body: "Explore engine oils, transmission fluids, and related automotive lubricants by application and available grade, then submit the operating and supply details behind the requirement.",
     specs: [
       ["Grades", "SAE 0W-20 → 20W-50"],
       ["Standards", "API SP · ACEA C3"],
@@ -147,7 +161,7 @@ export const FAMILIES: readonly Family[] = [
     name: "Petroleum Products",
     sub: "Distillates & waxes",
     angle: -18,
-    body: "Solvents, paraffin waxes, slack wax and process oils supplied to converters and industrial formulators with consistent cut specifications.",
+    body: "Review the available petroleum-product ranges for industrial processing, conversion, and formulation requirements, with product-specific information kept in context.",
     specs: [
       ["Range", "Light distillate → wax"],
       ["Oil content", "0.5 – 5.0 %m/m"],
@@ -161,7 +175,7 @@ export const FAMILIES: readonly Family[] = [
     name: "Industrial Fluids",
     sub: "Hydraulic & thermal",
     angle: 54,
-    body: "Hydraulic, gear, compressor, turbine and heat-transfer fluids for plants where an unplanned stop costs more than the fluid ever will.",
+    body: "Navigate hydraulic, gear, compressor, turbine, heat-transfer, and related industrial-fluid ranges by application and recorded grade.",
     specs: [
       ["ISO VG", "32 → 460"],
       ["Cleanliness", "ISO 4406 17/15/12"],
@@ -175,7 +189,7 @@ export const FAMILIES: readonly Family[] = [
     name: "Automotive Solutions",
     sub: "Fleet & aftermarket",
     angle: 126,
-    body: "Private-label and branded programmes for distributors: formulation, packaging design, registration support and container-level export logistics.",
+    body: "Explore automotive product routes for fleet, distributor, and aftermarket requirements, including the commercial details needed for packaging and supply review.",
     specs: [
       ["MOQ", "1 × 20ft container"],
       ["Label", "Private / co-brand"],
@@ -189,11 +203,11 @@ export const FAMILIES: readonly Family[] = [
     name: "Specialty Products",
     sub: "Engineered niches",
     angle: 198,
-    body: "Metalworking, transformer, rubber process and food-grade fluids developed to a customer brief, from bench formulation to first commercial batch.",
+    body: "Start a structured review for specialist applications by sharing the operating context, required specification, quantity, packaging, and destination.",
     specs: [
       ["Development", "8 – 14 weeks"],
       ["Pilot batch", "200 – 2,000 L"],
-      ["Approvals", "NSF H1 available"],
+      ["Review route", "Requirement-led"],
       ["IP", "Customer-owned"],
     ],
   },
@@ -204,37 +218,34 @@ export const BASE_OIL_GROUPS: readonly string[] = ["I", "II", "III"];
 /* --------------------------------------------------------------- 4 · why */
 
 export const LINE_OUTPUT: readonly { readonly id: string; readonly pct: number }[] = [
-  { id: "L-01", pct: 58 },
-  { id: "L-02", pct: 74 },
-  { id: "L-03", pct: 46 },
-  { id: "L-04", pct: 92 },
-  { id: "L-05", pct: 66 },
-  { id: "L-06", pct: 80 },
+  { id: "EO", pct: 90 },
+  { id: "IO", pct: 52 },
+  { id: "LA", pct: 30 },
+  { id: "MO", pct: 24 },
+  { id: "AC", pct: 4 },
 ];
 
 export const RELEASE_SPEC: readonly (readonly [string, string])[] = [
-  ["Kinematic viscosity @100°C", "10.8 cSt"],
-  ["Viscosity index", "168"],
-  ["Pour point", "−42 °C"],
-  ["Flash point (COC)", "228 °C"],
-  ["Sulphated ash", "0.78 %m/m"],
+  ["Technical Data Sheet", "Per product"],
+  ["Safety Data Sheet", "Per product"],
+  ["Certificate of Analysis", "Per batch"],
 ];
 
 /* "9 OEM approvals" is dropped from this list — an OEM approval is a certification claim, and it
    is the one entry here that no placeholder notice could make acceptable. Four figures, not five. */
 export const TRUST: readonly Fact[] = [
-  { value: "52", label: "Export markets" },
-  { value: "130+", label: "Active distributors" },
-  { value: "0", label: "Major NCRs, 5 years" },
-  { value: "98.6%", label: "On-time shipment" },
+  { value: "100", label: "Catalogue products" },
+  { value: "6", label: "Product families" },
+  { value: "3", label: "Document enquiry routes" },
+  { value: "1", label: "Technical review path" },
 ];
 
 export const TECH_TAGS: readonly string[] = [
-  "SCADA",
-  "Inline NIR",
-  "Gravimetric dosing",
-  "Nitrogen blanketing",
-  "Batch genealogy",
+  "Recorded source",
+  "Specification review",
+  "Claim review",
+  "Versioned decision",
+  "Publication gate",
 ];
 
 /* ------------------------------------------------------------- 5 · network */
@@ -457,11 +468,9 @@ export const LAND: readonly (readonly (readonly [number, number])[])[] = [
 ];
 
 export const NETWORK_STATS: readonly Fact[] = [
-  { value: "52", label: "Countries served" },
-  { value: "240K", label: "MT export capacity" },
-  { value: "130+", label: "Global partners" },
-  { value: "4", label: "Production complexes" },
-  { value: "98.6%", label: "On-time delivery" },
+  { value: "4", label: "Named Incoterms" },
+  { value: "6", label: "Packaging formats" },
+  { value: "1", label: "Export enquiry path" },
 ];
 
 /* ------------------------------------------------------------------ 6 · lab */
@@ -473,30 +482,30 @@ export const LAB_CARDS: readonly {
   readonly body: string;
 }[] = [
   {
-    value: 12400,
-    suffix: "+",
-    label: "Laboratory tests per month",
-    body: "Viscometry, spectrometry, FTIR and elemental analysis under one roof.",
-  },
-  {
-    value: 1000,
-    suffix: "h",
-    label: "Endurance validation",
-    body: "Accelerated ageing before a formulation is released to production.",
-  },
-  {
-    value: 34,
+    value: 3,
     suffix: "",
-    label: "Research engineers",
-    body: "Chemists, tribologists and process engineers on a shared bench.",
+    label: "Review stages",
+    body: "Source capture, technical review, and publication decisions remain distinct and traceable.",
+  },
+  {
+    value: 3,
+    suffix: "",
+    label: "Document routes",
+    body: "TDS, SDS, and batch-specific COA enquiries stay connected to the relevant product.",
+  },
+  {
+    value: 1,
+    suffix: "",
+    label: "Traceable content path",
+    body: "Technical statements retain their recorded source, review state, and publication decision.",
   },
 ];
 
 export const LAB_TAGS: readonly string[] = [
-  "Tribology",
-  "Oxidation stability",
-  "Additive synergy",
-  "Field return analysis",
+  "Source record",
+  "Typical properties",
+  "Technical documents",
+  "Approval status",
 ];
 
 /* -------------------------------------------------------------- 7 · journey */
@@ -513,61 +522,61 @@ export type Stage = {
 export const STAGES: readonly Stage[] = [
   {
     n: "01",
-    title: "Research",
-    body: "A brief becomes a target property set: viscosity envelope, oxidation life, seal compatibility and cost ceiling.",
+    title: "Define the operating need",
+    body: "Begin with the known product, application, equipment, operating conditions, or specification that frames the requirement.",
     facts: [
-      ["8–14 wk", "Cycle"],
-      ["34", "Engineers"],
+      ["Product", "If known"],
+      ["Application", "Required"],
     ],
     art: '<svg viewBox="0 0 400 300" fill="none"><g stroke="rgba(190,212,245,.16)"><path d="M0 60h400M0 120h400M0 180h400M0 240h400M80 0v300M160 0v300M240 0v300M320 0v300"/></g><g stroke="#2F6BFF" stroke-width="1.3"><path d="M140 110l30-17 30 17v34l-30 17-30-17z"/><path d="M200 144l30-17 30 17v34l-30 17-30-17z"/><path d="M170 93V59M230 127V93l30-17"/></g><g fill="#7DA9FF"><circle cx="170" cy="93" r="3.4"/><circle cx="230" cy="127" r="3.4"/><circle cx="260" cy="76" r="3.4"/><circle cx="140" cy="144" r="3.4"/></g><circle cx="215" cy="150" r="66" stroke="rgba(201,167,92,.45)" stroke-dasharray="4 6"/><text x="24" y="278" fill="#5C6980" font-family="JetBrains Mono,monospace" font-size="8.5" letter-spacing="1.4">MOLECULAR SCREENING · 1,240 CANDIDATES</text></svg>',
   },
   {
     n: "02",
-    title: "Formulation",
-    body: "Base stock and additive chemistry are balanced on the bench. Most candidates die here, and that is the point.",
+    title: "Identify the product route",
+    body: "Connect the requirement to the relevant catalogue family and grade, or route it for a structured custom-product review.",
     facts: [
-      ["480+", "Formulations"],
-      ["±0.15%", "Dosing"],
+      ["Catalog", "Standard route"],
+      ["Custom", "Specific brief"],
     ],
     art: '<svg viewBox="0 0 400 300" fill="none"><g stroke="rgba(190,212,245,.2)" stroke-width="1.2"><path d="M150 50h100M170 50v70l-46 96a14 14 0 0013 20h126a14 14 0 0013-20l-46-96V50"/></g><path d="M133 190h134l14 26a14 14 0 01-13 20H132a14 14 0 01-13-20z" fill="rgba(47,107,255,.28)"/><g stroke="#7DA9FF" stroke-width="1"><path d="M60 70h44M60 100h44M60 130h44M296 70h44M296 100h44M296 130h44"/></g><g fill="#C9A75C"><circle cx="82" cy="70" r="2.6"/><circle cx="82" cy="100" r="2.6"/><circle cx="318" cy="100" r="2.6"/></g><text x="24" y="278" fill="#5C6980" font-family="JetBrains Mono,monospace" font-size="8.5" letter-spacing="1.4">GRAVIMETRIC DOSING · ±0.35%</text></svg>',
   },
   {
     n: "03",
-    title: "Testing",
-    body: "Accelerated ageing, four-ball wear, foam and corrosion rigs run for 1,000 hours before anything is approved.",
+    title: "Review the product record",
+    body: "Review the recorded grade, typical properties, test methods, claims, and available product documents in context.",
     facts: [
-      ["1,000h", "Endurance"],
-      ["12,400", "Tests / month"],
+      ["TDS", "Product data"],
+      ["SDS", "Safety data"],
     ],
     art: '<svg viewBox="0 0 400 300" fill="none"><g stroke="rgba(190,212,245,.13)"><path d="M0 75h400M0 150h400M0 225h400M100 0v300M200 0v300M300 0v300"/></g><path d="M0 210C60 206 90 178 140 150S240 92 300 78s80-12 100-10" stroke="#2F6BFF" stroke-width="2"/><path d="M0 230C60 228 90 208 140 186S240 138 300 126s80-10 100-8" stroke="rgba(201,167,92,.6)" stroke-width="1.3" stroke-dasharray="5 7"/><g fill="#7DA9FF"><circle cx="140" cy="150" r="4"/><circle cx="300" cy="78" r="4"/></g><rect x="250" y="36" width="120" height="34" rx="8" fill="rgba(11,19,34,.8)" stroke="rgba(190,212,245,.2)"/><text x="264" y="58" fill="#D5DFEE" font-family="JetBrains Mono,monospace" font-size="11" letter-spacing="1.2">VI 142 · PASS</text><text x="24" y="278" fill="#5C6980" font-family="JetBrains Mono,monospace" font-size="8.5" letter-spacing="1.4">SHEAR STABILITY · 90 CYCLES</text></svg>',
   },
   {
     n: "04",
-    title: "Production",
-    body: "Approved recipes are locked into SCADA. The line cannot dose outside the released envelope, by design.",
+    title: "Complete the commercial brief",
+    body: "Add the required quantity, packaging format, destination, and preferred Incoterm so the enquiry can be assessed in context.",
     facts: [
-      ["4", "Blend lines"],
-      ["240K MT", "Capacity"],
+      ["Quantity", "Requested volume"],
+      ["Incoterm", "Preferred basis"],
     ],
     art: '<svg viewBox="0 0 400 300" fill="none"><g stroke="rgba(190,212,245,.2)" stroke-width="1.2"><rect x="30" y="90" width="70" height="130" rx="8"/><rect x="130" y="60" width="70" height="160" rx="8"/><rect x="230" y="110" width="60" height="110" rx="8"/><rect x="316" y="140" width="54" height="80" rx="8"/></g><g fill="rgba(47,107,255,.24)"><rect x="30" y="160" width="70" height="60" rx="8"/><rect x="130" y="120" width="70" height="100" rx="8"/><rect x="230" y="170" width="60" height="50" rx="8"/></g><g stroke="#2F6BFF" stroke-width="1.4" stroke-dasharray="6 9"><path d="M100 130h30M200 130h30M290 165h26"/></g><path d="M0 244h400" stroke="rgba(190,212,245,.24)"/><g fill="#C9A75C"><circle cx="65" cy="105" r="2.6"/><circle cx="165" cy="75" r="2.6"/><circle cx="260" cy="125" r="2.6"/></g><text x="24" y="278" fill="#5C6980" font-family="JetBrains Mono,monospace" font-size="8.5" letter-spacing="1.4">INLINE BLENDING · CONTINUOUS</text></svg>',
   },
   {
     n: "05",
-    title: "Quality assurance",
-    body: "Every batch is sampled, tested and released against a certificate of analysis. Retains are archived for five years.",
+    title: "Arrange evaluation where applicable",
+    body: "For a sample enquiry, identify the product, intended application, destination, and purpose of the evaluation.",
     facts: [
-      ["100%", "Batch traceability"],
-      ["5 yr", "Retained samples"],
+      ["Sample", "If available"],
+      ["COA", "Batch-specific"],
     ],
     art: '<svg viewBox="0 0 400 300" fill="none"><g stroke="rgba(190,212,245,.15)"><rect x="40" y="40" width="320" height="180" rx="10"/><path d="M40 82h320M40 124h320M40 166h320M170 40v180"/></g><g stroke="#7DA9FF" stroke-width="1.6" stroke-linecap="round"><path d="M64 68l9 9 17-19"/><path d="M64 110l9 9 17-19"/><path d="M64 152l9 9 17-19"/><path d="M64 194l9 9 17-19"/></g><g fill="rgba(213,223,238,.5)"><rect x="196" y="56" width="120" height="4" rx="2"/><rect x="196" y="98" width="92" height="4" rx="2"/><rect x="196" y="140" width="134" height="4" rx="2"/><rect x="196" y="182" width="76" height="4" rx="2"/></g><rect x="40" y="40" width="320" height="3" fill="#C9A75C" opacity=".8"/><text x="24" y="278" fill="#5C6980" font-family="JetBrains Mono,monospace" font-size="8.5" letter-spacing="1.4">11 BENCH TESTS · BATCH SIGNED</text></svg>',
   },
   {
     n: "06",
-    title: "Global distribution",
-    body: "Drums, IBCs, flexitanks or ISO tanks leave one of six terminals with documents cleared before the vessel calls.",
+    title: "Confirm the supply plan",
+    body: "Align the selected product, applicable specification, packaging, destination, and agreed commercial basis before supply.",
     facts: [
-      ["52", "Markets"],
-      ["98.6%", "On-time"],
+      ["Product", "Confirmed"],
+      ["Terms", "Documented"],
     ],
     art: '<svg viewBox="0 0 400 300" fill="none"><g stroke="rgba(190,212,245,.18)"><rect x="26" y="150" width="86" height="46" rx="4"/><rect x="120" y="150" width="86" height="46" rx="4"/><rect x="73" y="100" width="86" height="46" rx="4"/></g><g stroke="rgba(190,212,245,.12)"><path d="M26 162h86M26 174h86M120 162h86M120 174h86M73 112h86M73 124h86"/></g><path d="M210 176C250 176 268 120 316 104s60-8 72-6" stroke="#2F6BFF" stroke-width="1.6" stroke-dasharray="5 8"/><circle cx="316" cy="104" r="5" fill="#C9A75C"/><circle cx="212" cy="176" r="5" fill="#7DA9FF"/><g stroke="rgba(190,212,245,.14)"><circle cx="330" cy="196" r="42"/><path d="M288 196h84M330 154v84"/><ellipse cx="330" cy="196" rx="18" ry="42"/></g><text x="24" y="278" fill="#5C6980" font-family="JetBrains Mono,monospace" font-size="8.5" letter-spacing="1.4">47 MARKETS · CIF / FOB / DAP</text></svg>',
   },
@@ -611,17 +620,17 @@ export const CTA_LINKS: readonly {
   readonly meta: string;
   readonly href: string;
 }[] = [
-  { title: "Contact us", meta: "Inquiry form", href: ROUTES.contactUs },
-  { title: "Request a quote", meta: "Pre-filtered inquiry", href: ROUTES.requestQuote },
-  { title: "Product data sheets", meta: "TDS / SDS", href: ROUTES.documentation },
+  { title: "Send a product enquiry", meta: "Contact route", href: ROUTES.contactUs },
+  { title: "Request a quotation", meta: "Commercial brief", href: ROUTES.requestQuote },
+  { title: "Review product documents", meta: "TDS / SDS", href: ROUTES.documentation },
 ];
 
 export const NAV_LINKS: readonly { readonly href: string; readonly label: string }[] = [
-  { href: "#story", label: "Manufacturing" },
+  { href: "#story", label: "Buyer Path" },
   { href: "#products", label: "Products" },
-  { href: "#network", label: "Global Network" },
-  { href: "#lab", label: "Research" },
-  { href: "#journey", label: "Process" },
+  { href: "#network", label: "Export Planning" },
+  { href: "#lab", label: "Technical Information" },
+  { href: "#journey", label: "Supply Journey" },
   { href: "#insights", label: "Insights" },
 ];
 

@@ -17,12 +17,9 @@ import type { Field, GlobalConfig } from "payload";
  *
  * ── The schema is the page, and nothing more ───────────────────────────────
  *
- * §About Us specifies eleven fields. **Three are deliberately absent**: `milestones`,
- * `competitiveAdvantages` and `team` have no approved content — SITE_STRUCTURE.md marks the
- * timeline an estimate end to end, names the six advantages nowhere, and blocks the roster on
- * photography. Modelling a field for content that cannot be written is how an empty repeater
- * becomes a placeholder somebody eventually fills with a guess. Each is one field plus one section
- * component on the day its copy is approved.
+ * Milestones and competitive advantages remain absent because their factual content is still not
+ * approved. Team was added after explicit editorial approval on 27 August 2026, as accountable
+ * business functions rather than an invented roster; names and biographies remain unmodelled.
  *
  * Every field below is rendered by the About page today. Nothing here is speculative.
  *
@@ -88,7 +85,7 @@ export const AboutUs: GlobalConfig = {
   },
   admin: {
     description:
-      "The About Us page. Milestones, competitive advantages and team are deliberately not modelled — they have no approved content yet.",
+      "The About Us page. Team functions are modelled without invented names or biographies; milestones and competitive advantages remain unmodelled until their facts are approved.",
     group: "Company pages",
   },
   /*
@@ -174,6 +171,29 @@ export const AboutUs: GlobalConfig = {
           label: "Named areas",
           fields: [{ name: "name", type: "text", required: true, localized: true }],
         },
+      ],
+    },
+    {
+      name: "team",
+      type: "group",
+      fields: [
+        { name: "eyebrow", type: "text", localized: true },
+        { name: "heading", type: "text", localized: true },
+        { name: "lead", type: "textarea", localized: true },
+        {
+          name: "functions",
+          type: "array",
+          label: "Team functions",
+          admin: {
+            description:
+              "Describe accountable functions, not invented people. Add names and biographies only when the real roster and photography are approved.",
+          },
+          fields: [
+            { name: "name", type: "text", required: true, localized: true },
+            { name: "note", type: "textarea", required: true, localized: true },
+          ],
+        },
+        ...imageFields(),
       ],
     },
     {

@@ -7,6 +7,7 @@ import type {
   AboutUsExpertise,
   AboutUsHero,
   AboutUsQualityStandards,
+  AboutUsTeam,
   AboutUsWhoWeAre,
   ContentCta,
   ContentFigure,
@@ -191,6 +192,21 @@ function expertiseOf(doc: Record<string, unknown>): AboutUsExpertise | null {
   return isEmpty(heading, lead, items) ? null : { heading, lead, items };
 }
 
+function teamOf(doc: Record<string, unknown>): AboutUsTeam | null {
+  const source = group(doc.team);
+  const eyebrow = text(source.eyebrow);
+  const heading = text(source.heading);
+  const lead = text(source.lead);
+  const functions = rows(source.functions)
+    .map((row) => ({ name: text(row.name), note: text(row.note) }))
+    .filter((row): row is { name: string; note: string } => row.name !== null && row.note !== null);
+  const sectionFigure = figure(source);
+
+  if (isEmpty(eyebrow, heading, lead, functions, sectionFigure)) return null;
+
+  return { eyebrow, heading, lead, functions, figure: sectionFigure };
+}
+
 function qualityStandardsOf(doc: Record<string, unknown>): AboutUsQualityStandards | null {
   const source = group(doc.qualityStandards);
   const heading = text(source.heading);
@@ -248,6 +264,7 @@ export function toAboutUsContent(
     hero,
     whoWeAre: whoWeAreOf(doc),
     expertise: expertiseOf(doc),
+    team: teamOf(doc),
     qualityStandards: qualityStandardsOf(doc),
     closing: closingOf(doc),
     /*

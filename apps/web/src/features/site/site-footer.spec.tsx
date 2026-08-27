@@ -74,6 +74,12 @@ describe("SiteFooter", () => {
     }
   });
 
+  it("keeps About Us in the Company column in every locale", () => {
+    for (const code of ACTIVE_LOCALE_CODES) {
+      expect(hrefsIn(code)).toContain(`/${code}${ROUTES.aboutUs}`);
+    }
+  });
+
   it("renders no fragment-only address anywhere — no `#top`, no `#products`", () => {
     for (const code of ACTIVE_LOCALE_CODES) {
       for (const href of hrefsIn(code)) {

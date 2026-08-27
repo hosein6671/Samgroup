@@ -33,8 +33,8 @@ import { Partnership } from "./sections/partnership";
 /** The homepage body sections that emit a link, rendered as one surface. */
 function homeBody(locale: string): string {
   return [
-    renderHtml(<Hero />),
-    renderHtml(<Ecosystem />),
+    renderHtml(<Hero locale={locale} />),
+    renderHtml(<Ecosystem locale={locale} />),
     renderHtml(<Lab />),
     renderHtml(<Insights locale={locale} />),
     renderHtml(<Partnership locale={locale} />),
@@ -50,15 +50,19 @@ describe("the homepage body addresses every route in the reader's locale", () =>
     expect(hrefsIn(renderHtml(<Insights locale="fa" />))).toEqual(["/fa/insights"]);
   });
 
-  it("carries the locale into all three closing routes and both panel actions", () => {
+  it("links the ecosystem action to the active branch's canonical category", () => {
+    expect(hrefsIn(renderHtml(<Ecosystem locale="fa" />))).toEqual([
+      "/fa/products/engine-oils-automotive-lubricants",
+    ]);
+  });
+
+  it("carries the locale into all three closing routes", () => {
     const hrefs = hrefsIn(renderHtml(<Partnership locale="fa" />));
 
     expect(hrefs).toEqual([
       "/fa/contact-us",
       "/fa/contact-us/request-a-quote",
       "/fa/products#documentation",
-      "/fa/contact-us",
-      "/fa/contact-us/request-a-quote",
     ]);
   });
 
@@ -68,11 +72,11 @@ describe("the homepage body addresses every route in the reader's locale", () =>
     );
   });
 
-  it("prefixes the same six links differently in a different locale", () => {
+  it("prefixes the same seven links differently in a different locale", () => {
     const fa = hrefsIn(homeBody("fa")).filter(isInternalPath);
     const ar = hrefsIn(homeBody("ar")).filter(isInternalPath);
 
-    expect(fa).toHaveLength(6);
+    expect(fa).toHaveLength(7);
     expect(ar).toEqual(fa.map((href) => href.replace("/fa/", "/ar/")));
   });
 });
@@ -99,10 +103,10 @@ describe("the fixture stays locale-less", () => {
 });
 
 describe("the same-page fragments survive, and still land somewhere", () => {
-  it("leaves #products and #partnership unprefixed", () => {
+  it("keeps only the partnership fragment as an in-page action", () => {
     const fragments = hrefsIn(homeBody("fa")).filter((href) => href.startsWith("#"));
 
-    expect(new Set(fragments)).toEqual(new Set(["#products", "#partnership"]));
+    expect(new Set(fragments)).toEqual(new Set(["#partnership"]));
   });
 
   it("renders an id for every fragment the body links to", () => {

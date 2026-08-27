@@ -29,6 +29,7 @@ const CONTENT: AboutUsContent = {
   },
   whoWeAre: null,
   expertise: null,
+  team: null,
   qualityStandards: null,
   closing: null,
   seo: {

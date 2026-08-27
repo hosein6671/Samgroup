@@ -392,6 +392,7 @@ describe("isNavHrefActive", () => {
   });
 
   it("marks exactly one item on each primary destination", () => {
+    expect(activeLabels(ROUTES.aboutUs)).toEqual(["About Us"]);
     expect(activeLabels(ROUTES.products)).toEqual(["Products"]);
     expect(activeLabels(ROUTES.customizedSolutions)).toEqual(["Customized Solutions"]);
     expect(activeLabels(ROUTES.exportLogistics)).toEqual(["Export & Logistics"]);
@@ -406,7 +407,6 @@ describe("isNavHrefActive", () => {
 
   it("marks nothing on a route no primary item owns", () => {
     expect(activeLabels("/quality-certifications")).toEqual([]);
-    expect(activeLabels("/about-us")).toEqual([]);
     expect(activeLabels("/insights")).toEqual([]);
     expect(activeLabels("/privacy-policy")).toEqual([]);
     expect(activeLabels("/design-proof/products")).toEqual([]);

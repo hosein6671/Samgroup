@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { STAGES } from "../home-data";
@@ -146,9 +147,25 @@ export function Journey(): ReactNode {
     >
       {/* Scrolls away before the sticky track pins; its height is accounted for in the travel. */}
       <div className="fs-jrny-head" ref={headRef}>
-        <div className="fs-wrap">
-          <div className="fs-eyebrow">Manufacturing Journey</div>
-          <h2 className="fs-d2">From molecule to manifest.</h2>
+        <div className="fs-wrap fs-jrny-intro">
+          <div className="fs-jrny-head-copy">
+            <div className="fs-eyebrow">From requirement to supply planning</div>
+            <h2 className="fs-d2">Six decisions that move an enquiry forward.</h2>
+            <p>
+              Start with the operating need, identify the relevant product route, and carry the
+              reviewed technical and commercial details into supply planning.
+            </p>
+          </div>
+
+          <figure className="fs-jrny-photo">
+            <Image
+              src="/images/home/journey-requirement-to-supply.png"
+              alt="Oil sample review beside packaged lubricants and an export container"
+              fill
+              sizes="(max-width: 900px) calc(100vw - 40px), 54vw"
+            />
+            <figcaption>From product review to supply brief</figcaption>
+          </figure>
         </div>
       </div>
 

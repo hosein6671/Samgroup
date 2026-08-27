@@ -44,9 +44,9 @@ export function FinderHero({ locale }: { readonly locale: string }): ReactNode {
         <h1 className="fs-d1 pf-title">Product Finder</h1>
 
         <p className="fs-lead pf-lead">
-          Narrow the published range by product family, by segment, or by both together. Each
-          selection is part of the address, so a filtered view can be shared, bookmarked and
-          reopened exactly as it was.
+          Search by product name, grade, or public specification value, then narrow the published
+          range by product family or buyer segment. Every selection stays in the address, ready to
+          share, bookmark, or reopen.
         </p>
       </div>
     </section>

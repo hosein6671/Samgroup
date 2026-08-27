@@ -39,14 +39,14 @@ export function Why(): ReactNode {
   const barsRef = useRef<HTMLDivElement>(null);
   const gaugeRef = useRef<SVGSVGElement>(null);
   const [barsIn, setBarsIn] = useState(false);
-  const [vi, setVi] = useState(168);
+  const [vi, setVi] = useState(3);
   const [arcOffset, setArcOffset] = useState(0);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const full = 741;
-    // 168 of a 220 scale, over the gauge's 280° sweep.
-    const target = full - full * (168 / 220) * (280 / 360);
+    // Three review stages over the gauge's 280° sweep.
+    const target = full - full * (3 / 3) * (280 / 360);
 
     if (reduced) {
       setBarsIn(true);
@@ -78,7 +78,7 @@ export function Why(): ReactNode {
       const t0 = performance.now();
       const tick = (now: number): void => {
         const p = Math.min(1, (now - t0) / 2000);
-        setVi(Math.round(168 * (1 - Math.pow(1 - p, 3))));
+        setVi(Math.round(3 * (1 - Math.pow(1 - p, 3))));
         if (p < 1) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
@@ -100,36 +100,77 @@ export function Why(): ReactNode {
   });
 
   return (
-    <section
-      className="fs-sec fs-why"
-      id="why"
-      data-surface="light"
-      style={{ paddingBlock: "clamp(40px,5vw,72px)" }}
-    >
+    <section className="fs-sec fs-why" id="why" data-surface="light">
       <div className="fs-wrap">
-        <div className="fs-rv" style={{ marginBottom: "clamp(30px,4vw,54px)" }}>
-          <div className="fs-eyebrow">Why Sam Group</div>
-          <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "18ch" }}>
-            Four reasons procurement teams keep the contract.
-          </h2>
+        <div className="fs-why-intro fs-rv">
+          <div>
+            <div className="fs-eyebrow">A practical path for B2B buyers</div>
+            <h2 className="fs-d2">
+              <span className="fs-line-mask">
+                <span>Turn a requirement</span>
+              </span>
+              <span className="fs-line-mask">
+                <span>into a product and</span>
+              </span>
+              <span className="fs-line-mask">
+                <span>
+                  <i>supply brief.</i>
+                </span>
+              </span>
+            </h2>
+          </div>
+
+          <aside className="fs-why-path" aria-label="B2B buyer information path">
+            <div className="fs-why-path-label">From operating need to supply brief</div>
+            <ol>
+              <li>
+                <span>01</span>
+                <div>
+                  <strong>Define the requirement</strong>
+                  <small>Application, equipment, and operating conditions</small>
+                </div>
+              </li>
+              <li>
+                <span>02</span>
+                <div>
+                  <strong>Identify the product route</strong>
+                  <small>Family, grade, and applicable specification</small>
+                </div>
+              </li>
+              <li>
+                <span>03</span>
+                <div>
+                  <strong>Review the information</strong>
+                  <small>Recorded properties, claims, and available documents</small>
+                </div>
+              </li>
+              <li>
+                <span>04</span>
+                <div>
+                  <strong>Prepare the supply brief</strong>
+                  <small>Quantity, packaging, destination, and preferred trade term</small>
+                </div>
+              </li>
+            </ol>
+          </aside>
         </div>
 
         {/* A · capability */}
         <div className="fs-why-block">
-          <div className="fs-grid12" style={{ alignItems: "end" }}>
+          <div className="fs-grid12 fs-cap-layout">
             <div className="fs-cap-copy fs-rv">
               <div className="fs-wb-num">01 / CAPABILITY</div>
               <h3 className="fs-d3" style={{ marginTop: 16, color: "var(--fs-navy)" }}>
-                Global manufacturing capability
+                Reach the relevant product range faster
               </h3>
               <p className="fs-lead" style={{ marginTop: 18 }}>
-                Four blending lines, automated additive dosing and dual-terminal loading let us hold
-                delivery windows that most regional producers quote as “subject to availability”.
+                Browse by family, application, and grade. The selected context stays connected to
+                the enquiry, reducing repetition and making the requirement easier to assess.
               </p>
               <div style={{ display: "flex", gap: 38, marginTop: 28, flexWrap: "wrap" }}>
                 {[
-                  ["240K", "MT annual capacity"],
-                  ["14", "Days avg. lead time"],
+                  ["100", "Catalogue products"],
+                  ["6", "Product families"],
                 ].map(([v, l]) => (
                   <div key={l}>
                     <b
@@ -158,7 +199,7 @@ export function Why(): ReactNode {
                 className="fs-mono"
                 style={{ color: "var(--color-text-secondary)", marginBottom: 14 }}
               >
-                Output by line · thousand MT / year
+                Current catalogue distribution · relative product count
               </div>
               <div className="fs-bars" ref={barsRef}>
                 {LINE_OUTPUT.map((line, i) => (
@@ -189,7 +230,7 @@ export function Why(): ReactNode {
               <div>
                 <div className="fs-wb-num">02 / QUALITY</div>
                 <h3 className="fs-d3" style={{ marginTop: 16 }}>
-                  Premium quality, proven per batch
+                  Review product information in context
                 </h3>
                 <p
                   style={{
@@ -200,12 +241,12 @@ export function Why(): ReactNode {
                     maxWidth: "46ch",
                   }}
                 >
-                  Every batch is held until the certificate of analysis clears. Retained samples
-                  stay in the archive for five years, so a claim raised in 2030 can still be traced
-                  to the drum it came from.
+                  Product pages separate general descriptions, recorded typical properties, and
+                  supporting documents. Final suitability is assessed against the buyer&apos;s
+                  requirement and the applicable specification.
                 </p>
                 <table>
-                  <caption>Typical release specification — SAE 5W-30 SN</caption>
+                  <caption>Product documentation pathway</caption>
                   <tbody>
                     {RELEASE_SPEC.map(([k, v]) => (
                       <tr key={k}>
@@ -223,7 +264,7 @@ export function Why(): ReactNode {
                   className="fs-gauge"
                   viewBox="0 0 300 300"
                   role="img"
-                  aria-label="Viscosity index performance gauge showing 168 against an industry benchmark of 120"
+                  aria-label="Three-stage technical review pathway"
                 >
                   <defs>
                     <linearGradient id="fsGaugeGold" x1="0" y1="0" x2="1" y2="1">
@@ -285,7 +326,7 @@ export function Why(): ReactNode {
                       fill: "#C39A4E",
                     }}
                   >
-                    VISCOSITY INDEX
+                    REVIEW STAGES
                   </text>
                   <text
                     x="150"
@@ -298,7 +339,7 @@ export function Why(): ReactNode {
                       fill: "rgba(238,241,246,.45)",
                     }}
                   >
-                    BENCHMARK 120
+                    SOURCE · REVIEW · DECISION
                   </text>
                 </svg>
               </div>
@@ -308,65 +349,49 @@ export function Why(): ReactNode {
 
         {/* C · technology */}
         <div className="fs-why-block">
-          <div className="fs-grid12" style={{ alignItems: "center" }}>
+          <div className="fs-grid12 fs-tech-layout">
             <div className="fs-tech-viz fs-rv">
-              <svg
-                className="fs-draw"
-                viewBox="0 0 720 400"
-                role="img"
-                aria-label="Schematic of the blending and additive dosing loop"
-              >
-                <g fill="none" stroke="rgba(6,19,70,.5)" strokeWidth="1.1">
-                  <rect x="40" y="120" width="130" height="160" rx="10" />
-                  <rect x="290" y="60" width="150" height="120" rx="10" />
-                  <rect x="290" y="230" width="150" height="120" rx="10" />
-                  <rect x="560" y="120" width="120" height="160" rx="10" />
-                  <path d="M170 200 H290" />
-                  <path d="M170 200 V120 H290" />
-                  <path d="M170 200 V290 H290" />
-                  <path d="M440 120 H500 V200 H560" />
-                  <path d="M440 290 H500 V200" />
-                  <circle cx="500" cy="200" r="16" />
-                  <circle cx="230" cy="200" r="9" />
-                  <path d="M40 90 H680" strokeDasharray="4 6" stroke="rgba(195,154,78,.6)" />
-                </g>
-                <g
-                  style={{
-                    fontFamily: "var(--font-technical)",
-                    fontSize: 9.5,
-                    letterSpacing: ".14em",
-                    fill: "var(--color-text-secondary)",
-                  }}
-                >
-                  <text x="105" y="205" textAnchor="middle">
-                    BASE STOCK
-                  </text>
-                  <text x="365" y="125" textAnchor="middle">
-                    ADDITIVE A
-                  </text>
-                  <text x="365" y="295" textAnchor="middle">
-                    ADDITIVE B
-                  </text>
-                  <text x="620" y="205" textAnchor="middle">
-                    BLEND VESSEL
-                  </text>
-                  <text x="500" y="240" textAnchor="middle" style={{ fill: "#C39A4E" }}>
-                    INLINE QC
-                  </text>
-                  <text x="40" y="80" style={{ fill: "#C39A4E" }}>
-                    SCADA CONTROL LOOP · ±0.15% DOSING TOLERANCE
-                  </text>
-                </g>
-              </svg>
+              <div className="fs-content-flow" aria-label="Product information review flow">
+                <div className="fs-content-flow-head">
+                  <span>Product information path</span>
+                  <span>Recorded → reviewed → published</span>
+                </div>
+                <ol>
+                  <li>
+                    <span className="fs-flow-index">01</span>
+                    <strong>Source record</strong>
+                    <small>Exact product name, specification and supporting document</small>
+                  </li>
+                  <li>
+                    <span className="fs-flow-index">02</span>
+                    <strong>Technical review</strong>
+                    <small>Specification context, typical properties and claims checked</small>
+                  </li>
+                  <li>
+                    <span className="fs-flow-index">03</span>
+                    <strong>Publication decision</strong>
+                    <small>Review status and decision history retained</small>
+                  </li>
+                  <li>
+                    <span className="fs-flow-index">04</span>
+                    <strong>Product page</strong>
+                    <small>Reviewed information becomes available to the buyer</small>
+                  </li>
+                </ol>
+                <div className="fs-content-flow-output">
+                  <span aria-hidden="true" />
+                  Buyer-facing output · Product page
+                </div>
+              </div>
             </div>
             <div className="fs-tech-copy fs-rv">
-              <div className="fs-wb-num">03 / TECHNOLOGY</div>
+              <div className="fs-wb-num">03 / INFORMATION CONTROL</div>
               <h3 className="fs-d3" style={{ marginTop: 16, color: "var(--fs-navy)" }}>
-                Advanced process technology
+                Know how technical information reaches the product page
               </h3>
               <p className="fs-lead" style={{ marginTop: 18 }}>
-                Gravimetric dosing with inline NIR verification. The loop rejects a blend before it
-                reaches the vessel, not after the drum is sealed.
+                Product names remain exact. Specifications, typical properties, claims, and
+                supporting documents retain their source and review status before publication.
               </p>
               <div className="fs-tags" style={{ marginTop: 22 }}>
                 {TECH_TAGS.map((tag) => (
@@ -387,11 +412,12 @@ export function Why(): ReactNode {
               className="fs-d3"
               style={{ marginTop: 16, color: "var(--fs-navy)", maxWidth: "20ch" }}
             >
-              Trusted across borders, audited on site
+              Clear scope. Traceable technical content.
             </h3>
             <p className="fs-lead" style={{ marginTop: 18 }}>
-              Buyers audit us before they buy. The numbers below are what those audits keep
-              confirming.
+              The catalogue shows what is available, how information has been reviewed, and which
+              documents accompany the product record. Suitability still depends on the buyer&apos;s
+              requirement and the applicable specification.
             </p>
             <div className="fs-trust-grid">
               {TRUST.map((cell) => (

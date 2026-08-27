@@ -44,10 +44,9 @@ import { Why } from "./sections/why";
  * code (PROJECT_HANDOFF §6.9), and routing is next-intl's job in M2. Shipping the prototype's
  * version would mean building the thing that has to be deleted.
  *
- * **The partnership section no longer holds a form.** It held one that validated in the browser,
- * showed a success toast and discarded the lead — acceptable while no submission endpoint existed,
- * and not acceptable once `POST /inquiries` shipped. It is now a link into the real Contact Us
- * flow, which stores what a visitor sends.
+ * **The partnership section uses the real form.** The prototype's local form showed a success
+ * toast and discarded the lead. It has been replaced with the shared `InquiryForm`, whose Server
+ * Action uses the same `POST /inquiries` path, DTO errors and success state as Contact Us.
  *
  * **Figures are the prototype's, and are unaudited.** SITE_STRUCTURE marks the homepage statistics
  * `[ESTIMATE — CONFIRM]`; they must be replaced before launch, and `DemoDataNotice` now says so on
@@ -71,16 +70,14 @@ export function HomeExperience({ locale, locales }: SiteNavProps): ReactNode {
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        {/*
-         * First, above the hero, so it precedes every figure on the page rather than trailing
-         * some of them. It replaces the certification marquee that used to sit under the hero —
-         * see `DemoDataNotice` for why that marquee was removed outright rather than annotated.
-         */}
+        <Hero locale={locale} />
+
+        {/* The fixed navigation must meet the hero directly. Placing this notice after the hero
+            keeps it fully readable without creating a second bar below the navigation. */}
         <DemoDataNotice />
 
-        <Hero />
         <Story />
-        <Ecosystem />
+        <Ecosystem locale={locale} />
         <Why />
         <Network />
         <Lab />

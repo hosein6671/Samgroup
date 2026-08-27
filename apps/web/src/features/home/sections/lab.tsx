@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, type ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -80,22 +81,21 @@ export function Lab(): ReactNode {
       <canvas ref={canvasRef} aria-hidden="true" />
       <div className="fs-wrap fs-grid12" style={{ alignItems: "center" }}>
         <div className="fs-lab-copy fs-rv">
-          <div className="fs-eyebrow">Research &amp; Innovation</div>
+          <div className="fs-eyebrow">Product information and technical review</div>
           <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "14ch" }}>
             <span className="fs-line-mask">
-              <span>Engineering the future</span>
+              <span>Technical context</span>
             </span>
             <span className="fs-line-mask">
-              <span>of industrial</span>
+              <span>belongs beside</span>
             </span>
             <span className="fs-line-mask">
-              <span style={{ color: "var(--fs-gold-2)" }}>performance.</span>
+              <span style={{ color: "var(--fs-gold-2)" }}>the product.</span>
             </span>
           </h2>
           <p className="fs-lead" style={{ marginTop: 26, color: "rgba(238,241,246,.72)" }}>
-            Our R&amp;D group runs accelerated oxidation, four-ball wear and field-return analysis
-            in parallel. A formulation only enters the catalogue after it survives 1,000 hours of
-            conditions harsher than the ones it will meet.
+            Evaluate a product through its recorded grade, typical properties, claims, and available
+            documents. Confirm suitability against the actual application and specification.
           </p>
           <div className="fs-tags" style={{ marginTop: 26 }}>
             {LAB_TAGS.map((tag) => (
@@ -105,10 +105,23 @@ export function Lab(): ReactNode {
             ))}
           </div>
           <a href="#partnership" className="fs-btn fs-btn--glass" style={{ marginTop: 32 }}>
-            Talk to the engineering team
+            Discuss a product requirement
             <Arrow />
           </a>
         </div>
+
+        <figure className="fs-lab-photo fs-rv">
+          <Image
+            src="/images/home/lab-refrigerator-compressor-oil.png"
+            alt="Laboratory sample of Refrigerator Compressor Oil KD with a glass pipette"
+            fill
+            sizes="(max-width: 900px) calc(100vw - 40px), 42vw"
+          />
+          <figcaption>
+            <span>SAM Group product sample</span>
+            Refrigerator Compressor Oil KD
+          </figcaption>
+        </figure>
 
         <div className="fs-lab-cards fs-rv">
           {LAB_CARDS.map((card) => (

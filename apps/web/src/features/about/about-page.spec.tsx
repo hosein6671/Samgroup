@@ -52,6 +52,21 @@ const VERIFICATION_CONTENT: AboutUsContent = {
     lead: "VERIFICATION EXPERTISE LEAD",
     items: [{ name: "VERIFICATION AREA" }],
   },
+  team: {
+    eyebrow: "VERIFICATION TEAM",
+    heading: "VERIFICATION TEAM HEADING",
+    lead: "VERIFICATION TEAM LEAD",
+    functions: [{ name: "VERIFICATION FUNCTION", note: "VERIFICATION FUNCTION NOTE" }],
+    figure: {
+      image: {
+        url: "/media/cms/verification-team.png",
+        alt: "VERIFICATION TEAM ALT",
+        width: 1600,
+        height: 900,
+      },
+      caption: "VERIFICATION TEAM CAPTION",
+    },
+  },
   qualityStandards: {
     heading: "VERIFICATION QUALITY",
     lead: "VERIFICATION QUALITY LEAD",
@@ -101,6 +116,8 @@ describe("the About page renders what the CMS served", () => {
       "VERIFICATION WHO WE ARE",
       "VERIFICATION TERM",
       "VERIFICATION AREA",
+      "VERIFICATION TEAM HEADING",
+      "VERIFICATION FUNCTION",
       "VERIFICATION COMMITMENT",
       "VERIFICATION SECOND LINE",
       "VERIFICATION FOOTNOTE",
@@ -143,6 +160,7 @@ describe("optional sections render absent", () => {
     hero: { ...VERIFICATION_CONTENT.hero, figure: null, secondaryCta: null },
     whoWeAre: null,
     expertise: null,
+    team: null,
     qualityStandards: null,
     closing: null,
   };
@@ -185,7 +203,7 @@ describe("accessibility of the rendered page", () => {
     const tree = render();
 
     expect(findTags(tree, "h1")).toHaveLength(1);
-    expect(findTags(tree, "h3")).toHaveLength(0);
+    expect(findTags(tree, "h3")).toHaveLength(VERIFICATION_CONTENT.team?.functions.length ?? 0);
     expect(findTags(tree, "h2").length).toBeGreaterThan(0);
   });
 

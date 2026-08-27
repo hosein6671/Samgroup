@@ -2,6 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 
+import { BrandedPhoto } from "../branded-photo";
 import { MODULES, STORY_META } from "../home-data";
 
 /**
@@ -45,24 +46,24 @@ export function Story(): ReactNode {
       />
       <div className="fs-wrap fs-grid12">
         <div className="fs-story-left fs-rv">
-          <div className="fs-eyebrow">Manufacturing Excellence</div>
+          <div className="fs-eyebrow">Built around the buyer&apos;s requirement</div>
           <h2 className="fs-d2">
             <span className="fs-line-mask">
-              <span>Precision.</span>
+              <span>Find the range.</span>
             </span>
             <span className="fs-line-mask">
-              <span>Technology.</span>
+              <span>Review the detail.</span>
             </span>
             <span className="fs-line-mask">
               <span>
-                <i>Global reliability.</i>
+                <i>Enquire with clarity.</i>
               </span>
             </span>
           </h2>
           <p className="fs-lead" style={{ marginTop: 26 }}>
-            Every barrel that leaves our terminals carries a molecular record — feedstock origin,
-            additive package, viscosity curve, and the signature of the engineer who released it.
-            That record is the product.
+            SAM Group organises petroleum products and lubricants around the decisions professional
+            buyers need to make. Move from product family to grade, review the available technical
+            context, and submit a requirement the commercial team can assess.
           </p>
           <div className="fs-story-meta">
             {STORY_META.map((m) => (
@@ -75,6 +76,13 @@ export function Story(): ReactNode {
         </div>
 
         <div className="fs-story-right">
+          <BrandedPhoto
+            src="/images/home/story-product-portfolio.png"
+            alt="Industrial lubricant samples and packaging formats arranged in a clean warehouse"
+            caption="SAM Group product portfolio"
+            className="fs-story-photo fs-rv"
+            sizes="(max-width: 1180px) calc(100vw - 40px), 46vw"
+          />
           <div className="fs-panel-stack">
             {MODULES.map((m, i) => (
               <article
@@ -93,8 +101,21 @@ export function Story(): ReactNode {
                   aria-hidden="true"
                   dangerouslySetInnerHTML={{ __html: m.diagram }}
                 />
-                <div className="fs-gpanel-idx">0{i + 1} — MODULE</div>
+                <div className="fs-gpanel-idx">
+                  <span>0{i + 1}</span>
+                  <span>{m.phase}</span>
+                </div>
                 <h3>{m.title}</h3>
+                <dl className="fs-gpanel-exchange">
+                  <div>
+                    <dt>Buyer provides</dt>
+                    <dd>{m.input}</dd>
+                  </div>
+                  <div>
+                    <dt>SAM Group returns</dt>
+                    <dd>{m.outcome}</dd>
+                  </div>
+                </dl>
                 <div className="fs-gpanel-body">
                   <div>
                     <p>{m.body}</p>

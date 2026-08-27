@@ -50,20 +50,20 @@ export function Insights({ locale }: { readonly locale: string }): ReactNode {
   return (
     <section className="fs-sec fs-insights" id="insights" data-surface="light">
       <div className="fs-wrap">
-        <div className="fs-ins-head fs-rv">
+        <div className="fs-ins-head fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Global Insights</div>
+            <div className="fs-eyebrow">SAM Group insights</div>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "14ch" }}>
-              Notes from the industry.
+              Practical knowledge for better product decisions.
             </h2>
             <p className="fs-lead fs-ins-lede">
-              Technical and market notes on base oils, lubricants and export logistics, published as
-              they are written.
+              Read clear guidance on product selection, technical terminology, documentation,
+              packaging, and export enquiry preparation.
             </p>
           </div>
 
           <a href={localeHref(locale, ROUTES.insights)} className="fs-btn fs-btn--outline">
-            Read the insights
+            Explore insights
             <Arrow />
           </a>
         </div>

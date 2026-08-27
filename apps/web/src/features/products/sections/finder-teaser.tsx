@@ -46,8 +46,8 @@ export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode
           {/* The facet names are read off the same constant the panel renders, so the sentence
               and the picture beside it cannot describe different tools. */}
           <p className="fs-lead">
-            The finder narrows the full range by {facetSentence()}. When you already know the grade,
-            search for it by name instead.
+            Narrow the published range by {facetSentence()}, or search directly by product name,
+            grade, or a public specification value.
           </p>
 
           <div className="pr-finder-actions">
@@ -101,7 +101,7 @@ export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode
             </span>
             <span className="pr-matrix-name">Direct</span>
             <span className="pr-matrix-vals">
-              <span>Search by grade name</span>
+              <span>Search by product, grade, or specification</span>
             </span>
           </div>
         </div>

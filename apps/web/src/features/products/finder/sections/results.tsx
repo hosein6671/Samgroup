@@ -107,6 +107,13 @@ function selectionSentence(query: FinderQuery): string {
   const family = query.category === null ? null : familyName(query.category);
   const segment = query.segment === null ? null : segmentName(query.segment);
 
+  if (query.q !== null && family !== null && segment !== null) {
+    return `the search within ${family} in ${segment}`;
+  }
+  if (query.q !== null && family !== null) return `the search within ${family}`;
+  if (query.q !== null && segment !== null) return `the search within ${segment}`;
+  if (query.q !== null) return "the requested search";
+
   if (family !== null && segment !== null) return `${family} in ${segment}`;
   if (family !== null) return family;
   if (segment !== null) return segment;
@@ -132,9 +139,9 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
 
   report(query, result);
 
-  const unfilteredHref = finderHref(locale, { category: null, segment: null });
+  const unfilteredHref = finderHref(locale, { category: null, segment: null, q: null });
   const listed = result.ok ? result.products.length : 0;
-  const filtered = query.category !== null || query.segment !== null;
+  const filtered = query.category !== null || query.segment !== null || query.q !== null;
 
   return (
     <div className="pf-results">
@@ -167,10 +174,10 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
 
       {result.ok && listed === 0 && filtered && (
         <ResultNotice
-          heading="No products match these filters"
+          heading="No products match this search"
           body={`The catalog holds no published product for ${selectionSentence(query)}.`}
           reset={unfilteredHref}
-          resetLabel="Clear all filters"
+          resetLabel="Clear search and filters"
         />
       )}
 

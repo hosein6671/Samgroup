@@ -14,16 +14,11 @@ import { getActiveLocales } from "@/lib/locales";
  *
  * ── What this route does and does not prove ─────────────────────────────────
  *
- * It is the verification route for P1's topology: three generated locales, a locale-correct
- * `<html lang dir>`, and a canonical tree that is genuinely separate from the proof tree. It is
- * **not** a launched page. Three things visible on it are known, accepted P1 gaps, each fixed by
- * its own later gate:
- *
- * - the header and footer link to canonical routes that are not promoted yet, so those links
- *   redirect through middleware and then 404;
- * - the language switcher is still presentational and navigates nowhere;
- * - `fa` and `ar` render in a browser fallback font, because the three self-hosted families carry
- *   no Arabic or Persian coverage (see `app/fonts.ts`).
+ * It began as the verification route for P1's topology: generated locales, a locale-correct
+ * `<html lang dir>`, and a canonical tree separate from the proof tree. It is **not** a launched
+ * page yet. The remaining visible launch gaps are reviewed Persian/Arabic copy and their approved
+ * Arabic-script typeface pairing; until those gates close, those locale routes still render this
+ * English editorial draft.
  *
  * That is why the `[locale]` layout keeps `robots: { index: false, follow: false }`.
  *
@@ -31,11 +26,60 @@ import { getActiveLocales } from "@/lib/locales";
  * rather than to the layout because they describe this page rather than the tree — the proof
  * homepage inherited them from the root layout only because it had no metadata of its own.
  */
-export const metadata: Metadata = {
-  title: "Sam Group — Engineering Premium Energy Solutions",
-  description:
-    "Sam Group delivers advanced petroleum products, lubricants, base oils and industrial solutions engineered for global industries.",
-};
+const HOME_TITLE = "Petroleum Products & Lubricants | SAM Group";
+const HOME_DESCRIPTION =
+  "Explore SAM Group petroleum products, lubricant components, finished lubricants, marine oils, coolants, technical information, and enquiry routes.";
+
+/**
+ * Locale-aware homepage metadata.
+ *
+ * The canonical points to the current locale only. `hreflang` is deliberately absent while the
+ * homepage body is still the same English editorial draft in all three locale routes: advertising
+ * unreviewed translations as language alternatives would be a false signal. The launch-content
+ * gate can add alternates as each locale receives reviewed copy.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const canonical = `/${locale}`;
+
+  return {
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      siteName: "SAM Group",
+      title: HOME_TITLE,
+      description: HOME_DESCRIPTION,
+      url: canonical,
+      locale,
+      images: [
+        {
+          url: "/images/home/journey-requirement-to-supply.png",
+          width: 1672,
+          height: 941,
+          alt: "SAM Group petroleum product review and supply planning",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: HOME_TITLE,
+      description: HOME_DESCRIPTION,
+      images: ["/images/home/journey-requirement-to-supply.png"],
+    },
+  };
+}
+
+/* Kept as named constants above so visible copy and social metadata cannot drift independently. */
+export const HOME_SEO = {
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
+} as const;
 
 /**
  * The two values the shared chrome needs, and the reason this page became `async`.

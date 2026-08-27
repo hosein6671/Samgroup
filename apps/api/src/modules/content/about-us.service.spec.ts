@@ -55,6 +55,16 @@ const PUBLISHED_DOC = {
     lead: "VERIFICATION EXPERTISE LEAD",
     items: [{ id: "b1", name: "VERIFICATION AREA" }],
   },
+  team: {
+    eyebrow: "VERIFICATION TEAM",
+    heading: "VERIFICATION TEAM HEADING",
+    lead: "VERIFICATION TEAM LEAD",
+    functions: [
+      { id: "team-1", name: "VERIFICATION FUNCTION", note: "VERIFICATION FUNCTION NOTE" },
+    ],
+    image: null,
+    imageCaption: null,
+  },
   qualityStandards: {
     heading: "VERIFICATION QUALITY",
     lead: "VERIFICATION QUALITY LEAD",
@@ -135,6 +145,9 @@ describe("AboutUsService", () => {
         { term: "VERIFICATION TERM", note: "VERIFICATION NOTE" },
       ]);
       expect(content.expertise?.items).toEqual([{ name: "VERIFICATION AREA" }]);
+      expect(content.team?.functions).toEqual([
+        { name: "VERIFICATION FUNCTION", note: "VERIFICATION FUNCTION NOTE" },
+      ]);
       expect(content.closing?.routes).toEqual([
         { label: "VERIFICATION ROUTE", route: "customized-solutions" },
       ]);
@@ -205,6 +218,7 @@ describe("AboutUsService", () => {
       findGlobal.mockResolvedValue({
         hero: { title: "VERIFICATION HERO TITLE" },
         expertise: { heading: "", lead: null, items: [] },
+        team: { heading: "", lead: null, functions: [] },
         qualityStandards: {},
         closing: { routes: [] },
         whoWeAre: { bodyHtml: "", positions: [] },
@@ -215,6 +229,7 @@ describe("AboutUsService", () => {
 
       expect(content.whoWeAre).toBeNull();
       expect(content.expertise).toBeNull();
+      expect(content.team).toBeNull();
       expect(content.qualityStandards).toBeNull();
       expect(content.closing).toBeNull();
       expect(content.hero.title).toBe("VERIFICATION HERO TITLE");

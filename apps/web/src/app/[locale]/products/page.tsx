@@ -52,11 +52,46 @@ import { getActiveLocales } from "@/lib/locales";
  * both trees carry `noindex, nofollow` from their own layouts, and the proof route is what this
  * one is validated against.
  */
-export const metadata: Metadata = {
-  title: "Products — Sam Group",
-  description:
-    "Base oils, lubricant additives, engine oils, industrial and marine lubricants, antifreeze and coolants — six product families from Sam Group.",
-};
+const PRODUCTS_TITLE = "Petroleum Products & Lubricants | SAM Group";
+const PRODUCTS_DESCRIPTION =
+  "Browse SAM Group base oils, lubricant additives, automotive and industrial lubricants, marine oils, antifreeze, and coolants by family, application, or grade.";
+
+/**
+ * Locale-aware search and sharing metadata. The canonical is structural; language alternates stay
+ * absent until the translated page copy has completed editorial review.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const canonical = `/${locale}/products`;
+
+  return {
+    title: PRODUCTS_TITLE,
+    description: PRODUCTS_DESCRIPTION,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      siteName: "SAM Group",
+      title: PRODUCTS_TITLE,
+      description: PRODUCTS_DESCRIPTION,
+      url: canonical,
+      locale,
+    },
+    twitter: {
+      card: "summary",
+      title: PRODUCTS_TITLE,
+      description: PRODUCTS_DESCRIPTION,
+    },
+  };
+}
+
+export const PRODUCTS_SEO = {
+  title: PRODUCTS_TITLE,
+  description: PRODUCTS_DESCRIPTION,
+} as const;
 
 /** `async` for the same reason `app/[locale]/page.tsx` is — see the note there. */
 export default async function ProductsPage({
