@@ -33,12 +33,19 @@ const PUBLISHED_DOC = {
     body: { root: { children: [] } },
     bodyHtml: "<p>VERIFICATION INTRO BODY</p>",
   },
+  whatCanWeCustomize: [
+    {
+      id: "c1",
+      title: "VERIFICATION CAPABILITY",
+      description: "VERIFICATION CAPABILITY DETAIL",
+    },
+  ],
   process: {
     heading: "VERIFICATION PROCESS HEADING",
     lead: "VERIFICATION PROCESS LEAD",
     steps: [
-      { id: "s1", name: "VERIFICATION STEP ONE" },
-      { id: "s2", name: "VERIFICATION STEP TWO" },
+      { id: "s1", name: "VERIFICATION STEP ONE", description: "VERIFICATION STEP DETAIL" },
+      { id: "s2", name: "VERIFICATION STEP TWO", description: null },
     ],
   },
   seo: { metaTitle: "VERIFICATION META", robotsIndex: true },
@@ -80,8 +87,14 @@ describe("CustomizedSolutionsService", () => {
       expect(content.hero.title).toBe("VERIFICATION SOLUTIONS TITLE");
       expect(content.introduction?.bodyHtml).toBe("<p>VERIFICATION INTRO BODY</p>");
       expect(content.process?.steps).toEqual([
-        { name: "VERIFICATION STEP ONE" },
-        { name: "VERIFICATION STEP TWO" },
+        { name: "VERIFICATION STEP ONE", description: "VERIFICATION STEP DETAIL" },
+        { name: "VERIFICATION STEP TWO", description: null },
+      ]);
+      expect(content.capabilities).toEqual([
+        {
+          title: "VERIFICATION CAPABILITY",
+          description: "VERIFICATION CAPABILITY DETAIL",
+        },
       ]);
 
       const wire = JSON.stringify(content);
@@ -200,6 +213,7 @@ describe("CustomizedSolutionsService", () => {
         hero: { title: "VERIFICATION SOLUTIONS TITLE" },
         introduction: { heading: "", bodyHtml: "" },
         process: { heading: null, lead: "", steps: [] },
+        whatCanWeCustomize: [],
       });
 
       const { response } = await service.find(EN);
@@ -215,14 +229,21 @@ describe("CustomizedSolutionsService", () => {
 
       findGlobal.mockResolvedValue({
         hero: { title: "VERIFICATION SOLUTIONS TITLE" },
-        process: { steps: [{ name: "VERIFICATION STEP ONE" }, { name: "  " }] },
+        process: {
+          steps: [
+            { name: "VERIFICATION STEP ONE", description: " VERIFICATION DETAIL " },
+            { name: "  " },
+          ],
+        },
       });
 
       const { response } = await service.find(EN);
       const content = expectAvailable(response);
 
       // A blank row is dropped rather than rendered as an unnamed stage.
-      expect(content.process?.steps).toEqual([{ name: "VERIFICATION STEP ONE" }]);
+      expect(content.process?.steps).toEqual([
+        { name: "VERIFICATION STEP ONE", description: "VERIFICATION DETAIL" },
+      ]);
       expect(content.process?.heading).toBeNull();
     });
   });

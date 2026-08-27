@@ -6,6 +6,7 @@ import type {
   ContentCta,
   ContentRouteKey,
   CustomizedSolutionsContent,
+  CustomizedSolutionsCapability,
   CustomizedSolutionsHero,
   CustomizedSolutionsIntroduction,
   CustomizedSolutionsProcess,
@@ -121,15 +122,20 @@ function processOf(doc: Record<string, unknown>): CustomizedSolutionsProcess | n
   const heading = text(source.heading);
   const lead = text(source.lead);
   const steps = rows(source.steps)
-    .map((row) => text(row.name))
-    .filter((name): name is string => name !== null)
-    .map((name) => ({ name }));
+    .map((row) => ({ name: text(row.name), description: text(row.description) }))
+    .filter((step): step is CustomizedSolutionsProcess["steps"][number] => step.name !== null);
 
   if (heading === null && lead === null && steps.length === 0) {
     return null;
   }
 
   return { heading, lead, steps };
+}
+
+function capabilitiesOf(doc: Record<string, unknown>): CustomizedSolutionsCapability[] {
+  return rows(doc.whatCanWeCustomize)
+    .map((row) => ({ title: text(row.title), description: text(row.description) }))
+    .filter((item): item is CustomizedSolutionsCapability => item.title !== null);
 }
 
 /**
@@ -152,6 +158,7 @@ export function toCustomizedSolutionsContent(
   return {
     hero,
     introduction: introductionOf(doc),
+    capabilities: capabilitiesOf(doc),
     process: processOf(doc),
     /*
      * `alternates` is empty by decision: `/customized-solutions` is a structural route whose URL is

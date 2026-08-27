@@ -84,6 +84,7 @@ export type {
   ContentImage,
   ContentPageResponse,
   ContentRouteKey,
+  CustomizedSolutionsCapability,
   CustomizedSolutionsContent,
   CustomizedSolutionsHero,
   CustomizedSolutionsIntroduction,

@@ -1,4 +1,5 @@
 import { Arrow } from "@/features/site/logo-mark";
+import { BrandedPhoto } from "@/features/home/branded-photo";
 import { contentRouteHref } from "@/features/site/site-routes";
 
 import { ANCHORS } from "../solutions-anchors";
@@ -59,7 +60,16 @@ export function SolutionsHero({
             </div>
           )}
         </div>
-        {process !== null && process.steps.length > 0 && <ProcessIndex steps={process.steps} />}
+        <div className="cs-hero-visual reveal-fade-rise">
+          <BrandedPhoto
+            src="/images/customized-solutions-requirement-review.webp"
+            alt="A technical and commercial team reviewing a lubricant requirement and product sample."
+            caption="APPLICATION · SPECIFICATION · QUANTITY · PACKAGING · DESTINATION"
+            className="cs-hero-photo"
+            sizes="(max-width: 1180px) 100vw, 42vw"
+          />
+          {process !== null && process.steps.length > 0 && <ProcessIndex steps={process.steps} />}
+        </div>
       </div>
     </section>
   );
@@ -78,18 +88,11 @@ function ProcessIndex({ steps }: { readonly steps: readonly { name: string }[] }
         The process
       </p>
       <p className="cs-index-note">
-        {steps.length} steps, from a stated requirement to a delivered batch.
+        {steps.length} defined stages from requirement capture to supply confirmation.
       </p>
-      <ol className="cs-index-list">
-        {steps.map((step, index) => (
-          <li className="cs-index-step" key={step.name}>
-            <a href={`#${ANCHORS.process}`}>
-              <span className="cs-index-num">{String(index + 1).padStart(2, "0")}</span>
-              <span className="cs-index-name">{step.name}</span>
-            </a>
-          </li>
-        ))}
-      </ol>
+      <a className="cs-index-link" href={`#${ANCHORS.process}`}>
+        Review the complete path <Arrow size={14} />
+      </a>
     </aside>
   );
 }

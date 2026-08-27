@@ -761,15 +761,26 @@ export interface CustomizedSolution {
     heading?: string | null;
     lead?: string | null;
     /**
-     * The stages in order. Their numbering is their position — it is not stored, and there is no description field: none is written for any step.
+     * The stages in order. Their numbering is their position and is not stored separately.
      */
     steps?:
       | {
           name: string;
+          description?: string | null;
           id?: string | null;
         }[]
       | null;
   };
+  /**
+   * Claim-controlled requirement dimensions. Do not add availability, performance, MOQ or formulation claims without approved evidence.
+   */
+  whatCanWeCustomize?:
+    | {
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
    */
@@ -1263,8 +1274,16 @@ export interface CustomizedSolutionsSelect<T extends boolean = true> {
           | T
           | {
               name?: T;
+              description?: T;
               id?: T;
             };
+      };
+  whatCanWeCustomize?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
       };
   seo?:
     | T

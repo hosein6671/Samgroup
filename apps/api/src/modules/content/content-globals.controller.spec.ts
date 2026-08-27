@@ -61,6 +61,7 @@ const SOLUTIONS: CustomizedSolutionsContent = {
     routeCta: null,
   },
   introduction: null,
+  capabilities: [],
   process: null,
   seo: CONTENT.seo,
 };

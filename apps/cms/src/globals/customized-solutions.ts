@@ -26,14 +26,10 @@ import type { GlobalConfig } from "payload";
  *
  * ── The schema is the page, and nothing more ───────────────────────────────
  *
- * §Customized Solutions specifies six field groups. **Three are deliberately absent**:
- * `whatCanWeCustomize` (five entries named in no approved document), `privateLabelProgramme` (two
- * lists, neither written, minimum order quantity unconfirmed) and `caseExamples` (marked at source
- * as placeholders pending real, customer-approved cases). Modelling a field for content that cannot
- * be written is how an empty repeater becomes a placeholder somebody eventually fills with a guess.
- *
- * Step *descriptions* are absent for the same reason: the six step names are transcribed from the
- * documentation, and no description exists for any of them.
+ * §Customized Solutions specifies six field groups. `whatCanWeCustomize` and the process
+ * descriptions are now implemented because claim-controlled English master copy exists for them.
+ * `privateLabelProgramme` and `caseExamples` remain absent: no approved commercial programme or
+ * customer-approved case material exists, so the schema still cannot invite invented claims.
  *
  * ── Two kinds of action, and only one of them has a destination here ───────
  *
@@ -129,10 +125,27 @@ export const CustomizedSolutions: GlobalConfig = {
           label: "Process steps",
           admin: {
             description:
-              "The stages in order. Their numbering is their position — it is not stored, and there is no description field: none is written for any step.",
+              "The stages in order. Their numbering is their position and is not stored separately.",
           },
-          fields: [{ name: "name", type: "text", required: true, localized: true }],
+          fields: [
+            { name: "name", type: "text", required: true, localized: true },
+            { name: "description", type: "textarea", localized: true },
+          ],
         },
+      ],
+    },
+    {
+      name: "whatCanWeCustomize",
+      type: "array",
+      localized: true,
+      label: "What can be customized",
+      admin: {
+        description:
+          "Claim-controlled requirement dimensions. Do not add availability, performance, MOQ or formulation claims without approved evidence.",
+      },
+      fields: [
+        { name: "title", type: "text", required: true },
+        { name: "description", type: "textarea" },
       ],
     },
     /* The identical shared group `Pages` and `AboutUs` spread — one SEO contract, never restated. */

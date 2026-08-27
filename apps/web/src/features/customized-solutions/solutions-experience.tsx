@@ -16,6 +16,7 @@ import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { CustomRequestForm } from "./sections/custom-request-form";
+import { CustomizationScope } from "./sections/customization-scope";
 import { CustomizationProcess } from "./sections/customization-process";
 import { SolutionsHero } from "./sections/hero";
 import { SolutionsIntroduction } from "./sections/introduction";
@@ -101,6 +102,9 @@ export function SolutionsExperience({
         <SolutionsHero hero={content.hero} process={content.process} locale={locale} />
         {content.introduction !== null && (
           <SolutionsIntroduction introduction={content.introduction} />
+        )}
+        {content.capabilities.length > 0 && (
+          <CustomizationScope capabilities={content.capabilities} />
         )}
         {content.process !== null && <CustomizationProcess process={content.process} />}
         <CustomRequestForm />

@@ -95,6 +95,35 @@ const teamImage =
     },
   }));
 
+const solutionImageFilename = "sam-group-customized-solutions-requirement-review.webp";
+const existingSolutionImage = await payload.find({
+  collection: "media",
+  overrideAccess: true,
+  where: { filename: { equals: solutionImageFilename } },
+  limit: 1,
+});
+const solutionImagePath = new URL(
+  "../../../web/public/images/customized-solutions-requirement-review.webp",
+  import.meta.url,
+);
+const solutionImageData = readFileSync(solutionImagePath);
+const solutionImage =
+  existingSolutionImage.docs[0] ??
+  (await payload.create({
+    collection: "media",
+    locale: "en",
+    overrideAccess: true,
+    data: {
+      alt: "A technical and commercial team reviewing a lubricant requirement and product sample.",
+    },
+    file: {
+      data: solutionImageData,
+      mimetype: "image/webp",
+      name: solutionImageFilename,
+      size: solutionImageData.length,
+    },
+  }));
+
 await payload.updateGlobal({
   slug: "about-us",
   locale: "en",
@@ -231,22 +260,72 @@ await payload.updateGlobal({
         "A custom request may begin with a target specification, an operating problem, a reference product, or a packaging requirement. The form captures what is known without forcing assumptions about what is not.",
       ),
     },
+    whatCanWeCustomize: [
+      {
+        title: "Specification and property targets",
+        description:
+          "State the grade, standard, reference values, or decision criteria that the review must address.",
+      },
+      {
+        title: "Application-led product selection",
+        description:
+          "Describe the equipment, operating context, and problem the selected product needs to support.",
+      },
+      {
+        title: "Component or additive requirement",
+        description:
+          "Identify a known component requirement or leave it open for technical clarification where the target is not yet defined.",
+      },
+      {
+        title: "Packaging and presentation",
+        description:
+          "Record the required pack format, label context, and handling constraints without assuming availability.",
+      },
+      {
+        title: "Destination and supply configuration",
+        description:
+          "Add quantity, destination, and trade context so technical review and supply planning use the same brief.",
+      },
+    ],
     process: {
       heading: "A requirement-led process.",
       lead: "Each stage reduces ambiguity before technical evaluation and commercial confirmation.",
       steps: [
-        { name: "Define the brief" },
-        { name: "Review the requirement" },
-        { name: "Clarify the target" },
-        { name: "Evaluate the option" },
-        { name: "Sample and validate" },
-        { name: "Confirm supply" },
+        {
+          name: "Define the brief",
+          description:
+            "Capture the application, specification, operating context, and constraints.",
+        },
+        {
+          name: "Review the requirement",
+          description:
+            "Check whether the technical and commercial inputs are complete enough to assess.",
+        },
+        {
+          name: "Clarify the target",
+          description: "Resolve open questions and agree which criteria will guide the review.",
+        },
+        {
+          name: "Evaluate the option",
+          description: "Compare an available product or proposed route against the stated brief.",
+        },
+        {
+          name: "Sample and validate",
+          description: "Where applicable, use a sample to support evaluation before commitment.",
+        },
+        {
+          name: "Confirm supply",
+          description:
+            "Document the agreed specification, quantity, packaging, destination, and terms.",
+        },
       ],
     },
     seo: {
       metaTitle: "Customized Lubricant Solutions | SAM Group",
       metaDescription:
         "Submit a structured petroleum or lubricant requirement covering application, specification, quantity, packaging, destination, and trade context.",
+      socialImage: solutionImage.id,
+      twitterImage: solutionImage.id,
     },
   } as never,
 });

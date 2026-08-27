@@ -2,6 +2,7 @@ import { cache } from "react";
 
 import { SolutionsExperience } from "@/features/customized-solutions/solutions-experience";
 import { SolutionsUnavailable } from "@/features/customized-solutions/solutions-unavailable";
+import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { getCustomizedSolutionsContent } from "@/lib/content";
 import { defaultLocale } from "@/lib/locale-contract";
 import { getActiveLocales } from "@/lib/locales";
@@ -36,8 +37,8 @@ import type { ReactNode } from "react";
  *
  * Composed from the Global's `SeoFields`, falling back to the hero title — the same mapping the
  * About Us and legal routes use. **No `robots`**: the tree's layout declares `noindex, nofollow` and
- * a route-level override would be a second answer. **No canonical, no `hreflang`, no JSON-LD** —
- * ADR-010 Non-Goals, and the SEO launch is not this gate.
+ * a route-level override would be a second answer. Canonical, social metadata and a minimal WebPage
+ * graph are emitted; `hreflang` remains withheld until reviewed translations exist.
  */
 const resolveSolutions = cache(getCustomizedSolutionsContent);
 
@@ -52,6 +53,7 @@ export async function generateMetadata({
   if (!result.ok) return {};
 
   const { hero, seo } = result.content;
+  const canonical = seo.canonicalUrl ?? `/${locale}/customized-solutions`;
 
   const ogImage = seo.socialImage
     ? {
@@ -72,13 +74,17 @@ export async function generateMetadata({
   return {
     title: seo.metaTitle ?? hero.title,
     ...(seo.metaDescription !== null && { description: seo.metaDescription }),
-    ...(seo.canonicalUrl !== null && { alternates: { canonical: seo.canonicalUrl } }),
+    alternates: { canonical },
     openGraph: {
+      type: "website",
+      siteName: "SAM Group",
       title: seo.ogTitle ?? seo.metaTitle ?? hero.title,
       ...(seo.ogDescription !== null || seo.metaDescription !== null
         ? { description: seo.ogDescription ?? seo.metaDescription ?? undefined }
         : {}),
       ...(ogImage !== undefined && { images: [ogImage] }),
+      url: canonical,
+      locale,
     },
     twitter: {
       card: seo.twitterCardType,
@@ -107,14 +113,33 @@ export default async function CustomizedSolutionsPage({
      * served locale is passed down so the content itself can be annotated with it.
      */
     const served = result.localeFallback ? defaultLocale(await getActiveLocales()) : null;
+    const canonical = result.content.seo.canonicalUrl ?? `/${locale}/customized-solutions`;
+    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const schema: JsonLdObject = {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": `${absoluteUrl}#webpage`,
+      url: absoluteUrl,
+      name: result.content.seo.metaTitle ?? result.content.hero.title,
+      ...(result.content.seo.metaDescription !== null && {
+        description: result.content.seo.metaDescription,
+      }),
+      inLanguage: served?.code ?? locale,
+      isPartOf: { "@id": "https://samgp.com/#website" },
+    };
 
     return (
-      <SolutionsExperience
-        locales={locales}
-        content={result.content}
-        locale={locale}
-        fallbackLocale={served === null ? null : { code: served.code, direction: served.direction }}
-      />
+      <>
+        <JsonLd data={schema} />
+        <SolutionsExperience
+          locales={locales}
+          content={result.content}
+          locale={locale}
+          fallbackLocale={
+            served === null ? null : { code: served.code, direction: served.direction }
+          }
+        />
+      </>
     );
   }
 

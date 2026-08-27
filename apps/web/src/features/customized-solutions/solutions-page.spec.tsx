@@ -16,6 +16,10 @@ import { SolutionsUnavailable } from "./solutions-unavailable";
 import type { CustomizedSolutionsContent } from "@sam-group/types";
 import type { ReactNode } from "react";
 
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) => ({ type: "img", props }),
+}));
+
 /**
  * The Customized Solutions page after the CMS-2A cutover.
  *
@@ -44,10 +48,16 @@ const VERIFICATION_CONTENT: CustomizedSolutionsContent = {
     heading: "VERIFICATION INTRO HEADING",
     bodyHtml: "<p>VERIFICATION INTRO BODY</p>",
   },
+  capabilities: [
+    { title: "VERIFICATION CAPABILITY", description: "VERIFICATION CAPABILITY DETAIL" },
+  ],
   process: {
     heading: "VERIFICATION PROCESS HEADING",
     lead: "VERIFICATION PROCESS LEAD",
-    steps: [{ name: "VERIFICATION STEP ONE" }, { name: "VERIFICATION STEP TWO" }],
+    steps: [
+      { name: "VERIFICATION STEP ONE", description: "VERIFICATION STEP ONE DETAIL" },
+      { name: "VERIFICATION STEP TWO", description: null },
+    ],
   },
   seo: {
     locale: "en",
@@ -112,9 +122,12 @@ describe("the page renders what the CMS served", () => {
       "VERIFICATION SOLUTIONS TITLE",
       "VERIFICATION SUPPORTING TEXT",
       "VERIFICATION INTRO HEADING",
+      "VERIFICATION CAPABILITY",
+      "VERIFICATION CAPABILITY DETAIL",
       "VERIFICATION PROCESS HEADING",
       "VERIFICATION PROCESS LEAD",
       "VERIFICATION STEP ONE",
+      "VERIFICATION STEP ONE DETAIL",
       "VERIFICATION STEP TWO",
     ]) {
       expect(text).toContain(expected);
@@ -140,7 +153,7 @@ describe("the page renders what the CMS served", () => {
   it("numbers the process from the list, so the count cannot disagree with it", () => {
     const text = textOf(render());
 
-    expect(text).toContain("2 steps, from a stated requirement");
+    expect(text).toContain("2 defined stages from requirement capture");
   });
 });
 

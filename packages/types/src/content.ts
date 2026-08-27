@@ -242,15 +242,21 @@ export type CustomizedSolutionsIntroduction = {
   bodyHtml: string;
 };
 
+export type CustomizedSolutionsCapability = {
+  title: string;
+  description: string | null;
+};
+
 export type CustomizedSolutionsProcess = {
   heading: string | null;
   lead: string | null;
   /**
    * The stages in order. A step's number is its position in this array — it is not stored, because
    * storing a number beside a position is storing the same fact twice — and there is no
-   * description: none is written for any step.
+   * description explains the information transition at that stage without promising timing or an
+   * outcome.
    */
-  steps: { name: string }[];
+  steps: { name: string; description: string | null }[];
 };
 
 /**
@@ -273,6 +279,7 @@ export type CustomizedSolutionsProcess = {
 export type CustomizedSolutionsContent = {
   hero: CustomizedSolutionsHero;
   introduction: CustomizedSolutionsIntroduction | null;
+  capabilities: CustomizedSolutionsCapability[];
   process: CustomizedSolutionsProcess | null;
   /**
    * `alternates` is always empty: `/customized-solutions` is a structural route whose URL is

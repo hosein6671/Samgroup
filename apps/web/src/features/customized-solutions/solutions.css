@@ -58,9 +58,34 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(272px, 26vw, 380px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
   gap: clamp(28px, 4vw, 72px);
   align-items: center;
+}
+
+.cs-hero-visual {
+  position: relative;
+  min-width: 0;
+}
+
+.cs-hero-photo {
+  min-height: clamp(430px, 46vw, 590px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+}
+
+.cs-hero-photo img {
+  object-fit: cover;
+  object-position: 62% center;
+}
+
+.cs-hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 48%, rgba(2, 12, 35, 0.78) 100%);
+  pointer-events: none;
 }
 
 .cs-hero h1 {
@@ -91,6 +116,10 @@
  * with the data, no canvas, no JavaScript.
  */
 .cs-index {
+  position: absolute;
+  inset-inline: clamp(14px, 2vw, 24px);
+  inset-block-end: clamp(42px, 4vw, 54px);
+  z-index: 2;
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-lg);
   background: var(--color-glass-fill);
@@ -106,70 +135,23 @@
   color: var(--color-text-secondary);
 }
 
-.cs-index-list {
-  list-style: none;
-  margin: clamp(18px, 2vw, 24px) 0 0;
-  padding: 0;
-  position: relative;
-}
-
-/* The rule the markers sit on. Inset to the marker's centre, stopped short at both ends so the
-   sequence reads as bounded rather than as a line running off the panel. */
-.cs-index-list::before {
-  content: "";
-  position: absolute;
-  inset-block: 14px;
-  inset-inline-start: 13px;
-  width: 1px;
-  background: var(--color-border-hairline);
-}
-
-.cs-index-step a {
-  position: relative;
+.cs-index-link {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding-block: 9px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-hairline);
   text-decoration: none;
-  color: inherit;
-  transition: color var(--t-micro) var(--e-micro);
-}
-
-.cs-index-num {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  width: 27px;
-  height: 27px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid var(--color-border-hairline);
-  background: var(--color-surface-canvas);
-  font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--color-text-tertiary);
-  transition:
-    border-color var(--t-micro) var(--e-micro),
-    color var(--t-micro) var(--e-micro);
-}
-
-.cs-index-name {
-  font-size: 15px;
-  font-weight: 300;
-  letter-spacing: -0.01em;
-  color: var(--color-text-secondary);
-  transition: color var(--t-micro) var(--e-micro);
-}
-
-.cs-index-step a:hover .cs-index-num {
-  border-color: var(--color-border-accent);
-  color: var(--color-text-accent);
-}
-
-.cs-index-step a:hover .cs-index-name {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-primary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.cs-index-link:hover {
+  color: var(--color-text-accent);
 }
 
 /* ============================================================================
@@ -200,6 +182,84 @@
 
 .cs-intro-body .fs-lead {
   max-width: 60ch;
+}
+
+/* ============================================================================
+   3 · REQUIREMENT SCOPE
+   ============================================================================ */
+
+.cs-scope {
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.cs-scope-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(40px, 7vw, 112px);
+  align-items: start;
+}
+
+.cs-scope-head {
+  position: sticky;
+  top: 112px;
+}
+
+.cs-scope-head h2 {
+  max-width: 13ch;
+  margin-top: 18px;
+}
+
+.cs-scope-head .fs-lead {
+  max-width: 45ch;
+  margin-top: 22px;
+}
+
+.cs-scope-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.cs-scope-list li {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 18px;
+  padding-block: clamp(22px, 2.5vw, 32px);
+  border-bottom: 1px solid var(--color-border-hairline);
+  transition:
+    padding-inline var(--t-micro) var(--e-micro),
+    background-color var(--t-micro) var(--e-micro);
+}
+
+.cs-scope-list li:hover {
+  padding-inline: 14px;
+  background: color-mix(in srgb, var(--color-surface-raised) 72%, transparent);
+}
+
+.cs-scope-list li > span {
+  padding-top: 4px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-accent);
+}
+
+.cs-scope-list h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 27px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  color: var(--color-text-primary);
+}
+
+.cs-scope-list p {
+  max-width: 58ch;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
 }
 
 /* ---------------------------------------------------- the pending aside
@@ -273,6 +333,34 @@
   align-items: end;
 }
 
+.cs-process {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 90% 70% at 86% 0%, rgba(27, 67, 155, 0.3), transparent 68%),
+    linear-gradient(180deg, rgba(9, 27, 66, 0.12), transparent 72%), var(--color-surface-canvas);
+}
+
+.cs-process::after {
+  content: "";
+  position: absolute;
+  width: min(520px, 48vw);
+  aspect-ratio: 1;
+  inset-inline-end: -18%;
+  inset-block-end: -52%;
+  border: 1px solid rgba(218, 180, 94, 0.2);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 64px rgba(218, 180, 94, 0.035),
+    0 0 0 128px rgba(218, 180, 94, 0.025);
+  pointer-events: none;
+}
+
+.cs-process-inner {
+  position: relative;
+  z-index: 1;
+}
+
 .cs-process-head h2 {
   margin-top: 18px;
   max-width: 12ch;
@@ -296,13 +384,33 @@
   margin: clamp(44px, 5vw, 72px) 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  gap: clamp(24px, 3vw, 36px) 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.5vw, 20px);
 }
 
 .cs-step {
   position: relative;
-  padding-inline: clamp(12px, 1.4vw, 20px);
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  padding: clamp(22px, 2.4vw, 32px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
+  backdrop-filter: blur(18px);
+  transition:
+    transform 320ms var(--e-micro),
+    border-color 320ms var(--e-micro),
+    background-color 320ms var(--e-micro),
+    box-shadow 320ms var(--e-micro);
+}
+
+.cs-step:hover {
+  z-index: 2;
+  transform: translateY(-6px);
+  border-color: var(--color-border-accent);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.045));
+  box-shadow: 0 24px 52px rgba(0, 8, 28, 0.28);
 }
 
 /*
@@ -313,13 +421,7 @@
  * plus the natural clip at the grid edge keeps the run bounded.
  */
 .cs-step::before {
-  content: "";
-  position: absolute;
-  top: 17px;
-  inset-inline-start: calc(50% + 22px);
-  inset-inline-end: calc(-50% + 22px);
-  height: 1px;
-  background: var(--color-border-hairline);
+  display: none;
 }
 
 .cs-step:last-child::before {
@@ -333,19 +435,43 @@
   place-items: center;
   width: 35px;
   height: 35px;
-  margin-inline: auto;
+  margin-inline: 0;
   border-radius: 999px;
   border: 1px solid var(--color-border-accent);
-  background: var(--color-surface-raised);
+  background: rgba(218, 180, 94, 0.08);
   font-family: var(--font-technical);
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--color-text-accent);
 }
 
+.cs-step-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cs-step-status {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-accent);
+  box-shadow: 0 0 0 6px rgba(218, 180, 94, 0.09);
+  transition: box-shadow 320ms var(--e-micro);
+}
+
+.cs-step:hover .cs-step-status {
+  box-shadow: 0 0 0 10px rgba(218, 180, 94, 0.12);
+}
+
+.cs-step-copy {
+  margin-top: auto;
+  padding-top: clamp(36px, 5vw, 62px);
+}
+
 .cs-step-name {
   margin: 16px 0 0;
-  text-align: center;
+  text-align: start;
   font-family: var(--font-display);
   font-size: clamp(17px, 1.5vw, 21px);
   font-weight: 400;
@@ -356,10 +482,47 @@
 /* Optional and unset in every step today — the descriptions are pending editorial copy. */
 .cs-step-note {
   margin: 8px 0 0;
-  text-align: center;
+  text-align: start;
   font-size: 13px;
   line-height: 1.55;
   color: var(--color-text-secondary);
+}
+
+.cs-step-arrow {
+  position: absolute;
+  z-index: 3;
+  inset-inline-end: calc(clamp(12px, 1.5vw, 20px) * -1);
+  top: 50%;
+  display: block;
+  width: clamp(12px, 1.5vw, 20px);
+  height: 18px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.cs-step-arrow::before {
+  content: "";
+  position: absolute;
+  inset-inline: 2px 5px;
+  top: 8px;
+  height: 1px;
+  background: var(--color-border-accent);
+}
+
+.cs-step-arrow::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: 3px;
+  top: 5px;
+  width: 6px;
+  height: 6px;
+  border-block-start: 1px solid var(--color-border-accent);
+  border-inline-end: 1px solid var(--color-border-accent);
+  transform: rotate(45deg);
+}
+
+.cs-step:nth-child(3n) .cs-step-arrow {
+  display: none;
 }
 
 /*
@@ -389,8 +552,24 @@
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 100% 70% at 85% 100%, rgba(18, 41, 110, 0.45), transparent 62%),
-    var(--color-surface-canvas);
+    radial-gradient(ellipse 100% 70% at 85% 100%, rgba(27, 67, 155, 0.26), transparent 68%),
+    linear-gradient(180deg, transparent 0%, rgba(9, 27, 66, 0.1) 100%), var(--color-surface-canvas);
+}
+
+.cs-request::before {
+  content: "";
+  position: absolute;
+  inset-inline: max(20px, calc((100% - var(--fs-wrap-max, 1240px)) / 2));
+  inset-block-start: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-accent) 16%,
+    var(--color-border-hairline) 52%,
+    transparent
+  );
+  opacity: 0.7;
 }
 
 .cs-request-inner {
@@ -419,13 +598,84 @@
  * width. Capped at a measure where a two-column field grid still reads as two columns.
  */
 .cs-request-panel {
-  max-width: 880px;
+  max-width: 980px;
   margin-top: clamp(36px, 4vw, 56px);
   padding: clamp(24px, 3vw, 44px);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-panel);
   background: var(--color-glass-fill);
   backdrop-filter: blur(20px);
+}
+
+.cs-form-progress {
+  padding-bottom: clamp(22px, 2.5vw, 30px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.cs-form-progress ol {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.cs-form-progress li {
+  position: relative;
+}
+
+.cs-form-progress li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 17px;
+  inset-inline: calc(50% + 34px) calc(-50% + 34px);
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+
+.cs-form-progress button {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-technical);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-align: start;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.cs-form-progress button span {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 50%;
+  background: var(--color-surface-canvas);
+  transition:
+    border-color var(--t-micro) var(--e-micro),
+    background-color var(--t-micro) var(--e-micro);
+}
+
+.cs-form-progress li[data-active="true"] button {
+  color: var(--color-text-primary);
+}
+
+.cs-form-progress li[data-active="true"] button span {
+  border-color: var(--color-border-accent);
+  background: rgba(218, 180, 94, 0.1);
+  color: var(--color-text-accent);
 }
 
 /* The inert notice is the first thing inside the panel, above the first group. */
@@ -438,6 +688,46 @@
   margin-top: clamp(28px, 3vw, 40px);
   padding-top: clamp(24px, 2.6vw, 34px);
   border-top: 1px solid var(--color-border-hairline);
+}
+
+.cs-group[hidden] {
+  display: none;
+}
+
+.cs-group:not([hidden]) {
+  margin-top: clamp(28px, 3vw, 40px);
+  padding-top: 0;
+  border-top: 0;
+  animation: cs-form-step-in 360ms var(--e-micro) both;
+}
+
+@keyframes cs-form-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cs-group-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+
+.cs-group-title p {
+  order: 2;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
 }
 
 .cs-group-head {
@@ -491,7 +781,43 @@
 }
 
 .cs-request-actions {
-  margin-top: clamp(24px, 2.6vw, 32px);
+  align-items: flex-end;
+  margin-top: 0;
+  justify-content: flex-end;
+}
+
+.cs-attachment-note {
+  margin-block: 20px 6px;
+}
+
+.cs-form-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: clamp(28px, 3vw, 40px);
+  padding-top: clamp(22px, 2.5vw, 30px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.cs-form-footer > p {
+  margin: 0 0 13px;
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-tertiary);
+}
+
+.cs-submit-block {
+  display: grid;
+  justify-items: end;
+  gap: 16px;
+  max-width: 620px;
+}
+
+.cs-submit-block .pr-consent {
+  margin: 0;
+  text-align: start;
 }
 
 /* ============================================================================
@@ -512,6 +838,10 @@
   .cs-hero .fs-lead {
     max-width: none;
   }
+
+  .cs-hero-photo {
+    min-height: clamp(380px, 65vw, 600px);
+  }
 }
 
 /*
@@ -530,28 +860,60 @@
 @media (min-width: 621px) and (max-width: 1180px) {
   /* Six across no longer fits; the rail wraps to three and the connectors follow. */
   .cs-rail {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .cs-step:nth-child(3n)::before {
+    display: none;
+  }
+
+  .cs-step:nth-child(3n) .cs-step-arrow {
+    display: grid;
+  }
+  .cs-step:nth-child(2n) .cs-step-arrow {
     display: none;
   }
 }
 
 @media (max-width: 620px) {
   .cs-rail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .cs-step:nth-child(2n)::before {
+    display: none;
+  }
+
+  .cs-step {
+    min-height: 218px;
+  }
+  .cs-step-copy {
+    padding-top: 34px;
+  }
+  .cs-step-arrow {
+    inset-inline-end: 50%;
+    top: auto;
+    bottom: calc(clamp(24px, 3vw, 36px) * -1);
+    transform: translateX(50%) rotate(90deg);
+  }
+  .cs-step:nth-child(3n) .cs-step-arrow,
+  .cs-step:nth-child(2n) .cs-step-arrow {
+    display: grid;
+  }
+  .cs-step:last-child .cs-step-arrow {
     display: none;
   }
 }
 
 @media (max-width: 900px) {
   .cs-intro-grid,
-  .cs-process-head {
+  .cs-process-head,
+  .cs-scope-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cs-scope-head {
+    position: static;
   }
 
   .cs-intro-head h2,
@@ -564,6 +926,51 @@
   /* The rail's own two-column band is declared above, with the three-column one it excludes. */
   .cs-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cs-form-progress ol {
+    gap: 4px;
+  }
+
+  .cs-form-progress button {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+    line-height: 1.35;
+  }
+
+  .cs-form-progress li:not(:last-child)::after {
+    top: 17px;
+    inset-inline-start: 34px;
+    inset-inline-end: -4px;
+  }
+
+  .cs-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cs-form-footer > p {
+    margin: 0;
+  }
+
+  .cs-request-actions,
+  .cs-submit-block {
+    align-items: stretch;
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .cs-request-actions .fs-btn,
+  .cs-submit-block .fs-btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-group:not([hidden]) {
+    animation: none;
   }
 }
 

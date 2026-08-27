@@ -1,7 +1,7 @@
 "use client";
 
 import { VisuallyHidden } from "@sam-group/ui";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { submitCustomFormulationRequest } from "@/features/forms/actions";
@@ -54,6 +54,44 @@ export function CustomRequestForm(): ReactNode {
     submitCustomFormulationRequest,
     IDLE,
   );
+  const [activeStep, setActiveStep] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state.status !== "invalid") return;
+
+    const firstInvalidGroup = REQUEST_GROUPS.findIndex((group) =>
+      group.fields.some((field) => state.fieldErrors[field.name] !== undefined),
+    );
+
+    setActiveStep(firstInvalidGroup >= 0 ? firstInvalidGroup : REQUEST_GROUPS.length - 1);
+  }, [state]);
+
+  function advance(): void {
+    const currentGroup = formRef.current?.querySelector<HTMLElement>(
+      `[data-request-step="${activeStep}"]`,
+    );
+    const controls = currentGroup?.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("input, select, textarea");
+
+    if (controls !== undefined) {
+      for (const control of controls) {
+        if (!control.reportValidity()) return;
+      }
+    }
+
+    setActiveStep((step) => Math.min(step + 1, REQUEST_GROUPS.length - 1));
+  }
+
+  function navigateToStep(step: number): void {
+    if (step <= activeStep) {
+      setActiveStep(step);
+      return;
+    }
+
+    advance();
+  }
 
   return (
     <section className="fs-sec cs-request" id={ANCHORS.request} data-surface="midnight">
@@ -77,20 +115,47 @@ export function CustomRequestForm(): ReactNode {
            * standing under a confirmation reads as "not sent" and produces a duplicate request.
            */}
           {state.status !== "success" && (
-            <form action={action} noValidate key={formKey(state)}>
-              <p className="pr-inert">
-                <span aria-hidden="true">◇</span>
-                <span>
-                  <strong>Attachments are not accepted yet.</strong> Every other field below is
-                  submitted and stored. The upload control is shown because the form specifies it
-                  and is deliberately inoperative — describe the specification in the text fields
-                  for now.
-                </span>
-              </p>
+            <form action={action} key={formKey(state)} ref={formRef}>
+              <nav className="cs-form-progress" aria-label="Request form progress">
+                <ol>
+                  {REQUEST_GROUPS.map((group, index) => (
+                    <li key={group.id} data-active={index === activeStep}>
+                      <button
+                        type="button"
+                        onClick={() => navigateToStep(index)}
+                        aria-current={index === activeStep ? "step" : undefined}
+                      >
+                        <span>{String(index + 1).padStart(2, "0")}</span>
+                        {group.heading}
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
 
-              {REQUEST_GROUPS.map((group) => (
-                <div className="cs-group" key={group.id}>
-                  <h3 className="cs-group-head">{group.heading}</h3>
+              {REQUEST_GROUPS.map((group, index) => (
+                <div
+                  className="cs-group"
+                  data-request-step={index}
+                  hidden={index !== activeStep}
+                  key={group.id}
+                >
+                  <div className="cs-group-title">
+                    <p>
+                      Step {index + 1} of {REQUEST_GROUPS.length}
+                    </p>
+                    <h3 className="cs-group-head">{group.heading}</h3>
+                  </div>
+
+                  {group.id === "delivery" && (
+                    <p className="pr-inert cs-attachment-note">
+                      <span aria-hidden="true">◇</span>
+                      <span>
+                        <strong>Attachments are not available yet.</strong> Add the relevant
+                        specification details in the fields below.
+                      </span>
+                    </p>
+                  )}
 
                   <div className="cs-grid">
                     {group.fields.map((field) => (
@@ -100,14 +165,39 @@ export function CustomRequestForm(): ReactNode {
                 </div>
               ))}
 
-              <div className="pr-consent">
-                <input id="cs-consentGiven" name="consentGiven" type="checkbox" required />
-                <label htmlFor="cs-consentGiven">{CONSENT_LABEL}</label>
-              </div>
-              <FieldError id="cs-consentGiven-error" issues={issuesFor(state, "consentGiven")} />
-
-              <div className="fs-cta-actions cs-request-actions">
-                <SubmitButton label="Submit request" pendingLabel="Submitting…" />
+              <div className="cs-form-footer">
+                <p>
+                  {String(activeStep + 1).padStart(2, "0")} /{" "}
+                  {String(REQUEST_GROUPS.length).padStart(2, "0")}
+                </p>
+                <div className="fs-cta-actions cs-request-actions">
+                  {activeStep > 0 && (
+                    <button
+                      type="button"
+                      className="fs-btn fs-btn--glass"
+                      onClick={() => setActiveStep((step) => step - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  {activeStep < REQUEST_GROUPS.length - 1 ? (
+                    <button type="button" className="fs-btn fs-btn--gold" onClick={advance}>
+                      Continue
+                    </button>
+                  ) : (
+                    <div className="cs-submit-block">
+                      <div className="pr-consent">
+                        <input id="cs-consentGiven" name="consentGiven" type="checkbox" required />
+                        <label htmlFor="cs-consentGiven">{CONSENT_LABEL}</label>
+                      </div>
+                      <FieldError
+                        id="cs-consentGiven-error"
+                        issues={issuesFor(state, "consentGiven")}
+                      />
+                      <SubmitButton label="Submit request" pendingLabel="Submitting…" />
+                    </div>
+                  )}
+                </div>
               </div>
             </form>
           )}

@@ -46,6 +46,7 @@ const CONTENT: CustomizedSolutionsContent = {
     routeCta: null,
   },
   introduction: null,
+  capabilities: [],
   process: null,
   seo: {
     locale: "en",

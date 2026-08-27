@@ -13,8 +13,8 @@ import type { ReactNode } from "react";
  * The section's anchor is `ANCHORS.process` — structural, code-owned, and the target the hero's step
  * index links to.
  *
- * **No step description is rendered, because none exists.** The Global models a step as a name
- * alone; when descriptions are written they are a field and a line here, not a redesign.
+ * Step descriptions are claim-controlled editorial copy. They explain what information changes at
+ * each stage without promising timing, availability or an outcome.
  */
 export function CustomizationProcess({
   process,
@@ -22,8 +22,9 @@ export function CustomizationProcess({
   readonly process: CustomizedSolutionsProcess;
 }): ReactNode {
   return (
-    <section className="fs-sec cs-process" id={ANCHORS.process} data-surface="light">
-      <div className="fs-wrap">
+    <section className="fs-sec cs-process" id={ANCHORS.process} data-surface="midnight">
+      <div className="fs-blueprint" aria-hidden="true" />
+      <div className="fs-wrap cs-process-inner">
         <header className="cs-process-head reveal-fade-rise">
           <div>
             <p className="fs-eyebrow">Our customization process</p>
@@ -36,8 +37,17 @@ export function CustomizationProcess({
           <ol className="cs-rail reveal-stagger">
             {process.steps.map((step, index) => (
               <li className="cs-step" key={step.name}>
-                <span className="cs-step-num">{String(index + 1).padStart(2, "0")}</span>
-                <h3 className="cs-step-name">{step.name}</h3>
+                <div className="cs-step-topline">
+                  <span className="cs-step-num">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="cs-step-status" aria-hidden="true" />
+                </div>
+                <div className="cs-step-copy">
+                  <h3 className="cs-step-name">{step.name}</h3>
+                  {step.description !== null && <p className="cs-step-note">{step.description}</p>}
+                </div>
+                {index < process.steps.length - 1 && (
+                  <span className="cs-step-arrow" aria-hidden="true" />
+                )}
               </li>
             ))}
           </ol>

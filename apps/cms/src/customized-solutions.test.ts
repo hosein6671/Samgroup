@@ -124,12 +124,18 @@ describe("customized solutions access", () => {
 });
 
 describe("customized solutions schema", () => {
-  test("it carries the three sections the page renders, and the SEO group", () => {
-    assert.deepEqual(topLevelNames(), ["hero", "introduction", "process", "seo"]);
+  test("it carries the approved page sections and the SEO group", () => {
+    assert.deepEqual(topLevelNames(), [
+      "hero",
+      "introduction",
+      "process",
+      "whatCanWeCustomize",
+      "seo",
+    ]);
   });
 
-  test("nothing is modelled for content that has never been approved", () => {
-    for (const absent of ["whatCanWeCustomize", "privateLabelProgramme", "caseExamples"]) {
+  test("commercial programme and case content remain unmodelled until approved", () => {
+    for (const absent of ["privateLabelProgramme", "caseExamples"]) {
       assert.ok(
         !topLevelNames().includes(absent),
         `${absent} must not be modelled before its copy exists`,
@@ -137,9 +143,11 @@ describe("customized solutions schema", () => {
     }
   });
 
-  test("a process step carries a name and nothing else — no description is written for any", () => {
+  test("process steps and requirement dimensions carry claim-controlled explanations", () => {
     assert.equal(field("process.steps").type, "array");
-    assert.deepEqual(names("process.steps"), ["name"]);
+    assert.deepEqual(names("process.steps"), ["name", "description"]);
+    assert.equal(field("whatCanWeCustomize").type, "array");
+    assert.deepEqual(names("whatCanWeCustomize"), ["title", "description"]);
   });
 
   test("the hero requires a heading — a document without one is not a page", () => {
@@ -158,6 +166,8 @@ describe("customized solutions schema", () => {
       "process.heading",
       "process.lead",
       "process.steps.name",
+      "process.steps.description",
+      "whatCanWeCustomize",
     ]) {
       assert.equal(attribute(path, "localized"), true, `${path} is copy and must be localized`);
     }
