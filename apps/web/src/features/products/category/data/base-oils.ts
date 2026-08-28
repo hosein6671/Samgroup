@@ -48,16 +48,21 @@ import {
 export const BASE_OILS: ProductCategoryContent = {
   familyId: "base-oils",
   meta: {
-    title: "Base Oils — Sam Group",
+    title: "Base Oils | API Groups, SN Grades & Bright Stock | SAM Group",
     description:
-      "Paraffinic and naphthenic base stocks across API Groups I to III, with bright stock and synthetic base fluids — organised by group and by grade.",
+      "Review SAM Group base oils by API group and designation, including SN 150, SN 350, SN 500, SN 650, BS 150, PAO, ester and PAG.",
   },
 
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Base stocks, by group and by grade.",
-    lead: "Seven published sub-ranges and the grade designations inside them — organised by sub-range and by grade, with the technical documents held on the same page.",
+    headline: "Base oils, organised for a precise enquiry.",
+    lead: "Compare mineral and synthetic base-fluid families, locate the published grade designation, then define the property, volume, packaging and destination your supply brief requires.",
+    image: {
+      src: "/images/base-oils-lab-samples.webp",
+      alt: "Unlabelled laboratory bottles containing base-oil samples in pale gold and amber tones",
+      caption: "Base-oil samples · visual comparison before technical review",
+    },
     primary: { label: "Request a Quote", route: "quote" },
     secondary: { label: "Request a Sample", route: "sample" },
   },
@@ -65,46 +70,39 @@ export const BASE_OILS: ProductCategoryContent = {
   /* -------------------------------------------------------------- 2 overview */
 
   overview: {
-    heading: "One category, seven sub-ranges, one document set.",
+    heading: "Start with classification. Confirm with the data sheet.",
     body: [
-      "A base oil is selected against a sub-range before it is selected against a name. This page is built in that order: the sub-ranges first, then the individual grades inside them, then the documents.",
-      "Everything published for this category lives on this page rather than across a catalogue — the sub-ranges, the grade designations, the properties every grade is described on, and the technical documents. There is no per-grade page to hunt for, and no form between a reader and a specification.",
+      "A base-oil group is a classification, not a complete purchasing specification. It helps narrow the field; the required viscosity, property profile, application and approved technical document determine the grade that belongs in the enquiry.",
+      "The range below keeps those decisions separate. API Groups I to III, naphthenic oils, bright stock and synthetic fluids remain visible as distinct families, while exact product values stay with the reviewed TDS and batch-specific COA.",
     ],
-    /*
-     * All four are structural counts or statements this project's documents already make.
-     * "Classification · API 1509" was here and has been removed: no project document names that
-     * standard, and a marker is exactly where an unapproved attribution reads as a fact.
-     */
+    /* Structural facts only; the classification explanation is kept in the range section. */
     markers: [
-      { label: "Sub-ranges", value: "Seven" },
-      { label: "Named grades", value: "Eight" },
-      { label: "Documents", value: "TDS · SDS · COA" },
-      { label: "Sampling", value: "Before commitment" },
+      { label: "Range structure", value: "7 sub-ranges" },
+      { label: "Published names", value: "8 designations" },
+      { label: "Selection basis", value: "Group + grade" },
+      { label: "Document path", value: "TDS · SDS · COA" },
     ],
   },
 
   /* ----------------------------------------------------------------- 3 range */
 
   range: {
-    heading: "The range, sub-range by sub-range.",
+    heading: "Choose the family. Then confirm the grade.",
     intro:
-      "Seven sub-ranges. Where the range names individual grades, they are printed in full below; where it names the sub-range only, that is the whole of what is published for it today.",
+      "Use the family name to narrow the requirement, then use the reviewed TDS to confirm the exact grade. API grouping provides context; it does not replace viscosity, application and property review.",
+    classificationAxes: ["Saturates", "Sulfur", "Viscosity index"],
     /*
-     * `classificationAxes` is deliberately absent.
-     *
-     * It previously named the three criteria the API 1509 group system discriminates on. No
-     * project document mentions API 1509 or names those criteria — SITE_STRUCTURE §4 gives the
-     * group names and the grade designations and nothing more — so the attribution and the axes
-     * were unapproved technical content and have been removed rather than reworded.
-     *
-     * Every `summary` below is now positional: it states where the sub-range sits in the published
-     * taxonomy and what it names, and asserts nothing about chemistry, processing or performance.
+     * The three API classification axes are sourced in
+     * `docs/content/BASE_OILS_CONTENT_SOURCES.md`. They explain the grouping system; they are not
+     * presented as SAM product values. Grade-level values remain in the reviewed TDS only.
      */
     subRanges: [
       {
         id: "group-i",
         designation: "Group I",
-        summary: "The four SN grades below are the designations this sub-range publishes.",
+        qualifier: "API base-stock group",
+        summary:
+          "The mineral base-oil route carrying this catalogue's SN 150, SN 350, SN 500 and SN 650 designations. Select the SN grade by the required viscosity and the approved TDS—not by group name alone.",
         grades: [
           { id: "sn-150", designation: "SN 150" },
           { id: "sn-350", designation: "SN 350" },
@@ -115,34 +113,38 @@ export const BASE_OILS: ProductCategoryContent = {
       {
         id: "group-ii",
         designation: "Group II",
+        qualifier: "API base-stock group",
         summary:
-          "Published as a sub-range in its own right; no individual grades are named for it.",
+          "A distinct API base-stock group commonly considered for automotive and industrial lubricant formulation. Available viscosity grades and property limits are confirmed against the requirement.",
         grades: [],
       },
       {
         id: "group-iii",
         designation: "Group III",
+        qualifier: "API base-stock group",
         summary:
-          "Published as a sub-range in its own right; no individual grades are named for it.",
+          "The API group defined by a viscosity index of 120 or higher together with the Group III saturates and sulfur boundaries. The group label does not replace grade-level technical review.",
         grades: [],
       },
       {
         id: "naphthenic",
         designation: "Naphthenic",
         summary:
-          "Published as a sub-range in its own right; no individual grades are named for it.",
+          "A separate base-oil family used where characteristics such as solvency and low-temperature behaviour matter to the formulation brief. Suitability is assessed against the intended application and TDS.",
         grades: [],
       },
       {
         id: "bright-stock",
         designation: "Bright Stock",
-        summary: "Published under one designation, BS 150.",
+        summary:
+          "A high-viscosity base-stock family represented in the published range by BS 150. Confirm the required viscosity profile, blend role and handling conditions in the enquiry.",
         grades: [{ id: "bs-150", designation: "BS 150" }],
       },
       {
         id: "synthetics",
         designation: "Synthetics",
-        summary: "PAO, Ester and PAG are the designations this sub-range publishes.",
+        summary:
+          "Three chemically distinct synthetic-fluid families are published here. PAO is identified as API Group IV; ester and PAG sit within the broader Group V definition and must be selected by chemistry and application, not as interchangeable labels.",
         grades: [
           { id: "pao", designation: "PAO" },
           { id: "ester", designation: "Ester" },
@@ -153,7 +155,7 @@ export const BASE_OILS: ProductCategoryContent = {
         id: "virgin-re-refined",
         designation: "Virgin & re-refined",
         summary:
-          "Cuts across the sub-ranges above rather than sitting beside them. Which designations are available on which basis is confirmed against an enquiry.",
+          "This is a supply-route distinction across the range, not an additional API group. API grouping follows analysed properties rather than the manufacturing route alone; availability is confirmed grade by grade.",
         grades: [],
       },
     ],
@@ -162,12 +164,13 @@ export const BASE_OILS: ProductCategoryContent = {
   /* ------------------------------------------------------------ 4 properties */
 
   properties: {
-    heading: "Typical properties.",
+    heading: "The six properties that define the technical review.",
     /*
      * Describes the axis and nothing else. The pending-data condition is stated once, by
      * `pendingNote` — saying it here as well put the same sentence on screen twice inside 400px.
      */
-    intro: "Every grade in this category is described on the same six properties.",
+    intro:
+      "Use these fields to compare a requirement with a candidate grade. Values shown on a SAM TDS describe that grade; results on the COA describe the supplied batch.",
     /*
      * A single hierarchy, so no `groupingHeading` and therefore no second column. The table
      * carries the grade designation and its parent sub-range; there is no dimension to state.
@@ -193,12 +196,42 @@ export const BASE_OILS: ProductCategoryContent = {
         id: "base-stocks",
         label: "Base stocks",
         columns: [
-          { key: "kv", label: "Kinematic viscosity", unit: "mm²/s" },
-          { key: "vi", label: "Viscosity index" },
-          { key: "flash", label: "Flash point", unit: "°C" },
-          { key: "pour", label: "Pour point", unit: "°C" },
-          { key: "colour", label: "Colour" },
-          { key: "density", label: "Density", unit: "kg/m³" },
+          {
+            key: "kv",
+            label: "Kinematic viscosity",
+            unit: "mm²/s",
+            guidance: "The starting point for matching fluid thickness at a stated temperature.",
+          },
+          {
+            key: "vi",
+            label: "Viscosity index",
+            guidance: "Indicates how viscosity changes as temperature changes.",
+          },
+          {
+            key: "flash",
+            label: "Flash point",
+            unit: "°C",
+            guidance:
+              "A handling and application reference that must be read with its test method.",
+          },
+          {
+            key: "pour",
+            label: "Pour point",
+            unit: "°C",
+            guidance: "Supports review of low-temperature flow requirements.",
+          },
+          {
+            key: "colour",
+            label: "Colour",
+            guidance: "A reported appearance property, not a standalone measure of performance.",
+          },
+          {
+            key: "density",
+            label: "Density",
+            unit: "kg/m³",
+            guidance:
+              "Supports mass–volume conversion and supply calculations at a stated condition.",
+          },
         ],
         /*
          * Empty, and empty on purpose.
@@ -218,9 +251,9 @@ export const BASE_OILS: ProductCategoryContent = {
   /* --------------------------------------------------------------- 5 quality */
 
   quality: {
-    heading: "Processing and quality.",
+    heading: "Quality evidence follows the grade and the batch.",
     intro:
-      "Quality control runs at three stages, and a base oil batch is qualified against the same property axis it is later described on.",
+      "The selected grade is reviewed against its technical property set. Incoming, in-process and outgoing checks keep the material, process and released batch connected to the documentation used for the enquiry.",
     /*
      * The Base-Oil-only named block (SITE_STRUCTURE §4 item 5; §2 lists it under Our Expertise as
      * "Base Oil Processing / thin film polishing"). Both documents name the process and neither
@@ -229,7 +262,7 @@ export const BASE_OILS: ProductCategoryContent = {
      */
     namedProcess: {
       name: "Thin Film Polishing",
-      note: "The named finishing step in this category's product architecture. Its process description belongs to Quality & Certifications and is not restated on a product page.",
+      note: "A named finishing route in the Base Oils portfolio. Its applicability and processing scope are confirmed for the selected grade during technical review.",
     },
     /* §7's three stages, shared — see `defaults.ts` for why they are not restated per category. */
     stages: QUALITY_STAGES,
@@ -258,11 +291,11 @@ export const BASE_OILS: ProductCategoryContent = {
     eyebrow: "Applications",
     heading: "Where a base stock goes next.",
     intro:
-      "A base oil is an input. Every destination below is one of this company's own product families, and every field named under it is a range that family already publishes — so this section is a map of the range, not a claim about a market.",
+      "Base oils are formulation inputs. Use these linked product families to move from a base-stock requirement toward the finished lubricant or specialty-fluid context it must support.",
     entries: [
       {
         familyId: "engine-oils-automotive-lubricants",
-        note: "Automotive finished fluids, segmented by vehicle type.",
+        note: "Finished engine and automotive lubricant requirements, organised by vehicle and duty.",
         fields: fields("engine-oils-automotive-lubricants", [
           "Passenger cars",
           "Trucks & buses",
@@ -273,7 +306,7 @@ export const BASE_OILS: ProductCategoryContent = {
       },
       {
         familyId: "industrial-oils-lubricants",
-        note: "Plant fluids, grouped by the machine they serve.",
+        note: "Industrial lubricant requirements, organised by equipment and operating duty.",
         fields: fields("industrial-oils-lubricants", [
           "Hydraulic",
           "Gear",
@@ -285,7 +318,7 @@ export const BASE_OILS: ProductCategoryContent = {
       },
       {
         familyId: "marine-oils-lubricants",
-        note: "Engine-room and deck fluids for marine propulsion.",
+        note: "Marine lubricant requirements for propulsion, engine-room and deck systems.",
         fields: fields("marine-oils-lubricants", [
           "TPEO",
           "Cylinder oils",
@@ -296,7 +329,7 @@ export const BASE_OILS: ProductCategoryContent = {
       },
       {
         familyId: "lubricant-additives",
-        note: "The components a base stock is carried into rather than blended with.",
+        note: "Related additive-package and specialty-component routes used to complete or extend a formulation brief.",
         fields: fields("lubricant-additives", [
           "Transformer oil",
           "White oil",
@@ -317,9 +350,9 @@ export const BASE_OILS: ProductCategoryContent = {
   /* ---------------------------------------------------------------- 8 supply */
 
   supply: {
-    heading: "Packaging and supply.",
+    heading: "Define the grade, pack and delivery basis together.",
     intro:
-      "The formats this category is supplied in, and the commercial terms it is quoted against.",
+      "A workable quotation connects the selected base-oil grade with quantity, packaging, destination and Incoterm. Available combinations are confirmed against the complete enquiry.",
     formats: SUPPLY_FORMATS,
     incoterms: INCOTERMS,
     /*
@@ -327,38 +360,38 @@ export const BASE_OILS: ProductCategoryContent = {
      * established, which is a description of a process rather than a figure.
      */
     terms:
-      "Minimum quantity, lead time and payment terms are established against a specific grade, format and destination — they are part of the quotation, not a published table.",
+      "Include the required quantity, preferred packaging and named destination. Minimum quantity, lead time and payment terms are then confirmed in the quotation for that specific supply route.",
     link: { label: "Export & Logistics", route: "exportLogistics" },
   },
 
   /* --------------------------------------------------------- 10 documentation */
 
   documentation: {
-    heading: "Documents, published and per batch.",
+    heading: "Know which document answers which question.",
     intro:
-      "Three documents are issued for this category. Two describe the grade, one describes the batch you receive — and none of the three sits behind a form.",
+      "Use the TDS to review typical grade properties, the SDS for safe handling information and the COA to review the released batch. Document availability follows the published product record.",
     documents: [
       {
         code: "TDS",
         label: "Technical Data Sheet",
-        scope: "Technical properties",
+        scope: "Typical grade properties and referenced test conditions",
         access: "open",
       },
       {
         code: "SDS",
         label: "Safety Data Sheet",
-        scope: "Handling, storage and transport",
+        scope: "Hazards, handling, storage and transport information",
         access: "open",
       },
       {
         code: "COA",
         label: "Certificate of Analysis",
         // "COA-per-batch" is SITE_STRUCTURE §7's own wording, so the granularity is approved here.
-        scope: "Per batch — the result of outgoing testing",
+        scope: "Released-batch results from outgoing review",
         access: "open",
       },
     ],
-    note: "The full company and product catalogues are the only documents released against a qualifying form, and that form is on the Products landing page.",
+    note: "Company and product catalogues use the catalogue-request route on the Products page; grade and batch documents remain associated with the relevant product record.",
   },
 
   /* ------------------------------------------------------------------ 11 faq */
@@ -369,7 +402,7 @@ export const BASE_OILS: ProductCategoryContent = {
       // DATA_MODEL.md §DOWNLOAD_REQUEST / DATA_MODEL_GAP_REVIEW.md §5: TDS and SDS explicitly not gated.
       question: "Can I read the specifications before making an enquiry?",
       answer:
-        "Yes. Technical and Safety Data Sheets are published openly. Only the full company and product catalogues are released against a short qualifying form.",
+        "Published product records provide their available Technical and Safety Data Sheets without a catalogue-request form. Use the TDS for typical grade values and the SDS for handling information.",
     },
     {
       id: "sample-before-commitment",
@@ -384,7 +417,7 @@ export const BASE_OILS: ProductCategoryContent = {
       // SITE_STRUCTURE §7 Quality & Standards: COA-per-batch, batch traceability.
       question: "Is a Certificate of Analysis issued for every batch?",
       answer:
-        "Yes. The COA records the outgoing test result for the batch supplied, not a typical value for the grade.",
+        "The COA records the outgoing results for the released batch. It should be read as batch evidence, while the TDS remains the reference for typical grade properties.",
     },
     {
       id: "virgin-and-re-refined",
@@ -398,7 +431,7 @@ export const BASE_OILS: ProductCategoryContent = {
       // SITE_STRUCTURE §5: Customized Solutions is the route for formulation to a customer brief.
       question: "Can a stock be supplied to a specification we provide?",
       answer:
-        "Formulation to a customer brief is a route of its own rather than a variant of a published grade, and a sample is the first stage of it.",
+        "Start with the published range when an existing grade fits. If the requirement needs a different property target or formulation route, submit the specification through Customized Solutions for technical review.",
       link: { label: "Customized Solutions", route: "customization" },
     },
   ],

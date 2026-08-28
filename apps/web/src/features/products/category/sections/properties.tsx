@@ -130,6 +130,7 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
                   <span className="pc-axis-name">
                     {column.label}
                     {column.unit && <em>{column.unit}</em>}
+                    {column.guidance && <small>{column.guidance}</small>}
                   </span>
                   {/* Only where an approved method exists. None does yet — see the note below. */}
                   {column.method && (
@@ -157,83 +158,94 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
               The scroll frame. The fade and the cue sit on the frame, not inside the scroller, or
               they would travel away with the content the moment they were needed.
             */}
-            <div className="pc-table-frame reveal-mask-wipe">
-              <p className="pc-scroll-cue" aria-hidden="true">
-                scroll <span>&rarr;</span>
-              </p>
+            {Object.keys(group.values).length > 0 ? (
+              <div className="pc-table-frame reveal-mask-wipe">
+                <p className="pc-scroll-cue" aria-hidden="true">
+                  scroll <span>&rarr;</span>
+                </p>
 
-              <div className="pc-table-scroll">
-                <table className="pc-table" aria-describedby="pc-props-pending">
-                  <caption>
-                    {plural ? `${group.label} — typical properties` : labels.caption}
-                  </caption>
+                <div className="pc-table-scroll">
+                  <table className="pc-table" aria-describedby="pc-props-pending">
+                    <caption>
+                      {plural ? `${group.label} — typical properties` : labels.caption}
+                    </caption>
 
-                  <thead>
-                    <tr>
-                      <th scope="col">
-                        <span className="pc-th-name">{labels.rowHeading}</span>
-                        <span className="pc-th-method">{labels.rowSubHeading}</span>
-                      </th>
-                      {showGrouping && (
+                    <thead>
+                      <tr>
                         <th scope="col">
-                          <span className="pc-th-name">{labels.groupingHeading}</span>
-                          {labels.groupingSubHeading && (
-                            <span className="pc-th-method">{labels.groupingSubHeading}</span>
-                          )}
+                          <span className="pc-th-name">{labels.rowHeading}</span>
+                          <span className="pc-th-method">{labels.rowSubHeading}</span>
                         </th>
-                      )}
-                      {group.columns.map((column) => (
-                        <th scope="col" key={column.key}>
-                          <span className="pc-th-name">
-                            {column.label}
-                            {column.unit && <em>{column.unit}</em>}
-                          </span>
-                          {column.method && <span className="pc-th-method">{column.method}</span>}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {rows.map((row) => (
-                      <tr key={row.id}>
-                        <th scope="row">
-                          <span className="pc-row-label">{row.label}</span>
-                          {/* A row standing for a whole sub-range says so, in the category's word. */}
-                          <span className="pc-row-scope">
-                            {row.isRange ? labels.rangeRowLabel : row.subRange}
-                          </span>
-                        </th>
-
-                        {/* Derived from the range's own dimension, never authored here. */}
-                        {showGrouping && <td className="pc-cell-class">{row.axis}</td>}
-
-                        {group.columns.map((column) => {
-                          const value = group.values[row.id]?.[column.key];
-
-                          /*
-                           * A rule, not a dash. The mark is drawn in CSS on `[data-pending]`; the
-                           * cell's only text is the announcement, so a screen reader hears the
-                           * state instead of meeting an empty cell.
-                           */
-                          if (value === undefined) {
-                            return (
-                              <td key={column.key} data-pending="true">
-                                <VisuallyHidden>Not published</VisuallyHidden>
-                              </td>
-                            );
-                          }
-
-                          return <td key={column.key}>{value}</td>;
-                        })}
+                        {showGrouping && (
+                          <th scope="col">
+                            <span className="pc-th-name">{labels.groupingHeading}</span>
+                            {labels.groupingSubHeading && (
+                              <span className="pc-th-method">{labels.groupingSubHeading}</span>
+                            )}
+                          </th>
+                        )}
+                        {group.columns.map((column) => (
+                          <th scope="col" key={column.key}>
+                            <span className="pc-th-name">
+                              {column.label}
+                              {column.unit && <em>{column.unit}</em>}
+                            </span>
+                            {column.method && <span className="pc-th-method">{column.method}</span>}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
 
-              <span className="pc-table-fade" aria-hidden="true" />
-            </div>
+                    <tbody>
+                      {rows.map((row) => (
+                        <tr key={row.id}>
+                          <th scope="row">
+                            <span className="pc-row-label">{row.label}</span>
+                            {/* A row standing for a whole sub-range says so, in the category's word. */}
+                            <span className="pc-row-scope">
+                              {row.isRange ? labels.rangeRowLabel : row.subRange}
+                            </span>
+                          </th>
+
+                          {/* Derived from the range's own dimension, never authored here. */}
+                          {showGrouping && <td className="pc-cell-class">{row.axis}</td>}
+
+                          {group.columns.map((column) => {
+                            const value = group.values[row.id]?.[column.key];
+
+                            /*
+                             * A rule, not a dash. The mark is drawn in CSS on `[data-pending]`; the
+                             * cell's only text is the announcement, so a screen reader hears the
+                             * state instead of meeting an empty cell.
+                             */
+                            if (value === undefined) {
+                              return (
+                                <td key={column.key} data-pending="true">
+                                  <VisuallyHidden>Not published</VisuallyHidden>
+                                </td>
+                              );
+                            }
+
+                            return <td key={column.key}>{value}</td>;
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <span className="pc-table-fade" aria-hidden="true" />
+              </div>
+            ) : (
+              <div className="pc-data-route reveal-fade-rise" role="note">
+                <p className="fs-eyebrow">How values are confirmed</p>
+                <p>
+                  Use the property set above to define the enquiry. Exact typical values and test
+                  methods are issued in the reviewed TDS for the selected grade; the supplied batch
+                  is then identified against its COA.
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>

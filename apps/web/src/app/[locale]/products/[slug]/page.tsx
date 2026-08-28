@@ -9,6 +9,7 @@ import { ProductDetailTemplate } from "@/features/products/detail/product-detail
 import { ProductUnavailable } from "@/features/products/detail/product-unavailable";
 import { resolveProduct } from "@/features/products/detail/resolve-product-page";
 import { isReservedProductSlug } from "@/features/products/reserved-slugs";
+import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { getProductsByCategory } from "@/lib/products";
 import { getActiveLocales } from "@/lib/locales";
 
@@ -131,7 +132,29 @@ export async function generateMetadata({
    */
   const content = getCategoryContent(slug);
   if (content) {
-    return { title: content.meta.title, description: content.meta.description };
+    const canonical = `/${locale}/products/${slug}`;
+    const socialImage = content.hero.image?.src ?? "/images/products-portfolio-review.webp";
+
+    return {
+      title: content.meta.title,
+      description: content.meta.description,
+      alternates: { canonical },
+      openGraph: {
+        type: "website",
+        siteName: "SAM Group",
+        title: content.meta.title,
+        description: content.meta.description,
+        url: canonical,
+        locale,
+        images: [{ url: socialImage, alt: "SAM Group petroleum and lubricant product range" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: content.meta.title,
+        description: content.meta.description,
+        images: [socialImage],
+      },
+    };
   }
 
   /*
@@ -255,15 +278,49 @@ export default async function ProductFamilyPage({
      */
     if (!page) notFound();
 
+    const canonical = `/${locale}/products/${slug}`;
+    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const schema: JsonLdObject = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Product",
+          "@id": `${absoluteUrl}#product-family`,
+          url: absoluteUrl,
+          name: page.family.name,
+          description: page.content.meta.description,
+          category: page.family.name,
+          brand: { "@type": "Brand", name: "SAM Group" },
+          ...(page.content.hero.image && {
+            image: new URL(page.content.hero.image.src, "https://samgp.com").href,
+          }),
+        },
+        {
+          "@type": "FAQPage",
+          "@id": `${absoluteUrl}#faq`,
+          url: `${absoluteUrl}#faq`,
+          inLanguage: locale,
+          mainEntity: page.content.faq.map((entry) => ({
+            "@type": "Question",
+            name: entry.question,
+            acceptedAnswer: { "@type": "Answer", text: entry.answer },
+          })),
+        },
+      ],
+    };
+
     return (
-      <ProductCategoryTemplate
-        locales={locales}
-        content={page.content}
-        family={page.family}
-        locale={locale}
-        products={products}
-        activeSegment={activeSegment}
-      />
+      <>
+        <JsonLd data={schema} />
+        <ProductCategoryTemplate
+          locales={locales}
+          content={page.content}
+          family={page.family}
+          locale={locale}
+          products={products}
+          activeSegment={activeSegment}
+        />
+      </>
     );
   }
 

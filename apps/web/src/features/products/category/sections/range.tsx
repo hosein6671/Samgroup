@@ -82,8 +82,11 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
           <div className="pc-axes reveal-fade-rise">
             <p className="pc-axes-label">Classified on</p>
             <ul className="pc-axes-list">
-              {range.classificationAxes.map((axis) => (
-                <li key={axis}>{axis}</li>
+              {range.classificationAxes.map((axis, i) => (
+                <li key={axis}>
+                  <span>{String(i + 1).padStart(2, "0")}</span>
+                  {axis}
+                </li>
               ))}
             </ul>
             <p className="pc-axes-note">
@@ -109,13 +112,16 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
                     {/* Continuous across groups, so this number and the hero index agree. */}
                     <p className="pc-sub-index">{String(group.offset + i + 1).padStart(2, "0")}</p>
 
-                    <div className="pc-sub-body">
+                    <div className="pc-sub-identity">
                       <h3 className="pc-sub-title">{subRange.designation}</h3>
                       {/* Absent everywhere today: it carried classification wording no approved
                           document supports. See `SubRange.qualifier`. */}
                       {subRange.qualifier && (
                         <p className="pc-sub-qualifier">{subRange.qualifier}</p>
                       )}
+                    </div>
+
+                    <div className="pc-sub-content">
                       <p className="pc-sub-summary">{subRange.summary}</p>
 
                       {/*

@@ -165,6 +165,17 @@ export async function CategoryCatalog({
   const unfilteredHref = filterHref(locale, familySlug);
   const listed = result.ok ? result.products.length : 0;
 
+  /*
+   * An empty, unfiltered catalogue is not a section the buyer can use. The approved taxonomy and
+   * named grades already sit immediately above it; repeating the family heading, every Segment
+   * filter and a "nothing published" notice creates a false second range with no entries.
+   *
+   * Suppress only this one honest-empty state. The section returns automatically with the first
+   * published Product. A filtered empty result still renders so the visitor can clear the filter,
+   * and an unavailable API still renders because infrastructure failure must remain visible.
+   */
+  if (result.ok && listed === 0 && activeSegment === null) return null;
+
   return (
     <section className="fs-sec pl-sec" id="products" data-surface="light">
       <div className="fs-wrap">
@@ -227,13 +238,6 @@ export async function CategoryCatalog({
                 : `The catalog holds no product in this family for ${activeName}.`
             }
             reset={unfilteredHref}
-          />
-        )}
-
-        {result.ok && listed === 0 && activeSegment === null && (
-          <CatalogNotice
-            heading="No products published yet"
-            body="This family's catalog entries have not been published. Its range and specifications are above."
           />
         )}
 

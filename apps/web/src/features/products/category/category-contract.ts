@@ -107,6 +107,12 @@ export type CategoryAction = {
 export type CategoryHero = {
   readonly headline: string;
   readonly lead: string;
+  /** Optional editorial photography; the official brand mark remains an HTML overlay. */
+  readonly image?: {
+    readonly src: string;
+    readonly alt: string;
+    readonly caption: string;
+  };
   /** SITE_STRUCTURE §4 item 1: "primary/secondary CTA (Request a Quote / Request Sample)". */
   readonly primary: CategoryAction;
   readonly secondary: CategoryAction;
@@ -221,6 +227,8 @@ export type PropertyColumn = {
   readonly key: string;
   readonly label: string;
   readonly unit?: string;
+  /** Plain-language buying relevance; never a substitute for a measured value or test method. */
+  readonly guidance?: string;
   readonly method?: string;
   readonly condition?: string;
 };

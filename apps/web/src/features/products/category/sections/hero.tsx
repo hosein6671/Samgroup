@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { BrandedPhoto } from "@/features/home/branded-photo";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
@@ -32,7 +33,7 @@ export function CategoryHero({ content, family, locale }: SectionProps): ReactNo
   const { hero } = content;
 
   return (
-    <section className="pc-hero" data-surface="midnight">
+    <section className="pc-hero" data-surface="midnight" data-photo={hero.image ? "true" : "false"}>
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap pc-hero-inner">
@@ -65,6 +66,16 @@ export function CategoryHero({ content, family, locale }: SectionProps): ReactNo
             </a>
           </div>
         </div>
+
+        {hero.image && (
+          <BrandedPhoto
+            src={hero.image.src}
+            alt={hero.image.alt}
+            caption={hero.image.caption}
+            className="pc-hero-photo reveal-fade-rise"
+            sizes="(max-width: 980px) calc(100vw - 40px), 48vw"
+          />
+        )}
 
         <GradeIndex content={content} family={family} locale={locale} />
       </div>
