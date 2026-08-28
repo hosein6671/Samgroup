@@ -18,24 +18,20 @@ import { ClosingCta } from "../sections/closing-cta";
 import { ProductGallery } from "./sections/gallery";
 import { ProductHero } from "./sections/hero";
 import { ProductSpecifications } from "./sections/specifications";
+import { ProductSelectionGuide } from "./sections/selection-guide";
+import { ProductTechnicalDocuments } from "./sections/technical-documents";
+import { getProductDetailEditorial } from "./product-detail-content";
 
 import type { ProductDetailResponse } from "@sam-group/types";
 
 /**
  * The Product Detail template — one component, every product.
  *
- * ── A short page, on purpose ────────────────────────────────────────────────
- *
- * Hero, then whatever the record actually carries, then the shared closing CTA. There is no
- * documentation register, no packaging block, no approvals list, no OEM table and no related-
- * products strip, and none of those is an oversight: every one would need content that neither the
- * API nor any approved document supplies, and CLAUDE.md §4 forbids seeding an unverified commercial
- * fact into a page. When a Product genuinely carries specifications, imagery or documents, the
- * sections below render them — which is why this file is a composition rather than a layout.
- *
- * On the current data every product renders as hero + CTA, because the demo seed deliberately
- * creates no `Specification`, `Media` or `ProductType` row. That is the honest rendering of what
- * exists, and it is also the clearest possible signal of what still has to be populated.
+ * The API owns product identity, taxonomy, specifications and product media. A local family-level
+ * editorial registry contributes only reusable buyer guidance and explicitly labelled
+ * representative photography; it never supplies a product formulation, approval, property value
+ * or packaging claim. This lets every Product page answer the buyer's next question without
+ * disguising unpublished technical data as fact.
  *
  * ── Both optional sections are gated on real content ────────────────────────
  *
@@ -79,12 +75,16 @@ export function ProductDetailTemplate({
   /** The API's `meta.localeFallback`, passed through to the hero's notice. */
   readonly localeFallback: boolean;
 }): ReactNode {
+  const editorial = getProductDetailEditorial(product.category.slug);
+
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <ProductHero product={product} locale={locale} localeFallback={localeFallback} />
+
+        <ProductSelectionGuide editorial={editorial} />
 
         {product.specifications.length > 0 && (
           <ProductSpecifications specifications={product.specifications} />
@@ -93,6 +93,8 @@ export function ProductDetailTemplate({
         {product.images.length > 0 && (
           <ProductGallery images={product.images} productName={product.name} />
         )}
+
+        <ProductTechnicalDocuments />
 
         <ClosingCta locale={locale} productSlug={product.slug} />
       </main>

@@ -6,12 +6,29 @@ import { ProductCategoryTemplate } from "@/features/products/category/category-t
 import { getCategoryContent } from "@/features/products/category/data";
 import { resolveCategoryPage } from "@/features/products/category/resolve-category-page";
 import { ProductDetailTemplate } from "@/features/products/detail/product-detail-template";
+import { getProductDetailEditorial } from "@/features/products/detail/product-detail-content";
 import { ProductUnavailable } from "@/features/products/detail/product-unavailable";
 import { resolveProduct } from "@/features/products/detail/resolve-product-page";
 import { isReservedProductSlug } from "@/features/products/reserved-slugs";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { getProductsByCategory } from "@/lib/products";
 import { getActiveLocales } from "@/lib/locales";
+
+function isJsonLdObject(value: unknown): value is JsonLdObject {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+
+  return Object.values(value).every((entry) => {
+    if (entry === null || ["string", "number", "boolean"].includes(typeof entry)) return true;
+    if (Array.isArray(entry))
+      return entry.every(
+        (item) =>
+          isJsonLdObject(item) ||
+          item === null ||
+          ["string", "number", "boolean"].includes(typeof item),
+      );
+    return isJsonLdObject(entry);
+  });
+}
 
 /**
  * The shared Product namespace route — `/{locale}/products/{slug}`.
@@ -168,10 +185,9 @@ export async function generateMetadata({
    * and it costs no extra request: `resolveProduct` is memoized per request with React's `cache`,
    * so this call and the component's below are one round trip that cannot disagree.
    *
-   * `product.seo` carries `metaTitle`/`metaDescription` and is deliberately not consumed — mapping
-   * `SeoFields` onto the Metadata API is the SEO gate's work. `name` and `description` are what the
-   * page renders, so they are what it is titled with, and the API already falls its own SEO record
-   * back to exactly these two values.
+   * `product.seo` is the canonical metadata seam. Entity values lead; the product's rendered name,
+   * description and family editorial image are only the final, claim-safe fallbacks. Alternates are
+   * emitted only from the API's real-translation list, never from the configured locale list.
    *
    * Every non-success outcome returns `{}` rather than inventing a title: a 404 and an unavailable
    * page have nothing to describe, and naming the requested slug in a `<title>` would echo
@@ -180,9 +196,59 @@ export async function generateMetadata({
   const result = await resolveProduct(slug, locale);
   if (!result.ok) return {};
 
+  const product = result.record;
+  const seo = product.seo;
+  const canonical = seo.canonicalUrl ?? `/${locale}/products/${product.slug}`;
+  const editorialImage = getProductDetailEditorial(product.category.slug).image;
+  const ogImage = seo.socialImage ?? {
+    url: editorialImage.src,
+    alt: editorialImage.alt,
+    width: 1536,
+    height: 1024,
+  };
+  const twitterImage = seo.twitterImage ?? ogImage;
+  const title = seo.metaTitle ?? product.name;
+  const description =
+    seo.metaDescription ??
+    product.description ??
+    `Review ${product.name} within the ${product.category.name} range and prepare a product-specific supply enquiry with SAM Group.`;
+
   return {
-    title: result.record.name,
-    ...(result.record.description === null ? {} : { description: result.record.description }),
+    title,
+    description,
+    keywords: seo.keywords,
+    alternates: {
+      canonical,
+      languages: Object.fromEntries(
+        seo.alternates.map((alternate) => [
+          alternate.locale,
+          `/${alternate.locale}/products/${alternate.slug}`,
+        ]),
+      ),
+    },
+    robots: { index: seo.robotsIndex, follow: seo.robotsFollow },
+    openGraph: {
+      type: "website",
+      siteName: "SAM Group",
+      title: seo.ogTitle ?? title,
+      description: seo.ogDescription ?? description,
+      url: canonical,
+      locale,
+      images: [
+        {
+          url: ogImage.url,
+          alt: ogImage.alt ?? editorialImage.alt,
+          ...(ogImage.width ? { width: ogImage.width } : {}),
+          ...(ogImage.height ? { height: ogImage.height } : {}),
+        },
+      ],
+    },
+    twitter: {
+      card: seo.twitterCardType,
+      title: seo.twitterTitle ?? title,
+      description: seo.twitterDescription ?? description,
+      images: [{ url: twitterImage.url, alt: twitterImage.alt ?? editorialImage.alt }],
+    },
   };
 }
 
@@ -339,13 +405,73 @@ export default async function ProductFamilyPage({
   const result = await resolveProduct(slug, locale);
 
   if (result.ok) {
+    const product = result.record;
+    const canonical = `/${locale}/products/${product.slug}`;
+    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const editorial = getProductDetailEditorial(product.category.slug);
+    const generatedSchema: JsonLdObject = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Product",
+          "@id": `${absoluteUrl}#product`,
+          url: absoluteUrl,
+          name: product.name,
+          description:
+            product.seo.metaDescription ??
+            product.description ??
+            `${product.name} in the ${product.category.name} product family.`,
+          category: product.category.name,
+          brand: { "@type": "Brand", name: "SAM Group" },
+          image: new URL(product.images[0]?.url ?? editorial.image.src, "https://samgp.com").href,
+          ...(product.productType && { additionalType: product.productType.name }),
+          ...(product.specifications.length > 0 && {
+            additionalProperty: product.specifications.map((specification) => ({
+              "@type": "PropertyValue",
+              name: specification.key,
+              value: specification.value,
+              ...(specification.unit && { unitText: specification.unit }),
+            })),
+          }),
+        },
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Products",
+              item: new URL(`/${locale}/products`, "https://samgp.com").href,
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: product.category.name,
+              item: new URL(`/${locale}/products/${product.category.slug}`, "https://samgp.com")
+                .href,
+            },
+            { "@type": "ListItem", position: 3, name: product.name, item: absoluteUrl },
+          ],
+        },
+      ],
+    };
+
     return (
-      <ProductDetailTemplate
-        locales={locales}
-        product={result.record}
-        locale={locale}
-        localeFallback={result.localeFallback}
-      />
+      <>
+        <JsonLd
+          data={
+            isJsonLdObject(product.seo.structuredDataOverride)
+              ? product.seo.structuredDataOverride
+              : generatedSchema
+          }
+        />
+        <ProductDetailTemplate
+          locales={locales}
+          product={product}
+          locale={locale}
+          localeFallback={result.localeFallback}
+        />
+      </>
     );
   }
 

@@ -19,10 +19,9 @@
  * THE PAGE'S RHYTHM
  * ============================================================================
  *
- * Short, and it has to read as deliberately short rather than as unfinished. One dark hero
- * carrying everything the record actually states, then at most two light sections, then the shared
- * light CTA. A product with no specifications and no imagery — which is every product today — goes
- * straight from the dark hero to the CTA, and the hero is sized to carry that on its own.
+ * One dark identity hero, a light family-specific selection guide, optional API-backed product
+ * evidence, a dark technical-document guide and the shared closing CTA. The alternating surfaces
+ * keep the longer buyer journey legible without introducing a one-off visual language.
  */
 
 /* ============================================================================
@@ -210,6 +209,166 @@
 }
 
 /* ============================================================================
+   FAMILY-SPECIFIC SELECTION GUIDE
+   ============================================================================ */
+
+.pd-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(28px, 5vw, 76px);
+  align-items: center;
+}
+
+.pd-selection-media {
+  grid-column: 1 / span 6;
+}
+
+.pd-selection-copy {
+  grid-column: 7 / -1;
+}
+
+.pd-selection-copy h2 {
+  margin: 16px 0 0;
+  max-width: 16ch;
+}
+
+.pd-selection-copy > .fs-lead {
+  margin: 22px 0 0;
+  max-width: 56ch;
+}
+
+.pd-family-photo {
+  position: relative;
+  min-height: clamp(390px, 45vw, 620px);
+  margin: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--color-surface-canvas);
+}
+
+.pd-family-photo img {
+  object-fit: cover;
+  transition: transform 700ms var(--ease-out-expo);
+}
+
+.pd-family-photo:hover img {
+  transform: scale(1.025);
+}
+
+.pd-criteria {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: clamp(30px, 3.5vw, 46px) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.pd-criteria li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 14px;
+  min-height: 154px;
+  padding: 22px 18px 22px 0;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pd-criteria li:nth-child(even) {
+  padding-inline-start: 18px;
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.pd-criteria li > span,
+.pd-document-grid article > span {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--color-text-accent);
+}
+
+.pd-criteria h3,
+.pd-document-grid h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 450;
+  color: var(--color-text-primary);
+}
+
+.pd-criteria p,
+.pd-document-grid p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================================================
+   TECHNICAL DOCUMENTS
+   ============================================================================ */
+
+.pd-docs {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-canvas);
+}
+
+.pd-docs-inner {
+  position: relative;
+}
+
+.pd-docs .pd-section-head {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 18px;
+  align-items: end;
+}
+
+.pd-docs .pd-section-head .fs-eyebrow {
+  grid-column: 1 / -1;
+}
+
+.pd-docs .pd-section-head h2 {
+  grid-column: 1 / span 7;
+  max-width: 17ch;
+}
+
+.pd-docs .pd-section-head .fs-lead {
+  grid-column: 9 / -1;
+  margin: 0;
+}
+
+.pd-document-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: clamp(34px, 5vw, 68px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.pd-document-grid article {
+  min-height: 250px;
+  padding: clamp(24px, 3vw, 42px);
+  background: color-mix(in srgb, var(--color-surface-elevated) 76%, transparent);
+  transition:
+    background-color 220ms ease,
+    transform 220ms ease;
+}
+
+.pd-document-grid article + article {
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.pd-document-grid article:hover {
+  background: var(--color-surface-elevated);
+  transform: translateY(-4px);
+}
+
+.pd-document-grid h3 {
+  margin-top: 54px;
+}
+
+/* ============================================================================
    SHARED SECTION HEADER
    ============================================================================ */
 
@@ -390,5 +549,61 @@
 
   .pd-gallery-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pd-selection-media,
+  .pd-selection-copy {
+    grid-column: 1 / -1;
+  }
+
+  .pd-family-photo {
+    min-height: clamp(330px, 72vw, 520px);
+  }
+
+  .pd-docs .pd-section-head h2,
+  .pd-docs .pd-section-head .fs-lead {
+    grid-column: 1 / -1;
+  }
+
+  .pd-docs .pd-section-head .fs-lead {
+    margin-top: 12px;
+  }
+
+  .pd-document-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pd-document-grid article {
+    min-height: 210px;
+  }
+
+  .pd-document-grid article + article {
+    border-inline-start: 0;
+    border-top: 1px solid var(--color-border-hairline);
+  }
+}
+
+@media (max-width: 620px) {
+  .pd-criteria {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pd-criteria li,
+  .pd-criteria li:nth-child(even) {
+    min-height: 0;
+    padding: 20px 0;
+    border-inline-start: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pd-family-photo img,
+  .pd-document-grid article {
+    transition: none;
+  }
+
+  .pd-family-photo:hover img,
+  .pd-document-grid article:hover {
+    transform: none;
   }
 }

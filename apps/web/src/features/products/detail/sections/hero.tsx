@@ -11,9 +11,10 @@ import type { ProductDetailResponse } from "@sam-group/types";
  * ── Everything here is API-backed ───────────────────────────────────────────
  *
  * Name, description, category and segments all come from `GET /products/:slug`. There is no
- * fixture behind this page and no editorial registry: unlike a Product Family, a Product has no
- * approved local content to fall back to, which is exactly why the route treats a failed lookup as
- * a server condition rather than rendering something in its place.
+ * fixture behind product identity: unlike a Product Family, a Product has no local record to fall
+ * back to, which is exactly why the route treats a failed lookup as a server condition rather than
+ * rendering something in its place. Family-level buyer guidance appears later and never substitutes
+ * for an API Product field.
  *
  * **Nothing is invented for an empty field.** A product with no Segments renders no Segment row —
  * not an empty one, not "—". A null `productType` renders no Product Type row at all, which is the
