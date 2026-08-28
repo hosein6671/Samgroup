@@ -21,6 +21,37 @@ ambiguity in a SAM/HSB product table or substitute for its TDS.
 Family distribution across all 34 records: 15 Engine Oils & Automotive Lubricants, 9 Industrial
 Oils & Lubricants and 10 Marine Oils & Lubricants.
 
+## Captured-source verification
+
+The workbook's `کاتالوگ HSB` source resolves to the existing SourceDocument titled `Hirmand Shimi
+Baharan product catalogue`. Its attached immutable SourceAsset was compared with the supplied local
+`HSB products.pdf` through `pnpm catalog:sources:capture --dry-run` on 28 August 2026:
+
+- SHA-256: `5ccd403859d793c5160216a9c5a391babb85bd180dadfa17fb9d83c85c502ee9`
+- Byte size: `7,487,031`
+- Media type: `application/pdf`
+- Page count: `45`
+- Result: `already captured; no write needed`
+
+The source bytes and immutable metadata match. No new SourceDocument revision, SourceAsset or
+database write is required for this PDF.
+
+### Actual technical-review queue
+
+The captured HSB source currently supports 551 SourceFacts, 494 Specifications and 40 normalized
+Product Claims in the local database. Their current states are:
+
+| Subject       | `source_recorded` | `needs_review` | Reason for `needs_review`                                                                                 |
+| ------------- | ----------------: | -------------: | --------------------------------------------------------------------------------------------------------- |
+| Specification |               437 |             57 | The printed source omits the unit: 56 density values and one 100 °C viscosity value                       |
+| Product Claim |                38 |              2 | An unnamed manufacturer-requirement claim and an `API TC` classification claim require reviewer decisions |
+
+The two claims are `SN Grade` (`SAMCAT-W1-R069`: “Meets the requirements of the manufacturers…”
+without an identified manufacturer) and `TWO-Stroke Engine Oil` (`SAMCAT-W1-R219`: `API TC`). The
+57 Specifications must not receive inferred units from test-method convention. The 437
+`source_recorded` Specifications and 38 `source_recorded` Claims are captured evidence awaiting the
+normal review path; `source_recorded` is not approval.
+
 ## Lane A — source clean, ready for source capture
 
 These records have `conflictCount = 0` and `withheldFactCount = 0`. “Ready” means ready for the
@@ -106,11 +137,14 @@ normalization of a public name is a separate approval and must not be folded int
 
 ## Required next action
 
-1. Identify the exact supplied catalogue revision as a `SourceDocument`.
-2. Run `pnpm catalog:sources:capture` in dry-run mode against that local artifact.
-3. After explicit apply authorization, attach the immutable source asset to the existing document.
-4. Route Lane A facts through Specification/Product Claim technical review.
-5. Keep Lane B blocked until a corrected source revision or product TDS is captured.
+1. Route the 437 `source_recorded` Specifications and 38 `source_recorded` Claims through the
+   existing technical-review UI; do not bulk-approve them.
+2. Review the 57 unitless Specifications only against a corrected source or current product TDS;
+   do not infer units from ASTM method conventions.
+3. Review the two `needs_review` Product Claims individually and retain rejection/withholding when
+   the source cannot support the public statement.
+4. Keep the four source-ambiguous products in Lane B until a corrected source revision or product
+   TDS is captured.
 
-No internet lookup can replace steps 1–5 because the unresolved questions concern the exact product
+No internet lookup can replace these steps because the unresolved questions concern the exact product
 source, not the general meaning of API, SAE, ISO VG, NLGI or refrigeration terminology.
