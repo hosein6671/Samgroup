@@ -7,9 +7,12 @@
 records whose source itself contains an ambiguity or unsupported claim.
 
 This review does not approve a Specification or Product Claim. It does not change a product name,
-grade, formulation, source text, database record or public page. The supplied catalogue remains the
-only product-specific source for these records; a general external standard cannot resolve an
-ambiguity in a SAM/HSB product table or substitute for its TDS.
+grade, formulation, source text, database record or public page. On 28 August 2026 the product owner
+confirmed that these are not proprietary formulations and that the listed products use the same
+formulations as their source equivalents. Official standards and equivalent manufacturer data sheets
+may therefore be used as internal corroborating evidence. Source names and links are not public
+product-page content. The catalogue remains the identity and recorded-value source, and every
+external mapping still requires a documented reviewer decision.
 
 ## Result
 
@@ -48,9 +51,40 @@ Product Claims in the local database. Their current states are:
 
 The two claims are `SN Grade` (`SAMCAT-W1-R069`: “Meets the requirements of the manufacturers…”
 without an identified manufacturer) and `TWO-Stroke Engine Oil` (`SAMCAT-W1-R219`: `API TC`). The
-57 Specifications must not receive inferred units from test-method convention. The 437
+57 Specifications must not receive silently inferred units from test-method convention. The 437
 `source_recorded` Specifications and 38 `source_recorded` Claims are captured evidence awaiting the
 normal review path; `source_recorded` is not approval.
+
+### Internal corroboration policy
+
+- ASTM D4052 accepts `kg/m³` or `g/mL` for density. It can corroborate an omitted density unit when
+  the captured property names ASTM D4052 and the reviewer records the chosen unit.
+- ASTM D445 expresses kinematic viscosity in `mm²/s`; `cSt` is numerically equivalent. It can
+  corroborate the unit, but not an omitted or ambiguous test temperature.
+- NLGI and ASTM D217 express worked penetration in `0.1 mm` (`dmm` or `mm/10`). The published NLGI
+  2, 3 and 4 ranges match the three recorded calcium-grease ranges.
+- ASTM D566 is the official dropping-point method. The catalogue prints `ASTM D-556`; preserve this
+  probable source typo as a discrepancy rather than silently rewriting it.
+- ASTM D4048 reports copper-corrosion results as a rating, not a physical unit.
+- An official FUCHS POE refrigeration-oil family documents compatibility with R134a and other HFC
+  refrigerants and includes KD/KE terminology. It can corroborate formulation-family context under
+  the owner's equivalence statement, but cannot resolve the catalogue's combined `40 100 °C`
+  viscosity heading.
+- API confirms API SN as a service category for 2020 and older gasoline engines. It does not support
+  the catalogue's unnamed-manufacturer claim or an unspecified extended drain interval.
+
+These sources are internal review evidence, not public citations and not automatic approval.
+
+Internal source records used in this pass:
+
+- ASTM D4052 density method: `https://store.astm.org/d4052-09.html`
+- ASTM D445 kinematic-viscosity method: `https://store.astm.org/d0445-21e01.html`
+- NLGI grade ranges and ASTM D217 worked penetration: `https://www.nlgi.org/grease-glossary/nlgi-grade/`
+- NLGI LB method-and-unit table: `https://www.nlgi.org/certifications/certifications-lb/`
+- ASTM D566 dropping-point method: `https://store.astm.org/d0566-17.html`
+- ASTM D4048 copper-corrosion method: `https://store.astm.org/d4048-19.html`
+- API oil categories: `https://www.api.org/products-and-services/engine-oil/eolcs-categories-and-classifications/oil-categories`
+- FUCHS RENISO TRITON SE/SEZ equivalent POE family: `https://www.fuchs.com/cl/en/product/product/141985-reniso-triton-se-sez-series/`
 
 ## Lane A — source clean, ready for source capture
 
@@ -110,41 +144,50 @@ normalization of a public name is a separate approval and must not be folded int
 ### Racing Grade — `SAMCAT-W1-R093`
 
 - The table records 10W60 and 5W60.
-- Two facts are withheld because the printed source does not provide enough context to publish them
-  as controlled product facts.
-- **Decision:** request the current product TDS. Until then, publish only identity and recorded grade
-  labels; do not publish composition, suitability or performance language.
+- Two density facts are held because the printed header omits its unit. The property explicitly cites
+  ASTM D4052, whose accepted SI density units include `kg/m³`.
+- **Decision:** the two facts may enter individual technical review with ASTM D4052 as internal unit
+  corroboration. This does not approve either value or add performance language.
 
 ### Refrigerator compressor oil-KD — `SAMCAT-W1-R162`
 
 - The table records KD-32, KD-68 and KD-100.
 - Its viscosity heading reads `Viscosity 40 100 °C (Cst)` above a single value column. The source does
   not establish whether the values are measured at 40 °C or 100 °C.
-- The refrigerant-suitability sentence is product-specific and cannot be validated from a general
-  refrigeration-oil reference.
-- **Decision:** withhold all three viscosity facts and the refrigerant-suitability claim until a
-  corrected table or current TDS identifies the test temperature and compatibility scope.
+- The owner's same-formulation statement plus an official equivalent POE refrigeration-oil source
+  can corroborate R134a/HFC formulation-family compatibility internally.
+- **Decision:** retain the refrigerant claim as a separate review subject with the equivalence basis
+  recorded. Continue withholding all three viscosity facts until a corrected table identifies the
+  test temperature; an equivalent formulation does not resolve an ambiguous heading.
 
 ### Grease Based on Calcium — `SAMCAT-W1-R300`
 
 - The table records NLGI 2, NLGI 3 and NLGI 4 values.
-- None of the four property columns prints a unit. Test-method conventions may suggest units, but the
-  source does not state them and they must not be inferred.
+- None of the four property columns prints a unit. Official NLGI/ASTM material corroborates worked
+  penetration as `0.1 mm`, dropping point as temperature and copper corrosion as a rating. Free
+  alkalinity still needs the exact reporting basis recorded by a reviewer.
+- The catalogue's `ASTM D-556` dropping-point reference appears to be a typo for ASTM D566. Preserve
+  both the captured text and the discrepancy; do not silently normalize the method.
 - Two distinct suitability statements must remain separate claims; they must not be collapsed into
   one normalized claim.
-- **Decision:** withhold all unit-dependent facts until a corrected table or TDS states property
-  names, units and methods. Retain the two suitability sentences as separate review subjects.
+- **Decision:** route penetration and copper-corrosion facts to individual review with internal
+  standard corroboration. Keep dropping-point facts held until the method typo is explicitly
+  resolved, and keep free-alkalinity facts held until its reporting basis is confirmed. Retain the
+  two suitability sentences as separate review subjects.
 
 ## Required next action
 
 1. Route the 437 `source_recorded` Specifications and 38 `source_recorded` Claims through the
    existing technical-review UI; do not bulk-approve them.
-2. Review the 57 unitless Specifications only against a corrected source or current product TDS;
-   do not infer units from ASTM method conventions.
+2. Review the 57 unitless Specifications individually. A reviewer may use the official standards
+   above as internal corroboration under the owner's equivalence statement, but must record the
+   source and decision rather than bulk-filling units.
 3. Review the two `needs_review` Product Claims individually and retain rejection/withholding when
    the source cannot support the public statement.
-4. Keep the four source-ambiguous products in Lane B until a corrected source revision or product
-   TDS is captured.
+4. Keep only genuinely unresolved facts in Lane B: the unnamed-manufacturer claim, API TC until an
+   authoritative basis is captured, the KD viscosity temperature, the grease method typo and the
+   free-alkalinity reporting basis.
 
-No internet lookup can replace these steps because the unresolved questions concern the exact product
-source, not the general meaning of API, SAE, ISO VG, NLGI or refrigeration terminology.
+External research can corroborate standard units, classifications and equivalent-formulation
+context. It cannot repair contradictory or missing fields in the captured product table, and it must
+never become an undisclosed automatic rewrite of product data.
