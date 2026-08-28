@@ -184,7 +184,7 @@ suite("the public Product endpoints over the imported catalogue", () => {
   /**
    * The whole point of the public predicate, measured on the real catalogue.
    *
-   * The import writes 1,398 Specifications and approves none of them. Every one is therefore
+   * The import writes 1,402 Specifications and approves none of them. Every one is therefore
    * withheld, and a Product whose technical data has been imported but not reviewed answers
    * with an EMPTY array — which is the truthful answer, not a degraded one: the platform holds
    * no published specification for it yet.
@@ -199,8 +199,8 @@ suite("the public Product endpoints over the imported catalogue", () => {
         `SELECT count(*) AS n FROM specifications
           WHERE deleted_at IS NULL AND review_status <> 'approved'`,
       );
-      // 1,398 rows are there to leak. None of them does.
-      expect(Number(stored[0]?.n)).toBe(1398);
+      // 1,402 rows are there to leak. None of them does.
+      expect(Number(stored[0]?.n)).toBe(1402);
 
       const offenders: string[] = [];
       expect(allSlugs).toHaveLength(100);

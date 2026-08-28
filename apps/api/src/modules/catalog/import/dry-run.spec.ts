@@ -137,8 +137,8 @@ describe("the summary", () => {
     );
     const summary = renderSummary(result);
     expect(summary).toContain("raw technical SourceFacts     1528");
-    expect(summary).toContain("valid Specification cands     1398");
-    expect(summary).toContain("withheld from Specification   130");
+    expect(summary).toContain("valid Specification cands     1402");
+    expect(summary).toContain("withheld from Specification   126");
   });
 
   it("reports the live before/after counts as its only database evidence", async () => {

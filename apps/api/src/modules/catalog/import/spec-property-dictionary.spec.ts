@@ -65,6 +65,16 @@ describe("high-confidence mappings resolve", () => {
     expect(resolveProperty("Seq. 2 @ 93.5ºC", "ml/ml").propertyKey).toBe("foaming_seq2_93_5c");
     expect(resolveProperty("Seq. 3 @ 24ºC", "ml/ml").propertyKey).toBe("foaming_seq3_24c");
   });
+
+  it("normalizes the two coolant table unit defects without changing their raw cells", () => {
+    const reserveAlkalinity = resolveProperty("Reserve alkalinity", "ml 0.1 N.");
+    expect(reserveAlkalinity.propertyKey).toBe("coolant_reserve_alkalinity");
+    expect(reserveAlkalinity.normalizedUnitOverride).toBe("mL 0.100 N HCl");
+
+    const ph = resolveProperty("PH 33% Vol in water", "HCL");
+    expect(ph.propertyKey).toBe("coolant_ph_33pct_water");
+    expect(ph.normalizedUnitOverride).toBeNull();
+  });
 });
 
 describe("look-alikes that must not merge", () => {

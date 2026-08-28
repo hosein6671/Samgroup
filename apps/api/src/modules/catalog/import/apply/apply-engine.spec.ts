@@ -224,9 +224,9 @@ describe("the write plan", () => {
     const withheld = firstApplyPlan.products.flatMap((p) =>
       p.technicalFacts.filter((f) => f.specification === null),
     );
-    expect(withheld.length).toBe(130);
-    // 1,528 raw facts, 1,398 specifications: every withheld fact is recorded, none normalized.
-    expect(writePlan.specifications).toHaveLength(1398);
+    expect(withheld.length).toBe(126);
+    // 1,528 raw facts, 1,402 specifications: every withheld fact is recorded, none normalized.
+    expect(writePlan.specifications).toHaveLength(1402);
   });
 
   it("records every withheld fact as a SourceFact regardless", () => {
@@ -548,13 +548,13 @@ describe("the guarded transaction", () => {
 /* -------------------------------------------------------------------------- */
 
 describe("reference data", () => {
-  it("reconciles 8 ProductTypes, 26 SpecProperties and 75 mappings", () => {
+  it("reconciles 8 ProductTypes, 28 SpecProperties and 75 mappings", () => {
     const counts = referenceDataCounts();
     expect(counts.productTypes).toBe(8);
-    expect(counts.specProperties).toBe(26);
+    expect(counts.specProperties).toBe(28);
     expect(counts.specPropertyMappings).toBe(75);
-    expect(counts.highMappings).toBe(52);
-    expect(counts.deferredMappings).toBe(23);
+    expect(counts.highMappings).toBe(54);
+    expect(counts.deferredMappings).toBe(21);
   });
 
   it("gives every ProductType a stable id derived from its approved slug", () => {
@@ -563,7 +563,7 @@ describe("reference data", () => {
   });
 
   it("keys SpecProperty by its own key and creates no translation", () => {
-    expect(new Set(specPropertyRows().map((r) => r.key)).size).toBe(26);
+    expect(new Set(specPropertyRows().map((r) => r.key)).size).toBe(28);
   });
 
   it("preserves MappingConfidence verbatim", () => {
@@ -571,8 +571,8 @@ describe("reference data", () => {
     for (const row of specPropertyMappingRows()) {
       byConfidence.set(row.confidence, (byConfidence.get(row.confidence) ?? 0) + 1);
     }
-    expect(byConfidence.get(MappingConfidence.HIGH)).toBe(52);
-    expect(byConfidence.get(MappingConfidence.MEDIUM)).toBe(15);
+    expect(byConfidence.get(MappingConfidence.HIGH)).toBe(54);
+    expect(byConfidence.get(MappingConfidence.MEDIUM)).toBe(13);
     expect(byConfidence.get(MappingConfidence.LOW)).toBe(8);
   });
 
@@ -612,7 +612,7 @@ describe("the manifest the operator confirms", () => {
  */
 describe("Specification subject uniqueness", () => {
   it("finds no duplicate subject anywhere in the ratified plan", () => {
-    // 1398 candidates, 1398 distinct (product, grade, property). The policy costs nothing on
+    // 1402 candidates, 1402 distinct (product, grade, property). The policy costs nothing on
     // the authoritative data, which is why the synthetic case below has to exist.
     const flagged = firstApplyPlan.products.flatMap((product) =>
       product.flags.filter((flag) => flag.code === "SPECIFICATION_SUBJECT_DUPLICATED"),
@@ -629,8 +629,8 @@ describe("Specification subject uniqueness", () => {
         );
       }
     }
-    expect(candidates).toBe(1398);
-    expect(subjects.size).toBe(1398);
+    expect(candidates).toBe(1402);
+    expect(subjects.size).toBe(1402);
   });
 
   it("REPORTS two readings of one property at one scope, and chooses neither", () => {

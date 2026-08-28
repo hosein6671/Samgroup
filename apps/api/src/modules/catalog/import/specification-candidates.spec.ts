@@ -210,8 +210,8 @@ describe("every planned Specification satisfies the real constraints", () => {
     product.technicalFacts.flatMap((fact) => (fact.specification === null ? [] : [fact])),
   );
 
-  it("plans 1398 of them, and every single one passes the simulation", () => {
-    expect(candidates).toHaveLength(1398);
+  it("plans 1402 of them, and every single one passes the simulation", () => {
+    expect(candidates).toHaveLength(1402);
     for (const fact of candidates) {
       const specification = fact.specification!;
       const verdict = validateSpecificationShape({
@@ -254,11 +254,11 @@ describe("every planned Specification satisfies the real constraints", () => {
     }
   });
 
-  it("withholds 130 facts, all of which keep their raw reading", () => {
+  it("withholds 126 facts, all of which keep their raw reading", () => {
     const withheld = plan.products.flatMap((product) =>
       product.technicalFacts.filter((fact) => fact.specification === null),
     );
-    expect(withheld).toHaveLength(130);
+    expect(withheld).toHaveLength(126);
     for (const fact of withheld) {
       expect(fact.withheldReason).not.toBeNull();
       expect(fact.withheldDetail).not.toBeNull();

@@ -284,6 +284,23 @@ export const SPEC_PROPERTY_SEED: readonly SpecPropertySeed[] = [
     allowedUnits: ["%"],
     methodRequirement: MethodRequirement.REQUIRED,
   },
+  {
+    key: "coolant_reserve_alkalinity",
+    canonicalMeaning:
+      "Reserve alkalinity of an engine coolant, reported as the volume of 0.100 N hydrochloric acid required by ASTM D1121.",
+    quantity: "reserve_alkalinity",
+    valueKind: SpecValueKind.NUMERIC,
+    allowedUnits: ["mL 0.100 N HCl"],
+    methodRequirement: MethodRequirement.REQUIRED,
+  },
+  {
+    key: "coolant_ph_33pct_water",
+    canonicalMeaning: "pH of a 33 percent by-volume engine-coolant solution in water.",
+    quantity: "ph",
+    valueKind: SpecValueKind.NUMERIC,
+    allowedUnits: [],
+    methodRequirement: MethodRequirement.REQUIRED,
+  },
 ] as const;
 
 export const SPEC_PROPERTY_KEYS: ReadonlySet<string> = new Set(
@@ -300,6 +317,11 @@ export interface SpecPropertyMappingSeed {
   readonly note?: string;
   /** A source-stated test condition the key deliberately does not encode. */
   readonly qualifier?: string;
+  /**
+   * Canonical unit for the normalized Specification when the printed unit cell is a known
+   * source-layout defect. `null` means dimensionless. The SourceFact always keeps `rawUnit`.
+   */
+  readonly normalizedUnitOverride?: string | null;
 }
 
 /**
@@ -704,16 +726,18 @@ export const SPEC_PROPERTY_MAPPINGS: readonly SpecPropertyMappingSeed[] = [
   {
     rawProperty: "Reserve alkalinity",
     rawUnit: null,
-    specPropertyKey: null,
-    confidence: MappingConfidence.MEDIUM,
-    note: "Source prints the unit split across two rows ('ml 0.1 N.'); the reagent name is missing.",
+    specPropertyKey: "coolant_reserve_alkalinity",
+    confidence: MappingConfidence.HIGH,
+    normalizedUnitOverride: "mL 0.100 N HCl",
+    note: "ASTM D1121 defines the result as millilitres of 0.100 N HCl. The source prints only 'ml 0.1 N.' in this row and places 'HCL' in the following pH unit cell; raw cells remain unchanged.",
   },
   {
     rawProperty: "PH 33% Vol in water",
     rawUnit: null,
-    specPropertyKey: null,
-    confidence: MappingConfidence.MEDIUM,
-    note: "Source prints 'HCL' in the unit cell. pH is dimensionless; HCl is a reagent, not a unit.",
+    specPropertyKey: "coolant_ph_33pct_water",
+    confidence: MappingConfidence.HIGH,
+    normalizedUnitOverride: null,
+    note: "ASTM D1287 defines a pH reading, which is dimensionless. The source prints 'HCL' in the unit cell; raw cells remain unchanged and the normalized Specification carries no unit.",
   },
   {
     rawProperty: "pH value",
@@ -873,6 +897,7 @@ export interface PropertyResolution {
   readonly confidence: MappingConfidence | null;
   readonly qualifier: string | null;
   readonly note: string | null;
+  readonly normalizedUnitOverride: string | null | undefined;
 }
 
 /**
@@ -899,9 +924,17 @@ export function resolveProperty(rawProperty: string, rawUnit: string): PropertyR
         note:
           `Elemental content (${element}). One element can appear as % and as ppm with two ` +
           `different methods, so it is modelled as element plus unit, not as one key per label.`,
+        normalizedUnitOverride: undefined,
       };
     }
-    return { outcome: "unknown", propertyKey: null, confidence: null, qualifier: null, note: null };
+    return {
+      outcome: "unknown",
+      propertyKey: null,
+      confidence: null,
+      qualifier: null,
+      note: null,
+      normalizedUnitOverride: undefined,
+    };
   }
 
   if (mapping.confidence === MappingConfidence.HIGH && mapping.specPropertyKey) {
@@ -917,6 +950,7 @@ export function resolveProperty(rawProperty: string, rawUnit: string): PropertyR
       confidence: mapping.confidence,
       qualifier: mapping.qualifier ?? null,
       note: mapping.note ?? null,
+      normalizedUnitOverride: mapping.normalizedUnitOverride,
     };
   }
 
@@ -926,5 +960,6 @@ export function resolveProperty(rawProperty: string, rawUnit: string): PropertyR
     confidence: mapping.confidence,
     qualifier: mapping.qualifier ?? null,
     note: mapping.note ?? null,
+    normalizedUnitOverride: mapping.normalizedUnitOverride,
   };
 }

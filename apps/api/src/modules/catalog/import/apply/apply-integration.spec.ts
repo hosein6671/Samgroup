@@ -156,7 +156,7 @@ suite("first apply on a clone of the current catalogue", () => {
     expect(after["products"]).toBe(APPROVED_PLAN_EXPECTATIONS.products);
     expect(after["products_with_source_ref"]).toBe(APPROVED_PLAN_EXPECTATIONS.products);
     expect(after["product_types"]).toBe(8);
-    expect(after["spec_properties"]).toBe(26);
+    expect(after["spec_properties"]).toBe(28);
     expect(after["spec_property_mappings"]).toBe(EXPECTED_SPEC_PROPERTY_MAPPINGS);
     expect(after["product_segments"]).toBe(EXPECTED_PRODUCT_SEGMENTS);
     expect(after["product_grades"]).toBe(APPROVED_PLAN_EXPECTATIONS.productGrades);
@@ -206,18 +206,18 @@ suite("first apply on a clone of the current catalogue", () => {
     expect(Number(found[0]?.n)).toBe(5);
   });
 
-  it("leaves the 130 withheld readings as SourceFacts and never as Specifications", async () => {
+  it("leaves the 126 withheld readings as SourceFacts and never as Specifications", async () => {
     const found = await withDisposableClient(url, (client) =>
       client.$queryRawUnsafe<{ backed: number }[]>(
         `SELECT count(DISTINCT source_fact_id)::int AS backed FROM specification_evidence`,
       ),
     );
-    // 1,661 readings, 1,398 of them backing a Specification. Nothing withheld normalized.
+    // 1,661 readings, 1,402 of them backing a Specification. Nothing withheld normalized.
     expect(Number(found[0]?.backed)).toBe(APPROVED_PLAN_EXPECTATIONS.specifications);
     expect(after["source_facts"]).toBeGreaterThan(Number(found[0]?.backed));
   });
 
-  it("preserves MappingConfidence exactly as reviewed: 52 HIGH, 15 MEDIUM, 8 LOW", async () => {
+  it("preserves MappingConfidence exactly as reviewed: 54 HIGH, 13 MEDIUM, 8 LOW", async () => {
     const found = await withDisposableClient(url, (client) =>
       client.$queryRawUnsafe<{ confidence: string; n: number }[]>(
         `SELECT confidence::text AS confidence, count(*)::int AS n
@@ -649,7 +649,7 @@ suite("a partially imported catalogue", () => {
         await exec(url, `DELETE FROM product_claims`);
 
         const message = await applyExpectingRefusal(url);
-        expect(message).toMatch(/A replay would insert 1398 specifications rows/);
+        expect(message).toMatch(/A replay would insert 1402 specifications rows/);
         expect(message).toMatch(/partial catalogue and is never completed automatically/);
 
         // It refused instead of repairing.

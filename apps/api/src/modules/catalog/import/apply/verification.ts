@@ -12,7 +12,7 @@
  * ── Why it re-reads instead of trusting the writer ──────────────────────────
  *
  * Every count below is a `SELECT`, not an accumulator the writer incremented. The writer
- * believing it inserted 1,398 Specifications is precisely the thing under test; a trigger, a
+ * believing it inserted 1,402 Specifications is precisely the thing under test; a trigger, a
  * cascade, a partial-index predicate or a `DO NOTHING` that quietly matched would all leave
  * the accumulator right and the table wrong.
  */
@@ -407,8 +407,8 @@ export async function runPostWriteVerification(
     "A SourceAsset exists that the plan does not describe.",
   );
 
-  // ── 7. The 130 withheld facts stayed evidence ───────────────────────────
-  // The 130 readings the planner withheld are still readings and nothing more: they carry a
+  // ── 7. The 126 withheld facts stayed evidence ───────────────────────────
+  // The 126 readings the planner withheld are still readings and nothing more: they carry a
   // SourceFact row and no specification_evidence link anywhere points at them.
   const plannedFactsBackingSpecifications = new Set(
     rows.specificationEvidence.map((row) => row.evidenceIdentity),

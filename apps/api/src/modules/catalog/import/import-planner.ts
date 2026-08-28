@@ -253,7 +253,7 @@ interface RowPlanResult {
  * `SPECIFICATION` is deliberately absent from `PRODUCT_BLOCKING_CATEGORIES`.
  *
  * Exported so the rule is testable directly. The authoritative workbook contains no such
- * collision — measured, 1398 of 1398 distinct — so there is no natural case to exercise it on,
+ * collision — measured, 1402 of 1402 distinct — so there is no natural case to exercise it on,
  * and a rule that only ever runs on data that never triggers it is a rule nobody has checked.
  */
 export function duplicateSpecificationSubjectFlags(
@@ -410,6 +410,12 @@ function planRow(row: WorkbookProductRow, identity: IdentityAssignment): RowPlan
     const allowedUnits = resolution.propertyKey
       ? (ALLOWED_UNITS_BY_KEY.get(resolution.propertyKey) ?? null)
       : null;
+    const normalizedSpecificationUnit =
+      resolution.normalizedUnitOverride === undefined
+        ? fact.rawUnit === ""
+          ? null
+          : fact.rawUnit
+        : resolution.normalizedUnitOverride;
     const unitClassification = classifyUnit(fact.rawUnit, allowedUnits);
     if (unitClassification === "ABSENT" && allowedUnits && allowedUnits.length > 0) {
       factFlags.push({
@@ -482,7 +488,7 @@ function planRow(row: WorkbookProductRow, identity: IdentityAssignment): RowPlan
         numericMax: normalized.numericMax,
         pairFirst: normalized.pairFirst,
         pairSecond: normalized.pairSecond,
-        unit: fact.rawUnit === "" ? null : fact.rawUnit,
+        unit: normalizedSpecificationUnit,
         method: fact.rawMethod === "" ? null : fact.rawMethod,
         qualifier: resolution.qualifier,
         resultBasis: entry?.defaultResultBasis ?? ResultBasis.UNSPECIFIED,

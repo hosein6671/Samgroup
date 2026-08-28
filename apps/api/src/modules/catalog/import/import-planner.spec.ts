@@ -270,6 +270,23 @@ describe("units, methods, qualifiers and result basis", () => {
     expect(specificGravity?.specification?.unit).toBeNull();
     expect(specificGravity?.sourceFact.unitClassification).toBe("DIMENSIONLESS");
   });
+
+  it("keeps High-Performance coolant source cells verbatim while normalizing review units", () => {
+    const highPerformance = byRow.get(297);
+    const reserveAlkalinity = highPerformance?.technicalFacts.find(
+      (fact) => fact.sourceFact.rawProperty === "Reserve alkalinity",
+    );
+    const ph = highPerformance?.technicalFacts.find(
+      (fact) => fact.sourceFact.rawProperty === "PH 33% Vol in water",
+    );
+
+    expect(reserveAlkalinity?.sourceFact.rawUnit).toBe("ml 0.1 N.");
+    expect(reserveAlkalinity?.specification?.unit).toBe("mL 0.100 N HCl");
+    expect(reserveAlkalinity?.specification?.method).toBe("ASTM D1121");
+    expect(ph?.sourceFact.rawUnit).toBe("HCL");
+    expect(ph?.specification?.unit).toBeNull();
+    expect(ph?.specification?.method).toBe("ASTM D1287");
+  });
 });
 
 describe("the five gear rows filed under Marine", () => {

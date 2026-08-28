@@ -79,7 +79,7 @@ describe("the row payload the apply would persist", () => {
     expect(rows.sourceAssets).toHaveLength(APPROVED_PLAN_EXPECTATIONS.sourceAssets);
     expect(rows.sourceDocuments).toHaveLength(APPROVED_PLAN_EXPECTATIONS.sourceDocuments);
     expect(rows.productTypes).toHaveLength(8);
-    expect(rows.specProperties).toHaveLength(26);
+    expect(rows.specProperties).toHaveLength(28);
     expect(rows.specPropertyMappings).toHaveLength(75);
   });
 
@@ -121,8 +121,8 @@ describe("the row payload the apply would persist", () => {
     const withheld = plan.products.flatMap((product) =>
       product.technicalFacts.filter((fact) => fact.specification === null),
     );
-    expect(withheld).toHaveLength(130);
-    // All 130 are still recorded as evidence, and none of them backs a Specification.
+    expect(withheld).toHaveLength(126);
+    // All 126 are still recorded as evidence, and none of them backs a Specification.
     const backing = new Set(rows.specificationEvidence.map((row) => row.evidenceIdentity));
     expect(backing.size).toBe(APPROVED_PLAN_EXPECTATIONS.specifications);
     expect(rows.sourceFacts.length).toBeGreaterThan(backing.size);
