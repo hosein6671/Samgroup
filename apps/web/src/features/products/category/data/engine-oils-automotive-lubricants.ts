@@ -104,32 +104,37 @@ const NO_DESIGNATIONS = "No individual designations are published for it.";
 export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   familyId: "engine-oils-automotive-lubricants",
   meta: {
-    title: "Engine Oils & Automotive Lubricants — Sam Group",
+    title: "Engine Oils & Automotive Lubricants | SAM Group",
     /*
      * The six vehicle segments, in the casing the frozen Products landing publishes them in. The
      * category's second dimension is not described here — its members are not published, and a meta
      * description is not the place to introduce a taxonomy the page itself withholds.
      */
     description:
-      "Automotive lubricants by vehicle segment — passenger cars, trucks and buses, motorcycle and ATV, agriculture, construction and mining, and gardening.",
+      "Browse engine oils and automotive lubricants by vehicle segment, then define the required grade, specification, volume, packaging and destination.",
   },
 
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Automotive fluids, by the vehicle they run in.",
-    lead: "Six published vehicle segments, with the technical documents held on the same page and a sample issued at the first stage of an enquiry.",
+    headline: "Match the lubricant to the vehicle and duty.",
+    lead: "Start with the vehicle segment, then confirm the fluid type, viscosity grade, required specification and operating context against the selected product record.",
     primary: { label: "Request a Quote", route: "quote" },
     secondary: { label: "Request a Sample", route: "sample" },
+    image: {
+      src: "/images/engine-oils-automotive-lab-samples.webp",
+      alt: "Engine-oil samples beside clean bearing and gear components in a laboratory",
+      caption: "Automotive lubricant samples · vehicle and duty-led review",
+    },
   },
 
   /* -------------------------------------------------------------- 2 overview */
 
   overview: {
-    heading: "Read the way a fleet is run.",
+    heading: "Turn a vehicle list into a reviewable product brief.",
     body: [
-      "This range is published by vehicle segment rather than by viscosity: a fleet operator arrives knowing what they run, not which grade they need, and the range is ordered to match. The six segments below are the ones this site publishes, and they are the same six the Products landing already lists.",
-      "The structure has a second dimension — fluid type — and this page does not publish it. Its members are pending technical confirmation, and a fluid named against a vehicle segment before that confirmation would be a statement about product coverage rather than about structure. The segments are published; the fluids within them are issued against an enquiry, and stated in the Technical Data Sheet.",
+      "Vehicle segment is the first filter because it frames hardware, duty cycle and service context. It does not replace the product-level decisions that follow: fluid type, viscosity grade and the specification or approval requested by the buyer.",
+      "Provide the make and model where relevant, operating conditions, current grade or reference specification, expected volume and destination. SAM can then locate the recorded product information and identify what still needs technical confirmation.",
     ],
     /*
      * Four structural markers, no commercial figure among them.
@@ -149,7 +154,7 @@ export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   /* ----------------------------------------------------------------- 3 range */
 
   range: {
-    heading: "The range, by vehicle segment.",
+    heading: "Choose the vehicle segment, then confirm the grade.",
     intro:
       "Six segments, each named for the vehicle class it is formulated for. The taxonomy names the segments; it names no individual product designations, so none are printed.",
     /*
@@ -202,8 +207,9 @@ export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   /* ------------------------------------------------------------ 4 properties */
 
   properties: {
-    heading: "Typical properties.",
-    intro: "Every segment in this category is described on the same seven properties.",
+    heading: "Read properties in the context of a specific product.",
+    intro:
+      "Viscosity, low-temperature behaviour, volatility and elemental information support different decisions. Values and methods belong to the reviewed product TDS rather than a family-wide assumption.",
     /*
      * A single hierarchy, so no `groupingHeading` and therefore no second column — there is no
      * dimension to state. Members are segments rather than grades, and the labels say so.
@@ -251,7 +257,7 @@ export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   /* --------------------------------------------------------------- 5 quality */
 
   quality: {
-    heading: "Quality and testing.",
+    heading: "Connect the product record to the supplied batch.",
     intro:
       "Quality control runs at the same three stages as every category, and a batch is qualified against the same property axis it is later described on.",
     /* No `namedProcess` — SITE_STRUCTURE §4 item 5 gives that block to Base Oils alone. */
@@ -290,7 +296,7 @@ export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   /* ---------------------------------------------------------------- 8 supply */
 
   supply: {
-    heading: "Packaging and supply.",
+    heading: "Define volume, packaging and destination together.",
     intro:
       "The formats this category is supplied in, and the commercial terms it is quoted against.",
     formats: SUPPLY_FORMATS,
@@ -303,7 +309,7 @@ export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   /* -------------------------------------------------------- 10 documentation */
 
   documentation: {
-    heading: "Documents, published and per batch.",
+    heading: "Use the TDS, SDS and COA for different decisions.",
     intro:
       "Three documents are issued for this category. Two describe the product, one describes the batch you receive — and none of the three sits behind a form.",
     documents: [

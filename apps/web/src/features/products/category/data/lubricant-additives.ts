@@ -80,27 +80,32 @@ const COMPONENTS = "Components";
 export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   familyId: "lubricant-additives",
   meta: {
-    title: "Lubricant Additives & Components — Sam Group",
+    title: "Lubricant Additives & Components | SAM Group",
     description:
-      "Additive packages by application — engine oil, driveline and gear, ATF, grease, anti-freeze, brake fluid and fuel — with transformer oil, white oil and rubber process oil.",
+      "Browse lubricant additive packages by finished-fluid application, plus transformer oil, white oil and rubber process oil components from SAM Group.",
   },
 
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Packages by application, components by name.",
-    lead: "Eleven published sub-ranges in two groups — the additive packages, organised by the application each is formulated for, and the lubricant components published beside them.",
+    headline: "Start with the fluid you need to formulate.",
+    lead: "Navigate additive packages by finished-fluid application, then define the performance target, base-stock context and documentation required for technical review.",
     primary: { label: "Request a Quote", route: "quote" },
-    secondary: { label: "Request a Sample", route: "sample" },
+    secondary: { label: "Discuss the Requirement", route: "sample" },
+    image: {
+      src: "/images/lubricant-additives-lab-samples.webp",
+      alt: "Unlabelled laboratory bottles containing amber lubricant additive samples",
+      caption: "Additive samples · application-led technical review",
+    },
   },
 
   /* -------------------------------------------------------------- 2 overview */
 
   overview: {
-    heading: "One category, two kinds of product.",
+    heading: "Separate the package from the component.",
     body: [
-      "The packages in this category are named for the finished fluid they are formulated for rather than for their own chemistry, so the range reads as a list of applications: engine oils, driveline and gear, ATF, grease, anti-freeze, brake fluid and fuel.",
-      "Published beside them are the components — transformer oil, white oil and rubber process oil. They are not packages, they are not described on the same properties, and this page keeps them as their own group rather than folding them into a list they do not belong to.",
+      "Additive packages combine multiple functions around the needs of a finished lubricant or functional fluid. That is why the first group is organised by application: engine oil, driveline and gear, ATF, grease, antifreeze, brake fluid and fuel.",
+      "Transformer oil, white oil and rubber process oil are represented as components, not additive packages. Keeping the groups separate makes the enquiry clearer and prevents package performance criteria from being confused with the physical properties used to describe an oil component.",
     ],
     /*
      * Structural counts and one statement the source row makes in its own words ("additive
@@ -109,19 +114,19 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
      * No sampling marker: §7's sampling policy names base oil and engine oil, not additives.
      */
     markers: [
-      { label: "Sub-ranges", value: "Eleven" },
-      { label: "Product groups", value: "Two" },
+      { label: "Selection starts with", value: "Application" },
+      { label: "Technical review", value: "Product-specific" },
       { label: "Documents", value: "TDS · SDS · COA" },
-      { label: "Packages organised by", value: "Application" },
+      { label: "Supply brief", value: "Product · volume · destination" },
     ],
   },
 
   /* ----------------------------------------------------------------- 3 range */
 
   range: {
-    heading: "The range, in two groups.",
+    heading: "Choose the application before the package.",
     intro:
-      "Eleven sub-ranges. The eight packages are named for the application each is formulated for; the three components are named as products. The taxonomy names no individual designations within either group, so none are printed.",
+      "Use the application groups to narrow the enquiry. A package designation, treat rate, base-stock fit and supported performance level must then be confirmed from the reviewed Technical Data Sheet for the specific product.",
     /*
      * The axes here are kinds of product, not measurement families — so the hero index says
      * "product groups". See `CategoryRange.axisNoun`.
@@ -223,9 +228,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   /* ------------------------------------------------------------ 4 properties */
 
   properties: {
-    heading: "Typical properties, in two families.",
+    heading: "Review the right information for each group.",
     intro:
-      "A package and a component are not described by the same measurements, so this category publishes two axes rather than one table with inapplicable columns.",
+      "An additive package is selected against a formulation target; an oil component is compared through physical properties. The page keeps those decision paths separate instead of presenting one misleading specification table.",
     labels: {
       rowHeading: "Sub-range",
       rowSubHeading: "Designation",
@@ -289,9 +294,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   /* --------------------------------------------------------------- 5 quality */
 
   quality: {
-    heading: "Quality and testing.",
+    heading: "Confirm identity, condition and batch evidence.",
     intro:
-      "Quality control runs at the same three stages as every category, and a batch is qualified against the axis its own group is described on.",
+      "Technical review begins with the product record and its approved test basis. The supplied batch is then represented by its Certificate of Analysis; category-level guidance does not replace either document.",
     /* No `namedProcess` — SITE_STRUCTURE §4 item 5 gives that block to Base Oils alone. */
     stages: QUALITY_STAGES,
     tests: [
@@ -329,9 +334,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
      */
     mode: "downstream",
     eyebrow: "Applications",
-    heading: "Where a package goes next.",
+    heading: "Connect each package to its finished-fluid destination.",
     intro:
-      "A package is an input. Each destination below is one of this company's own product families, and every field named under it is a range that family already publishes. Not every sub-range appears: a brake fluid and a fuel are not among this site's six categories, so the packages formulated for them have no destination page to name and none is invented for them.",
+      "The routes below connect package groups to finished-fluid families already represented in the SAM catalogue. They are navigation aids—not compatibility, approval or formulation claims. Brake-fluid and fuel applications remain enquiry-led because they do not have separate product-family pages here.",
     entries: [
       {
         familyId: "engine-oils-automotive-lubricants",
@@ -373,9 +378,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   /* ---------------------------------------------------------------- 8 supply */
 
   supply: {
-    heading: "Packaging and supply.",
+    heading: "Build a quote around the actual requirement.",
     intro:
-      "The formats this category is supplied in, and the commercial terms it is quoted against.",
+      "Identify the product or application, estimated volume, preferred packaging and destination. SAM can then review the technical and commercial basis without turning assumptions into quoted terms.",
     formats: SUPPLY_FORMATS,
     incoterms: INCOTERMS,
     terms:
@@ -386,9 +391,9 @@ export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   /* -------------------------------------------------------- 10 documentation */
 
   documentation: {
-    heading: "Documents, published and per batch.",
+    heading: "Use each document for the decision it supports.",
     intro:
-      "Three documents are issued for this category. Two describe the product, one describes the batch you receive — and none of the three sits behind a form.",
+      "The TDS supports product selection, the SDS supports safe handling, and the COA records results for the supplied batch. Availability and revision must be confirmed against the selected product.",
     documents: [
       {
         code: "TDS",

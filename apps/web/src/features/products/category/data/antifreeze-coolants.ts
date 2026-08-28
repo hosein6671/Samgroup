@@ -67,27 +67,32 @@ const SUPPLY_FORM = "Supply form";
 export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   familyId: "antifreeze-coolants",
   meta: {
-    title: "Antifreeze & Coolants — Sam Group",
+    title: "Antifreeze & Coolants | SAM Group",
     description:
-      "Monoethylene and monopropylene glycol coolants across the published inhibitor technologies, supplied as concentrate or ready-to-use.",
+      "Browse MEG- and MPG-based antifreeze and coolants by inhibitor technology and concentrate or ready-to-use supply form.",
   },
 
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Coolants, by base fluid and inhibitor.",
-    lead: "Eight published sub-ranges across three independent dimensions — base fluid, inhibitor technology and supply form — with the technical documents held on the same page.",
+    headline: "Select coolant by chemistry, system and supply form.",
+    lead: "Define the base fluid, inhibitor technology, concentration or ready-to-use form, equipment requirement and operating temperature before product confirmation.",
     primary: { label: "Request a Quote", route: "quote" },
     secondary: { label: "Request a Sample", route: "sample" },
+    image: {
+      src: "/images/antifreeze-coolants-lab-samples.webp",
+      alt: "Colour-varied coolant samples beside a compact heat exchanger in a laboratory",
+      caption: "Coolant samples · chemistry and system-led review",
+    },
   },
 
   /* -------------------------------------------------------------- 2 overview */
 
   overview: {
-    heading: "Three dimensions, not one list.",
+    heading: "Keep chemistry, application and dilution distinct.",
     body: [
-      "A coolant is not selected down a single ladder. Base fluid, inhibitor technology and supply form are independent decisions, and a specification is one choice from each — so this page is built as three dimensions rather than as one ranked range.",
-      "Everything published for this category lives on this page: the dimensions, the sub-ranges within each, the property axis every coolant is described on, and the technical documents. There is no per-product page to hunt for, and no form between a reader and a specification.",
+      "Coolant colour alone is not a technical selection criterion. Base fluid, inhibitor technology, concentration and the equipment manufacturer's requirement must be reviewed together before a product is chosen or mixed.",
+      "State the current coolant or required specification, system materials, minimum operating temperature, make-up water conditions where relevant, concentrate or ready-to-use preference, volume and destination. The TDS and SDS remain the product-level sources for use and handling information.",
     ],
     /*
      * No sampling marker. §7's sampling policy names base oil and engine oil; extending it to
@@ -104,7 +109,7 @@ export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   /* ----------------------------------------------------------------- 3 range */
 
   range: {
-    heading: "The range, by dimension.",
+    heading: "Assemble the requirement across three dimensions.",
     intro:
       "Eight sub-ranges across three independent dimensions. The taxonomy names the dimensions and the technologies within them; it names no individual product designations, so none are printed.",
     /*
@@ -177,8 +182,9 @@ export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   /* ------------------------------------------------------------ 4 properties */
 
   properties: {
-    heading: "Typical properties.",
-    intro: "Coolants are described on their own properties, not on the base-oil ones.",
+    heading: "Review coolant properties as a complete system.",
+    intro:
+      "Freezing protection, boiling behaviour, reserve alkalinity, pH, density and appearance are meaningful only with the product concentration, method and equipment requirement stated.",
     /*
      * Three dimensions, so the table carries a second column stating which one each row belongs
      * to. Members are sub-ranges rather than grades, and the labels say so.
@@ -223,7 +229,7 @@ export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   /* --------------------------------------------------------------- 5 quality */
 
   quality: {
-    heading: "Quality and testing.",
+    heading: "Verify concentration, condition and batch evidence.",
     intro:
       "Quality control runs at the same three stages as every category, and a coolant batch is qualified against the same property axis it is later described on.",
     /*
@@ -290,7 +296,7 @@ export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   /* ---------------------------------------------------------------- 8 supply */
 
   supply: {
-    heading: "Packaging and supply.",
+    heading: "Confirm concentrate or ready-to-use before quoting.",
     intro:
       "The formats this category is supplied in, and the commercial terms it is quoted against.",
     formats: SUPPLY_FORMATS,
@@ -303,7 +309,7 @@ export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
   /* -------------------------------------------------------- 10 documentation */
 
   documentation: {
-    heading: "Documents, published and per batch.",
+    heading: "Use product guidance before mixing or filling.",
     intro:
       "Three documents are issued for this category. Two describe the product, one describes the batch you receive — and none of the three sits behind a form.",
     documents: [

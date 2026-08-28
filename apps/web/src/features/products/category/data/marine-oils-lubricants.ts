@@ -76,27 +76,32 @@ const GREASES = "Greases";
 export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   familyId: "marine-oils-lubricants",
   meta: {
-    title: "Marine Oils & Lubricants — Sam Group",
+    title: "Marine Oils & Lubricants | SAM Group",
     description:
-      "TPEO, cylinder oils, system oils, stern tube and gear oils, deck hydraulic and marine greases.",
+      "Browse TPEO, cylinder, system, stern-tube, gear and deck-hydraulic oils plus marine greases, with enquiry guidance for vessel requirements.",
   },
 
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Marine fluids, engine room and deck.",
-    lead: "Six published sub-ranges across two specification families — the fluids, and the marine greases published beside them — with the technical documents held on the same page.",
+    headline: "Define the machinery, service and vessel requirement.",
+    lead: "Navigate marine lubricants by shipboard system, then confirm engine or equipment details, grade, specification, operating context, port and required volume.",
     primary: { label: "Request a Quote", route: "quote" },
     secondary: { label: "Request a Sample", route: "sample" },
+    image: {
+      src: "/images/marine-oils-lab-samples.webp",
+      alt: "Marine lubricant samples beside clean engine bearing components",
+      caption: "Marine lubricant samples · machinery and service-led review",
+    },
   },
 
   /* -------------------------------------------------------------- 2 overview */
 
   overview: {
-    heading: "Engine room and deck, specified two ways.",
+    heading: "Build the enquiry around the shipboard system.",
     body: [
-      "This range is published the way a vessel is laid out rather than by viscosity alone: the propulsion and engine-room fluids first, the deck hydraulic beside them, and the marine greases published alongside both.",
-      "That organisation has the same consequence the industrial range has, and this page states it rather than hides it. Greases are not described on the same properties as the fluids, so the specifications below are published as two families rather than as one table with half its columns inapplicable.",
+      "Marine lubricant selection depends on where the product is used: propulsion engine, cylinder, system, stern tube, gearbox, deck hydraulic equipment or grease point. The family structure follows those shipboard systems.",
+      "A reviewable brief should add engine or equipment maker and model where relevant, fuel and operating context, current grade or specification, consumption estimate, delivery port and timing window. Fluids and greases are assessed on separate property sets.",
     ],
     /*
      * Four structural markers, no commercial figure among them. "Covering" restates the descriptor
@@ -116,7 +121,7 @@ export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   /* ----------------------------------------------------------------- 3 range */
 
   range: {
-    heading: "The range, by shipboard system.",
+    heading: "Navigate by shipboard system and service.",
     intro:
       "Six sub-ranges, each named for the shipboard system it is formulated for. The taxonomy names the systems; it names no individual product designations, so none are printed.",
     /*
@@ -180,7 +185,7 @@ export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   /* ------------------------------------------------------------ 4 properties */
 
   properties: {
-    heading: "Typical properties, in two families.",
+    heading: "Review fluids and greases on the right property set.",
     intro:
       "A grease and a fluid are not described by the same measurements, so this category publishes two axes rather than one table with inapplicable columns.",
     /*
@@ -246,7 +251,7 @@ export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   /* --------------------------------------------------------------- 5 quality */
 
   quality: {
-    heading: "Quality and testing.",
+    heading: "Tie technical evidence to the selected product.",
     intro:
       "Quality control runs at the same three stages as every category, and a batch is qualified against the axis its own specification family is described on.",
     /* No `namedProcess` — SITE_STRUCTURE §4 item 5 gives that block to Base Oils alone. */
@@ -281,7 +286,7 @@ export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   /* ---------------------------------------------------------------- 8 supply */
 
   supply: {
-    heading: "Packaging and supply.",
+    heading: "Plan product, quantity, format and port together.",
     intro:
       "The formats this category is supplied in, and the commercial terms it is quoted against.",
     formats: SUPPLY_FORMATS,
@@ -294,7 +299,7 @@ export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   /* -------------------------------------------------------- 10 documentation */
 
   documentation: {
-    heading: "Documents, published and per batch.",
+    heading: "Keep product documents and batch evidence distinct.",
     intro:
       "Three documents are issued for this category. Two describe the product, one describes the batch you receive — and none of the three sits behind a form.",
     documents: [

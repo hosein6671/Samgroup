@@ -74,27 +74,32 @@ const GREASES = "Greases";
 export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   familyId: "industrial-oils-lubricants",
   meta: {
-    title: "Industrial Oils & Lubricants — Sam Group",
+    title: "Industrial Oils & Lubricants | SAM Group",
     description:
-      "Hydraulic, gear, compressor, metalworking, heat transfer, pneumatic and slideway fluids, stationary engine oils and industrial greases.",
+      "Browse hydraulic, gear, compressor, metalworking, heat-transfer, pneumatic, slideway and stationary-engine oils plus industrial greases.",
   },
 
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Plant fluids, by the system they serve.",
-    lead: "Nine published sub-ranges, each named for the plant system it serves, across two specification families — the fluids, and the greases published beside them.",
+    headline: "Start with the machine, duty and operating condition.",
+    lead: "Navigate industrial lubricants by the system they serve, then define viscosity, load, temperature, environment and required specification for product review.",
     primary: { label: "Request a Quote", route: "quote" },
     secondary: { label: "Request a Sample", route: "sample" },
+    image: {
+      src: "/images/industrial-oils-lab-samples.webp",
+      alt: "Industrial lubricant samples beside hydraulic and gear components",
+      caption: "Industrial lubricant samples · machine and duty-led review",
+    },
   },
 
   /* -------------------------------------------------------------- 2 overview */
 
   overview: {
-    heading: "Grouped by duty, specified two ways.",
+    heading: "Organise the requirement around the equipment.",
     body: [
-      "This range is organised by the machine it serves rather than by viscosity alone, so it reads the way a plant is laid out: hydraulics, gearboxes, compressors, machine tools, and the greases published alongside them.",
-      "That organisation has a consequence this page states rather than hides. Greases are not described on the same properties as the fluids, so the specifications below are published as two families rather than as one table with half its columns inapplicable.",
+      "Industrial lubricant selection begins with the equipment and duty: hydraulic system, gearbox, compressor, machine tool, heat-transfer circuit, pneumatic system, slideway, stationary engine or grease point.",
+      "The next step is product-specific. Share the viscosity grade or reference product, operating temperature, load, contamination or water exposure, materials and required specification. Fluids and greases remain separate because their selection properties are not interchangeable.",
     ],
     markers: [
       { label: "Sub-ranges", value: "Nine" },
@@ -107,7 +112,7 @@ export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   /* ----------------------------------------------------------------- 3 range */
 
   range: {
-    heading: "The range, by duty.",
+    heading: "Move from equipment duty to product criteria.",
     intro:
       "Nine sub-ranges, each named for the plant system it is formulated for. The taxonomy names the duties; it names no individual product designations, so none are printed.",
     /*
@@ -197,7 +202,7 @@ export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   /* ------------------------------------------------------------ 4 properties */
 
   properties: {
-    heading: "Typical properties, in two families.",
+    heading: "Compare fluids and greases on separate evidence.",
     intro:
       "A grease and a fluid are not described by the same measurements, so this category publishes two axes rather than one table with inapplicable columns.",
     /*
@@ -266,7 +271,7 @@ export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   /* --------------------------------------------------------------- 5 quality */
 
   quality: {
-    heading: "Quality and testing.",
+    heading: "Confirm the property set relevant to the duty.",
     intro:
       "Quality control runs at the same three stages as every category, and a batch is qualified against the axis its own specification family is described on.",
     /* No `namedProcess` — SITE_STRUCTURE §4 item 5 gives that block to Base Oils alone. */
@@ -300,7 +305,7 @@ export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   /* ---------------------------------------------------------------- 8 supply */
 
   supply: {
-    heading: "Packaging and supply.",
+    heading: "Quote the product in its delivery context.",
     intro:
       "The formats this category is supplied in, and the commercial terms it is quoted against.",
     formats: SUPPLY_FORMATS,
@@ -313,7 +318,7 @@ export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   /* -------------------------------------------------------- 10 documentation */
 
   documentation: {
-    heading: "Documents, published and per batch.",
+    heading: "Separate product guidance from batch evidence.",
     intro:
       "Three documents are issued for this category. Two describe the product, one describes the batch you receive — and none of the three sits behind a form.",
     documents: [
