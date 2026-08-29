@@ -6,7 +6,7 @@ Priority order within Phase 1 (see [PROJECT_VISION.md](./PROJECT_VISION.md) for 
 
 ## Current Status
 
-**Current as of 29 August 2026. M1 is complete; M2 is advanced across catalog, frontend, CMS and Admin.** Three company Globals (`AboutUs`, `CustomizedSolutions`, `QualityCertifications`) are CMS-backed end to end; the other Globals and collections remain incomplete. The catalog now includes the technical-data/provenance foundation, ratified import planning and transactional apply, an Admin technical-review queue and detail surface, hardened eligibility, database-enforced versioned review hashes with atomic invalidation, the Phase C review decision UI, guarded source capture, and the first bounded incremental normalization patch. Architecture is frozen through [ADR-018](./ADR/ADR-018-bounded-incremental-catalog-patches.md).
+**Current as of 29 August 2026. M1 is complete; M2 is advanced across catalog, frontend, CMS and Admin.** Four company Globals (`AboutUs`, `CustomizedSolutions`, `QualityCertifications`, `ContactUs`) are CMS-backed end to end — `apps/cms/src/payload.config.ts` registers exactly those four; the other Globals and collections remain incomplete. The catalog now includes the technical-data/provenance foundation, ratified import planning and transactional apply, an Admin technical-review queue and detail surface, hardened eligibility, database-enforced versioned review hashes with atomic invalidation, the Phase C review decision UI, guarded source capture, and the first bounded incremental normalization patch. Architecture is frozen through [ADR-018](./ADR/ADR-018-bounded-incremental-catalog-patches.md).
 
 **Complete and verified:**
 
