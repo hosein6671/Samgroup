@@ -93,11 +93,13 @@ export interface Config {
     'about-us': AboutUs;
     'customized-solutions': CustomizedSolution;
     'quality-certifications': QualityCertification;
+    'contact-us': ContactUs;
   };
   globalsSelect: {
     'about-us': AboutUsSelect<false> | AboutUsSelect<true>;
     'customized-solutions': CustomizedSolutionsSelect<false> | CustomizedSolutionsSelect<true>;
     'quality-certifications': QualityCertificationsSelect<false> | QualityCertificationsSelect<true>;
+    'contact-us': ContactUsSelect<false> | ContactUsSelect<true>;
   };
   locale: 'en' | 'fa' | 'ar';
   widgets: {
@@ -1101,6 +1103,36 @@ export interface QualityCertification {
   createdAt?: string | null;
 }
 /**
+ * Official contact channels shown on Contact Us and used in structured data. Leave an unconfirmed channel empty.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-us".
+ */
+export interface ContactUs {
+  id: number;
+  /**
+   * Main office number, including country code.
+   */
+  mainPhone?: string | null;
+  /**
+   * Sales team number, including country code.
+   */
+  salesPhone?: string | null;
+  generalEmail?: string | null;
+  salesEmail?: string | null;
+  whatsappUrl?: string | null;
+  linkedinUrl?: string | null;
+  instagramUrl?: string | null;
+  telegramUrl?: string | null;
+  /**
+   * Public postal address. Localize it for each site language.
+   */
+  address?: string | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-us_select".
  */
@@ -1445,6 +1477,25 @@ export interface QualityCertificationsSelect<T extends boolean = true> {
         keywords?: T;
         structuredDataOverride?: T;
       };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-us_select".
+ */
+export interface ContactUsSelect<T extends boolean = true> {
+  mainPhone?: T;
+  salesPhone?: T;
+  generalEmail?: T;
+  salesEmail?: T;
+  whatsappUrl?: T;
+  linkedinUrl?: T;
+  instagramUrl?: T;
+  telegramUrl?: T;
+  address?: T;
   _status?: T;
   updatedAt?: T;
   createdAt?: T;

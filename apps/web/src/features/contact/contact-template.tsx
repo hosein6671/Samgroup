@@ -16,9 +16,11 @@ import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ContactHero } from "./sections/hero";
 import { InquirySection } from "./sections/inquiry-section";
 import { ContactPathways } from "./sections/pathways";
+import { ContactDirectory } from "./sections/contact-directory";
 
 import type { FormHeading } from "./contact-data";
 import type { ProductContext } from "@/features/forms/inquiry-form";
+import type { ContactUsContent } from "@sam-group/types";
 
 /**
  * The Contact Us template — one component behind both `/contact-us` and
@@ -42,6 +44,7 @@ export function ContactTemplate({
   locales,
   lockInquiryType = false,
   product = null,
+  contactDetails = null,
 }: {
   readonly copy: FormHeading;
   readonly inquiryType: string;
@@ -51,6 +54,7 @@ export function ContactTemplate({
   readonly lockInquiryType?: boolean;
   /** Resolved by the route from `?product=`, or null when the form was opened without one. */
   readonly product?: ProductContext | null;
+  readonly contactDetails?: ContactUsContent | null;
 }): ReactNode {
   return (
     <div data-brand="flagship">
@@ -59,6 +63,7 @@ export function ContactTemplate({
       <main id="main-content">
         <ContactHero />
         <ContactPathways locale={locale} />
+        <ContactDirectory content={contactDetails} />
 
         <InquirySection
           copy={copy}

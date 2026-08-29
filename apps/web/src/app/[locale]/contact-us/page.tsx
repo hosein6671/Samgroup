@@ -11,6 +11,7 @@ import {
   isInquiryType,
 } from "@/features/forms/inquiry-vocabulary";
 import { getActiveLocales } from "@/lib/locales";
+import { getContactUsContent } from "@/lib/content";
 
 /**
  * The Contact Us route — `/{locale}/contact-us`.
@@ -95,7 +96,11 @@ export default async function ContactUsPage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
-  const locales = await getActiveLocales();
+  const [locales, contactResult] = await Promise.all([
+    getActiveLocales(),
+    getContactUsContent(locale),
+  ]);
+  const contactDetails = contactResult.ok ? contactResult.content : null;
 
   const requestedType = single(query.type);
   const inquiryType = isInquiryType(requestedType)
@@ -117,15 +122,37 @@ export default async function ContactUsPage({
     about: { "@id": "https://samgp.com/#organization" },
   };
 
+  const organization: JsonLdObject = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://samgp.com/#organization",
+    name: "SAM Group",
+    url: "https://samgp.com",
+    ...(contactDetails?.mainPhone ? { telephone: contactDetails.mainPhone } : {}),
+    ...(contactDetails?.generalEmail ? { email: contactDetails.generalEmail } : {}),
+    ...(contactDetails?.address ? { address: contactDetails.address } : {}),
+    ...(contactDetails
+      ? {
+          sameAs: [
+            contactDetails.linkedinUrl,
+            contactDetails.instagramUrl,
+            contactDetails.telegramUrl,
+          ].filter((value): value is string => value !== null),
+        }
+      : {}),
+  };
+
   return (
     <>
       <JsonLd data={schema} />
+      <JsonLd data={organization} />
       <ContactTemplate
         locales={locales}
         locale={locale}
         copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}
         inquiryType={inquiryType}
         product={product}
+        contactDetails={contactDetails}
       />
     </>
   );

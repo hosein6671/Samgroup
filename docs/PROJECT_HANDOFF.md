@@ -4,6 +4,8 @@
 
 This document exists so someone with **zero conversation history** can pick this project up and continue correctly. It is a map and a status report, not a substitute for the documents it points to.
 
+> **29 August 2026 — Contact channels gate:** `ContactUs` is now the fourth Payload company Global served by `GET /content/globals/contact-us`. It holds independent optional main/sales phones, general/sales emails, WhatsApp, LinkedIn, Instagram, Telegram and localized address fields. NestJS allow-lists these values; the Contact page renders only published non-empty channels and enriches `Organization` JSON-LD from the same response. The inquiry form remains Prisma/API-owned and unchanged. No factual contact values were invented or seeded; editors must publish confirmed values in Payload.
+
 ---
 
 ## 1. Project Overview

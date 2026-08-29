@@ -11,6 +11,7 @@ import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
 import { cmsDatabaseUri, cmsMediaStorage, payloadSecret } from "./env";
 import { AboutUs } from "./globals/about-us";
+import { ContactUs } from "./globals/contact-us";
 import { CustomizedSolutions } from "./globals/customized-solutions";
 import { QualityCertifications } from "./globals/quality-certifications";
 import { CMS_LOCALIZATION, assertFrozenLocalization } from "./localization";
@@ -57,10 +58,10 @@ export default buildConfig({
   /*
    * Company pages are Globals with tailored schemas, never entries in a generic collection
    * (PAYLOAD_CONTENT_ARCHITECTURE.md decision 1). `AboutUs` was the first, `CustomizedSolutions` the
-   * second, `QualityCertifications` the third.
+   * second, `QualityCertifications` the third, and `ContactUs` the fourth.
    *
-   * The other eight Globals that document specifies — Home, Products Landing, Export & Logistics,
-   * Contact Us, FAQ Page, Header, Footer, Settings — are **not** here, and each is its own gate.
+   * The remaining Globals that document specifies — Home, Products Landing, Export & Logistics,
+   * FAQ Page, Header, Footer, Settings — are **not** here, and each is its own gate.
    * Header/Footer/Settings in particular remain code-owned for now, deliberately: reading them here
    * would put a CMS call in the root layout of every page on the site.
    *
@@ -69,7 +70,7 @@ export default buildConfig({
    * later gate. Nothing in this Global models a certificate, so there is nothing to migrate when it
    * arrives — see `globals/quality-certifications.ts`.
    */
-  globals: [AboutUs, CustomizedSolutions, QualityCertifications],
+  globals: [AboutUs, CustomizedSolutions, QualityCertifications, ContactUs],
   /*
    * GraphQL is disabled. Payload exposes REST and GraphQL over the same data; the Content module
    * uses REST, so the GraphQL endpoint and its playground would be a second public surface on a

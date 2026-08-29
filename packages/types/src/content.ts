@@ -208,6 +208,24 @@ export type ContentGlobalResponse<T> =
 /** `GET /content/globals/about-us`. */
 export type AboutUsResponse = ContentGlobalResponse<AboutUsContent>;
 
+/* ------------------------------------------------------------ Contact Us */
+
+/** Published, verified contact facts. A null channel is intentionally not displayed. */
+export type ContactUsContent = {
+  mainPhone: string | null;
+  salesPhone: string | null;
+  generalEmail: string | null;
+  salesEmail: string | null;
+  whatsappUrl: string | null;
+  linkedinUrl: string | null;
+  instagramUrl: string | null;
+  telegramUrl: string | null;
+  address: string | null;
+};
+
+/** `GET /content/globals/contact-us`. */
+export type ContactUsResponse = ContentGlobalResponse<ContactUsContent>;
+
 /* -------------------------------------------------- Customized Solutions */
 
 /**

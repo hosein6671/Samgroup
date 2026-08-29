@@ -6,6 +6,7 @@ import { ContentGlobalsController } from "./content-globals.controller";
 import { ContentPagesController } from "./content-pages.controller";
 import { ContentPagesService } from "./content-pages.service";
 import { CustomizedSolutionsService } from "./customized-solutions.service";
+import { ContactUsService } from "./contact-us.service";
 import { PayloadClient } from "./payload.client";
 import { QualityCertificationsService } from "./quality-certifications.service";
 
@@ -28,6 +29,7 @@ import { QualityCertificationsService } from "./quality-certifications.service";
     AboutUsService,
     ContentPagesService,
     CustomizedSolutionsService,
+    ContactUsService,
     PayloadClient,
     QualityCertificationsService,
   ],

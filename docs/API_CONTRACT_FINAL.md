@@ -132,20 +132,20 @@ These two fill it in the shape §2.3 already fixes: same envelope, same `?locale
 
 ### 2.4 Content _(Payload, via NestJS)_
 
-| Method | Path                               | Auth | Purpose                                                                                                                                                                                                                |
-| ------ | ---------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/content/globals/:name`           | P    | One Payload Global: `home`, `about-us` (**built** — §2.4b), `products-landing`, `customized-solutions` (**built** — §2.4b), `export-logistics`, `quality-certifications` (**built** — §2.4b), `contact-us`, `faq-page` |
-| GET    | `/content/pages/:slug`             | P    | Legal pages from the `Pages` collection                                                                                                                                                                                |
-| GET    | `/content/product-categories/:key` | P    | `ProductCategoryContent` — editorial copy for a category page                                                                                                                                                          |
-| GET    | `/content/faq`                     | P    | `FaqEntries`; `?category=` filter. Feeds both `/faq` and per-product-page FAQ blocks from one source                                                                                                                   |
-| GET    | `/content/certifications`          | P    | **Published certifications only** — see §4                                                                                                                                                                             |
-| GET    | `/content/job-openings`            | P    | Open vacancies                                                                                                                                                                                                         |
-| GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                                                                                  |
-| GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                                                                                      |
+| Method | Path                               | Auth | Purpose                                                                                                                                                                                                                                                     |
+| ------ | ---------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/content/globals/:name`           | P    | One Payload Global: `home`, `about-us` (**built** — §2.4b), `products-landing`, `customized-solutions` (**built** — §2.4b), `export-logistics`, `quality-certifications` (**built** — §2.4b), `contact-us` (**contact channels built** — §2.4b), `faq-page` |
+| GET    | `/content/pages/:slug`             | P    | Legal pages from the `Pages` collection                                                                                                                                                                                                                     |
+| GET    | `/content/product-categories/:key` | P    | `ProductCategoryContent` — editorial copy for a category page                                                                                                                                                                                               |
+| GET    | `/content/faq`                     | P    | `FaqEntries`; `?category=` filter. Feeds both `/faq` and per-product-page FAQ blocks from one source                                                                                                                                                        |
+| GET    | `/content/certifications`          | P    | **Published certifications only** — see §4                                                                                                                                                                                                                  |
+| GET    | `/content/job-openings`            | P    | Open vacancies                                                                                                                                                                                                                                              |
+| GET    | `/content/navigation`              | P    | Header + Footer Globals — consumed by the root layout                                                                                                                                                                                                       |
+| GET    | `/content/settings`                | P    | Site-wide settings: `Organization` schema data, default OG image, contact details                                                                                                                                                                           |
 
 #### 2.4a Implementation status — 16 August 2026, extended 20 August 2026
 
-**Two of the eight paths are implemented, and no path was added, renamed or reshaped.** The Globals path now answers to **three names** — `about-us`, `customized-solutions` and, as of 20 August 2026, `quality-certifications`. Every other name in the §2.4 table is still a **404 decided in the controller, before any CMS request**.
+The Globals path now answers to **four names** — `about-us`, `customized-solutions`, `quality-certifications`, and the contact-channel slice of `contact-us`. Every other name in the §2.4 table is still a **404 decided in the controller, before any CMS request**.
 `GET /content/pages/:slug` is described below; `GET /content/globals/:name` is §2.4b.
 
 **`GET /content/certifications` is deliberately still unbuilt.** The Quality & Certifications page needs nothing from it: no `Certifications` collection exists (decision Q3), the Quality Global holds no relation to one, and its certifications section is five strings stating that the list is unconfirmed. Building the endpoint now would publish a public contract for content that cannot exist. Its only justification is reuse from product category pages, which needs `ProductCategoryContent` — also unbuilt. When it lands, the published-only filtering this section already mandates is not optional for it: an unpublished certification is likely a placeholder.
@@ -231,9 +231,9 @@ two for an untranslated one.
 **optional**, and with either absent the Content endpoints answer 503 and log why rather than taking
 the whole API down with them.
 
-#### 2.4b `GET /content/globals/:name` — About Us, Customized Solutions and Quality & Certifications (20 August 2026)
+#### 2.4b `GET /content/globals/:name` — company Globals
 
-**Three names answer: `about-us`, `customized-solutions` and `quality-certifications`.** The other five that §2.4's table lists are separate gates, and an
+**Four names answer: `about-us`, `customized-solutions`, `quality-certifications`, and `contact-us`.** Contact Us currently projects only independently confirmed contact channels: main/sales phone, general/sales email, WhatsApp, LinkedIn, Instagram, Telegram, and localized address. All fields are nullable and an empty published document is `available: false`; Payload metadata never crosses the projection. The other four names that §2.4's table lists are separate gates, and an
 unimplemented name is a **404 here**, decided before any request reaches the CMS — the CMS is not a
 routing table and a typo must not surface as an upstream error. No alias and no second path exists.
 

@@ -6,6 +6,7 @@ import { LocaleResolutionService } from "../../common/locale/locale-resolution.s
 import { AboutUsService } from "./about-us.service";
 import { ContentGlobalsController } from "./content-globals.controller";
 import { CustomizedSolutionsService } from "./customized-solutions.service";
+import { ContactUsService } from "./contact-us.service";
 import { QualityCertificationsService } from "./quality-certifications.service";
 
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
@@ -89,6 +90,7 @@ type Harness = {
   find: jest.Mock;
   findSolutions: jest.Mock;
   findQuality: jest.Mock;
+  findContact: jest.Mock;
   resolve: jest.Mock;
 };
 
@@ -104,6 +106,10 @@ async function createHarness(): Promise<Harness> {
     response: { available: true, content: QUALITY },
     localeFallback: false,
   });
+  const findContact = jest.fn().mockResolvedValue({
+    response: { available: true, content: { mainPhone: "+1 555 0100" } },
+    localeFallback: false,
+  });
   const resolve = jest.fn().mockResolvedValue(EN);
 
   const moduleRef = await Test.createTestingModule({
@@ -112,6 +118,7 @@ async function createHarness(): Promise<Harness> {
       { provide: AboutUsService, useValue: { find } },
       { provide: CustomizedSolutionsService, useValue: { find: findSolutions } },
       { provide: QualityCertificationsService, useValue: { find: findQuality } },
+      { provide: ContactUsService, useValue: { find: findContact } },
       { provide: LocaleResolutionService, useValue: { resolve } },
     ],
   }).compile();
@@ -121,6 +128,7 @@ async function createHarness(): Promise<Harness> {
     find,
     findSolutions,
     findQuality,
+    findContact,
     resolve,
   };
 }
@@ -246,20 +254,19 @@ describe("ContentGlobalsController", () => {
      * Three of the contract's eight names have implementations. The other five are separate gates,
      * and until then each is a 404 decided here rather than an empty read against the CMS.
      */
-    it("recognises exactly the three built names", async () => {
+    it("recognises exactly the four built names", async () => {
       const { controller } = await createHarness();
 
-      for (const built of ["about-us", "customized-solutions", "quality-certifications"]) {
+      for (const built of [
+        "about-us",
+        "customized-solutions",
+        "quality-certifications",
+        "contact-us",
+      ]) {
         await expect(controller.findOne(built, {})).resolves.toBeDefined();
       }
 
-      for (const unbuilt of [
-        "home",
-        "products-landing",
-        "export-logistics",
-        "contact-us",
-        "faq-page",
-      ]) {
+      for (const unbuilt of ["home", "products-landing", "export-logistics", "faq-page"]) {
         const error: unknown = await controller.findOne(unbuilt, {}).then(
           () => null,
           (rejection: unknown) => rejection,

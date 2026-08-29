@@ -25,6 +25,7 @@ import { apiGet } from "./api-client";
 
 import type {
   AboutUsContent,
+  ContactUsContent,
   ContentPageResponse,
   CustomizedSolutionsContent,
   QualityCertificationsContent,
@@ -201,6 +202,25 @@ function isQualityCertificationsContent(value: unknown): value is QualityCertifi
   );
 }
 
+function isContactUsContent(value: unknown): value is ContactUsContent {
+  if (typeof value !== "object" || value === null) return false;
+
+  const record = value as Record<string, unknown>;
+  const keys = [
+    "mainPhone",
+    "salesPhone",
+    "generalEmail",
+    "salesEmail",
+    "whatsappUrl",
+    "linkedinUrl",
+    "instagramUrl",
+    "telegramUrl",
+    "address",
+  ];
+
+  return keys.every((key) => record[key] === null || typeof record[key] === "string");
+}
+
 /**
  * One company Global, read through NestJS and narrowed to the page's own shape.
  *
@@ -245,6 +265,13 @@ async function getContentGlobal<T>(
 /** The About Us page's content, from `GET /api/v1/content/globals/about-us`. */
 export function getAboutUsContent(locale: string): Promise<ContentGlobalResult<AboutUsContent>> {
   return getContentGlobal("about-us", locale, isAboutUsContent);
+}
+
+/** Verified contact channels from the Contact Us Global. */
+export function getContactUsContent(
+  locale: string,
+): Promise<ContentGlobalResult<ContactUsContent>> {
+  return getContentGlobal("contact-us", locale, isContactUsContent);
 }
 
 /**

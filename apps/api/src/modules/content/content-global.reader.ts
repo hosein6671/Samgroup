@@ -71,6 +71,7 @@ export async function readContentGlobal<T>(
   slug: string,
   locale: ResolvedLocale,
   project: ContentGlobalProjection<T>,
+  fallbackMarker: (doc: Record<string, unknown>) => string = heroTitleOf,
 ): Promise<ContentGlobalResult<T>> {
   const doc = await payload.findGlobal(slug, { locale: locale.code, ...CONTENT_QUERY });
   const content = project(doc, locale.code);
@@ -86,7 +87,7 @@ export async function readContentGlobal<T>(
 
   return {
     response: { available: true, content },
-    localeFallback: await isFallback(payload, slug, locale),
+    localeFallback: await isFallback(payload, slug, locale, fallbackMarker),
   };
 }
 
@@ -100,6 +101,7 @@ async function isFallback(
   payload: PayloadClient,
   slug: string,
   locale: ResolvedLocale,
+  marker: (doc: Record<string, unknown>) => string,
 ): Promise<boolean> {
   if (locale.isDefault) {
     return false;
@@ -111,5 +113,5 @@ async function isFallback(
     "fallback-locale": "none",
   });
 
-  return heroTitleOf(strict) === "";
+  return marker(strict) === "";
 }

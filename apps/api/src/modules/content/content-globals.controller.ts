@@ -7,6 +7,7 @@ import { LocaleResolutionService } from "../../common/locale/locale-resolution.s
 import { LocaleQuery } from "../../common/locale/locale.query";
 import { AboutUsService } from "./about-us.service";
 import { CustomizedSolutionsService } from "./customized-solutions.service";
+import { ContactUsService } from "./contact-us.service";
 import { QualityCertificationsService } from "./quality-certifications.service";
 
 import type { ContentGlobalResult } from "./content-global.reader";
@@ -16,6 +17,7 @@ import type {
   AboutUsContent,
   ContentGlobalResponse,
   CustomizedSolutionsContent,
+  ContactUsContent,
   QualityCertificationsContent,
 } from "@sam-group/types";
 
@@ -28,7 +30,7 @@ type ContentGlobalReader<T> = {
 
 /** What any recognised Global can answer with. */
 type ServedGlobal = ContentGlobalResponse<
-  AboutUsContent | CustomizedSolutionsContent | QualityCertificationsContent
+  AboutUsContent | ContactUsContent | CustomizedSolutionsContent | QualityCertificationsContent
 >;
 
 /**
@@ -58,12 +60,14 @@ export class ContentGlobalsController {
     aboutUs: AboutUsService,
     customizedSolutions: CustomizedSolutionsService,
     qualityCertifications: QualityCertificationsService,
+    contactUs: ContactUsService,
     private readonly localeResolution: LocaleResolutionService,
   ) {
     this.readers = {
       "about-us": aboutUs,
       "customized-solutions": customizedSolutions,
       "quality-certifications": qualityCertifications,
+      "contact-us": contactUs,
     };
   }
 

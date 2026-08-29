@@ -77,6 +77,8 @@ export type {
   AboutUsTeam,
   AboutUsResponse,
   AboutUsWhoWeAre,
+  ContactUsContent,
+  ContactUsResponse,
   ContentAnchorCta,
   ContentCta,
   ContentFigure,

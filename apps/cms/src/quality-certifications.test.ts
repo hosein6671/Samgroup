@@ -580,10 +580,13 @@ describe("the documentation register is informational, never a download list", (
 describe("what this gate did not add", () => {
   const cmsSource = join(import.meta.dirname);
 
-  test("the Global is registered, and it is the third of three", () => {
+  test("the Global remains registered before later company Globals", () => {
     const config = readFileSync(join(cmsSource, "payload.config.ts"), "utf8");
 
-    assert.match(config, /globals:\s*\[AboutUs,\s*CustomizedSolutions,\s*QualityCertifications\]/);
+    assert.match(
+      config,
+      /globals:\s*\[AboutUs,\s*CustomizedSolutions,\s*QualityCertifications,\s*ContactUs\]/,
+    );
   });
 
   test("no Certifications collection exists — its Admin-only publish gate is owed to a later gate", () => {
