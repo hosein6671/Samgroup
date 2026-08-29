@@ -69,6 +69,7 @@ export function AboutHero({
             figure={hero.figure}
             className="ab-hero-media reveal-fade-rise"
             ratio="portrait"
+            priority
           />
         )}
       </div>
@@ -98,10 +99,12 @@ export function SectionFigure({
   figure,
   className,
   ratio = "landscape",
+  priority = false,
 }: {
   readonly figure: ContentFigure;
   readonly className?: string;
   readonly ratio?: "landscape" | "portrait";
+  readonly priority?: boolean;
 }): ReactNode {
   const { image, caption } = figure;
 
@@ -117,7 +120,8 @@ export function SectionFigure({
           alt={image.alt ?? ""}
           {...(image.width !== null && { width: image.width })}
           {...(image.height !== null && { height: image.height })}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           decoding="async"
         />
       </div>

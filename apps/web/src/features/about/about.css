@@ -233,6 +233,106 @@
 }
 
 /* ============================================================================
+   2A · COMPANY DOSSIER INDEX
+   A real page index: every item resolves to a section that exists in the CMS response.
+   ============================================================================ */
+
+.ab-index {
+  position: relative;
+  z-index: 2;
+  border-block: 1px solid var(--color-border-hairline);
+  background: var(--color-surface-canvas);
+}
+
+.ab-index-inner {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.42fr) minmax(0, 1.58fr);
+  align-items: stretch;
+}
+
+.ab-index-label {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding-block: 18px;
+  padding-inline-end: clamp(20px, 3vw, 44px);
+  border-inline-end: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+.ab-index ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ab-index li {
+  min-width: 0;
+  border-inline-end: 1px solid var(--color-border-hairline);
+}
+
+.ab-index li:last-child {
+  border-inline-end: 0;
+}
+
+.ab-index a {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  min-height: 78px;
+  padding: 14px clamp(14px, 2vw, 26px);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    color var(--t-micro) var(--e-micro),
+    background var(--t-micro) var(--e-micro);
+}
+
+.ab-index a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-border-accent);
+  transform: scaleX(0);
+  transform-origin: inline-start;
+  transition: transform var(--t-micro) var(--e-micro);
+}
+
+.ab-index a:hover,
+.ab-index a:focus-visible {
+  color: var(--color-text-primary);
+  background: var(--color-glass-fill);
+}
+
+.ab-index a:hover::after,
+.ab-index a:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.ab-index .fs-tnum {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--color-text-accent);
+}
+
+.ab-who,
+.ab-expertise,
+.ab-team,
+.ab-quality,
+.ab-close {
+  scroll-margin-top: clamp(76px, 8vw, 108px);
+}
+
+/* ============================================================================
    3 · WHO WE ARE
    ============================================================================ */
 
@@ -598,6 +698,10 @@
   transform: translateY(-3px);
 }
 
+.ab-team-functions li:focus-within {
+  background: var(--color-glass-fill);
+}
+
 .ab-team-functions .fs-tnum {
   padding-top: 3px;
   color: var(--color-text-accent);
@@ -886,6 +990,16 @@
 }
 
 @media (max-width: 980px) {
+  .ab-index-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .ab-index-label {
+    padding-block: 14px;
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--color-border-hairline);
+  }
+
   .ab-team-grid {
     grid-template-columns: 1fr;
   }
@@ -942,6 +1056,22 @@
 }
 
 @media (max-width: 620px) {
+  .ab-index ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ab-index li:nth-child(2) {
+    border-inline-end: 0;
+  }
+
+  .ab-index li:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--color-border-hairline);
+  }
+
+  .ab-index a {
+    min-height: 68px;
+  }
+
   .ab-families ul {
     grid-template-columns: 1fr;
   }
@@ -987,6 +1117,18 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.ab-hero-media .ab-slot-image {
+  object-position: center 38%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-index a,
+  .ab-index a::after,
+  .ab-team-functions li {
+    transition: none;
+  }
 }
 
 /*

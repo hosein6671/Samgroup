@@ -132,18 +132,18 @@ await payload.updateGlobal({
     _status: "published",
     hero: {
       eyebrow: "About SAM Group",
-      title: "Built around how petroleum and lubricant buyers make decisions.",
+      title: "Petroleum products, technical context, and supply—connected.",
       supportingText:
-        "SAM Group brings product discovery, technical context, and supply requirements into one clear B2B journey—from the first grade search to a reviewable enquiry.",
+        "SAM Group helps professional buyers move from a product name, grade, specification, or application to a requirement that technical and commercial teams can review together.",
       primaryCta: { label: "View product families", route: "products" },
       secondaryCta: { label: "Talk to our team", route: "contact-us" },
     },
     whoWeAre: {
-      heading: "A clearer route through a complex product portfolio.",
+      heading: "A practical route through a complex product portfolio.",
       body: paragraphs(
         "SAM Group serves professional buyers across base oils, lubricant additives and components, automotive and industrial lubricants, marine lubricants, and antifreeze and coolants.",
-        "The portfolio is organised around the information that moves a purchase forward: product family, grade, application, required specification, available documentation, quantity, packaging, and destination.",
-        "That structure gives technical and commercial teams a shared starting point. Instead of a broad request moving between disconnected conversations, the relevant product and supply context can stay attached to one requirement.",
+        "The portfolio is organised around the details that move an industrial purchase forward: product family, grade, application, required specification, documentation, quantity, packaging, and destination.",
+        "This gives technical, procurement, and commercial teams a shared starting point. Product context and supply requirements remain part of the same conversation from initial enquiry to quotation review.",
       ),
       positions: [
         {
@@ -161,8 +161,8 @@ await payload.updateGlobal({
       ],
     },
     expertise: {
-      heading: "Commercial and technical context, connected.",
-      lead: "Our role is to make the requirement clearer at every step—so product evaluation and supply planning begin from the same brief.",
+      heading: "The information needed to evaluate and source with confidence.",
+      lead: "We structure each enquiry so product evaluation and supply planning begin from the same brief, with assumptions identified before they become commercial terms.",
       items: [
         { name: "Product family and grade selection" },
         { name: "Application and specification review" },
@@ -174,7 +174,7 @@ await payload.updateGlobal({
     },
     team: {
       eyebrow: "A coordinated B2B response",
-      heading: "Four functions. One requirement in view.",
+      heading: "One requirement, reviewed from four operational angles.",
       lead: "A useful answer depends on more than product availability. Technical fit, commercial scope, documentation, packaging, and destination need to be considered together.",
       functions: [
         {
@@ -199,7 +199,7 @@ await payload.updateGlobal({
         "Product, commercial, and supply details are reviewed as parts of the same buyer requirement.",
     },
     qualityStandards: {
-      heading: "Trust starts with information that can be reviewed.",
+      heading: "Clear information before commercial commitment.",
       lead: "We separate product descriptions from technical values, state where confirmation is required, and keep document context visible throughout the enquiry.",
       items: [
         {
@@ -221,7 +221,7 @@ await payload.updateGlobal({
     },
     closing: {
       eyebrow: "Choose the right starting point",
-      heading: "Bring us a product name, a specification, or the application itself.",
+      heading: "Start with the product—or the requirement it must meet.",
       lead: "Browse the standard range, request a quotation for a defined requirement, or send the technical and supply details you already know.",
       primaryCta: { label: "Request a quote", route: "request-a-quote" },
       routes: [

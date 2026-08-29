@@ -221,6 +221,19 @@ describe("accessibility of the rendered page", () => {
     }
   });
 
+  it("builds the company dossier index only from sections present in the CMS response", () => {
+    const tree = render();
+    const index = findTags(tree, "nav").find(
+      (nav) => nav.props["aria-label"] === "About SAM Group sections",
+    );
+    const hrefs = findLinks(tree)
+      .map((link) => link.props.href)
+      .filter((href) => typeof href === "string" && href.startsWith("#"));
+
+    expect(index).toBeDefined();
+    expect(hrefs).toEqual(["#who-we-are", "#expertise", "#team", "#quality-standards"]);
+  });
+
   it("carries the alt text from the Media record onto the image", () => {
     const image = findTags(render(), "img")[0];
 
@@ -228,6 +241,8 @@ describe("accessibility of the rendered page", () => {
     // Intrinsic dimensions reserve the space, so the page does not shift while the file loads.
     expect(image?.props.width).toBe(1200);
     expect(image?.props.height).toBe(1500);
+    expect(image?.props.loading).toBe("eager");
+    expect(image?.props.fetchPriority).toBe("high");
   });
 
   it("renders repeating content as lists rather than as loose markup", () => {

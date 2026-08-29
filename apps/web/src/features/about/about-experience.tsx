@@ -4,6 +4,7 @@ import "./about.css";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
+import { AboutIndex } from "./about-index";
 import { AboutClosing } from "./sections/closing";
 import { AboutExpertise } from "./sections/expertise";
 import { AboutHero } from "./sections/hero";
@@ -94,6 +95,7 @@ export function AboutExperience({
         )}
 
         <AboutHero hero={content.hero} locale={locale} />
+        <AboutIndex content={content} />
         {content.whoWeAre !== null && <AboutWhoWeAre whoWeAre={content.whoWeAre} locale={locale} />}
         {content.expertise !== null && <AboutExpertise expertise={content.expertise} />}
         {content.team !== null && <AboutTeam team={content.team} />}
