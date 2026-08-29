@@ -154,7 +154,7 @@ An independent module consuming **only** the public API — never a database con
 
 ## 4. Current Repository State
 
-**Authoritative snapshot: commit `6b82485` — `feat(contact): add managed contact channels`, 29 August 2026 — on `feature/design-system`, reconciled against the repository on 30 August 2026.** The implementation and [ROADMAP.md](./ROADMAP.md) Current Status override the historical bootstrap snapshot retained below.
+**Implementation baseline reviewed: commit `6b82485` — `feat(contact): add managed contact channels`, 29 August 2026 — on `feature/design-system`. Documentation reconciliation before the current Gate: `898c712`.** Everything described in this section is the implementation present at `6b82485`; `898c712` and the documentation commits after it change no implementation, so the branch tip is ahead of the baseline by documentation only. The implementation and [ROADMAP.md](./ROADMAP.md) Current Status override the historical bootstrap snapshot retained below.
 
 - `apps/api` is a working NestJS application with public catalog/blog/content/SEO reads, two public lead-write flows, email notifications, JWT/RBAC, refresh sessions, lead administration, guarded catalog import and the catalog technical-review API.
 - `apps/web` is a working Next.js 15 application with canonical locale routes, Product Family/Product Detail/Product Finder, Insights, CMS-backed company pages, a BFF Admin session shell, lead workflow screens, and catalog technical-review queue/detail screens with explicit decision controls.
@@ -168,7 +168,15 @@ An independent module consuming **only** the public API — never a database con
 - **Homepage/UI iteration (27 August 2026) — committed at this snapshot** (`bb057f7 feat(web): complete public UI content and company pages` and the passes that followed it are ancestors of `6b82485`, and the tracked worktree is clean): the flagship homepage has received the approved layout, copy, imagery, inquiry-form and Buyer Path passes. Home metadata now includes a locale-aware canonical plus Open Graph/Twitter fields while the documented tree-wide `noindex, nofollow` launch gate remains in force. The previously unimplemented primary-navigation destination `/{locale}/export-logistics` now renders a dedicated English-master page rather than redirecting or answering 404: shipment-brief inputs, an eight-step requirement-to-delivery path, qualified packaging options, Incoterm context and locale-safe quote/product CTAs. It deliberately publishes no unconfirmed market list, port, MOQ, lead time, payment term or availability claim; non-English routes identify the English fallback and no `hreflang` is emitted before reviewed translations exist. The live desktop/mobile pass found no horizontal overflow or console errors; the web suite stands at 53 files / 1,115 tests passing.
 - Still absent or unresolved: approved commercial Product data and Product Type vocabulary; approved legal/contact content; the remaining Payload Globals/collections; several contracted form/Admin surfaces; application Dockerfiles, CI Phases 2–3 and production deployment.
 
-Git at this snapshot: `feature/design-system` and `origin/feature/design-system` both point to `6b824859e061ce1319a19038de54c69f24fe0682`; the branch is **102 commits ahead** of `origin/main` (`8fd74d7`) and not behind — `origin/main` is an ancestor of HEAD and has not moved. The tracked worktree is clean. Local untracked workspace-control files are not project implementation and must not be treated as repository status. CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) triggers on `pull_request` and on pushes to `main` only, so pushing this branch attaches **no GitHub check** to `6b82485`. The previously recorded snapshot `73b3e3622805f348590df09a2ccaa350ab11cdb2` (78 commits ahead) is **superseded**, and is retained here only as the prior reference point — 24 commits separate it from `6b82485`.
+Git, with the three references kept distinct so they are not conflated:
+
+| Reference                                                | Commit                                                                                                                            |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Implementation baseline reviewed** (this section)      | `6b824859e061ce1319a19038de54c69f24fe0682` — 102 commits ahead of `origin/main`; it was the tip of the branch when §4 was audited |
+| **Documentation reconciliation before the current Gate** | `898c7129c70a823f0d107406fd67ff3128bad9cf` — documentation-only, 103 commits ahead; local and remote were level on it             |
+| **Default branch**                                       | `origin/main` = `8fd74d7602e930a4fdb015a45001160d699d650d`, an ancestor of the branch; not behind it, and it has not moved        |
+
+Each documentation Gate adds one commit, so the branch tip advances past `6b82485` without the baseline changing; the commit created by the current Gate advances the documentation-only HEAD again and is named in that Gate's result below. Any single SHA described here as "the tip" is accurate only as of the Gate that wrote it — the baseline `6b82485` is the stable reference. The tracked worktree was clean at the start of each Gate. Local untracked workspace-control files are not project implementation and must not be treated as repository status. CI ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) triggers on `pull_request` and on `push` to `main` only, so a direct push of this feature branch runs no workflow and attaches **no GitHub check** to `6b82485`, to `898c712`, or to any later documentation commit on it. The earlier snapshot `73b3e3622805f348590df09a2ccaa350ab11cdb2` (78 commits ahead) is **superseded**, and is retained here only as the prior reference point — 24 commits separate it from `6b82485`.
 
 ### Historical bootstrap snapshot — superseded
 
@@ -537,10 +545,31 @@ Several documents contain `[TO CONFIRM]` and `[ESTIMATE — CONFIRM]` markers co
 
 ### Known inconsistencies left open, because they fall outside this Gate's authorized scope
 
-1. **[`/AI_CONTEXT.md`](../AI_CONTEXT.md), "Known environment oddities" — "Current as of 27 August 2026"** still names only three company Globals and does not mention `ContactUs`. `AI_CONTEXT.md` **outranks this document** in the source-of-truth order (`CLAUDE.md` §1: priority 2 vs 5), so the higher-priority document is now the stale one on that fact. Correcting it needs its own approval.
+1. **[`/AI_CONTEXT.md`](../AI_CONTEXT.md), "Known environment oddities" — "Current as of 27 August 2026"** still names only three company Globals and does not mention `ContactUs`. `AI_CONTEXT.md` **outranks this document** in the source-of-truth order (`CLAUDE.md` §1: priority 2 vs 5), so the higher-priority document is now the stale one on that fact. Correcting it needs its own approval. **Closed by §10 on 30 August 2026.**
 2. **§8 of this document says "The twelve frozen decisions in §6"; §6 numbers 1–13.** A count claim rather than a status claim, so it was left alone.
 3. **The "Public UI completion pass — in progress, 27 August 2026" heading** now covers log entries dated 28 and 29 August. Retained unchanged as a provenance log.
 
 ### Verification performed for this Gate
 
 `git diff --check` (clean), `git status --short`, `git diff --stat`, and a full diff review confirming that only `docs/PROJECT_HANDOFF.md` and `docs/ROADMAP.md` changed and that no added sentence asserts a status the repository does not evidence. `prettier --check` passes on both files; the only Prettier reflow was table-column alignment inside this new section. Line endings remain LF. The root type-check was deliberately **not** run: Turbo's `type-check` task declares `dependsOn: ["^build"]`, so running it for a documentation-only change would build dependency outputs. No build, migration, seed, generate or mutating test was run.
+
+---
+
+## 10. Gate — Reconcile Higher-Priority Project State, 30 August 2026
+
+**Scope: documentation only.** Two files changed: [`/AI_CONTEXT.md`](../AI_CONTEXT.md) and this document. No application code, test, package file, CI workflow, schema, migration, API contract, Payload configuration or ADR was touched, and `origin/main` remains `8fd74d7`.
+
+**Preflight.** Branch `feature/design-system`; HEAD `898c7129c70a823f0d107406fd67ff3128bad9cf`, level with `origin/feature/design-system`; tracked worktree clean; `origin/main` unchanged and an ancestor of HEAD.
+
+**Corrected in `AI_CONTEXT.md`** — the three current-state assertions §9 and this Gate found stale, all inside "Known environment oddities":
+
+- **Company Globals: three → four**, adding `ContactUs`, bounded to what `6b82485` actually implements — nine optional, nullable contact-channel fields with a localized address, allow-listed by the NestJS projection, empty channels never rendered, and no editorial body content. The rule that no unverified contact value may be invented or published is restated, not weakened.
+- **Active catalog boundary: ADR-014 through ADR-017 → through ADR-018.**
+- **CI: "validates every push and PR" → validates every pull request and every push to `main`.** `.github/workflows/ci.yml` triggers on `pull_request` and `push: branches: [main]` only, so a direct feature-branch push runs no workflow.
+- The bullet's "Current as of" date is now 30 August 2026 and names `6b82485` as the commit the statement is evidenced against.
+
+**Corrected in this document (§4 only).** The implementation baseline `6b82485` and the branch HEAD were being conflated. §4 now states the baseline reviewed (`6b82485`), the documentation reconciliation that preceded this Gate (`898c712`), and `origin/main` (`8fd74d7`) as three distinct references, and records that each documentation Gate advances the tip without moving the baseline. The superseded `73b3e36` reference is retained.
+
+**Not changed, and why.** `docs/ROADMAP.md` — no new contradiction was found in it. `apps/api/src/modules/content/content-globals.controller.ts` carries a stale class comment saying three Globals are implemented while its own reader map registers four including `contact-us`; it is application code, outside this Gate's scope, and is left for a separate gate. No database, service, build or test was run, and no demo, imported, source-recorded or needs-review data was reclassified.
+
+**Verification.** `npx prettier --check AI_CONTEXT.md docs/PROJECT_HANDOFF.md`, `git diff --check`, `git diff --stat`, a full semantic diff review of both files before any formatting, and `git status --short`. No build, migration, seed, generator, root `type-check` or test suite was run.
