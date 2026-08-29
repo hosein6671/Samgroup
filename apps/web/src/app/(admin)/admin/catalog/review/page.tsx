@@ -10,6 +10,7 @@ import {
   ReviewFrame,
   ReviewInvalidQuery,
   ReviewPagination,
+  ReviewQueueOverview,
   ReviewQueueTable,
   ReviewFilters,
   ReviewUnavailable,
@@ -114,6 +115,12 @@ export default async function CatalogReviewQueuePage({
 
       {result.state === "ok" ? (
         <>
+          <ReviewQueueOverview
+            items={result.value.items}
+            total={result.value.total}
+            page={result.value.page}
+            pages={lastPage(result.value.total, result.value.limit)}
+          />
           <StatusLegend total={result.value.total} />
           <ReviewFilters query={query} />
           <ActiveFilterSummary query={query} filters={filters} total={result.value.total} />

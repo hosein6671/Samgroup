@@ -285,35 +285,98 @@ function clearAll(query: ReviewQueueQuery): Partial<Record<keyof ReviewQueueQuer
  */
 export function StatusLegend({ total }: { readonly total: number }): ReactNode {
   return (
-    <section className="ad-legend" aria-labelledby="ad-legend-title">
-      <h2 className="ad-legend-title" id="ad-legend-title">
-        What this queue contains
-      </h2>
-      <p className="ad-note">
-        Every subject below is <strong>unapproved</strong> and none of it is published. The queue
-        opens on all of it rather than on one status.
-      </p>
-      <dl className="ad-legend-list">
-        <div className="ad-legend-row">
-          <dt>
-            <StatusBadge status="source_recorded" />
-          </dt>
-          <dd className="ad-note">{STATUS_MEANING.source_recorded}</dd>
+    <details className="ad-legend">
+      <summary className="ad-legend-summary">
+        <span>
+          <strong>How this queue works</strong>
+          <small>Statuses, findings and publication boundary</small>
+        </span>
+        <span className="ad-legend-summary-action" aria-hidden="true">
+          Read guide
+        </span>
+      </summary>
+      <div className="ad-legend-body">
+        <h2 className="ad-sr-only" id="ad-legend-title">
+          What this queue contains
+        </h2>
+        <p className="ad-note">
+          Every subject below is <strong>unapproved</strong> and none of it is published. The queue
+          opens on all of it rather than on one status.
+        </p>
+        <dl className="ad-legend-list">
+          <div className="ad-legend-row">
+            <dt>
+              <StatusBadge status="source_recorded" />
+            </dt>
+            <dd className="ad-note">{STATUS_MEANING.source_recorded}</dd>
+          </div>
+          <div className="ad-legend-row">
+            <dt>
+              <StatusBadge status="needs_review" />
+            </dt>
+            <dd className="ad-note">{STATUS_MEANING.needs_review}</dd>
+          </div>
+          <div className="ad-legend-row">
+            <dt className="ad-legend-term">{FINDINGS_LABEL.unresolved}</dt>
+            <dd className="ad-note">{FINDINGS_MEANING}</dd>
+          </div>
+        </dl>
+        <p className="ad-note">
+          {total} review {total === 1 ? "subject" : "subjects"} in the queue in total.
+        </p>
+      </div>
+    </details>
+  );
+}
+
+export function ReviewQueueOverview({
+  items,
+  total,
+  page,
+  pages,
+}: {
+  readonly items: readonly ReviewQueueItemResponse[];
+  readonly total: number;
+  readonly page: number;
+  readonly pages: number;
+}): ReactNode {
+  const needsReview = items.filter((item) => item.reviewStatus === "needs_review").length;
+  const unresolved = items.filter((item) => item.hasUnresolvedFindings).length;
+
+  return (
+    <section
+      className="ad-review-overview"
+      data-surface="midnight"
+      aria-labelledby="ad-review-overview-title"
+    >
+      <div className="ad-review-overview-copy">
+        <p className="ad-review-eyebrow">Technical control desk</p>
+        <h2 id="ad-review-overview-title">Review what needs a decision.</h2>
+        <p>
+          Start with unresolved findings, verify the recorded evidence, then open one subject to
+          record a decision.
+        </p>
+      </div>
+      <dl className="ad-review-metrics" aria-label="Queue summary">
+        <div>
+          <dt>Matching queue</dt>
+          <dd>{total}</dd>
         </div>
-        <div className="ad-legend-row">
-          <dt>
-            <StatusBadge status="needs_review" />
-          </dt>
-          <dd className="ad-note">{STATUS_MEANING.needs_review}</dd>
+        <div>
+          <dt>Needs review on this page</dt>
+          <dd>{needsReview}</dd>
         </div>
-        <div className="ad-legend-row">
-          <dt className="ad-legend-term">{FINDINGS_LABEL.unresolved}</dt>
-          <dd className="ad-note">{FINDINGS_MEANING}</dd>
+        <div>
+          <dt>Findings on this page</dt>
+          <dd>{unresolved}</dd>
+        </div>
+        <div>
+          <dt>Current page</dt>
+          <dd>
+            {page} <span>/ {pages}</span>
+          </dd>
         </div>
       </dl>
-      <p className="ad-note">
-        {total} review {total === 1 ? "subject" : "subjects"} in the queue in total.
-      </p>
     </section>
   );
 }
@@ -406,96 +469,116 @@ function Chip({
  */
 export function ReviewFilters({ query }: { readonly query: ReviewQueueQuery }): ReactNode {
   return (
-    <section className="ad-filter-panel" aria-labelledby="ad-filters-title">
-      <h2 className="ad-sr-only" id="ad-filters-title">
-        Filter and sort the review queue
-      </h2>
+    <details className="ad-filter-panel" open={hasNarrowingFilter(query)}>
+      <summary className="ad-filter-summary-control">
+        <span>
+          <strong>Filter the queue</strong>
+          <small>Narrow by subject, status, finding or decision type</small>
+        </span>
+        <span className="ad-filter-summary-action" aria-hidden="true">
+          Filters
+        </span>
+      </summary>
+      <div className="ad-filter-panel-body">
+        <h2 className="ad-sr-only" id="ad-filters-title">
+          Filter and sort the review queue
+        </h2>
 
-      <ChipRow label="Subject type" id="ad-filter-subject">
-        <Chip
-          href={reviewQueueHref(query, { subjectType: undefined })}
-          on={query.subjectType === undefined}
-        >
-          All types
-        </Chip>
-        {SUBJECT_TYPES.map((type) => (
+        <ChipRow label="Subject type" id="ad-filter-subject">
           <Chip
-            href={toggleHref(query, "subjectType", type)}
-            on={query.subjectType === type}
-            key={type}
+            href={reviewQueueHref(query, { subjectType: undefined })}
+            on={query.subjectType === undefined}
           >
-            {SUBJECT_TYPE_PLURAL[type]}
+            All types
           </Chip>
-        ))}
-      </ChipRow>
-
-      <ChipRow label="Review status" id="ad-filter-status">
-        <Chip
-          href={reviewQueueHref(query, { reviewStatus: undefined })}
-          on={query.reviewStatus === undefined}
-        >
-          All statuses
-        </Chip>
-        {REVIEW_STATUSES.map((status) => (
-          <Chip
-            href={toggleHref(query, "reviewStatus", status)}
-            on={query.reviewStatus === status}
-            key={status}
-          >
-            {STATUS_LABEL[status]}
-          </Chip>
-        ))}
-      </ChipRow>
-
-      <ChipRow label="Findings" id="ad-filter-findings">
-        <Chip
-          href={reviewQueueHref(query, { unresolvedFindings: undefined })}
-          on={query.unresolvedFindings === undefined}
-        >
-          Any
-        </Chip>
-        <Chip
-          href={toggleHref(query, "unresolvedFindings", true)}
-          on={query.unresolvedFindings === true}
-        >
-          {FINDINGS_LABEL.unresolved}
-        </Chip>
-        <Chip
-          href={toggleHref(query, "unresolvedFindings", false)}
-          on={query.unresolvedFindings === false}
-        >
-          {FINDINGS_LABEL.clear}
-        </Chip>
-      </ChipRow>
-
-      {query.subjectType === "specification" ? null : (
-        <ChipRow label="Claim kind" id="ad-filter-claim-kind">
-          <Chip
-            href={reviewQueueHref(query, { claimKind: undefined })}
-            on={query.claimKind === undefined}
-          >
-            All kinds
-          </Chip>
-          {CLAIM_KINDS.map((kind) => (
+          {SUBJECT_TYPES.map((type) => (
             <Chip
-              href={toggleHref(query, "claimKind", kind)}
-              on={query.claimKind === kind}
-              key={kind}
+              href={toggleHref(query, "subjectType", type)}
+              on={query.subjectType === type}
+              key={type}
             >
-              {CLAIM_KIND_LABEL[kind]}
+              {SUBJECT_TYPE_PLURAL[type]}
             </Chip>
           ))}
         </ChipRow>
-      )}
 
-      <ChipRow label="Order" id="ad-filter-sort">
-        {SORTS.map((sort) => (
-          <Chip href={reviewQueueHref(query, { sort })} on={query.sort === sort} key={sort}>
-            {SORT_LABEL[sort]}
+        <ChipRow label="Review status" id="ad-filter-status">
+          <Chip
+            href={reviewQueueHref(query, { reviewStatus: undefined })}
+            on={query.reviewStatus === undefined}
+          >
+            All statuses
           </Chip>
-        ))}
-      </ChipRow>
-    </section>
+          {REVIEW_STATUSES.map((status) => (
+            <Chip
+              href={toggleHref(query, "reviewStatus", status)}
+              on={query.reviewStatus === status}
+              key={status}
+            >
+              {STATUS_LABEL[status]}
+            </Chip>
+          ))}
+        </ChipRow>
+
+        <ChipRow label="Findings" id="ad-filter-findings">
+          <Chip
+            href={reviewQueueHref(query, { unresolvedFindings: undefined })}
+            on={query.unresolvedFindings === undefined}
+          >
+            Any
+          </Chip>
+          <Chip
+            href={toggleHref(query, "unresolvedFindings", true)}
+            on={query.unresolvedFindings === true}
+          >
+            {FINDINGS_LABEL.unresolved}
+          </Chip>
+          <Chip
+            href={toggleHref(query, "unresolvedFindings", false)}
+            on={query.unresolvedFindings === false}
+          >
+            {FINDINGS_LABEL.clear}
+          </Chip>
+        </ChipRow>
+
+        {query.subjectType === "specification" ? null : (
+          <ChipRow label="Claim kind" id="ad-filter-claim-kind">
+            <Chip
+              href={reviewQueueHref(query, { claimKind: undefined })}
+              on={query.claimKind === undefined}
+            >
+              All kinds
+            </Chip>
+            {CLAIM_KINDS.map((kind) => (
+              <Chip
+                href={toggleHref(query, "claimKind", kind)}
+                on={query.claimKind === kind}
+                key={kind}
+              >
+                {CLAIM_KIND_LABEL[kind]}
+              </Chip>
+            ))}
+          </ChipRow>
+        )}
+
+        <ChipRow label="Order" id="ad-filter-sort">
+          {SORTS.map((sort) => (
+            <Chip href={reviewQueueHref(query, { sort })} on={query.sort === sort} key={sort}>
+              {SORT_LABEL[sort]}
+            </Chip>
+          ))}
+        </ChipRow>
+      </div>
+    </details>
+  );
+}
+
+function hasNarrowingFilter(query: ReviewQueueQuery): boolean {
+  return (
+    query.subjectType !== undefined ||
+    query.reviewStatus !== undefined ||
+    query.unresolvedFindings !== undefined ||
+    query.claimKind !== undefined
   );
 }
 
@@ -662,7 +745,11 @@ function QueueRow({
     item.propertyKey ?? (item.claimKind === null ? null : CLAIM_KIND_LABEL[item.claimKind]);
 
   return (
-    <tr>
+    <tr
+      className={
+        item.hasUnresolvedFindings ? "ad-review-row ad-review-row--finding" : "ad-review-row"
+      }
+    >
       <th scope="row" className="ad-cell-name">
         <span className="ad-cell-strong">{item.product.name}</span>
         <span className="ad-cell-sub">{item.product.slug}</span>
@@ -714,13 +801,13 @@ function QueueRow({
       </td>
       <td>
         <Link
-          className="ad-link"
+          className="ad-review-open"
           href={reviewSubjectHref(item.subjectType, item.id, query)}
           aria-label={`Review ${SUBJECT_TYPE_LABEL[item.subjectType]}${
             subject === null ? "" : ` ${subject}`
           } for ${item.product.name}`}
         >
-          Review
+          Open review <span aria-hidden="true">→</span>
         </Link>
       </td>
     </tr>

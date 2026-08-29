@@ -77,8 +77,10 @@ export function SpecificationDetail({
 
   return (
     <div className="ad-detail">
-      <ProductContext product={subject.product} grade={subject.grade} />
-      <SubjectStatus subject={subject} />
+      <div className="ad-review-detail-summary">
+        <ProductContext product={subject.product} grade={subject.grade} />
+        <SubjectStatus subject={subject} />
+      </div>
 
       {value === null ? (
         /*
@@ -166,7 +168,7 @@ export function SpecificationDetail({
       <EvidencePanel evidence={subject.evidence} />
       <ApprovalBlockers blockers={subject.approvalBlockers} />
       <ReviewWarnings warnings={subject.warnings} />
-      <Panel heading="Record a decision">
+      <Panel heading="Record a decision" className="ad-review-decision-panel">
         <p className="ad-note">
           Decisions are permanent audit events. Approval is available only when every mechanical
           eligibility rule above passes; rejection and return-to-review remain available.

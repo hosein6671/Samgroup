@@ -15,6 +15,7 @@ import {
   ReviewFilters,
   ReviewFrame,
   ReviewPagination,
+  ReviewQueueOverview,
   ReviewQueueTable,
   StatusBadge,
   StatusLegend,
@@ -83,6 +84,7 @@ function queuePage(): ReactNode {
   const filters = activeFilters(QUERY, DESCRIBE_FILTER);
   return (
     <ReviewFrame user={ADMIN}>
+      <ReviewQueueOverview items={[SPECIFICATION, CLAIM]} total={1546} page={1} pages={62} />
       <StatusLegend total={1546} />
       <ReviewFilters query={QUERY} />
       <ActiveFilterSummary query={QUERY} filters={filters} total={1546} />
@@ -117,6 +119,17 @@ describe("landmarks and headings", () => {
       expect(findTags(queuePage(), level)).toHaveLength(0);
     }
     expect(findTags(queuePage(), "h2").length).toBeGreaterThan(0);
+  });
+
+  it("summarises the current work without presenting page counts as queue totals", () => {
+    const text = visibleTextOf(
+      <ReviewQueueOverview items={[SPECIFICATION, CLAIM]} total={1546} page={1} pages={62} />,
+    );
+
+    expect(text).toContain("Matching queue 1546");
+    expect(text).toContain("Needs review on this page 1");
+    expect(text).toContain("Findings on this page 1");
+    expect(text).toContain("Current page 1 / 62");
   });
 
   it("names every navigation, so a reader can tell them apart", () => {

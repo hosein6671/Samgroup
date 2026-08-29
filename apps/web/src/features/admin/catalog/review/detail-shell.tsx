@@ -210,12 +210,17 @@ export function Field({
 export function Panel({
   heading,
   children,
+  className,
 }: {
   readonly heading: string;
   readonly children: ReactNode;
+  readonly className?: string;
 }): ReactNode {
   return (
-    <section className="ad-group" aria-labelledby={groupId(heading)}>
+    <section
+      className={className === undefined ? "ad-group" : `ad-group ${className}`}
+      aria-labelledby={groupId(heading)}
+    >
       <h2 className="ad-group-title" id={groupId(heading)}>
         {heading}
       </h2>
