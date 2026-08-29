@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { FORM_HEADINGS } from "@/features/contact/contact-data";
 import { ContactTemplate } from "@/features/contact/contact-template";
 import { resolveProductContext, single } from "@/features/contact/resolve-product-context";
+import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import {
   DEFAULT_INQUIRY_TYPE,
   SAMPLE_INQUIRY_TYPE,
@@ -44,18 +45,46 @@ import { getActiveLocales } from "@/lib/locales";
  * `cache: "no-store"`.
  */
 
-/**
- * **No `robots`** — `app/[locale]/layout.tsx` declares `index: false, follow: false` for this whole
- * tree. **No canonical, no `hreflang`, no JSON-LD** — §14 specifies `ContactPage` structured data
- * for this URL and the shared `<JsonLd>` component FRONTEND_ARCHITECTURE §4 specifies does not
- * exist; adding it here would be the SEO gate arriving early, and a `ContactPage` schema carrying no
- * address or telephone would be an empty claim besides.
- */
-export const metadata: Metadata = {
-  title: "Contact SAM Group | Product & Quote Enquiries",
-  description:
-    "Send a product question, quotation request, sample request, or documentation enquiry with the details needed for review.",
-};
+const TITLE = "Contact SAM Group | Product & Quote Enquiries";
+const DESCRIPTION =
+  "Send a product question, quotation request, sample request, or documentation enquiry with the details needed for review.";
+
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const canonical = `/${locale}/contact-us`;
+
+  return {
+    title: TITLE,
+    description: DESCRIPTION,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      siteName: "SAM Group",
+      title: TITLE,
+      description: DESCRIPTION,
+      url: canonical,
+      locale,
+      images: [
+        {
+          url: "/images/home/cta-technical-conversation.webp",
+          width: 1672,
+          height: 941,
+          alt: "A technical sales discussion about a petroleum product requirement",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: TITLE,
+      description: DESCRIPTION,
+      images: ["/images/home/cta-technical-conversation.webp"],
+    },
+  };
+}
 
 export default async function ContactUsPage({
   params,
@@ -75,13 +104,29 @@ export default async function ContactUsPage({
 
   const product = await resolveProductContext(single(query.product), locale);
 
+  const canonical = `/${locale}/contact-us`;
+  const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+  const schema: JsonLdObject = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "@id": `${absoluteUrl}#contactpage`,
+    url: absoluteUrl,
+    name: TITLE,
+    description: DESCRIPTION,
+    inLanguage: locale,
+    about: { "@id": "https://samgp.com/#organization" },
+  };
+
   return (
-    <ContactTemplate
-      locales={locales}
-      locale={locale}
-      copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}
-      inquiryType={inquiryType}
-      product={product}
-    />
+    <>
+      <JsonLd data={schema} />
+      <ContactTemplate
+        locales={locales}
+        locale={locale}
+        copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}
+        inquiryType={inquiryType}
+        product={product}
+      />
+    </>
   );
 }

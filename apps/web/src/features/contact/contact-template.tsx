@@ -15,6 +15,7 @@ import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { ContactHero } from "./sections/hero";
 import { InquirySection } from "./sections/inquiry-section";
+import { ContactPathways } from "./sections/pathways";
 
 import type { FormHeading } from "./contact-data";
 import type { ProductContext } from "@/features/forms/inquiry-form";
@@ -57,6 +58,7 @@ export function ContactTemplate({
 
       <main id="main-content">
         <ContactHero />
+        <ContactPathways locale={locale} />
 
         <InquirySection
           copy={copy}

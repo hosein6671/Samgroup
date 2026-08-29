@@ -70,6 +70,98 @@
   color: var(--color-text-accent);
 }
 
+.ct-pathways {
+  position: relative;
+  border-top: 1px solid var(--color-border-hairline);
+  background: var(--color-surface-canvas);
+}
+
+.ct-pathways-inner {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.58fr) minmax(0, 1.42fr);
+  gap: clamp(30px, 5vw, 76px);
+  padding-block: clamp(42px, 5vw, 70px);
+  align-items: start;
+}
+
+.ct-pathways-head h2 {
+  max-width: 14ch;
+  margin-top: 14px;
+}
+
+.ct-pathways-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ct-pathways-list li {
+  min-width: 0;
+  border-inline-end: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.ct-pathways-list a {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 14px;
+  min-height: 154px;
+  padding: clamp(18px, 2vw, 26px);
+  align-items: start;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition:
+    background var(--t-micro) var(--e-micro),
+    transform var(--t-micro) var(--e-micro);
+}
+
+.ct-pathways-list a:hover,
+.ct-pathways-list a:focus-visible {
+  background: var(--color-glass-fill);
+  transform: translateY(-3px);
+}
+
+.ct-pathway-code {
+  padding-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-accent);
+}
+
+.ct-pathway-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.ct-pathway-copy strong {
+  font-family: var(--font-display);
+  font-size: clamp(19px, 1.8vw, 25px);
+  line-height: 1.16;
+  font-weight: 300;
+}
+
+.ct-pathway-copy small {
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.ct-pathways-list .fs-ar {
+  margin-top: 4px;
+  color: var(--color-text-accent);
+  transition: transform var(--t-micro) var(--e-micro);
+}
+
+.ct-pathways-list a:hover .fs-ar,
+.ct-pathways-list a:focus-visible .fs-ar {
+  transform: translateX(3px);
+}
+
 .ct-form {
   scroll-margin-top: 76px;
 }
@@ -173,9 +265,21 @@
     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
     align-items: end;
   }
+
+  .ct-pathways-inner {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 680px) {
+  .ct-pathways-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ct-pathways-list a {
+    min-height: 0;
+  }
+
   .ct-form-intro {
     grid-template-columns: 1fr;
   }
@@ -187,5 +291,12 @@
 
   .ct-hero-media {
     min-height: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-pathways-list a,
+  .ct-pathways-list .fs-ar {
+    transition: none;
   }
 }
