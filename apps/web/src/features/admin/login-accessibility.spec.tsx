@@ -67,6 +67,16 @@ describe("landmarks and headings", () => {
 
     expect(levels).toEqual([1]);
   });
+
+  it("explains the real workspace without inventing a public capability", () => {
+    const text = visibleTextOf(page());
+
+    expect(text).toContain("Technical decisions, kept traceable.");
+    expect(text).toContain("Catalog review");
+    expect(text).toContain("Lead workflow");
+    expect(text).toContain("Controlled access");
+    expect(text).not.toMatch(/certificate|approval count|response time|available stock/i);
+  });
 });
 
 describe("the form", () => {

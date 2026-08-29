@@ -32,6 +32,208 @@
   padding: var(--spacing-section-compact) var(--spacing-gutter);
 }
 
+/* --- the Admin entry screen --------------------------------------------- */
+
+.ad-login {
+  display: grid;
+  grid-template-columns: minmax(22rem, 0.92fr) minmax(30rem, 1.08fr);
+  min-height: 100vh;
+  background: var(--color-surface-sunken);
+}
+
+.ad-login-brand {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(2rem, 5vw, 4.5rem);
+  background: var(--gradient-midnight-depth);
+  color: var(--color-text-primary);
+}
+
+.ad-login-brand::before,
+.ad-login-brand::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+}
+
+.ad-login-brand::before {
+  inset: 0;
+  background-image:
+    linear-gradient(var(--color-border-hairline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border-hairline) 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  opacity: 0.08;
+}
+
+.ad-login-brand::after {
+  width: min(36rem, 78vw);
+  aspect-ratio: 1;
+  right: -42%;
+  bottom: -32%;
+  border: 1px solid var(--color-border-accent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 4rem var(--color-surface-inset),
+    0 0 0 8rem var(--color-surface-raised);
+  opacity: 0.12;
+}
+
+.ad-login-lockup {
+  display: inline-flex;
+  gap: 0.85rem;
+  align-items: center;
+  align-self: flex-start;
+}
+
+.ad-login-logo {
+  position: relative;
+  display: block;
+  width: 3.25rem;
+  height: 2.1rem;
+  overflow: hidden;
+}
+
+.ad-login-logo-image {
+  position: absolute;
+  width: 4.75rem;
+  height: 4.75rem;
+  max-width: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+
+.ad-login-wordmark {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.ad-login-wordmark strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.ad-login-wordmark small {
+  font-family: var(--font-technical);
+  font-size: 0.58rem;
+  line-height: 1.2;
+  letter-spacing: 0.2em;
+  color: var(--color-highlight-rare);
+  text-transform: uppercase;
+}
+
+.ad-login-intro {
+  max-width: 35rem;
+  margin-block: clamp(4rem, 12vh, 8rem);
+}
+
+.ad-login-kicker {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0 0 1.5rem;
+  font-family: var(--font-technical);
+  font-size: var(--text-technical);
+  line-height: var(--text-technical--line-height);
+  letter-spacing: var(--text-technical--letter-spacing);
+  color: var(--color-highlight-rare);
+  text-transform: uppercase;
+}
+
+.ad-login-kicker::before {
+  width: 2rem;
+  height: 1px;
+  content: "";
+  background: currentColor;
+}
+
+.ad-login-statement {
+  max-width: 11ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 5vw, 5.75rem);
+  font-weight: 300;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.ad-login-copy {
+  max-width: 35rem;
+  margin: 2rem 0 0;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-text-secondary);
+}
+
+.ad-login-scope {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+.ad-login-scope li {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 1rem 0.8rem 0 0;
+}
+
+.ad-login-scope span {
+  font-family: var(--font-technical);
+  font-size: var(--text-technical);
+  color: var(--color-highlight-rare);
+}
+
+.ad-login-scope strong {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.ad-login-form-side {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: var(--spacing-section-compact) var(--spacing-gutter);
+}
+
+.ad-login-panel {
+  max-width: 29rem;
+  box-shadow: none;
+}
+
+.ad-login-form-copy {
+  margin: -1rem 0 2rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
+.ad-login-footnote {
+  padding-top: 1.25rem;
+  margin: 1.5rem 0 0;
+  border-top: 1px solid var(--color-border-hairline);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+
 .ad-panel {
   width: 100%;
   max-width: 26rem;
@@ -180,6 +382,90 @@
   color: var(--color-text-primary);
   font-size: var(--text-caption);
   line-height: var(--text-caption--line-height);
+}
+
+@media (max-width: 56rem) {
+  .ad-login {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-login-brand {
+    min-height: auto;
+    padding: 2rem var(--spacing-gutter);
+  }
+
+  .ad-login-intro {
+    margin-block: 4rem 2rem;
+  }
+
+  .ad-login-statement {
+    max-width: 14ch;
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+  }
+
+  .ad-login-scope {
+    display: none;
+  }
+
+  .ad-login-form-side {
+    padding-block: 3rem;
+  }
+}
+
+@media (max-width: 34rem) {
+  .ad-login-brand {
+    padding-block: 1.5rem 2.5rem;
+  }
+
+  .ad-login-intro {
+    margin-block: 3rem 0;
+  }
+
+  .ad-login-copy {
+    display: none;
+  }
+
+  .ad-login-form-side {
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  .ad-login-panel {
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    padding: 2.5rem var(--spacing-gutter) 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ad-login-lockup,
+  .ad-login-intro,
+  .ad-login-scope,
+  .ad-login-panel {
+    animation: ad-login-enter var(--duration-editorial) var(--ease-entrance) both;
+  }
+
+  .ad-login-intro {
+    animation-delay: var(--stagger-step);
+  }
+
+  .ad-login-scope,
+  .ad-login-panel {
+    animation-delay: calc(var(--stagger-step) * 2);
+  }
+}
+
+@keyframes ad-login-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- the signed-in shell ------------------------------------------------- */

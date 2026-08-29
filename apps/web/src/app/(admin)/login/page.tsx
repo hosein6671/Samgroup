@@ -1,5 +1,8 @@
+import Image from "next/image";
+
 import { LoginForm } from "@/features/admin/login-form";
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 /**
@@ -30,14 +33,64 @@ import type { ReactNode } from "react";
  */
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const metadata: Metadata = { title: "Admin sign-in · SAM Group Admin" };
 
 export default function LoginPage(): ReactNode {
   return (
-    <main className="ad-centre" id="main-content">
-      <div className="ad-panel">
-        <p className="ad-mark">SAM Group</p>
-        <h1 className="ad-title">Admin sign-in</h1>
-        <LoginForm />
+    <main className="ad-login" id="main-content">
+      <section className="ad-login-brand" data-surface="midnight" aria-label="SAM Group Admin">
+        <div className="ad-login-lockup" aria-label="SAM Group Petroleum Engineering">
+          <span className="ad-login-logo" aria-hidden="true">
+            <Image
+              src="/brand/sam-group-mark.png"
+              alt=""
+              width={88}
+              height={88}
+              priority
+              className="ad-login-logo-image"
+            />
+          </span>
+          <span className="ad-login-wordmark">
+            <strong>SAM Group</strong>
+            <small>Petroleum Engineering</small>
+          </span>
+        </div>
+
+        <div className="ad-login-intro">
+          <p className="ad-login-kicker">Internal operations workspace</p>
+          <p className="ad-login-statement">Technical decisions, kept traceable.</p>
+          <p className="ad-login-copy">
+            Review catalog evidence and manage buyer enquiries through one controlled workspace.
+          </p>
+        </div>
+
+        <ol className="ad-login-scope" aria-label="Admin workspace areas">
+          <li>
+            <span>01</span>
+            <strong>Catalog review</strong>
+          </li>
+          <li>
+            <span>02</span>
+            <strong>Lead workflow</strong>
+          </li>
+          <li>
+            <span>03</span>
+            <strong>Controlled access</strong>
+          </li>
+        </ol>
+      </section>
+
+      <div className="ad-login-form-side">
+        <div className="ad-panel ad-login-panel">
+          <p className="ad-mark">Secure operator access</p>
+          <h1 className="ad-title">Admin sign-in</h1>
+          <p className="ad-login-form-copy">Use your authorized SAM Group staff account.</p>
+          <LoginForm />
+          <p className="ad-login-footnote">
+            Access is restricted to authorized personnel. Activity is subject to platform review
+            controls.
+          </p>
+        </div>
       </div>
     </main>
   );
