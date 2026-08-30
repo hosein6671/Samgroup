@@ -251,8 +251,9 @@ describe("ContentGlobalsController", () => {
     });
 
     /**
-     * Three of the contract's eight names have implementations. The other five are separate gates,
-     * and until then each is a 404 decided here rather than an empty read against the CMS.
+     * Four of the contract's eight names have implementations. The other four are separate gates,
+     * and until then each is a 404 decided here rather than an empty read against the CMS. The
+     * assertions below are what fixes that four/four boundary.
      */
     it("recognises exactly the four built names", async () => {
       const { controller } = await createHarness();

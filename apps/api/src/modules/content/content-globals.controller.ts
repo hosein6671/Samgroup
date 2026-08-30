@@ -39,18 +39,21 @@ type ServedGlobal = ContentGlobalResponse<
  * ── The path is the frozen one ─────────────────────────────────────────────
  *
  * API_CONTRACT_FINAL.md §Content already specifies this route and lists the eight names it will
- * eventually answer to. Three are implemented — `about-us`, `customized-solutions` and
- * `quality-certifications` — and the rest are separate gates. An unimplemented name is a 404
- * **here**, before any request reaches Payload: the CMS is not a routing table, and a typo must not
- * become an upstream error.
+ * eventually answer to. **Four are implemented** — `about-us`, `customized-solutions`,
+ * `quality-certifications` and `contact-us`, the last as the bounded contact-channel slice §2.4b
+ * describes — and the remaining four (`home`, `products-landing`, `export-logistics`, `faq-page`)
+ * are separate gates. The `readers` map below is the authority on which name is which. An
+ * unimplemented name is a 404 **here**, before any request reaches Payload: the CMS is not a
+ * routing table, and a typo must not become an upstream error.
  *
  * ── Why one controller and not one per Global ──────────────────────────────
  *
  * Because the contract is one endpoint. The response *shape* differs per Global — a company page is
  * a bespoke schema, which is the whole reason each is a Global rather than a row in a generic
  * collection — so each name is dispatched to its own service and its own projection, while the
- * envelope, the locale handling and the failure semantics stay identical. A third Global is a line
- * in the table below and a service beside the two existing ones; nothing structural.
+ * envelope, the locale handling and the failure semantics stay identical. Adding another approved
+ * Global is its own bounded service and projection plus one dispatch entry in the `readers` map
+ * below; the shared route, envelope and 404 semantics are unchanged by it. Nothing structural.
  */
 @Controller("content/globals")
 export class ContentGlobalsController {

@@ -573,3 +573,20 @@ Several documents contain `[TO CONFIRM]` and `[ESTIMATE — CONFIRM]` markers co
 **Not changed, and why.** `docs/ROADMAP.md` — no new contradiction was found in it. `apps/api/src/modules/content/content-globals.controller.ts` carries a stale class comment saying three Globals are implemented while its own reader map registers four including `contact-us`; it is application code, outside this Gate's scope, and is left for a separate gate. No database, service, build or test was run, and no demo, imported, source-recorded or needs-review data was reclassified.
 
 **Verification.** `npx prettier --check AI_CONTEXT.md docs/PROJECT_HANDOFF.md`, `git diff --check`, `git diff --stat`, a full semantic diff review of both files before any formatting, and `git status --short`. No build, migration, seed, generator, root `type-check` or test suite was run.
+
+---
+
+## 11. Gate — Correct Content Globals Code Comments, 30 August 2026
+
+**Starting HEAD:** `76586fe592465b50fdf4ff0ae66b1428b37e1a47`, level with `origin/feature/design-system`, tracked worktree clean, `origin/main` unchanged at `8fd74d7`.
+
+**Comment-only.** Two stale comments claimed three implemented company Globals while the dispatch map and its test already recognised four. `API_CONTRACT_FINAL.md` §2.4a and §2.4b were already correct at four; only the code prose lagged.
+
+- `apps/api/src/modules/content/content-globals.controller.ts` — the class doc said _"Three are implemented — `about-us`, `customized-solutions` and `quality-certifications`"_. It now states that four of the contract's eight names are implemented, names them (`contact-us` as the bounded contact-channel slice §2.4b describes), names the remaining four as separate gates, points at the `readers` map as the authority, and keeps the rule that an unimplemented name is a 404 decided before any request reaches Payload. The count-dependent sentence _"A third Global is a line in the table below and a service beside the two existing ones"_ is replaced by wording that stays correct as Globals are added: another approved Global is its own bounded service and projection plus one dispatch entry, with the shared route, envelope and 404 semantics unchanged.
+- `apps/api/src/modules/content/content-globals.controller.spec.ts` — the comment above the dispatch test said _"Three of the contract's eight names have implementations. The other five are separate gates"_, contradicting the test's own name and assertions. It now reads four and four, and says the assertions below are what fixes that boundary.
+
+**Executable code did not change.** Every changed line in both TypeScript files begins with a comment marker; with comment lines stripped, both files are byte-identical to their `76586fe` versions. No assertion, fixture, type, import, provider, constructor parameter or `readers` entry was touched. The controller still recognises exactly `about-us`, `customized-solutions`, `quality-certifications` and `contact-us`, and an unknown name still throws the 404 before locale resolution and before any CMS call.
+
+**Verification** — `pnpm --filter @sam-group/api type-check` exit 0; `pnpm --filter @sam-group/api test -- content-globals.controller.spec.ts --runInBand` exit 0, 14/14 tests in 1 suite; `pnpm lint` exit 0 and mutated nothing; `prettier --check` clean on all three files; `git diff --check` exit 0. A live HTTP smoke test is **not applicable — comment-only Gate**. No build, migration, seed, generator or database test was run.
+
+**Nothing else changed:** no database, API response, CMS, UI, architecture or contract change; no ADR, Payload configuration, schema, package file or CI configuration was touched; `origin/main` was not pushed to. The hash of the commit carrying this Gate is reported in its delivery report and named in the next Gate's preflight — a commit cannot contain its own hash.
