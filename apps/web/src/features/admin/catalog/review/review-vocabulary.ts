@@ -37,12 +37,21 @@ import type {
 export const SUBJECT_TYPE_LABEL: Readonly<Record<ReviewSubjectType, string>> = {
   specification: "Specification",
   product_claim: "Product claim",
+  product_copy: "Product copy",
 };
 
 /** Plural, for filter controls and counts. */
+/**
+ * Plural, for filter controls and counts.
+ *
+ * "Product copy" has no plural and is not given a made-up one. It is a mass noun — a product has
+ * copy the way it has text, not the way it has claims — so the filter control reads "Product copy"
+ * in both tables, which is the English rather than a consistency the language does not have.
+ */
 export const SUBJECT_TYPE_PLURAL: Readonly<Record<ReviewSubjectType, string>> = {
   specification: "Specifications",
   product_claim: "Product claims",
+  product_copy: "Product copy",
 };
 
 /* -------------------------------------------------------------------------- */

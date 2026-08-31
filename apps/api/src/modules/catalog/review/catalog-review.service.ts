@@ -6,6 +6,7 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 import {
   productClaimEvidenceSetHash,
+  productCopyEvidenceSetHash,
   reviewHashVersionFor,
   specificationEvidenceSetHash,
   type EvidenceHashClient,
@@ -13,19 +14,25 @@ import {
 import {
   PRODUCT_CLAIM_ELIGIBILITY_SQL,
   PRODUCT_CLAIM_UNRESOLVED_SQL,
+  PRODUCT_COPY_ELIGIBILITY_SQL,
+  PRODUCT_COPY_UNRESOLVED_SQL,
   SPECIFICATION_ELIGIBILITY_SQL,
   SPECIFICATION_UNRESOLVED_SQL,
   productClaimApprovalBlockers,
   productClaimApprovalWarnings,
+  productCopyApprovalBlockers,
+  productCopyApprovalWarnings,
   specificationApprovalBlockers,
   specificationApprovalWarnings,
   type ProductClaimEligibilityRow,
+  type ProductCopyEligibilityRow,
   type ReviewBlocker,
   type SpecificationEligibilityRow,
 } from "./review-eligibility";
 import {
   DECIDABLE_FROM_STATUSES,
   DECISION_TARGET_STATUS,
+  REVIEW_SUBJECT_TYPES,
   fromWireReviewStatus,
   toWireDecision,
   toWireReviewStatus,
@@ -209,9 +216,14 @@ export class CatalogReviewService {
    * decision transaction, against a locked row, and nothing this method returns is trusted there.
    */
   async detail(subjectType: ReviewSubjectType, id: string): Promise<ReviewDetailResponse> {
-    return subjectType === "specification"
-      ? this.specificationDetail(id)
-      : this.productClaimDetail(id);
+    switch (subjectType) {
+      case "specification":
+        return this.specificationDetail(id);
+      case "product_claim":
+        return this.productClaimDetail(id);
+      case "product_copy":
+        return this.productCopyDetail(id);
+    }
   }
 
   private async specificationDetail(id: string): Promise<ReviewDetailResponse> {
@@ -273,6 +285,7 @@ export class CatalogReviewService {
           row.property === null ? null : String(row.property.methodRequirement).toLowerCase(),
       },
       claim: null,
+      copy: null,
       evidenceSetHash: currentHash,
       evidence,
       mappings,
@@ -327,6 +340,7 @@ export class CatalogReviewService {
         standardCode: row.standardCode,
         contextNote: row.contextNote,
       },
+      copy: null,
       evidenceSetHash: currentHash,
       evidence,
       // A claim has no property key, so no mapping applies to it. An empty array rather than an
@@ -335,6 +349,68 @@ export class CatalogReviewService {
       approvalBlockers: blockers,
       eligibleForApproval: blockers.length === 0,
       warnings: productClaimApprovalWarnings(eligibility),
+      history: history.map((entry) => ({
+        ...entry,
+        evidenceCurrent: entry.evidenceSetHash === currentHash,
+      })),
+      invalidations,
+    };
+  }
+
+  /**
+   * The ProductCopy detail (ADR-019).
+   *
+   * Shorter than the other two because copy has less to project, not because less was checked:
+   * there is no grade (copy is written about a Product), no mapping (no property key) and no
+   * dictionary record. Each of those is served as the same empty shape the claim branch uses, so
+   * the response shape stays identical across all three subject types and a client never has to
+   * branch on which fields exist.
+   */
+  private async productCopyDetail(id: string): Promise<ReviewDetailResponse> {
+    const row = await this.prisma.productCopy.findUnique({
+      where: { id },
+      select: PRODUCT_COPY_DETAIL_SELECT,
+    });
+
+    if (row === null) throw notFound();
+
+    const [hash, eligibility, evidence, history, invalidations] = await Promise.all([
+      productCopyEvidenceSetHash(this.prisma, id),
+      this.productCopyEligibility(this.prisma, id),
+      this.evidenceEntries("product_copy", id),
+      this.history("product_copy", id),
+      this.invalidations("product_copy", id),
+    ]);
+
+    const currentHash = hash ?? "";
+    const blockers = productCopyApprovalBlockers(eligibility);
+
+    return {
+      subjectType: "product_copy",
+      id: row.id,
+      reviewStatus: toWireReviewStatus(row.reviewStatus),
+      createdAt: row.createdAt.toISOString(),
+      deletedAt: row.deletedAt?.toISOString() ?? null,
+      product: toProductRef(row.product),
+      // Copy is written about a Product, never about one grade of it — `product_copy` has no
+      // `product_grade_id` column to project.
+      grade: null,
+      specification: null,
+      claim: null,
+      copy: {
+        locale: row.locale,
+        // From the same probe the blockers are built from, so the screen and the gate cannot
+        // disagree about it. It is a fact on the row, never a blocker (ADR-019).
+        localeActive: eligibility.localeActive,
+        summary: row.summary,
+        selectionNote: row.selectionNote,
+      },
+      evidenceSetHash: currentHash,
+      evidence,
+      mappings: [],
+      approvalBlockers: blockers,
+      eligibleForApproval: blockers.length === 0,
+      warnings: productCopyApprovalWarnings(eligibility),
       history: history.map((entry) => ({
         ...entry,
         evidenceCurrent: entry.evidenceSetHash === currentHash,
@@ -407,10 +483,7 @@ export class CatalogReviewService {
         if (locked === null) throw notFound();
 
         // ── 3. recompute ──────────────────────────────────────────────────
-        const currentHash =
-          subjectType === "specification"
-            ? await specificationEvidenceSetHash(tx, id)
-            : await productClaimEvidenceSetHash(tx, id);
+        const currentHash = await evidenceSetHashFor(tx, subjectType, id);
 
         if (currentHash === null) {
           throw new ApiException(HttpStatus.CONFLICT, ErrorCode.Conflict, HASH_UNAVAILABLE_MESSAGE);
@@ -457,10 +530,7 @@ export class CatalogReviewService {
         // A rejection and a return-to-review are always permitted on a decidable row: refusing to
         // let a reviewer REJECT something ineligible would trap the worst rows in the queue.
         if (dto.decision === "approve") {
-          const blockers: ReviewBlocker[] =
-            subjectType === "specification"
-              ? specificationApprovalBlockers(await this.specificationEligibility(tx, id))
-              : productClaimApprovalBlockers(await this.productClaimEligibility(tx, id));
+          const blockers: ReviewBlocker[] = await this.approvalBlockers(tx, subjectType, id);
 
           /*
            * The refusal carries the CODES, not only the sentences.
@@ -496,6 +566,7 @@ export class CatalogReviewService {
           data: {
             specificationId: subjectType === "specification" ? id : null,
             productClaimId: subjectType === "product_claim" ? id : null,
+            productCopyId: subjectType === "product_copy" ? id : null,
             reviewerId: actor.id,
             // The authenticated session's own email, re-read from `sam_platform` by the guard on
             // this request. Never client-supplied, and captured now so the row still names them
@@ -581,6 +652,47 @@ export class CatalogReviewService {
     };
   }
 
+  private async productCopyEligibility(
+    client: EvidenceHashClient,
+    id: string,
+  ): Promise<ProductCopyEligibilityRow> {
+    const rows = await client.$queryRawUnsafe<ProductCopyEligibilityRow[]>(
+      PRODUCT_COPY_ELIGIBILITY_SQL,
+      id,
+    );
+    const row = rows[0];
+    if (row === undefined) throw notFound();
+    return {
+      ...row,
+      evidenceLinks: Number(row.evidenceLinks),
+      evidenceOrphans: Number(row.evidenceOrphans),
+    };
+  }
+
+  /**
+   * The blockers for whichever subject this is — one dispatch, three probes.
+   *
+   * Written as a switch rather than a ternary chain for the reason `reviewHashVersionFor` is:
+   * a fourth subject must fail to compile here rather than silently receive the last branch's
+   * rules. Each arm pairs its OWN probe with its OWN builder, and the row shapes make crossing
+   * them impossible — `ProductCopyEligibilityRow` has no method facts for the specification
+   * builder to read, and no claim identity for the claim builder.
+   */
+  private async approvalBlockers(
+    tx: Prisma.TransactionClient,
+    subjectType: ReviewSubjectType,
+    id: string,
+  ): Promise<ReviewBlocker[]> {
+    switch (subjectType) {
+      case "specification":
+        return specificationApprovalBlockers(await this.specificationEligibility(tx, id));
+      case "product_claim":
+        return productClaimApprovalBlockers(await this.productClaimEligibility(tx, id));
+      case "product_copy":
+        return productCopyApprovalBlockers(await this.productCopyEligibility(tx, id));
+    }
+  }
+
   /**
    * The evidence behind one subject, with its documents.
    *
@@ -592,8 +704,7 @@ export class CatalogReviewService {
     subjectType: ReviewSubjectType,
     id: string,
   ): Promise<ReviewEvidenceEntry[]> {
-    const sql =
-      subjectType === "specification" ? SPECIFICATION_EVIDENCE_SQL : PRODUCT_CLAIM_EVIDENCE_SQL;
+    const sql = EVIDENCE_SQL_BY_SUBJECT[subjectType];
     const rows = await this.prisma.$queryRawUnsafe<EvidenceRow[]>(sql, id);
 
     return rows.map((row) => ({
@@ -655,7 +766,7 @@ export class CatalogReviewService {
     id: string,
   ): Promise<Omit<ReviewHistoryEntry, "evidenceCurrent">[]> {
     const rows = await this.prisma.technicalReview.findMany({
-      where: subjectType === "specification" ? { specificationId: id } : { productClaimId: id },
+      where: subjectKey(subjectType, id),
       // `reviewedAt` then `id`: two decisions can share a timestamp, and without the tiebreaker
       // their order would differ between two requests for the same subject.
       orderBy: [{ reviewedAt: "desc" }, { id: "desc" }],
@@ -709,7 +820,7 @@ export class CatalogReviewService {
     id: string,
   ): Promise<ReviewInvalidationEntry[]> {
     const rows = await this.prisma.reviewInvalidation.findMany({
-      where: subjectType === "specification" ? { specificationId: id } : { productClaimId: id },
+      where: subjectKey(subjectType, id),
       // Newest first, matching `history()`. `createdAt` then `id`: two events written by one
       // statement share a timestamp, and without the tiebreaker their order would differ between
       // two requests for the same subject.
@@ -735,6 +846,64 @@ export class CatalogReviewService {
 /* Transaction helpers                                                         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Which physical table each subject lives in.
+ *
+ * A total record, so a fourth subject fails to compile rather than falling through to whichever
+ * table the last branch named — which, for a row-lock and a compare-and-set, would mean locking
+ * one table and updating another.
+ */
+const SUBJECT_TABLE: Readonly<Record<ReviewSubjectType, string>> = {
+  specification: "specifications",
+  product_claim: "product_claims",
+  product_copy: "product_copy",
+};
+
+/** The sanctioned public read model per subject (ADR-014 §8, ADR-019 §5). */
+const SUBJECT_PUBLIC_VIEW: Readonly<Record<ReviewSubjectType, string>> = {
+  specification: "v_specification_public",
+  product_claim: "v_product_claim_public",
+  product_copy: "v_product_copy_public",
+};
+
+/**
+ * The audit tables' subject key, as a Prisma `where` fragment.
+ *
+ * One function serves both `technical_reviews` and `review_invalidations` because the two carry
+ * the same three nullable columns under the same "exactly one is non-null" constraint. A history
+ * read that named the wrong column would answer an empty array rather than an error, which is the
+ * failure mode this exists to make impossible.
+ */
+function subjectKey(
+  subjectType: ReviewSubjectType,
+  id: string,
+): { specificationId: string } | { productClaimId: string } | { productCopyId: string } {
+  switch (subjectType) {
+    case "specification":
+      return { specificationId: id };
+    case "product_claim":
+      return { productClaimId: id };
+    case "product_copy":
+      return { productCopyId: id };
+  }
+}
+
+/** The canonical hash for whichever subject this is — always the database's own function. */
+function evidenceSetHashFor(
+  client: EvidenceHashClient,
+  subjectType: ReviewSubjectType,
+  id: string,
+): Promise<string | null> {
+  switch (subjectType) {
+    case "specification":
+      return specificationEvidenceSetHash(client, id);
+    case "product_claim":
+      return productClaimEvidenceSetHash(client, id);
+    case "product_copy":
+      return productCopyEvidenceSetHash(client, id);
+  }
+}
+
 interface LockedSubject {
   readonly id: string;
   readonly reviewStatus: TechnicalReviewStatus;
@@ -756,7 +925,7 @@ async function lockSubject(
   subjectType: ReviewSubjectType,
   id: string,
 ): Promise<LockedSubject | null> {
-  const table = subjectType === "specification" ? "specifications" : "product_claims";
+  const table = SUBJECT_TABLE[subjectType];
   const rows = await tx.$queryRawUnsafe<{ id: string; reviewStatus: string }[]>(
     `SELECT "id", "review_status"::text AS "reviewStatus" FROM "${table}" WHERE "id" = $1::uuid FOR UPDATE`,
     id,
@@ -786,12 +955,25 @@ async function updateSubjectStatus(
   const where = { id, reviewStatus: expected };
   const data = { reviewStatus: next };
 
-  const result =
-    subjectType === "specification"
-      ? await tx.specification.updateMany({ where, data })
-      : await tx.productClaim.updateMany({ where, data });
+  const result = await updateManyFor(tx, subjectType, where, data);
 
   return result.count;
+}
+
+function updateManyFor(
+  tx: Prisma.TransactionClient,
+  subjectType: ReviewSubjectType,
+  where: { id: string; reviewStatus: TechnicalReviewStatus },
+  data: { reviewStatus: TechnicalReviewStatus },
+): Promise<{ count: number }> {
+  switch (subjectType) {
+    case "specification":
+      return tx.specification.updateMany({ where, data });
+    case "product_claim":
+      return tx.productClaim.updateMany({ where, data });
+    case "product_copy":
+      return tx.productCopy.updateMany({ where, data });
+  }
 }
 
 /**
@@ -809,8 +991,7 @@ async function assertPublicTransition(
   id: string,
   status: TechnicalReviewStatus,
 ): Promise<void> {
-  const view =
-    subjectType === "specification" ? "v_specification_public" : "v_product_claim_public";
+  const view = SUBJECT_PUBLIC_VIEW[subjectType];
   const rows = await tx.$queryRawUnsafe<{ visible: boolean }[]>(
     `SELECT EXISTS (SELECT 1 FROM "${view}" WHERE "id" = $1::uuid) AS "visible"`,
     id,
@@ -842,12 +1023,88 @@ async function assertPublicTransition(
     return;
   }
 
+  /*
+   * ProductCopy is asserted in both directions like a Specification, but against a second
+   * condition neither of the other subjects has: its locale.
+   *
+   * `v_product_copy_public` publishes an approved, live row only while its locale is ACTIVE, and
+   * approval is deliberately independent of that — `localeActive` is a fact on the eligibility
+   * probe and never a blocker. So approving copy in a deactivated locale is a normal, successful
+   * decision whose row is legitimately absent from the view. It is not a failure to publish, and
+   * it must not be turned into a rolled-back 500.
+   *
+   * That case is reachable rather than theoretical: **there is no locale filter on the review
+   * queue**, so a reviewer can open and approve such a row. Reactivating the locale publishes it
+   * again through the view's own rule, with no second decision.
+   *
+   *   APPROVED + active locale   → must be visible
+   *   APPROVED + inactive locale → must NOT be visible
+   *   any other status           → must NOT be visible
+   *
+   * The locale's activity is read from `locales` inside THIS transaction, for the reason the hash
+   * is recomputed in the database: a value supplied from outside could disagree with the view this
+   * check exists to agree with.
+   */
+  if (subjectType === "product_copy") {
+    if (status !== "APPROVED") {
+      if (visible) {
+        throw new Error(
+          `Public transition check failed: product copy ${id} is ${status} but is in ${view}. ` +
+            `Rolling back.`,
+        );
+      }
+      return;
+    }
+
+    const localeActive = await productCopyLocaleActive(tx, id);
+
+    if (localeActive && !visible) {
+      throw new Error(
+        `Public transition check failed: product copy ${id} is APPROVED in an active locale but ` +
+          `is NOT in ${view}. Rolling back.`,
+      );
+    }
+
+    if (!localeActive && visible) {
+      throw new Error(
+        `Public transition check failed: product copy ${id} is APPROVED in an INACTIVE locale ` +
+          `but IS in ${view}. Rolling back.`,
+      );
+    }
+
+    return;
+  }
+
   if (status !== "APPROVED" && visible) {
     throw new Error(
       `Public transition check failed: product claim ${id} is ${status} but is in ${view}. ` +
         `Rolling back.`,
     );
   }
+}
+
+/**
+ * Whether this copy row's locale is active, read inside the decision transaction.
+ *
+ * This is not a second publication rule. It is the ONE term of `v_product_copy_public` that
+ * decides whether an approved row's absence from that view is correct, and it is asked of the same
+ * `locales` table the view joins. Everything else the view applies — approved, not deleted — is
+ * left to the view, which is why this check cannot drift into a competing definition of public.
+ *
+ * A LEFT JOIN, so a `locale` value with no row at all reads as inactive: `product_copy.locale` is
+ * text rather than a foreign key (PROJECT_HANDOFF §6.9), and the view's inner join would exclude
+ * such a row exactly as it excludes a deactivated one.
+ */
+async function productCopyLocaleActive(tx: Prisma.TransactionClient, id: string): Promise<boolean> {
+  const rows = await tx.$queryRawUnsafe<{ active: boolean }[]>(
+    `SELECT coalesce(l."is_active", false) AS "active"
+       FROM "product_copy" pc
+       LEFT JOIN "locales" l ON l."code" = pc."locale"
+      WHERE pc."id" = $1::uuid`,
+    id,
+  );
+
+  return rows[0]?.active ?? false;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -880,6 +1137,7 @@ WITH ranked AS (
                                            AS "evidenceCount",
     s."property_key"                       AS "propertyKey",
     NULL::text                             AS "claimKind",
+    NULL::text                             AS "locale",
     btrim(concat_ws(' ',
       coalesce(s."property_key", s."key"),
       coalesce(s."display_value", s."value"),
@@ -925,6 +1183,7 @@ WITH ranked AS (
     (SELECT count(*)::int FROM "claim_evidence" ce WHERE ce."product_claim_id" = c."id"),
     NULL::text,
     c."kind"::text,
+    NULL::text,
     btrim(concat_ws(' ', c."kind"::text, c."standard_body", c."standard_code", c."context_note")),
     p."slug",
     p."name",
@@ -954,6 +1213,58 @@ WITH ranked AS (
             JOIN "source_documents" sd ON sd."id" = sf."source_document_id"
            WHERE ce."product_claim_id" = c."id" AND sd."locator_value" = $9::text))
     AND ($10::boolean IS NULL OR (${PRODUCT_CLAIM_UNRESOLVED_SQL}) = $10::boolean)
+
+  UNION ALL
+
+  /*
+   * ProductCopy. Parameters 7 (property key) and 8 (claim kind) are both required to be ABSENT,
+   * for the reason the other two arms exclude each other's field: asking for a property key
+   * returns specifications only, and that is the truthful answer rather than a filter silently
+   * ignored.
+   *
+   * The summary column is the copy's own first line rather than a concatenation of columns,
+   * because for this subject the text IS what a reviewer picks out of a work list. It is truncated
+   * here and not in TypeScript so the queue never carries a full paragraph per row.
+   */
+  SELECT
+    'product_copy'::text,
+    pc."id",
+    pc."review_status"::text,
+    pc."created_at",
+    (SELECT max(tr."reviewed_at") FROM "technical_reviews" tr WHERE tr."product_copy_id" = pc."id"),
+    (SELECT count(*)::int FROM "technical_reviews" tr WHERE tr."product_copy_id" = pc."id"),
+    (SELECT count(*)::int FROM "copy_evidence" ce WHERE ce."product_copy_id" = pc."id"),
+    NULL::text,
+    NULL::text,
+    pc."locale",
+    left(btrim(pc."summary"), 160),
+    p."slug",
+    p."name",
+    p."source_ref",
+    cat."slug",
+    pt."slug",
+    NULL::uuid,
+    NULL::text,
+    NULL::text,
+    (${PRODUCT_COPY_UNRESOLVED_SQL})
+  FROM "product_copy" pc
+  JOIN "products" p            ON p."id" = pc."product_id"
+  LEFT JOIN "categories" cat   ON cat."id" = p."category_id"
+  LEFT JOIN "product_types" pt ON pt."id" = p."product_type_id"
+  WHERE ($1::text IS NULL OR $1::text = 'product_copy')
+    AND ($2::text IS NULL OR pc."review_status"::text = $2::text)
+    AND ($3::text IS NULL OR p."source_ref" = $3::text)
+    AND ($4::text IS NULL OR p."slug" = $4::text)
+    AND ($5::text IS NULL OR cat."slug" = $5::text)
+    AND ($6::text IS NULL OR pt."slug" = $6::text)
+    AND ($7::text IS NULL)
+    AND ($8::text IS NULL)
+    AND ($9::text IS NULL OR EXISTS (
+          SELECT 1 FROM "copy_evidence" ce
+            JOIN "source_facts" sf     ON sf."id" = ce."source_fact_id"
+            JOIN "source_documents" sd ON sd."id" = sf."source_document_id"
+           WHERE ce."product_copy_id" = pc."id" AND sd."locator_value" = $9::text))
+    AND ($10::boolean IS NULL OR (${PRODUCT_COPY_UNRESOLVED_SQL}) = $10::boolean)
 )`;
 
 const EVIDENCE_COLUMNS = `
@@ -1003,7 +1314,45 @@ LEFT JOIN "source_assets" sa ON sa."id" = sd."source_asset_id"
 WHERE link."product_claim_id" = $1::uuid
 ORDER BY link."role", link."source_fact_id"`;
 
-/** Every mapping that bears on the raw labels this Specification's evidence carries. */
+/**
+ * Every `SourceFact` a ProductCopy draft was transcribed from, with the document that stated it
+ * (ADR-019).
+ *
+ * The same projection as the other two evidence queries, differing only in the link table and its
+ * subject column — a reviewer reads the same source record whichever subject brought them here.
+ */
+const PRODUCT_COPY_EVIDENCE_SQL = `
+SELECT ${EVIDENCE_COLUMNS}
+FROM "copy_evidence" link
+JOIN "source_facts" sf       ON sf."id" = link."source_fact_id"
+JOIN "source_documents" sd   ON sd."id" = sf."source_document_id"
+LEFT JOIN "source_assets" sa ON sa."id" = sd."source_asset_id"
+WHERE link."product_copy_id" = $1::uuid
+ORDER BY link."role", link."source_fact_id"`;
+
+/**
+ * One statement per subject, all three projecting ${EVIDENCE_COLUMNS} unchanged.
+ *
+ * The columns are shared rather than repeated because a reviewer reads the SAME source record
+ * whichever subject brought them there — the three tables differ only in which link column names
+ * the subject.
+ */
+const EVIDENCE_SQL_BY_SUBJECT: Readonly<Record<ReviewSubjectType, string>> = {
+  specification: SPECIFICATION_EVIDENCE_SQL,
+  product_claim: PRODUCT_CLAIM_EVIDENCE_SQL,
+  product_copy: PRODUCT_COPY_EVIDENCE_SQL,
+};
+
+/**
+ * Every mapping that bears on the raw labels this Specification's evidence carries.
+ *
+ * **The label comparison is normalised exactly as `RESOLVED_MAPPING` in `review-eligibility.ts`
+ * is, and it has to be.** This query is what a reviewer SEES as the mappings behind a
+ * specification; that constant is what decides whether the specification may be approved. Were the
+ * two to match differently, a reviewer could be shown a resolving mapping for a subject the gate
+ * then refused as unresolved — or the reverse, which is worse. The rule is the importer's; see the
+ * note on that constant for why case-insensitive is the authoritative reading.
+ */
 const SPECIFICATION_MAPPING_SQL = `
 SELECT DISTINCT
     m."raw_property"        AS "rawProperty",
@@ -1034,6 +1383,7 @@ interface QueueRow {
   evidenceCount: number;
   propertyKey: string | null;
   claimKind: string | null;
+  locale: string | null;
   summary: string;
   productSlug: string;
   productName: string;
@@ -1085,9 +1435,25 @@ interface MappingRow {
   note: string | null;
 }
 
+/**
+ * The queue's `subjectType` column back into the wire union.
+ *
+ * The SQL emits one of three literals it wrote itself, so this is a narrowing rather than a
+ * parse — but it throws on anything else rather than defaulting. The two-subject version defaulted
+ * to `product_claim`, which would have relabelled every copy row as a claim the moment the third
+ * arm was added, and the response would have looked well-formed while being wrong.
+ */
+function toWireSubjectType(value: string): ReviewSubjectType {
+  const match = REVIEW_SUBJECT_TYPES.find((subject) => subject === value);
+  if (match === undefined) {
+    throw new Error(`Unknown review subject type "${value}" from the queue statement.`);
+  }
+  return match;
+}
+
 function toQueueItem(row: QueueRow): ReviewQueueItemResponse {
   return {
-    subjectType: row.subjectType === "specification" ? "specification" : "product_claim",
+    subjectType: toWireSubjectType(row.subjectType),
     id: row.id,
     reviewStatus: row.reviewStatus,
     createdAt: row.createdAt.toISOString(),
@@ -1104,6 +1470,7 @@ function toQueueItem(row: QueueRow): ReviewQueueItemResponse {
         : { id: row.gradeId, label: row.gradeLabel, gradeSystem: row.gradeSystem },
     propertyKey: row.propertyKey,
     claimKind: row.claimKind,
+    locale: row.locale,
     summary: row.summary,
     evidenceCount: Number(row.evidenceCount),
     hasUnresolvedFindings: row.hasUnresolvedFindings,
@@ -1169,6 +1536,25 @@ const PRODUCT_CLAIM_DETAIL_SELECT = {
   },
   productGrade: { select: { id: true, label: true, gradeSystem: true } },
 } as const satisfies Prisma.ProductClaimSelect;
+
+const PRODUCT_COPY_DETAIL_SELECT = {
+  id: true,
+  reviewStatus: true,
+  createdAt: true,
+  deletedAt: true,
+  locale: true,
+  summary: true,
+  selectionNote: true,
+  product: {
+    select: {
+      name: true,
+      slug: true,
+      sourceRef: true,
+      category: { select: { slug: true } },
+      productType: { select: { slug: true } },
+    },
+  },
+} as const satisfies Prisma.ProductCopySelect;
 
 interface ProductRow {
   name: string;

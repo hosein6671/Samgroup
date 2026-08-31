@@ -178,3 +178,25 @@ export class ProductClaimReviewController extends ReviewSubjectControllerBase {
     super(review);
   }
 }
+
+/**
+ * `/admin/catalog/review/product-copy/:id` and its `decisions` sub-collection (ADR-019).
+ *
+ * The path segment is `product-copy`, singular, matching the table and the wire label. "Copy" is
+ * a mass noun here — one row is one product's copy in one locale, not one "copy" of anything — so
+ * the plural the other two routes carry would be describing something else.
+ *
+ * Same guards, same role, same base class: the third subject is reviewed by an Admin through the
+ * identical decision path, which is the whole point of making it a subject rather than a
+ * bespoke editorial endpoint.
+ */
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN)
+@Controller("admin/catalog/review/product-copy")
+export class ProductCopyReviewController extends ReviewSubjectControllerBase {
+  protected readonly subjectType = "product_copy" as const;
+
+  constructor(review: CatalogReviewService) {
+    super(review);
+  }
+}

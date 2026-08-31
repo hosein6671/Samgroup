@@ -29,8 +29,8 @@
  * or hiding the row.
  */
 
-/** The two things a technical review can be about. Serves as the discriminant on every row. */
-export type ReviewSubjectType = "specification" | "product_claim";
+/** The three things a technical review can be about. Serves as the discriminant on every row. */
+export type ReviewSubjectType = "specification" | "product_claim" | "product_copy";
 
 /**
  * The five review statuses, spelled as the API serves them — the physical labels of the
@@ -126,6 +126,8 @@ export interface ReviewQueueItemResponse {
   grade: ReviewGradeRef | null;
   propertyKey: string | null;
   claimKind: ReviewClaimKind | null;
+  /** For ProductCopy: the locale it is written in. Otherwise null. */
+  locale: string | null;
   summary: string;
   evidenceCount: number;
   hasUnresolvedFindings: boolean;
@@ -284,6 +286,21 @@ export interface ReviewClaimValue {
   standardBody: string | null;
   standardCode: string | null;
   contextNote: string | null;
+}
+
+/**
+ * The editorial copy under review, in one locale (ADR-019).
+ *
+ * Unlike the other two subject values, this IS the artifact rather than a normalization of it: a
+ * reviewer reads these fields beside the raw evidence and decides whether the sentence says what
+ * the source document said.
+ */
+export interface ReviewCopyValue {
+  locale: string;
+  /** Whether that locale is currently active. A visible fact, never an approval blocker. */
+  localeActive: boolean;
+  summary: string;
+  selectionNote: string | null;
 }
 
 /**
@@ -513,8 +530,9 @@ export interface ReviewWarning {
 /**
  * The full review context for one subject.
  *
- * `specification` and `claim` are exclusive and match `subjectType`; `mappings` is always empty for
- * a ProductClaim, because a claim has no property key for a mapping to bear on.
+ * `specification`, `claim` and `copy` are exclusive and match `subjectType`; `mappings` is always
+ * empty for a ProductClaim and a ProductCopy, because neither has a property key for a mapping to
+ * bear on.
  *
  * `evidenceSetHash` is recomputed on every read. It is carried as the identity of the evidence set
  * as it currently stands, which is what makes each history entry's `evidenceCurrent` meaningful.
@@ -532,6 +550,7 @@ export interface ReviewDetailResponse {
 
   specification: ReviewSpecificationValue | null;
   claim: ReviewClaimValue | null;
+  copy: ReviewCopyValue | null;
 
   evidenceSetHash: string;
   evidence: readonly ReviewEvidenceEntry[];

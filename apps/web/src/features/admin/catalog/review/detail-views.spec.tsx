@@ -120,6 +120,7 @@ function specification(overrides: Partial<ReviewDetailResponse> = {}): ReviewDet
       methodRequirement: "required",
     },
     claim: null,
+    copy: null,
     evidenceSetHash: "2222222222222222222222222222222222222222222222222222222222222222",
     evidence: [EVIDENCE],
     mappings: [
@@ -164,6 +165,7 @@ function claim(overrides: Partial<ReviewDetailResponse> = {}): ReviewDetailRespo
       standardCode: "CK-4",
       contextNote: "Stated on page 2 of the data sheet.",
     },
+    copy: null,
     evidenceSetHash: "3333333333333333333333333333333333333333333333333333333333333333",
     evidence: [EVIDENCE],
     mappings: [],

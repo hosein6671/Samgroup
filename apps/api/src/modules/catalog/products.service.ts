@@ -247,8 +247,23 @@ export class ProductsService {
       locale,
     );
 
+    /*
+     * The approved copy overlays the column, and it does so AFTER localization on purpose.
+     *
+     * `description` is a translated field, so `localize` may already have written a
+     * `ContentTranslation` value into it. ADR-019 §2 makes the approved row the authority —
+     * `products.description` becomes a projection of it rather than an independently editable
+     * field — so a reviewed sentence must not be overwritten by an unreviewed translation.
+     */
+    const copy = await this.approvedCopy(
+      localized.map((row) => row.id),
+      locale,
+    );
+
     return {
-      products: localized.map((row) => toListItem(row)),
+      products: localized.map((row) =>
+        toListItem({ ...row, description: copy.get(row.id) ?? row.description }),
+      ),
       total,
       page,
       limit,
@@ -314,6 +329,21 @@ export class ProductsService {
     // returns its input one-for-one, so these only satisfy noUncheckedIndexedAccess.
     const translated = localizedProduct.rows[0] ?? product;
 
+    /*
+     * The approved editorial copy, overlaid before SEO reads the description (ADR-019 §5).
+     *
+     * Order matters twice over. It is after localization, so a reviewed sentence is not overwritten
+     * by an unreviewed `ContentTranslation`; and it is before `seo.buildFor`, because §11 falls
+     * the meta description back to the entity's description — a page whose meta description
+     * disagreed with the paragraph beneath it would describe a different product to a search engine
+     * than to a reader.
+     *
+     * Absent for every product with no approved copy, which is all of them until a reviewer
+     * approves one. That path leaves `description` exactly as it is today.
+     */
+    const copy = await this.approvedCopy([product.id], locale);
+    const description = copy.get(product.id) ?? translated.description;
+
     // Sequential rather than folded into the Promise.all above, because §11 falls the meta
     // title back to the entity's name and the meta description to its description — both of
     // which must be the REQUESTED locale's values, so the overlay has to have happened first.
@@ -325,7 +355,7 @@ export class ProductsService {
         // column, and localization may already have overlaid a translated slug onto the copy.
         defaultSlug: product.slug,
         fallbackTitle: translated.name,
-        fallbackDescription: translated.description,
+        fallbackDescription: description,
       },
       locale,
     );
@@ -335,7 +365,7 @@ export class ProductsService {
         id: translated.id,
         name: translated.name,
         slug: translated.slug,
-        description: translated.description,
+        description,
         createdAt: translated.createdAt.toISOString(),
         category: localizedCategory.rows[0] ?? category,
         // `id` is dropped here and not earlier: it is what localize keys on, and what nothing
@@ -465,6 +495,61 @@ export class ProductsService {
     }
 
     return where;
+  }
+
+  /**
+   * The approved editorial copy for these products, in this locale (ADR-019 §5).
+   *
+   * ── Why this reads a view and not the table ────────────────────────────
+   *
+   * `v_product_copy_public` is the sanctioned public read model, and it carries the three rules
+   * that decide publication: approved, live, and written for an ACTIVE locale. Selecting from
+   * `product_copy` here would restate two of them and quietly drop the third, which is exactly the
+   * drift ADR-014 §8 put the definition in the database to prevent.
+   *
+   * ── Requested locale, then default, then nothing ───────────────────────
+   *
+   * The same precedence `ContentTranslationService` applies to every other translated field, and
+   * for the same reason: a visitor reading Persian should see Persian copy where a reviewer has
+   * approved some, and English where none exists yet — rather than an empty description that reads
+   * as a product nobody has described.
+   *
+   * "Then nothing" is the important arm and it is the state of all 100 products today: a product
+   * with no approved copy in either locale is absent from this map, and its description is left
+   * exactly as it was. Approval is what publishes copy; this method never invents any.
+   */
+  private async approvedCopy(
+    productIds: readonly string[],
+    locale: ResolvedLocale,
+  ): Promise<ReadonlyMap<string, string>> {
+    if (productIds.length === 0) return new Map();
+
+    const rows = await this.prisma.$queryRawUnsafe<
+      { productId: string; locale: string; summary: string }[]
+    >(
+      `SELECT "product_id" AS "productId", "locale", "summary"
+         FROM "v_product_copy_public"
+        WHERE "product_id" = ANY($1::uuid[])
+          AND "locale" IN ($2, $3)`,
+      [...productIds],
+      locale.code,
+      locale.defaultCode,
+    );
+
+    const requested = new Map<string, string>();
+    const fallback = new Map<string, string>();
+
+    for (const row of rows) {
+      // Two rows per product at most, and the requested locale wins whichever order they arrive in.
+      if (row.locale === locale.code) requested.set(row.productId, row.summary);
+      else fallback.set(row.productId, row.summary);
+    }
+
+    for (const [productId, summary] of fallback) {
+      if (!requested.has(productId)) requested.set(productId, summary);
+    }
+
+    return requested;
   }
 
   /**

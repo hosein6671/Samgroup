@@ -290,13 +290,27 @@ suite("the catalog review service over the imported catalogue", () => {
   /* ---------------------------------------------------------------- */
 
   describe("the queue", () => {
+    /**
+     * The two IMPORTER-written subject counts are fixed; the third is not.
+     *
+     * 1,398 Specifications and 148 ProductClaims are what the import produced, and asserting them
+     * exactly is the point of this file. ProductCopy has no importer: its rows arrive from
+     * `load-product-copy-drafts.ts`, an explicitly armed editorial script that may or may not have
+     * been run against the template this suite clones.
+     *
+     * So the copy count is READ rather than asserted, and the relationship is what is checked.
+     * Baking today's number in would make this suite fail for anyone who ran a script ADR-019 §6
+     * sanctions — a test failing because a sanctioned operation was performed is a test that has
+     * stopped describing the system.
+     */
     it(
-      "paginates both subject types as one list",
+      "paginates every subject type as one list",
       async () => {
+        const copy = await review.queue({ subjectType: "product_copy", limit: 1 });
         const first = await review.queue({ limit: 10, sort: "createdAt" });
         const second = await review.queue({ limit: 10, page: 2, sort: "createdAt" });
 
-        expect(first.total).toBe(1398 + 148);
+        expect(first.total).toBe(1398 + 148 + copy.total);
         expect(first.items).toHaveLength(10);
         expect(second.items).toHaveLength(10);
 
@@ -327,8 +341,15 @@ suite("the catalog review service over the imported catalogue", () => {
         const needsReview = await review.queue({ reviewStatus: "needs_review", limit: 1 });
         const sourceRecorded = await review.queue({ reviewStatus: "source_recorded", limit: 1 });
 
+        /*
+         * The importer's own verdicts, exactly. Loaded product copy lands at `source_recorded` and
+         * never at `needs_review`, so only the second total is offset by it — read rather than
+         * assumed, for the reason the pagination test states.
+         */
+        const copy = await review.queue({ subjectType: "product_copy", limit: 1 });
+
         expect(needsReview.total).toBe(63 + 67);
-        expect(sourceRecorded.total).toBe(1335 + 81);
+        expect(sourceRecorded.total).toBe(1335 + 81 + copy.total);
       },
       TIMEOUT_MS,
     );
@@ -430,6 +451,8 @@ suite("the catalog review service over the imported catalogue", () => {
             "grade",
             "hasUnresolvedFindings",
             "id",
+            // ADR-019: null for a Specification and a claim, the locale for ProductCopy.
+            "locale",
             "product",
             "propertyKey",
             "reviewCount",

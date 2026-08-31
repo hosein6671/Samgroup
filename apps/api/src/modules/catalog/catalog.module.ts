@@ -14,6 +14,7 @@ import { ProductsService } from "./products.service";
 import {
   CatalogReviewQueueController,
   ProductClaimReviewController,
+  ProductCopyReviewController,
   SpecificationReviewController,
 } from "./review/catalog-review.controller";
 import { CatalogReviewService } from "./review/catalog-review.service";
@@ -61,6 +62,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     CatalogReviewQueueController,
     SpecificationReviewController,
     ProductClaimReviewController,
+    ProductCopyReviewController,
   ],
   providers: [CategoriesService, ProductsService, CatalogReviewService],
   exports: [CategoriesService, ProductsService],

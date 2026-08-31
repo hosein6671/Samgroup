@@ -62,6 +62,7 @@ const SPECIFICATION: ReviewQueueItemResponse = {
   grade: null,
   propertyKey: "kinematic_viscosity_100c",
   claimKind: null,
+  locale: null,
   summary: "kinematic_viscosity_100c 11.5 mm2/s",
   evidenceCount: 1,
   hasUnresolvedFindings: false,
@@ -75,6 +76,7 @@ const CLAIM: ReviewQueueItemResponse = {
   reviewStatus: "needs_review",
   propertyKey: null,
   claimKind: "reference_only",
+  locale: null,
   grade: { id: "g1", label: "SAE 40", gradeSystem: "sae" },
   hasUnresolvedFindings: true,
   summary: "reference_only API CK-4",
@@ -182,8 +184,9 @@ describe("table semantics", () => {
   it("scopes every column header", () => {
     const headers = findTags(queuePage(), "th").filter((header) => header.props.scope === "col");
 
-    // Eleven since Phase B added the Review column, which links each row to its detail screen.
-    expect(headers).toHaveLength(11);
+    // Ten: Phase B added the Review column, and the responsive work merged Status and Findings
+    // into one "Status & findings" column so the narrowest tier can be three columns wide.
+    expect(headers).toHaveLength(10);
   });
 
   it("makes the product cell the row header, so each row is identified", () => {
@@ -192,21 +195,62 @@ describe("table semantics", () => {
     expect(rowHeaders).toHaveLength(2);
   });
 
-  it("puts the three triage columns first, so they are readable without scrolling", () => {
+  /**
+   * The triage columns lead and the action ends the row.
+   *
+   * These are the columns the narrowest tier keeps, so their position is what makes a
+   * three-column table possible: everything hidden at that width sits between them.
+   */
+  it("puts the triage columns first and the action last", () => {
     const headers = findTags(queuePage(), "th")
       .filter((header) => header.props.scope === "col")
       .map((header) => textOf(header.props.children as ReactNode));
 
-    expect(headers.slice(0, 3)).toEqual(["Product", "Status", "Findings"]);
+    expect(headers.slice(0, 2)).toEqual(["Product", "Status & findings"]);
+    expect(headers.at(-1)).toBe("Review");
+  });
+
+  /**
+   * A hidden column must take its header with it.
+   *
+   * Columns are dropped at narrow widths with `display: none` on the `th` and its `td`s together.
+   * If a class were ever put on one and not the other, the header row and the body rows would
+   * describe different columns at that width — which is the one way this responsive approach can
+   * corrupt the table's semantics, and it is invisible in a screenshot.
+   */
+  it("marks each optional column on its header and its cells alike", () => {
+    const OPTIONAL = [
+      "ad-col-type",
+      "ad-col-subject",
+      "ad-col-summary",
+      "ad-col-grade",
+      "ad-col-evidence",
+      "ad-col-decisions",
+      "ad-col-recorded",
+    ];
+
+    const page = queuePage();
+    const headers = findTags(page, "th").filter((cell) => cell.props.scope === "col");
+    const bodyCells = findTags(page, "td");
+    const rows = findTags(page, "th").filter((cell) => cell.props.scope === "row").length;
+
+    for (const column of OPTIONAL) {
+      const marked = (cell: { props: { className?: unknown } }): boolean =>
+        typeof cell.props.className === "string" &&
+        cell.props.className.split(" ").includes(column);
+
+      expect(headers.filter(marked), column).toHaveLength(1);
+      expect(bodyCells.filter(marked), column).toHaveLength(rows);
+    }
   });
 
   /**
    * WCAG 2.2 §2.1.1. A horizontally scrollable box that only a pointer can scroll is operable only
    * by pointer; `tabindex="0"` plus a name makes it a real stop in the tab order.
    *
-   * The region exists rather than columns being hidden, and that is a Phase A constraint rather
-   * than a preference: with no detail route yet, a hidden column's value would be unreachable
-   * instead of merely deferred.
+   * The region still exists now that narrow widths hide columns instead of scrolling them: the
+   * widest tier can still exceed its container by a few pixels on a long product name, and the
+   * region is what makes those pixels reachable by keyboard rather than by pointer alone.
    */
   it("makes the scroll region a named, keyboard-reachable stop", () => {
     const region = findTags(queuePage(), "div").find((element) => element.props.role === "region");
@@ -645,6 +689,22 @@ describe("the queue links into the detail screens", () => {
       .map((cell) => visibleTextOf(cell.props.children as ReactNode));
 
     expect(headers).toContain("Review");
-    expect(headers).toHaveLength(11);
+    expect(headers).toHaveLength(10);
+  });
+
+  /**
+   * One row, one link — at every width.
+   *
+   * The responsive tiers hide columns with CSS rather than rendering a second, narrow-screen copy
+   * of each row. A duplicate representation is what would put the same subject in the tab order
+   * twice and read it out twice, and `display: none` on a duplicate is a fix nobody remembers to
+   * keep correct. This asserts the single-representation choice rather than the CSS.
+   */
+  it("renders exactly one detail link per row", () => {
+    const rows = findTags(table(), "th").filter((cell) => cell.props.scope === "row").length;
+    const links = findLinks(table());
+
+    expect(rows).toBeGreaterThan(0);
+    expect(links).toHaveLength(rows);
   });
 });

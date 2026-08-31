@@ -121,9 +121,10 @@ describe("credentials and protected data stay server-side", () => {
 });
 
 describe("review routes remain dynamic and non-prerendered", () => {
-  it("marks all three pages dynamic with no static params", () => {
+  it("marks all four pages dynamic with no static params", () => {
     const pages = FILES.filter(({ path }) => path.endsWith("page.tsx"));
-    expect(pages).toHaveLength(3);
+    // The queue, plus one detail route per review subject — three since ADR-019 added product copy.
+    expect(pages).toHaveLength(4);
     for (const { path, source } of pages) {
       expect(source, path).toMatch(/export const dynamic = ["']force-dynamic["'];/);
       expect(source, path).toMatch(/export const revalidate = 0;/);

@@ -17,8 +17,10 @@ import { ADMIN_PATH } from "../../admin-routes";
  * ## The two detail namespaces, and why only their bases live here
  *
  * Phase B adds `/admin/catalog/review/specifications/:id` and
- * `/admin/catalog/review/product-claims/:id`, one route each, mirroring the two NestJS subject
- * controllers segment for segment. They are **two routes, not one generic subject route**: a
+ * `/admin/catalog/review/product-claims/:id`, and ADR-019 adds
+ * `/admin/catalog/review/product-copy/:id` beside them — one route each, mirroring the three
+ * NestJS subject controllers segment for segment. They are **three routes, not one generic subject
+ * route**: a
  * `[subject]/[id]` pair would make the subject type a caller-supplied string that some later reader
  * has to validate, and the API itself declares two controllers rather than one.
  *
@@ -36,3 +38,12 @@ export const SPECIFICATION_REVIEW_PATH = `${CATALOG_REVIEW_PATH}/specifications`
 
 /** The ProductClaim detail namespace. The subject id is appended by `reviewSubjectHref`. */
 export const PRODUCT_CLAIM_REVIEW_PATH = `${CATALOG_REVIEW_PATH}/product-claims`;
+
+/**
+ * The ProductCopy detail namespace (ADR-019). The subject id is appended by `reviewSubjectHref`.
+ *
+ * `product-copy`, singular, matching the API controller and the table. "Copy" is a mass noun here:
+ * one row is one product's copy in one locale, not one "copy" of anything, so the plural the other
+ * two carry would be naming a different thing.
+ */
+export const PRODUCT_COPY_REVIEW_PATH = `${CATALOG_REVIEW_PATH}/product-copy`;

@@ -463,9 +463,9 @@ function Chip({
  * and `documentLocator` are honoured from the URL and listed in the active-filter summary, but no
  * control invents their options.
  *
- * **Claim kind appears only when specifications are not the chosen subject type.** The API excludes
- * specifications from any query carrying `claimKind`, so offering the control alongside
- * `subjectType=specification` would offer a guaranteed empty result.
+ * **Claim kind appears only when product claims are a possible answer.** The API excludes both
+ * specifications and product copy from any query carrying `claimKind`, so offering the control
+ * alongside either of those subject types would offer a guaranteed empty result.
  */
 export function ReviewFilters({ query }: { readonly query: ReviewQueueQuery }): ReactNode {
   return (
@@ -541,7 +541,7 @@ export function ReviewFilters({ query }: { readonly query: ReviewQueueQuery }): 
           </Chip>
         </ChipRow>
 
-        {query.subjectType === "specification" ? null : (
+        {query.subjectType === "specification" || query.subjectType === "product_copy" ? null : (
           <ChipRow label="Claim kind" id="ad-filter-claim-kind">
             <Chip
               href={reviewQueueHref(query, { claimKind: undefined })}
@@ -645,15 +645,21 @@ export function ActiveFilterSummary({
  * A real `<table>` with `<caption>`, `<th scope="col">` and a row header — an operational queue is
  * read by scanning one column against another, and there is no card layout that survives that.
  *
- * The columns are ordered so the three that identify and triage a row (**Product, Status,
- * Findings**) come first and are readable at 375 px without scrolling. The rest follow and are
- * reached by scrolling the region horizontally.
+ * The columns are ordered so the ones that identify and triage a row (**Product**, then **Status &
+ * findings**) come first, and the action (**Review**) is last. Secondary columns sit between them
+ * and are revealed as measured space allows — see `admin.css`, which owns the breakpoints.
  *
- * **No column is hidden at any width**, and that is a Phase A constraint rather than a preference:
- * the audit's column-priority plan relied on each row linking to a detail page that carried every
- * value. There is no detail page yet, so hiding a column here would make its value unreachable
- * rather than merely deferred. When Phase B lands, the low-priority columns can be dropped on
- * narrow screens because the detail route will then be a real alternative.
+ * **Columns ARE hidden at narrow widths now, and that is a change of condition rather than of
+ * mind.** The Phase A rule was "no column is hidden at any width", because the column-priority plan
+ * depended on each row linking to a detail page carrying every value and no detail page existed —
+ * a hidden column would have been unreachable rather than merely deferred. All three detail routes
+ * now exist (Specification, ProductClaim, ProductCopy), each carrying every value this table drops,
+ * so the condition that rule was waiting on is met.
+ *
+ * Hiding is `display: none` on both the `th` and its `td`s, so a dropped column leaves the
+ * accessibility tree with the header row and the body row agreeing. There is no second, mobile-only
+ * rendering of a row: a hidden duplicate is what puts one row into the accessibility tree twice and
+ * into the tab order twice.
  *
  * The scroll region is `tabindex={0}` with a name and a `role="region"`, so a keyboard-only reader
  * can scroll it — a scrollable box reachable only by pointer fails WCAG 2.2 §2.1.1.
@@ -689,15 +695,28 @@ export function ReviewQueueTable({
         <thead>
           <tr>
             <th scope="col">Product</th>
-            <th scope="col">Status</th>
-            <th scope="col">Findings</th>
-            <th scope="col">Type</th>
-            <th scope="col">Subject</th>
-            <th scope="col">Summary</th>
-            <th scope="col">Grade</th>
-            <th scope="col">Evidence</th>
-            <th scope="col">Decisions</th>
-            <th scope="col">Recorded</th>
+            <th scope="col">Status &amp; findings</th>
+            <th scope="col" className="ad-col-type">
+              Type
+            </th>
+            <th scope="col" className="ad-col-subject">
+              Subject
+            </th>
+            <th scope="col" className="ad-col-summary">
+              Summary
+            </th>
+            <th scope="col" className="ad-col-grade">
+              Grade
+            </th>
+            <th scope="col" className="ad-col-evidence">
+              Evidence
+            </th>
+            <th scope="col" className="ad-col-decisions">
+              Decisions
+            </th>
+            <th scope="col" className="ad-col-recorded">
+              Recorded
+            </th>
             <th scope="col">Review</th>
           </tr>
         </thead>
@@ -741,8 +760,20 @@ function QueueRow({
   readonly query: ReviewQueueQuery;
 }): ReactNode {
   const neverApprovable = item.claimKind !== null && claimKindIsNeverApprovable(item.claimKind);
+
+  /*
+   * What distinguishes this row from its siblings, whichever subject it is: a Specification's
+   * property key, a claim's kind, or a copy row's locale.
+   *
+   * The locale belongs here rather than being left to the summary column, because copy is the only
+   * subject with several rows per product for the same thing. Without it a product with English,
+   * Persian and Arabic drafts shows three rows whose only visible difference is prose in a script
+   * the reviewer may not read.
+   */
   const subject =
-    item.propertyKey ?? (item.claimKind === null ? null : CLAIM_KIND_LABEL[item.claimKind]);
+    item.propertyKey ??
+    (item.claimKind === null ? null : CLAIM_KIND_LABEL[item.claimKind]) ??
+    item.locale;
 
   return (
     <tr
@@ -770,19 +801,32 @@ function QueueRow({
           </span>
         )}
       </th>
-      <td className="ad-cell-status">
+      {/*
+       * Status and findings share ONE cell, at every width.
+       *
+       * They were two columns. A three-column mobile layout needs them merged, and CSS cannot
+       * merge two table columns into one without breaking the column/header correspondence — so
+       * the merge has to be in the markup, which means it applies at every width rather than only
+       * at the width that needs it. The alternative was a second, mobile-only representation of
+       * every row, and a hidden duplicate is exactly what puts the same row in the accessibility
+       * tree twice.
+       *
+       * Both values keep their own line, so the column reads as two facts under one heading
+       * rather than as one merged sentence.
+       */}
+      <td className="ad-cell-status ad-cell-triage">
         <StatusBadge status={item.reviewStatus} />
+        <span className="ad-cell-findings">
+          <FindingsMark unresolved={item.hasUnresolvedFindings} />
+        </span>
       </td>
-      <td className="ad-cell-status">
-        <FindingsMark unresolved={item.hasUnresolvedFindings} />
-      </td>
-      <td>{SUBJECT_TYPE_LABEL[item.subjectType]}</td>
-      <td className="ad-mono">
-        {item.propertyKey ?? (item.claimKind === null ? "—" : CLAIM_KIND_LABEL[item.claimKind])}
+      <td className="ad-col-type">{SUBJECT_TYPE_LABEL[item.subjectType]}</td>
+      <td className="ad-mono ad-col-subject">
+        {subject ?? "—"}
         {neverApprovable ? <span className="ad-cell-sub">Never approvable</span> : null}
       </td>
-      <td className="ad-cell-summary">{item.summary}</td>
-      <td>
+      <td className="ad-cell-summary ad-col-summary">{item.summary}</td>
+      <td className="ad-col-grade">
         {item.grade === null ? (
           <span className="ad-quiet">No grade</span>
         ) : (
@@ -794,9 +838,9 @@ function QueueRow({
           </>
         )}
       </td>
-      <td className="ad-cell-stamp">{item.evidenceCount}</td>
-      <td className="ad-cell-stamp">{item.reviewCount}</td>
-      <td className="ad-cell-stamp">
+      <td className="ad-cell-stamp ad-col-evidence">{item.evidenceCount}</td>
+      <td className="ad-cell-stamp ad-col-decisions">{item.reviewCount}</td>
+      <td className="ad-cell-stamp ad-col-recorded">
         <time dateTime={item.createdAt}>{item.createdAt.slice(0, 10)}</time>
       </td>
       <td>

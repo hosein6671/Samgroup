@@ -219,6 +219,21 @@ const NOT_FOUND = 404;
 
 const SPECIFICATION_PATH = "/admin/catalog/review/specifications";
 const PRODUCT_CLAIM_PATH = "/admin/catalog/review/product-claims";
+const PRODUCT_COPY_PATH = "/admin/catalog/review/product-copy";
+
+/**
+ * The base path per subject, as a total record.
+ *
+ * It replaced a ternary that read "specification, else product-claims". That shape was correct
+ * while there were two subjects and silently wrong the moment there were three: a `product_copy`
+ * read would have been sent to the claims controller, which answers 404 for an id it has never
+ * seen — a missing-subject screen for a subject that exists.
+ */
+const SUBJECT_PATH: Readonly<Record<ReviewSubjectType, string>> = {
+  specification: SPECIFICATION_PATH,
+  product_claim: PRODUCT_CLAIM_PATH,
+  product_copy: PRODUCT_COPY_PATH,
+};
 
 /** One Specification's full review context. */
 export async function getSpecificationReview(id: string): Promise<ReviewDetailResult> {
@@ -228,6 +243,11 @@ export async function getSpecificationReview(id: string): Promise<ReviewDetailRe
 /** One ProductClaim's full review context. */
 export async function getProductClaimReview(id: string): Promise<ReviewDetailResult> {
   return getSubjectReview("product_claim", id);
+}
+
+/** One ProductCopy's full review context (ADR-019). */
+export async function getProductCopyReview(id: string): Promise<ReviewDetailResult> {
+  return getSubjectReview("product_copy", id);
 }
 
 /**
@@ -244,7 +264,7 @@ async function getSubjectReview(
   subjectType: ReviewSubjectType,
   id: string,
 ): Promise<ReviewDetailResult> {
-  const base = subjectType === "specification" ? SPECIFICATION_PATH : PRODUCT_CLAIM_PATH;
+  const base = SUBJECT_PATH[subjectType];
 
   const accessToken = await getAdminAccessToken();
   if (accessToken === null) {
@@ -342,7 +362,7 @@ export async function decideReviewSubject(
   id: string,
   body: ReviewDecisionRequest,
 ): Promise<ReviewDecisionResult> {
-  const base = subjectType === "specification" ? SPECIFICATION_PATH : PRODUCT_CLAIM_PATH;
+  const base = SUBJECT_PATH[subjectType];
   const accessToken = await getAdminAccessToken();
   if (accessToken === null) return { state: "unauthenticated" };
 

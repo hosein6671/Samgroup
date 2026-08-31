@@ -301,6 +301,86 @@ LEFT JOIN LATERAL (
 ) cur ON TRUE
 WHERE c."id" = $1::uuid`;
 
+/**
+ * What one ProductCopy probe answers — the narrowest of the three row shapes.
+ *
+ * ── What is deliberately absent, and why the SHAPE is what enforces it ──────
+ *
+ * No `mappingOk`, no value shape, no method facts, no claim identity. Copy has no property key, no
+ * numeric value, no unit and no standard reference, so every one of those rules is about something
+ * this subject does not have. They are absent from the row rather than defaulted to `true`,
+ * because a field that is always `true` is a rule someone will later mistake for a satisfied one.
+ *
+ * `gradeOk` is absent for a different reason: copy is written about a Product, never about one
+ * grade of it. `product_copy` has no `product_grade_id` column at all.
+ */
+export interface ProductCopyEligibilityRow {
+  live: boolean;
+  productExists: boolean;
+  localeActive: boolean;
+  evidenceLinks: number;
+  evidenceOrphans: number;
+  plannerFlagged: boolean;
+
+  sourceCaptured: boolean;
+  documentDateUnknown: boolean;
+  documentRevisionUnknown: boolean;
+}
+
+/**
+ * The ProductCopy eligibility probe.
+ *
+ * ── `localeActive` is a fact here and NOT a blocker ─────────────────────────
+ *
+ * The locale list is data, never code (`PROJECT_HANDOFF` §6.9), so `product_copy.locale` is a text
+ * column rather than a foreign key — Catalog's row must not take a hard dependency on
+ * Localization's table. That leaves open the case of copy written for a locale that was since
+ * deactivated, and this column reports it.
+ *
+ * It reports it and stops there. Turning it into a blocker would be adding a rule ADR-019 did not
+ * ratify, and it would be the wrong rule anyway: a locale being switched off is an editorial
+ * decision about the SITE, and it does not make a reviewed sentence untrue. What it does is stop
+ * the sentence being served, which §5 already handles by serving nothing.
+ */
+export const PRODUCT_COPY_ELIGIBILITY_SQL = `
+SELECT
+  (pc."deleted_at" IS NULL)                                      AS "live",
+  (p."id" IS NOT NULL)                                           AS "productExists",
+  (l."code" IS NOT NULL AND l."is_active")                       AS "localeActive",
+  coalesce(ev."links", 0)                                        AS "evidenceLinks",
+  coalesce(ev."orphans", 0)                                      AS "evidenceOrphans",
+  (pc."review_status" = 'needs_review')                          AS "plannerFlagged",
+  coalesce(cur."sourceCaptured", false)                          AS "sourceCaptured",
+  coalesce(cur."documentDateUnknown", false)                     AS "documentDateUnknown",
+  coalesce(cur."documentRevisionUnknown", false)                 AS "documentRevisionUnknown"
+FROM "product_copy" pc
+LEFT JOIN "products" p ON p."id" = pc."product_id"
+LEFT JOIN "locales" l  ON l."code" = pc."locale"
+LEFT JOIN LATERAL (
+  SELECT count(*)::int AS "links",
+         count(*) FILTER (WHERE sf."id" IS NULL OR sd."id" IS NULL)::int AS "orphans"
+    FROM "copy_evidence" ce
+    LEFT JOIN "source_facts" sf     ON sf."id" = ce."source_fact_id"
+    LEFT JOIN "source_documents" sd ON sd."id" = sf."source_document_id"
+   WHERE ce."product_copy_id" = pc."id"
+) ev ON TRUE
+LEFT JOIN LATERAL (
+  SELECT
+    coalesce(bool_and(${SOURCE_CAPTURED}), false)                    AS "sourceCaptured",
+    coalesce(bool_or(sd."id" IS NULL OR sd."document_date" IS NULL), false)
+                                                                     AS "documentDateUnknown",
+    coalesce(bool_or(sd."id" IS NULL
+                     OR sd."revision_label" IS NULL
+                     OR length(btrim(sd."revision_label")) = 0), false)
+                                                                     AS "documentRevisionUnknown"
+    FROM "copy_evidence" ce2
+    LEFT JOIN "source_facts" sf      ON sf."id" = ce2."source_fact_id"
+    LEFT JOIN "source_documents" sd  ON sd."id" = sf."source_document_id"
+    LEFT JOIN "source_assets" sa     ON sa."id" = sd."source_asset_id"
+   WHERE ce2."product_copy_id" = pc."id" AND ce2.${CURRENT_EVIDENCE}
+) cur ON TRUE
+WHERE pc."id" = $1::uuid`;
+
 /* -------------------------------------------------------------------------- */
 /* The structured reasons                                                      */
 /* -------------------------------------------------------------------------- */
@@ -661,6 +741,63 @@ export function productClaimApprovalWarnings(row: ProductClaimEligibilityRow): R
 }
 
 /**
+ * The ProductCopy blockers — five rules, and **not one new code**.
+ *
+ * ── Why the vocabulary did not grow ────────────────────────────────────────
+ *
+ * ADR-019 §3 named exactly which rules apply to the third subject: "the `SOURCE_ASSET_ABSENT` and
+ * `EVIDENCE_ABSENT` blockers, applied to a third subject". Adding a code is adding a rule, and the
+ * ratification did not add any — so every blocker below is one of the five that already meant the
+ * same thing for the other two subjects, with a message that names copy.
+ *
+ * ── The rule this list does NOT carry, and where it lives instead ───────────
+ *
+ * "The copy must be transcribed from a bound source document" is not in this file. It is a CHECK
+ * in `product_copy_approval_gate`, which refuses the UPDATE outright. That is deliberate and it is
+ * the one place copy is stricter than the other two subjects: an eligibility blocker is advice the
+ * decision path consults, and this rule had to survive a caller that never consults it.
+ *
+ * `SOURCE_ASSET_ABSENT` below is the same condition rendered as advice, so the reviewer sees the
+ * reason on the screen instead of meeting a database exception. The gate is the enforcement; this
+ * is the explanation.
+ */
+export function productCopyApprovalBlockers(row: ProductCopyEligibilityRow): ReviewBlocker[] {
+  const blockers: ReviewBlocker[] = [];
+
+  if (!row.live) {
+    blockers.push(blocker("SUBJECT_RETIRED", "The copy has been retired (deletedAt is set)."));
+  }
+  if (!row.productExists) {
+    blockers.push(blocker("PRODUCT_UNRESOLVED", "The copy does not resolve to a Product."));
+  }
+  if (row.evidenceLinks === 0) {
+    blockers.push(blocker("EVIDENCE_ABSENT", "The copy cites no evidence."));
+  }
+  if (row.evidenceOrphans > 0) {
+    blockers.push(blocker("EVIDENCE_LINK_UNRESOLVED", EVIDENCE_LINK_UNRESOLVED_MESSAGE));
+  }
+
+  /*
+   * Emitted whether or not any link exists, which is where this differs from the other two.
+   *
+   * For a Specification and a claim the condition is guarded by `evidenceLinks > 0`, so a subject
+   * citing nothing gets `EVIDENCE_ABSENT` alone rather than two blockers for one defect. Copy gets
+   * both, because for copy they are two different defects: the gate refuses an approval with no
+   * CAPTURED source, and a reviewer who saw only "cites no evidence" would fix that by binding a
+   * link to an uncaptured document and hit the gate anyway.
+   */
+  if (!row.sourceCaptured) {
+    blockers.push(blocker("SOURCE_ASSET_ABSENT", SOURCE_ASSET_ABSENT_MESSAGE));
+  }
+
+  return blockers;
+}
+
+export function productCopyApprovalWarnings(row: ProductCopyEligibilityRow): ReviewWarning[] {
+  return documentWarnings(row);
+}
+
+/**
  * The queue's `hasUnresolvedFindings`, defined over the same durable state.
  *
  * Two sources, and only two, because only two survive the importer as ROWS: the planner's
@@ -681,3 +818,9 @@ export const SPECIFICATION_UNRESOLVED_SQL = `
   ), false)`;
 
 export const PRODUCT_CLAIM_UNRESOLVED_SQL = `c."review_status" = 'needs_review'`;
+
+/**
+ * Copy has no mapping to resolve, so the planner's verdict is the whole of it — the same shape the
+ * claim arm has, and for the same reason.
+ */
+export const PRODUCT_COPY_UNRESOLVED_SQL = `pc."review_status" = 'needs_review'`;

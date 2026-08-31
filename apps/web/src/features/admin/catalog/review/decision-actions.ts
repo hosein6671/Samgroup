@@ -9,7 +9,11 @@ import { DECISION_MESSAGE } from "./decision-state";
 import type { DecisionState } from "./decision-state";
 import type { ReviewDecisionInput, ReviewStatus, ReviewSubjectType } from "@sam-group/types";
 
-const SUBJECT_TYPES: readonly ReviewSubjectType[] = ["specification", "product_claim"];
+const SUBJECT_TYPES: readonly ReviewSubjectType[] = [
+  "specification",
+  "product_claim",
+  "product_copy",
+];
 const DECISIONS: readonly ReviewDecisionInput[] = ["approve", "reject", "return_to_needs_review"];
 const STATUSES: readonly ReviewStatus[] = [
   "source_recorded",

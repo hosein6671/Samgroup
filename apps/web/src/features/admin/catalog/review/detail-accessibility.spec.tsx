@@ -77,6 +77,7 @@ const SUBJECT: ReviewDetailResponse = {
     methodRequirement: "required",
   },
   claim: null,
+  copy: null,
   evidenceSetHash: "2222222222222222222222222222222222222222222222222222222222222222",
   evidence: [
     {

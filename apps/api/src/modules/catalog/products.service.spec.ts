@@ -102,6 +102,7 @@ type Stubs = {
   translationFindMany: jest.Mock;
   translationFindFirst: jest.Mock;
   buildSeo: jest.Mock;
+  queryRawUnsafe: jest.Mock;
 };
 
 /** No database is reached — only the delegate methods this service calls are stubbed. */
@@ -118,7 +119,21 @@ function createService(): Stubs {
   const translationFindFirst = jest.fn().mockResolvedValue(null);
   const buildSeo = jest.fn().mockResolvedValue(SEO);
 
+  /*
+   * The approved-copy read (ADR-019 §5), which is raw SQL against `v_product_copy_public`.
+   *
+   * Empty by default, and that is the state of the live catalogue: no copy has been approved, so
+   * every product serves the `description` column exactly as this file's other assertions expect.
+   * A test that wants the overlay sets a resolved value on this mock — see the ADR-019 cases.
+   *
+   * The view is not re-implemented here. What it selects is the database's assertion, proved on a
+   * real clone in `product-copy-review-integration.spec.ts`; what this service DOES with the rows
+   * is this file's.
+   */
+  const queryRawUnsafe = jest.fn().mockResolvedValue([]);
+
   const prisma = {
+    $queryRawUnsafe: queryRawUnsafe,
     product: { count: productCount, findMany: productFindMany, findUnique: productFindUnique },
     category: { findUnique: categoryFindUnique },
     segment: { findUnique: segmentFindUnique },
@@ -142,6 +157,7 @@ function createService(): Stubs {
     // assert on, and stubbing it would leave those assertions checking nothing.
     service: new ProductsService(prisma, new ContentTranslationService(prisma), seo, media),
     productCount,
+    queryRawUnsafe,
     productFindMany,
     productFindUnique,
     categoryFindUnique,
@@ -1307,5 +1323,123 @@ describe("ProductsService.findSpecificationsBySlug", () => {
 
     expect(error.code).toBe(ErrorCode.NotFound);
     expect(specificationFindMany).not.toHaveBeenCalled();
+  });
+});
+
+/* ========================================================================== */
+/*  Approved editorial copy (ADR-019 §5)                                       */
+/* ========================================================================== */
+
+/**
+ * What an APPROVED `product_copy` row does to the served description.
+ *
+ * The rule is one-directional and that is the whole safety property: an approved row in the
+ * requested locale replaces the description, and everything else — no row, an unapproved row, a
+ * rejected one, a row in an inactive locale — serves exactly what the product served before
+ * ADR-019. All 100 catalogue products are in that second case today.
+ *
+ * `v_product_copy_public` is what decides which rows exist at all, and it is not re-implemented
+ * here: these mocks stand for rows the VIEW already returned. That the view excludes unapproved,
+ * retired and inactive-locale rows is proved against a real database in
+ * `product-copy-review-integration.spec.ts`.
+ */
+const APPROVED_COPY_EN = {
+  productId: PRODUCT_ROW.id,
+  locale: "en",
+  summary: "A Group I base oil for industrial blending, as the datasheet describes it.",
+};
+
+const APPROVED_COPY_FA = {
+  productId: PRODUCT_ROW.id,
+  locale: "fa",
+  summary: "یک روغن پایه گروه یک برای آمیزه‌سازی صنعتی.",
+};
+
+describe("approved product copy overlays the description", () => {
+  it("serves the product's own description when no copy is approved", async () => {
+    const { service, queryRawUnsafe } = createService();
+
+    const { product } = await service.findBySlug("sn-500", EN);
+
+    expect(queryRawUnsafe).toHaveBeenCalled();
+    expect(product.description).toBe(PRODUCT_ROW.description);
+  });
+
+  it("replaces the description with the approved copy for the requested locale", async () => {
+    const { service, queryRawUnsafe } = createService();
+    queryRawUnsafe.mockResolvedValue([APPROVED_COPY_EN]);
+
+    const { product } = await service.findBySlug("sn-500", EN);
+
+    expect(product.description).toBe(APPROVED_COPY_EN.summary);
+  });
+
+  it("prefers the requested locale over the default when both are approved", async () => {
+    const { service, queryRawUnsafe } = createService();
+    // Default-locale row FIRST, so the assertion cannot pass by arrival order.
+    queryRawUnsafe.mockResolvedValue([APPROVED_COPY_EN, APPROVED_COPY_FA]);
+
+    const { product } = await service.findBySlug("sn-500", FA);
+
+    expect(product.description).toBe(APPROVED_COPY_FA.summary);
+  });
+
+  it("falls back to the default locale's copy when the requested locale has none", async () => {
+    const { service, queryRawUnsafe } = createService();
+    queryRawUnsafe.mockResolvedValue([APPROVED_COPY_EN]);
+
+    const { product } = await service.findBySlug("sn-500", FA);
+
+    expect(product.description).toBe(APPROVED_COPY_EN.summary);
+  });
+
+  /**
+   * The overlay must reach SEO, or the page would tell a search engine one thing and a reader
+   * another. §11 falls the meta description back to the entity's description, and the value it
+   * falls back to has to be the one actually rendered.
+   */
+  it("feeds the approved copy to the SEO meta description fallback", async () => {
+    const { service, queryRawUnsafe, buildSeo } = createService();
+    queryRawUnsafe.mockResolvedValue([APPROVED_COPY_EN]);
+
+    await service.findBySlug("sn-500", EN);
+
+    expect(buildSeo).toHaveBeenCalledWith(
+      expect.objectContaining({ fallbackDescription: APPROVED_COPY_EN.summary }),
+      EN,
+    );
+  });
+
+  it("overlays the list as well, so a card and its page agree", async () => {
+    const { service, queryRawUnsafe } = createService();
+    queryRawUnsafe.mockResolvedValue([APPROVED_COPY_EN]);
+
+    const { products } = await service.findAll(EN, {});
+
+    expect(products[0]?.description).toBe(APPROVED_COPY_EN.summary);
+  });
+
+  it("asks for nothing when the list is empty", async () => {
+    const { service, queryRawUnsafe, productFindMany, productCount } = createService();
+    productFindMany.mockResolvedValue([]);
+    productCount.mockResolvedValue(0);
+
+    const { products } = await service.findAll(EN, {});
+
+    expect(products).toEqual([]);
+    expect(queryRawUnsafe).not.toHaveBeenCalled();
+  });
+
+  it("reads only the requested and default locales, and only these products", async () => {
+    const { service, queryRawUnsafe } = createService();
+
+    await service.findAll(FA, {});
+
+    expect(queryRawUnsafe).toHaveBeenCalledWith(
+      expect.stringContaining("v_product_copy_public"),
+      [PRODUCT_ROW.id],
+      "fa",
+      "en",
+    );
   });
 });

@@ -1788,6 +1788,159 @@
   }
 }
 
+/*
+ * The responsive queue: which columns exist at which width, and why.
+ *
+ * ── Breakpoints come from measured content, not device names ───────────────
+ *
+ * Every value below was read off the rendered table rather than chosen from a
+ * device list. The column set at each tier is the widest set whose measured
+ * total still fits the shell's content box at that width, so the table does not
+ * overflow and the pinned action never sits on top of a value.
+ *
+ * Measured natural widths (1440px reference, after Status and findings merged):
+ *
+ *   Product 208 · Status & findings 161 · Type 106 · Subject 89 · Summary 224
+ *   Grade 81 · Evidence 96 · Decisions 102 · Recorded 108 · Review 148
+ *
+ * ── The tiers ──────────────────────────────────────────────────────────────
+ *
+ * Base (narrowest): Product | Status & findings | Review. The three the approved
+ * design names, and the smallest set that still answers "which row, what state,
+ * what do I do". 208 + 161 + 148 = 517 at desktop metrics, and well under that
+ * once the narrow-width cell rules apply.
+ *
+ * 45rem: adds Type and Subject — what KIND of subject a row is, which is the
+ * first thing a reader wants once the row itself is identified.
+ *
+ * 62rem: adds Recorded and Evidence. Measured: the seven-column set overflows
+ * by 17px at 960px and fits from about 978px, so the tier starts at 992px.
+ *
+ * 89.5rem: adds Summary, Grade and Decisions — the full table. Measured: the
+ * ten-column set overflows by 203px at 1200px, by 12px at 1408px, and fits at
+ * 1440px, so the tier starts at 1432px. The last two steps are why this number
+ * was measured rather than reasoned: the arithmetic estimate landed 24px short.
+ *
+ * ── Nothing hidden here is lost ────────────────────────────────────────────
+ *
+ * Every dropped column is carried by the detail route the row links to, for all
+ * three subject types: Type and Subject by the Review status panel, Grade by the
+ * Product context panel, Evidence by the evidence panel, Decisions by the review
+ * history, Recorded by the Review status panel, and Summary by the subject's own
+ * panel. The link that reaches them is in the Review column, which is never
+ * hidden at any width.
+ *
+ * Hiding is `display: none` on the `th` and its `td`s together, so the header
+ * row and the body rows always describe the same columns.
+ */
+
+.ad-table--dense .ad-col-type,
+.ad-table--dense .ad-col-subject,
+.ad-table--dense .ad-col-summary,
+.ad-table--dense .ad-col-grade,
+.ad-table--dense .ad-col-evidence,
+.ad-table--dense .ad-col-decisions,
+.ad-table--dense .ad-col-recorded {
+  display: none;
+}
+
+@media (min-width: 45rem) {
+  .ad-table--dense .ad-col-type,
+  .ad-table--dense .ad-col-subject {
+    display: table-cell;
+  }
+}
+
+@media (min-width: 62rem) {
+  .ad-table--dense .ad-col-recorded,
+  .ad-table--dense .ad-col-evidence {
+    display: table-cell;
+  }
+}
+
+@media (min-width: 89.5rem) {
+  .ad-table--dense .ad-col-summary,
+  .ad-table--dense .ad-col-grade,
+  .ad-table--dense .ad-col-decisions {
+    display: table-cell;
+  }
+}
+
+/*
+ * The merged triage cell. Two facts, one heading, one line each — a status badge
+ * and a findings mark sitting side by side would read as one phrase.
+ */
+.ad-table--dense .ad-cell-triage {
+  white-space: normal;
+}
+
+.ad-table--dense .ad-cell-findings {
+  display: block;
+  margin-top: 4px;
+}
+
+/*
+ * The action, and the reason it is allowed to wrap.
+ *
+ * "Open review" on one line is about 140px, which is more than the narrowest
+ * tier can spare beside a wrapping product name and a status. Wrapping it costs
+ * a line of height and keeps the label intact — the alternative was a shorter
+ * visible label, which would have meant a second text node for one width and a
+ * visible label no longer contained in the accessible name (WCAG 2.5.3).
+ *
+ * min-height keeps the target at or above 24x24 CSS px when it wraps to one
+ * narrow line (WCAG 2.2 §2.5.8).
+ */
+.ad-table--dense .ad-review-open {
+  white-space: normal;
+  min-height: 24px;
+}
+
+/*
+ * The pinned action column, and the one condition it is allowed to exist under.
+ *
+ * Pinning is only correct while the table fits: a sticky cell over a scrolling
+ * region covers whatever passes beneath it, and covering a value the reader can
+ * see is worse than making them scroll for it. The tiers above are sized so each
+ * set fits its container, so in practice there is nothing to cover — this rule
+ * holds the action at the edge for the in-between widths where a long product
+ * name or a wrapped summary pushes the table a few pixels past the box.
+ *
+ * It is scoped to 45rem and up. Below that the table is three columns wide and
+ * already fits, and pinning there would have put the action on top of Status —
+ * measured at 375px, where the pinned cell left a 193px band for a set needing
+ * 312px, hiding Findings outright.
+ *
+ * Three details are load-bearing: each pinned cell paints its own background, or
+ * scrolled columns show through it; the divider is an inset box-shadow, because
+ * under `border-collapse: collapse` a border on a sticky cell belongs to the
+ * collapsed grid and does not travel with it; and the header's last cell is the
+ * corner where both sticky axes meet, so it needs to sit above both.
+ */
+@media (min-width: 45rem) {
+  .ad-table--dense th:last-child,
+  .ad-table--dense td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--color-surface-raised);
+    box-shadow: inset 1px 0 0 var(--color-border-hairline);
+  }
+
+  .ad-table--dense thead th:last-child {
+    z-index: 2;
+    background: var(--color-surface-inset);
+  }
+
+  /*
+   * Hover is set on the ROW, and a pinned cell with its own background would sit
+   * out the highlight — leaving one cell visibly unhighlighted across a row the
+   * reader is pointing at.
+   */
+  .ad-table--dense tbody tr:hover td:last-child {
+    background: var(--color-surface-inset);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ad-review-row,
   .ad-review-open {
@@ -1815,6 +1968,57 @@
   .ad-table--dense th,
   .ad-table--dense td {
     padding: 8px 8px;
+  }
+}
+
+/*
+ * Making the three-column tier actually fit, and the two things that did not work.
+ *
+ * Measured at 375px: the container is 333px and the three columns came to 389px
+ * unaided — Product 128, Status & findings 158, Review 103. A 56px overflow, and
+ * horizontal scrolling is the one thing this tier must not need.
+ *
+ * **`max-width` on the `td` does nothing here.** Under `table-layout: auto` the
+ * column algorithm sizes from the content's min/max-content and treats a cell's
+ * own max-width as advisory — measured: the triage cell reported
+ * `max-width: 112px` while rendering 158px. So the caps below are on the
+ * CONTENT, whose max-content width is what the algorithm actually reads.
+ *
+ * **Cascade order is load-bearing.** This sits after the 26rem block on purpose:
+ * that block also sets `.ad-cell-name` widths, and an earlier rule of equal
+ * specificity loses. The first attempt was placed above it and was silently
+ * overridden at exactly the width it was written for.
+ *
+ * Every cap is a wrap, never a clip: all three columns wrap, so a narrower
+ * column is a taller row. The floor under Product is its source reference, an
+ * unbreakable monospace token measured at 84px.
+ */
+@media (max-width: 44.99rem) {
+  .ad-table--dense .ad-cell-name {
+    min-width: 6.5rem;
+    max-width: 9rem;
+  }
+
+  .ad-table--dense .ad-cell-triage .ad-badge,
+  .ad-table--dense .ad-cell-findings {
+    display: block;
+    max-width: 6.5rem;
+  }
+
+  .ad-table--dense .ad-review-open {
+    max-width: 5.5rem;
+  }
+
+  /*
+   * The header is what was actually holding the column open.
+   *
+   * Cells inherit `white-space: nowrap` from the base table rule, and a column is
+   * at least as wide as its widest unbreakable box — which here was the heading
+   * "Status & findings", not any value. With the content capped at 104px the
+   * column still measured 158px until the heading was allowed to wrap.
+   */
+  .ad-table--dense thead th {
+    white-space: normal;
   }
 }
 
@@ -2087,4 +2291,40 @@
   .ad-subgroup {
     padding: 0 0 0 12px;
   }
+}
+
+/*
+ * The drafted copy under review (ADR-019).
+ *
+ * `pre-wrap`, and it is the whole reason this rule exists rather than reusing
+ * `.ad-field-value`: the draft is prose an author wrote with their own line
+ * breaks, and a reviewer approving it is attesting to the text as written.
+ * Collapsing whitespace would show them a reflowed version of what visitors
+ * will read, which is a different thing to approve.
+ *
+ * No max-height and no overflow clipping, for the same reason: a truncated
+ * paragraph is text the reviewer did not read but signed for.
+ */
+.ad-review-copy-draft {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+
+.ad-review-copy-draft__label {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ad-review-copy-draft__text {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: 1.65;
+  white-space: pre-wrap;
 }

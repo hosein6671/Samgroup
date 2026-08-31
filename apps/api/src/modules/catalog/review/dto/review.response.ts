@@ -40,8 +40,8 @@ export type {
   ReviewWarningCode,
 } from "../review-eligibility";
 
-/** Which table a subject lives in, on the wire. */
-export type ReviewSubjectTypeResponse = "specification" | "product_claim";
+/** Which table a subject lives in, on the wire (ADR-019 added the third). */
+export type ReviewSubjectTypeResponse = "specification" | "product_claim" | "product_copy";
 
 /** The Product a subject hangs off, as a reviewer needs to see it. */
 export interface ReviewProductRef {
@@ -117,6 +117,31 @@ export interface ReviewClaimValue {
   standardBody: string | null;
   standardCode: string | null;
   contextNote: string | null;
+}
+
+/**
+ * The editorial copy under review, in one locale (ADR-019).
+ *
+ * The whole subject is here, and that is the point: for the other two subject types the response
+ * carries a normalized value that the reviewer checks AGAINST the raw evidence, whereas for copy
+ * the reviewed artifact is this prose itself. So a reviewer reads these two fields beside
+ * `evidence[].raw*` and decides whether the sentence says what the document said.
+ */
+export interface ReviewCopyValue {
+  /** The `Locale.code` this copy is written in. */
+  locale: string;
+  /**
+   * Whether that locale is active right now.
+   *
+   * Reported, never enforced: an inactive locale does not block approval (ADR-019). It decides
+   * only whether `v_product_copy_public` carries the approved row, so a reviewer can see why an
+   * approval they made is not on the site.
+   */
+  localeActive: boolean;
+  /** The published sentence. Never blank — a database CHECK refuses one. */
+  summary: string;
+  /** The buyer-facing note that follows it, when the draft carries one. */
+  selectionNote: string | null;
 }
 
 /**
@@ -259,10 +284,18 @@ export interface ReviewQueueItemResponse {
   createdAt: string;
   product: ReviewProductRef;
   grade: ReviewGradeRef | null;
-  /** For a Specification: the dictionary key. For a ProductClaim: null. */
+  /** For a Specification: the dictionary key. Otherwise null. */
   propertyKey: string | null;
-  /** For a ProductClaim: the kind. For a Specification: null. */
+  /** For a ProductClaim: the kind. Otherwise null. */
   claimKind: string | null;
+  /**
+   * For ProductCopy: the locale it is written in. Otherwise null.
+   *
+   * It is on the queue row rather than only on the detail because copy is the one subject type
+   * with more than one row per Product for the same thing — a work list showing three
+   * indistinguishable entries for one product would be unusable.
+   */
+  locale: string | null;
   /** A one-line rendering of what is under review, for a work list. */
   summary: string;
   evidenceCount: number;
@@ -283,9 +316,10 @@ export interface ReviewDetailResponse {
   product: ReviewProductRef;
   grade: ReviewGradeRef | null;
 
-  /** Exactly one of these two is populated, matching `subjectType`. */
+  /** Exactly one of these three is populated, matching `subjectType`. */
   specification: ReviewSpecificationValue | null;
   claim: ReviewClaimValue | null;
+  copy: ReviewCopyValue | null;
 
   /**
    * The hash a decision request must echo back. Recomputed on every read, so a client that acts

@@ -25,8 +25,20 @@ import {
  * the one place the correspondence is written down.
  */
 
-/** Which table a review subject lives in. There is no third kind and none may be added here. */
-export const REVIEW_SUBJECT_TYPES = ["specification", "product_claim"] as const;
+/**
+ * Which table a review subject lives in.
+ *
+ * This constant read "there is no third kind and none may be added here" until ADR-019 was
+ * ratified. That sentence was not decoration — it was the frozen half of ADR-016's subject
+ * vocabulary, and it is why ADR-019 exists as an ADR rather than as a patch: adding `product_copy`
+ * required an explicit ruling, not a judgement call by whoever needed the third kind.
+ *
+ * The sentence still holds in its intent. **A fourth kind may not be added here either**, on the
+ * same terms: it needs its own ADR, its own subject foreign key on `technical_reviews`, its own
+ * hash version, and its own approval gate in the database. Three of those are irreversible once
+ * written, which is the whole reason the bar is where it is.
+ */
+export const REVIEW_SUBJECT_TYPES = ["specification", "product_claim", "product_copy"] as const;
 
 export type ReviewSubjectType = (typeof REVIEW_SUBJECT_TYPES)[number];
 

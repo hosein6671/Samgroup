@@ -38,6 +38,7 @@ export type {
   ReviewBlockerCode,
   ReviewClaimKind,
   ReviewClaimValue,
+  ReviewCopyValue,
   ReviewDetailResponse,
   ReviewDecisionInput,
   ReviewDecisionRequest,

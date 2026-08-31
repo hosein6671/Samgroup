@@ -1,6 +1,7 @@
 import {
   CATALOG_REVIEW_PATH,
   PRODUCT_CLAIM_REVIEW_PATH,
+  PRODUCT_COPY_REVIEW_PATH,
   SPECIFICATION_REVIEW_PATH,
 } from "./review-routes";
 
@@ -57,7 +58,11 @@ export const DEFAULT_SORT: ReviewQueueSort = "-createdAt";
  */
 const MAX_PAGE = 10_000;
 
-export const SUBJECT_TYPES: readonly ReviewSubjectType[] = ["specification", "product_claim"];
+export const SUBJECT_TYPES: readonly ReviewSubjectType[] = [
+  "specification",
+  "product_claim",
+  "product_copy",
+];
 
 export const REVIEW_STATUSES: readonly ReviewStatus[] = [
   "source_recorded",
@@ -416,14 +421,25 @@ export function toggleHref<K extends keyof ReviewQueueQuery>(
  * `query` is optional. A detail page reached without it — a bookmark, a pasted link — still renders
  * and still offers a Back link, to the unfiltered queue.
  */
+/**
+ * The detail base per subject, as a total record.
+ *
+ * Total rather than a ternary chain so that a fourth subject fails to compile here. The two-subject
+ * ternary this replaced would have sent every `product_copy` link to `/product-claims/<id>` — a
+ * link that resolves, renders a not-found screen, and gives the reader no clue that the row exists.
+ */
+const SUBJECT_BASE: Readonly<Record<ReviewSubjectType, string>> = {
+  specification: SPECIFICATION_REVIEW_PATH,
+  product_claim: PRODUCT_CLAIM_REVIEW_PATH,
+  product_copy: PRODUCT_COPY_REVIEW_PATH,
+};
+
 export function reviewSubjectHref(
   subjectType: ReviewSubjectType,
   id: string,
   query?: ReviewQueueQuery,
 ): string {
-  const base =
-    subjectType === "specification" ? SPECIFICATION_REVIEW_PATH : PRODUCT_CLAIM_REVIEW_PATH;
-  const path = `${base}/${encodeURIComponent(id)}`;
+  const path = `${SUBJECT_BASE[subjectType]}/${encodeURIComponent(id)}`;
 
   if (query === undefined) return path;
 

@@ -48,7 +48,9 @@
  * written there always carries the recomputed value.
  */
 
-/** A 64-character lowercase hex SHA-256, the only shape either function returns. */
+import type { ReviewSubjectType } from "./review-subject";
+
+/** A 64-character lowercase hex SHA-256, the only shape any of the three functions returns. */
 export const EVIDENCE_SET_HASH_PATTERN = /^[0-9a-f]{64}$/;
 
 /**
@@ -62,11 +64,32 @@ export const EVIDENCE_SET_HASH_PATTERN = /^[0-9a-f]{64}$/;
 export const SPECIFICATION_REVIEW_HASH_VERSION = "spec-review-v2";
 export const PRODUCT_CLAIM_REVIEW_HASH_VERSION = "claim-review-v2";
 
-/** The version a review of the given subject type must carry. */
-export function reviewHashVersionFor(subjectType: "specification" | "product_claim"): string {
-  return subjectType === "specification"
-    ? SPECIFICATION_REVIEW_HASH_VERSION
-    : PRODUCT_CLAIM_REVIEW_HASH_VERSION;
+/**
+ * The third domain (ADR-019).
+ *
+ * It starts at v2 rather than v1 so that one version vocabulary covers all three subjects: the
+ * database CHECK accepts exactly these three strings, and a lone `copy-review-v1` beside two v2s
+ * would read as an OLDER definition rather than a newer subject.
+ */
+export const PRODUCT_COPY_REVIEW_HASH_VERSION = "copy-review-v2";
+
+const HASH_VERSION_BY_SUBJECT: Readonly<Record<ReviewSubjectType, string>> = {
+  specification: SPECIFICATION_REVIEW_HASH_VERSION,
+  product_claim: PRODUCT_CLAIM_REVIEW_HASH_VERSION,
+  product_copy: PRODUCT_COPY_REVIEW_HASH_VERSION,
+};
+
+/**
+ * The version a review of the given subject type must carry.
+ *
+ * A total record rather than a ternary chain: adding a fourth subject to `REVIEW_SUBJECT_TYPES`
+ * now fails to compile here instead of silently falling through to whichever version the last
+ * branch happened to return. The two-subject ternary this replaced would have handed a
+ * `product_copy` review the claim version, and the database would have refused it — correctly, but
+ * as a 500 rather than as a type error.
+ */
+export function reviewHashVersionFor(subjectType: ReviewSubjectType): string {
+  return HASH_VERSION_BY_SUBJECT[subjectType];
 }
 
 /**
@@ -109,4 +132,21 @@ export function productClaimEvidenceSetHash(
   productClaimId: string,
 ): Promise<string | null> {
   return scalar(client, `SELECT "product_claim_review_hash_v2"($1::uuid) AS hash`, productClaimId);
+}
+
+/**
+ * The ProductCopy counterpart — `copy-review-v2`.
+ *
+ * Its payload covers the TEXT as well as the evidence, which the other two do not have to: for a
+ * Specification the reviewed fact is a value with a unit and a method, and for a claim it is a
+ * standard reference — both of which the subject half already carries. For copy the reviewed fact
+ * IS the prose, so `summary` and `selectionNote` are inside the digest. A word changed on an
+ * approved row moves the hash, and the row falls back to `needs_review` through the same
+ * invalidation path a changed specification value takes.
+ */
+export function productCopyEvidenceSetHash(
+  client: EvidenceHashClient,
+  productCopyId: string,
+): Promise<string | null> {
+  return scalar(client, `SELECT "product_copy_review_hash_v2"($1::uuid) AS hash`, productCopyId);
 }
