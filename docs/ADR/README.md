@@ -22,8 +22,9 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-016](./ADR-016-catalog-technical-review-api.md)                  | Admin-only catalog technical-review API: transactional approval, evidence-hash concurrency, immutable review history                      | Accepted |
 | [ADR-017](./ADR-017-versioned-review-hash-and-atomic-invalidation.md) | Versioned subject-specific review hashes, atomic invalidation of stale approvals, and immutable source identity                           | Accepted |
 | [ADR-018](./ADR-018-bounded-incremental-catalog-patches.md)           | Named, bounded and transactional incremental catalog patches without repair, approval or public-source leakage                            | Accepted |
+| [ADR-020](./ADR-020-product-type-vocabulary-and-finder-scope.md)      | The eight Product Type slugs and display names are approved vocabulary, and may be shown as a public Finder filter axis                   | Accepted |
 
-These eighteen, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+These nineteen accepted decisions, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 

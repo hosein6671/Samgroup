@@ -8,10 +8,29 @@
  * `Base Oils` stays a public family with ZERO imported products: no workbook row cites a
  * base-oil source, and inventing one to fill the family would be fabrication.
  *
- * ProductTypes are PROPOSALS. No `product_types` row exists yet, and this gate persists
- * none. There is deliberately no `Others` ProductType — the workbook's
+ * ProductTypes are PROPOSALS **at this stage of the pipeline**, and that is what
+ * `PROPOSED_PRODUCT_TYPE_KEYS` still means here: this planner proposes a type per row and
+ * persists nothing. Read the name as "what the planner proposes", not as "unapproved".
+ *
+ * ── The vocabulary itself is approved; the planner's stage name is not ──────
+ *
+ * The eight keys below were APPROVED AS VOCABULARY on 31 August 2026 by ADR-020, together
+ * with their display names, closing ADR-008's "Product Type names and slugs — not one is
+ * approved" deferral. The constant keeps its name deliberately: renaming an export is a code
+ * change with no decision behind it, and the name is now part of the record of how the
+ * vocabulary arrived. Cite ADR-020 for this vocabulary's authority rather than an import
+ * approval: the reviewed records for PRODUCT-DATA-2C-A (identities) and PRODUCT-DATA-2C-B2B
+ * (running the import) each record something else, and whether an earlier conversation also
+ * approved these names is neither asserted nor denied there.
+ *
+ * The sentence here previously read "No `product_types` row exists yet". That was true when
+ * written on 23 August 2026 and stopped being true when the ratified import ran; the second
+ * half — that this gate persists none — is unchanged and still correct.
+ *
+ * There is deliberately no `Others` ProductType — the workbook's
  * `سایر محصولات Others products` block is a filing convenience, not a product class, and it
- * decomposes on row-level evidence into antifreeze/coolants and greases.
+ * decomposes on row-level evidence into antifreeze/coolants and greases. ADR-020 closes the
+ * set at eight, so a ninth type needs its own approval rather than an edit here.
  *
  * ── The one mapping that cannot be a table ──────────────────────────────────
  *
@@ -43,7 +62,12 @@ export const PRODUCT_FAMILY_KEYS = [
 
 export type ProductFamilyKey = (typeof PRODUCT_FAMILY_KEYS)[number];
 
-/** The eight proposed ProductType keys. No `others`, by decision. */
+/**
+ * The eight ProductType keys the planner proposes per row — and, since ADR-020 (31 August
+ * 2026), the approved vocabulary itself. `apply/reference-data.ts` reads this same constant
+ * to build the `product_types` rows, and its display names are ADR-020's approved names.
+ * No `others`, by decision, and the set is closed at eight.
+ */
 export const PROPOSED_PRODUCT_TYPE_KEYS = [
   "engine-oils",
   "industrial-oils",

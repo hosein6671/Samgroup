@@ -17,8 +17,9 @@ import type { ProductDetailResponse } from "@sam-group/types";
  * for an API Product field.
  *
  * **Nothing is invented for an empty field.** A product with no Segments renders no Segment row —
- * not an empty one, not "—". A null `productType` renders no Product Type row at all, which is the
- * state of every product in the database while no Product Type vocabulary is approved (ADR-008).
+ * not an empty one, not "—". A null `productType` renders no Product Type row at all. The eight
+ * Product Type names and slugs are approved vocabulary (ADR-020, 31 August 2026, closing ADR-008's
+ * deferral), so this branch is the null case for one product, not the standing state of all of them.
  * The rule is the same one `category-contract.ts` states for the family fixtures: a value that does
  * not exist is absent, never filled in with something plausible.
  *
