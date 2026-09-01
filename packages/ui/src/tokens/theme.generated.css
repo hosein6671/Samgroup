@@ -146,6 +146,7 @@
   --radius-md: 4px;
   --radius-lg: 8px;
   --radius-panel: 12px;
+  --radius-pill: 999px;
 
   /* elevation */
   --shadow-hairline: 0 1px 0 0 rgb(16 20 28 / 0.04);

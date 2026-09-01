@@ -25,13 +25,25 @@ export const breakpoints = {
   "3xl": "1800px",
 } as const;
 
-/** Sharp by default. Rounding is what makes an industrial surface look like a consumer app. */
+/**
+ * Sharp by default. Rounding is what makes an industrial surface look like a consumer app.
+ *
+ * `pill` is the one exception and is not part of the scale: it is a fully-rounded end cap for
+ * short, self-contained controls — the Admin filter and legend summary actions, the record
+ * back-link — where the shape *is* the affordance. It is a large constant rather than a computed
+ * `50%` so it stays correct as the control's height changes, and it is deliberately not `full`,
+ * because nothing here is a circle.
+ *
+ * It was referenced by `features/admin/admin.css` before it existed, which resolved to no radius
+ * at all — see ADR-022 §4.2 on `var()` names that are defined nowhere.
+ */
 export const radii = {
   none: "0",
   sm: "2px",
   md: "4px",
   lg: "8px",
   panel: "12px",
+  pill: "999px",
 } as const;
 
 /**

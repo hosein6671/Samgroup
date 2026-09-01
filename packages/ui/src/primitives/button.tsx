@@ -63,8 +63,11 @@ const VARIANT_CLASS: Readonly<Record<ButtonVariant, string>> = {
 
 const SIZE_CLASS: Readonly<Record<ButtonSize, string>> = {
   sm: "min-h-9 px-4 text-caption",
-  // 44px minimum on the default and large sizes — the WCAG 2.5.8 target floor, which a
-  // visually restrained button loses very easily.
+  // 44px minimum on the default and large sizes. That is WCAG 2.2 SC **2.5.5** Target Size
+  // (Enhanced), Level **AAA** — not the AA floor, which is SC 2.5.8 Target Size (Minimum) at
+  // **24×24** CSS px. The sizes are unchanged and deliberate: a comfortable target is worth
+  // keeping, and a visually restrained button loses one very easily. Only the citation was
+  // wrong, and citing AAA as AA is how a real AA failure elsewhere gets waved through.
   md: "min-h-11 px-6 text-body",
   lg: "min-h-13 px-8 text-body",
 };
