@@ -873,8 +873,64 @@ export const ELEMENT_CONTENT_LABELS: readonly string[] = [
   "Magnesium",
 ];
 
-function mappingLookupKey(rawProperty: string, rawUnit: string | null): string {
+/**
+ * The identity two mappings share when the importer cannot tell them apart.
+ *
+ * Collapse internal whitespace runs to one space, trim, fold case; the unit is trimmed and folded
+ * but NOT collapsed, and a missing unit is the empty unit. The halves are joined with NUL, which
+ * no label or unit contains, so a label ending in another pair's unit text cannot forge its key.
+ *
+ * **ASCII scope.** `\s` and `toLowerCase()` do exactly what JavaScript defines and nothing further
+ * is folded — no confusable folding, no ZWNJ handling, no Arabic-Indic digits. The catalogue
+ * vocabulary this serves is ASCII; `fa`/`ar` label folding is a separate deferred decision and
+ * must not be smuggled in here.
+ *
+ * Exported because the reviewer's SQL in `../review/review-eligibility.ts` reimplements this rule
+ * in PostgreSQL, and its tests pin themselves to this function rather than to a copy of it.
+ */
+export function mappingLookupKey(rawProperty: string, rawUnit: string | null): string {
   return `${rawProperty.replace(/\s+/g, " ").trim().toLowerCase()}\u0000${(rawUnit ?? "").trim().toLowerCase()}`;
+}
+
+/**
+ * Every lookup identity claimed by more than one mapping.
+ *
+ * Unit-agnostic and unit-specific mappings live in separate maps and a specific one always wins,
+ * so they are separate namespaces and a match across them is not a duplicate. Within one
+ * namespace, two mappings sharing an identity are ambiguous data — **even when they name the same
+ * property key**, because nothing records which of them owns it.
+ */
+export function duplicateMappingIdentities(mappings: readonly SpecPropertyMappingSeed[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+
+  for (const mapping of mappings) {
+    const namespace = mapping.rawUnit === null ? "unit-agnostic" : "unit-specific";
+    const identity = `${namespace}:${mappingLookupKey(mapping.rawProperty, mapping.rawUnit)}`;
+    if (seen.has(identity)) duplicates.add(identity);
+    seen.add(identity);
+  }
+
+  return [...duplicates].sort();
+}
+
+/*
+ * The invariant is enforced HERE, at module load, and not only in a test.
+ *
+ * The two lookups below are plain `Map`s: a second mapping with the same identity would overwrite
+ * the first, and the importer would resolve to whichever happened to be written last — silently,
+ * and depending on declaration order. Throwing at load makes that unrepresentable: nothing can
+ * import this module, so no importer run and no reviewer query can observe a half-decided
+ * dictionary.
+ */
+const MAPPING_IDENTITY_DUPLICATES = duplicateMappingIdentities(SPEC_PROPERTY_MAPPINGS);
+if (MAPPING_IDENTITY_DUPLICATES.length > 0) {
+  throw new Error(
+    `Dictionary is ambiguous: ${MAPPING_IDENTITY_DUPLICATES.length} lookup ` +
+      `${MAPPING_IDENTITY_DUPLICATES.length === 1 ? "identity is" : "identities are"} claimed by ` +
+      `more than one mapping — ` +
+      MAPPING_IDENTITY_DUPLICATES.map((identity) => JSON.stringify(identity)).join(", "),
+  );
 }
 
 const MAPPINGS_BY_LABEL_AND_UNIT = new Map<string, SpecPropertyMappingSeed>();

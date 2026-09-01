@@ -44,6 +44,7 @@ import { MediaService } from "../../media/media.service";
 import { SeoService } from "../../seo/seo.service";
 import { ProductsService } from "../products.service";
 
+import { resolveProperty } from "../import/spec-property-dictionary";
 import {
   createDisposableDatabase,
   dropDisposableDatabase,
@@ -58,6 +59,7 @@ import {
   REVIEW_WARNING_CODES,
   SPECIFICATION_ELIGIBILITY_SQL,
   productClaimApprovalBlockers,
+  resolvedMappingSqlOver,
   specificationApprovalBlockers,
 } from "./review-eligibility";
 
@@ -750,13 +752,176 @@ suite("the catalog review service over the imported catalogue", () => {
           specificationsMethodNotEvidenced: 0,
           specificationsSourceAssetAbsent: 60,
           specificationsMethodOrSourceUnion: 60,
-          specificationsMappingUnresolved: 3,
+          specificationsMappingUnresolved: 0,
           specificationsMethodAbsentAndUncaptured: 5,
           productClaims: 148,
           productClaimsEligible: 102,
           productClaimsSourceAssetAbsent: 46,
           productClaimsNeverApprovable: 5,
         });
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * **The gate may never be stricter than the importer that produced the rows.**
+     *
+     * This is the invariant a real defect violated, and the reason it is asserted as a rule rather
+     * than only as a count. `RESOLVED_MAPPING` compared `raw_property` raw — exact,
+     * case-sensitive, whitespace-sensitive — while `resolveProperty` resolves through
+     * `mappingLookupKey`, which is `replace(/\s+/g, " ").trim().toLowerCase()`. Three
+     * specifications whose sources spell it "Flash point" against a dictionary holding "Flash Point"
+     * were reported PROPERTY_MAPPING_UNRESOLVED although the importer had resolved them — which is
+     * why they carry a normalized `property_key` at all.
+     *
+     * The census caught the number changing; only this catches the two implementations drifting
+     * apart again, which is the thing that actually goes wrong. It reports the offending labels
+     * rather than a count, so a failure names what to fix.
+     *
+     * Note the direction: this asserts the gate is never STRICTER. It may be more permissive, and
+     * in one ratified case it is — see the tier cases below, where an unapprovable unit-specific
+     * mapping is filtered out before the tier is chosen and a HIGH generic one resolves instead.
+     */
+    it(
+      "never reports a mapping unresolved that the importer itself resolves",
+      async () => {
+        const offenders = await withDisposableClient(url, async (client) => {
+          const rows = await client.$queryRawUnsafe<
+            { id: string; rawProperty: string | null; rawUnit: string | null }[]
+          >(`
+            SELECT DISTINCT s."id"            AS "id",
+                            sf."raw_property" AS "rawProperty",
+                            sf."raw_unit"     AS "rawUnit"
+              FROM "specifications" s
+              JOIN "specification_evidence" se ON se."specification_id" = s."id"
+              JOIN "source_facts" sf           ON sf."id" = se."source_fact_id"
+             WHERE s."deleted_at" IS NULL
+          `);
+
+          const resolvedByImporter = rows.filter(
+            (row) =>
+              row.rawProperty !== null &&
+              resolveProperty(row.rawProperty, row.rawUnit ?? "").outcome === "resolved",
+          );
+
+          expect(resolvedByImporter.length).toBeGreaterThan(0);
+
+          const found = new Set<string>();
+
+          for (const row of resolvedByImporter) {
+            const [eligibility] = await client.$queryRawUnsafe<SpecificationEligibilityRow[]>(
+              SPECIFICATION_ELIGIBILITY_SQL,
+              row.id,
+            );
+
+            const row_ = eligibility as SpecificationEligibilityRow;
+            const codes = specificationApprovalBlockers({
+              ...row_,
+              evidenceLinks: Number(row_.evidenceLinks),
+              evidenceOrphans: Number(row_.evidenceOrphans),
+            }).map((entry) => entry.code);
+
+            if (codes.includes("PROPERTY_MAPPING_UNRESOLVED")) {
+              found.add(`${row.rawProperty ?? ""} | ${row.rawUnit ?? ""}`);
+            }
+          }
+
+          return [...found];
+        });
+
+        expect(offenders).toEqual([]);
+      },
+      TIMEOUT_MS,
+    );
+
+    /**
+     * Which tier wins, pinned combination by combination against a real PostgreSQL.
+     *
+     * The SQL under test is `resolvedMappingSqlOver` — the SAME text production runs, pointed at a
+     * `VALUES` relation instead of `spec_property_mappings`. Nothing is inserted: these are pure
+     * `SELECT`s, so the clone is read but never written, and the cases can describe shapes the
+     * live table does not contain (unit-specific, rejected and superseded mappings are all absent
+     * from it today).
+     *
+     * The first three cases are the ones worth stating out loud, because they are where the gate
+     * and `resolveProperty` DIFFER. The importer selects `specific ?? generic` before it looks at
+     * confidence, so a LOW unit-specific mapping shadows a HIGH generic one and nothing resolves.
+     * The gate filters for approvability first, so the unusable specific mapping never claims the
+     * tier and the generic one resolves. That is the reviewer contract — the specific tier among
+     * mappings eligible for approval — and it is what the previous `ORDER BY … LIMIT 1` did too.
+     */
+    const mappingCase = (
+      rows: readonly (readonly [string, string | null, string | null, string, string])[],
+    ): string => {
+      const quote = (value: string | null): string =>
+        value === null ? "NULL::text" : `'${value.replace(/'/g, "''")}'::text`;
+      const values = rows
+        .map((row) => `(${row.map((column) => quote(column)).join(", ")})`)
+        .join(", ");
+
+      return `
+        WITH sf("raw_property", "raw_unit") AS (VALUES ('Flash point'::text, '°C'::text)),
+             candidates("raw_property", "raw_unit", "spec_property_key",
+                        "confidence", "review_status") AS (VALUES ${values})
+        SELECT (${resolvedMappingSqlOver("candidates")}) AS "key" FROM sf`;
+    };
+
+    const SPECIFIC = (confidence: string, status = "source_recorded") =>
+      ["Flash Point", "°C", "specific_key", confidence, status] as const;
+    const GENERIC = (confidence: string, key: string | null = "generic_key") =>
+      ["Flash Point", null, key, confidence, "source_recorded"] as const;
+
+    it.each([
+      [
+        "a LOW unit-specific mapping never shadows a HIGH generic one",
+        [SPECIFIC("low"), GENERIC("high")],
+        "generic_key",
+      ],
+      [
+        "a REJECTED unit-specific mapping never shadows a HIGH generic one",
+        [SPECIFIC("high", "rejected"), GENERIC("high")],
+        "generic_key",
+      ],
+      [
+        "a SUPERSEDED unit-specific mapping never shadows a HIGH generic one",
+        [SPECIFIC("high", "superseded"), GENERIC("high")],
+        "generic_key",
+      ],
+      [
+        "a HIGH unit-specific mapping beats a HIGH generic one",
+        [SPECIFIC("high"), GENERIC("high")],
+        "specific_key",
+      ],
+      [
+        "agreeing duplicates in the winning tier resolve to their shared key",
+        [
+          GENERIC("high", "same_key"),
+          ["Flash  point", null, "same_key", "high", "source_recorded"] as const,
+        ],
+        "same_key",
+      ],
+      [
+        "conflicting HIGH mappings in the winning tier resolve to nothing",
+        [
+          GENERIC("high", "key_one"),
+          ["Flash  point", null, "key_two", "high", "source_recorded"] as const,
+        ],
+        null,
+      ],
+      ["a HIGH mapping naming no key resolves to nothing", [GENERIC("high", null)], null],
+      ["a LOW generic mapping alone resolves to nothing", [GENERIC("low")], null],
+    ])(
+      "%s",
+      async (_label, rows, expected) => {
+        const [row] = await withDisposableClient(url, (client) =>
+          client.$queryRawUnsafe<{ key: string | null }[]>(
+            mappingCase(
+              rows as readonly (readonly [string, string | null, string | null, string, string])[],
+            ),
+          ),
+        );
+
+        expect(row?.key ?? null).toBe(expected);
       },
       TIMEOUT_MS,
     );

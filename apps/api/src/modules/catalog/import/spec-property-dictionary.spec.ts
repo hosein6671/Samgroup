@@ -1,9 +1,27 @@
+import { MappingConfidence } from "../../../prisma/generated/enums";
+
 import {
+  duplicateMappingIdentities,
+  mappingLookupKey,
   resolveProperty,
   SPEC_PROPERTY_KEYS,
   SPEC_PROPERTY_MAPPINGS,
   SPEC_PROPERTY_SEED,
 } from "./spec-property-dictionary";
+
+import type { SpecPropertyMappingSeed } from "./spec-property-dictionary";
+
+/** A seed shaped only enough to exercise the identity rule. */
+const seed = (
+  rawProperty: string,
+  rawUnit: string | null,
+  specPropertyKey: string | null = "flash_point_oc",
+): SpecPropertyMappingSeed => ({
+  rawProperty,
+  rawUnit,
+  specPropertyKey,
+  confidence: MappingConfidence.HIGH,
+});
 
 describe("the dictionary itself", () => {
   it("has no duplicate keys", () => {
@@ -11,11 +29,17 @@ describe("the dictionary itself", () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it("has no duplicate (rawProperty, rawUnit) mapping", () => {
-    const keys = SPEC_PROPERTY_MAPPINGS.map(
-      (mapping) => `${mapping.rawProperty.toLowerCase()}|${mapping.rawUnit ?? ""}`,
-    );
-    expect(new Set(keys).size).toBe(keys.length);
+  /**
+   * The invariant, keyed on the identity the importer actually looks mappings up by.
+   *
+   * It used to key on `rawProperty.toLowerCase()` with the unit appended raw, which is strictly
+   * weaker than `mappingLookupKey`: it neither collapsed whitespace in the label nor folded the
+   * unit at all. Two seeds differing only in internal whitespace, or only in the case of their
+   * unit, passed it and then collided inside `MAPPINGS_BY_LABEL` — where a plain `Map.set` let the
+   * later one win silently. Keying on the real function closes the gap by construction.
+   */
+  it("has no duplicate normalized lookup identity", () => {
+    expect(duplicateMappingIdentities(SPEC_PROPERTY_MAPPINGS)).toEqual([]);
   });
 
   it("never points a HIGH mapping at a key the seed does not define", () => {
@@ -160,5 +184,126 @@ describe("an unknown label", () => {
     resolveProperty("Some Property Nobody Mapped", "furlongs");
     expect(resolveProperty("Some Property Nobody Mapped", "furlongs").outcome).toBe("unknown");
     expect(SPEC_PROPERTY_SEED).toHaveLength(SPEC_PROPERTY_SEED.length);
+  });
+});
+
+/**
+ * The lookup identity, case by case.
+ *
+ * These pin the rule the reviewer's SQL reimplements in PostgreSQL. Scope is the ASCII catalogue
+ * vocabulary: only whitespace and case are folded, and nothing here should grow Unicode
+ * normalisation without its own decision.
+ */
+describe("mappingLookupKey", () => {
+  it("folds case", () => {
+    expect(mappingLookupKey("Flash Point", null)).toBe(mappingLookupKey("flash point", null));
+    expect(mappingLookupKey("Flash Point", null)).toBe(mappingLookupKey("FLASH POINT", null));
+  });
+
+  it("collapses repeated internal whitespace to one space", () => {
+    expect(mappingLookupKey("Flash   Point", null)).toBe(mappingLookupKey("Flash Point", null));
+    expect(mappingLookupKey("Flash\t\nPoint", null)).toBe(mappingLookupKey("Flash Point", null));
+  });
+
+  it("trims surrounding whitespace", () => {
+    expect(mappingLookupKey("   Flash Point   ", null)).toBe(mappingLookupKey("Flash Point", null));
+  });
+
+  it("treats a null unit and an empty unit as the same unit", () => {
+    expect(mappingLookupKey("Flash Point", null)).toBe(mappingLookupKey("Flash Point", ""));
+    expect(mappingLookupKey("Flash Point", null)).toBe(mappingLookupKey("Flash Point", "   "));
+  });
+
+  it("folds unit case and trims the unit, without collapsing inside it", () => {
+    expect(mappingLookupKey("Viscosity", "cSt")).toBe(mappingLookupKey("Viscosity", "  CST  "));
+    expect(mappingLookupKey("Viscosity", "mm2 s")).not.toBe(
+      mappingLookupKey("Viscosity", "mm2  s"),
+    );
+  });
+
+  it("keeps the two halves separate, so a label cannot borrow a unit's text", () => {
+    expect(mappingLookupKey("flash point", null)).not.toBe(mappingLookupKey("flash", "point"));
+  });
+
+  it("does not fold anything beyond whitespace and case", () => {
+    expect(mappingLookupKey("Flash Point", null)).not.toBe(mappingLookupKey("Flashpoint", null));
+    expect(mappingLookupKey("Flash Point", null)).not.toBe(mappingLookupKey("Flash-Point", null));
+  });
+});
+
+describe("duplicateMappingIdentities", () => {
+  it("accepts mappings whose identities differ", () => {
+    expect(
+      duplicateMappingIdentities([seed("Flash Point", null), seed("Pour Point", null)]),
+    ).toEqual([]);
+  });
+
+  it("rejects two mappings differing only in label case", () => {
+    expect(
+      duplicateMappingIdentities([seed("Flash Point", null), seed("Flash point", null)]),
+    ).toHaveLength(1);
+  });
+
+  it("rejects two mappings differing only in internal whitespace", () => {
+    expect(
+      duplicateMappingIdentities([seed("Flash Point", null), seed("Flash  Point", null)]),
+    ).toHaveLength(1);
+  });
+
+  it("rejects two mappings differing only in surrounding whitespace", () => {
+    expect(
+      duplicateMappingIdentities([seed("Flash Point", null), seed(" Flash Point ", null)]),
+    ).toHaveLength(1);
+  });
+
+  it("rejects a null unit against an empty unit within the unit-specific namespace", () => {
+    expect(
+      duplicateMappingIdentities([seed("Viscosity", ""), seed("Viscosity", "   ")]),
+    ).toHaveLength(1);
+  });
+
+  it("rejects two mappings differing only in unit case", () => {
+    expect(
+      duplicateMappingIdentities([seed("Viscosity", "cSt"), seed("Viscosity", "CST")]),
+    ).toHaveLength(1);
+  });
+
+  it("rejects a duplicate identity even when both name the SAME property key", () => {
+    // Duplicate ownership is ambiguous data whether or not the two agree today: nothing records
+    // which mapping owns the identity, so a later edit to either one silently decides it.
+    const duplicates = duplicateMappingIdentities([
+      seed("Flash Point", null, "flash_point_oc"),
+      seed("flash  point", null, "flash_point_oc"),
+    ]);
+
+    expect(duplicates).toHaveLength(1);
+  });
+
+  it("rejects a duplicate identity when the two name DIFFERENT property keys", () => {
+    expect(
+      duplicateMappingIdentities([
+        seed("Flash Point", null, "flash_point_oc"),
+        seed("FLASH POINT", null, "pour_point_oc"),
+      ]),
+    ).toHaveLength(1);
+  });
+
+  it("does not treat a unit-agnostic and a unit-specific mapping as duplicates", () => {
+    // Separate maps, and `resolveProperty` prefers the specific one deterministically, so this
+    // pair is a documented preference rather than an ambiguity.
+    expect(duplicateMappingIdentities([seed("Viscosity", null), seed("Viscosity", "cSt")])).toEqual(
+      [],
+    );
+  });
+
+  it("names each colliding identity once, however many mappings claim it", () => {
+    const duplicates = duplicateMappingIdentities([
+      seed("Flash Point", null),
+      seed("flash point", null),
+      seed("FLASH  POINT", null),
+    ]);
+
+    expect(duplicates).toHaveLength(1);
+    expect(duplicates[0]).toContain("unit-agnostic");
   });
 });

@@ -33,10 +33,11 @@
 /**
  * The mapping resolution rule, reproduced from the importer.
  *
- * `resolveProperty` in `../import/spec-property-dictionary.ts` picks a UNIT-SPECIFIC mapping over
- * a unit-agnostic one and accepts only a HIGH-confidence mapping that names a seeded key. The
- * `ORDER BY (m.raw_unit IS NULL) ASC LIMIT 1` below is that `specific ?? generic` preference
- * written in SQL, and the `confidence = 'high'` filter is the second half.
+ * `resolveProperty` in `../import/spec-property-dictionary.ts` prefers a UNIT-SPECIFIC mapping
+ * over a unit-agnostic one and accepts only a HIGH-confidence mapping that names a seeded key.
+ * `resolvedMappingSql` below is that rule in SQL, with one ratified difference recorded on it:
+ * the approval filter runs BEFORE the tier is chosen, so an unusable unit-specific mapping cannot
+ * shadow a usable generic one.
  *
  * A mapping whose own review status is `rejected` or `superseded` is skipped rather than
  * accepted, so a mapping a human has already refused cannot go on justifying approvals. A mapping
@@ -47,15 +48,151 @@
  * stricter rule than the importer's, and no surface exists in this gate that could ever set it.
  * Ratified by the Architect on 25 August 2026 as Option A — ADR-016 §6.
  */
-const RESOLVED_MAPPING = `
-  SELECT m."spec_property_key"
-    FROM "spec_property_mappings" m
-   WHERE m."raw_property" = sf."raw_property"
-     AND (m."raw_unit" = sf."raw_unit" OR m."raw_unit" IS NULL)
-     AND m."confidence" = 'high'
-     AND m."review_status" NOT IN ('rejected', 'superseded')
-   ORDER BY (m."raw_unit" IS NULL) ASC
-   LIMIT 1`;
+
+/**
+ * The importer's own label normalisation, in SQL.
+ *
+ * `mappingLookupKey` in `../import/spec-property-dictionary.ts` folds the label as
+ * `rawProperty.replace(/\s+/g, " ").trim().toLowerCase()`, and this is that expression — collapse
+ * internal whitespace runs to one space, trim, fold case. ASCII catalogue vocabulary only; the
+ * scope note lives on `mappingLookupKey` itself.
+ *
+ * ── Why it exists ──────────────────────────────────────────────────────────
+ *
+ * It did not, and the omission was a real defect. The gate compared `raw_property` RAW — exact,
+ * case-sensitive, whitespace-sensitive — while the importer that produced the rows resolved
+ * case-insensitively. **The approval gate was therefore stricter than the importer whose output it
+ * judges**, and three specifications the importer had resolved perfectly well (they carry a
+ * normalized `property_key` precisely because it did) were reported `PROPERTY_MAPPING_UNRESOLVED`
+ * and could not be approved: the source documents spell it "Flash point" and the dictionary holds
+ * "Flash Point".
+ *
+ * The dictionary settles which spelling is authoritative rather than leaving it to taste. Its
+ * uniqueness invariant IS `mappingLookupKey`: `duplicateMappingIdentities` runs at module load and
+ * throws, so two seeds that differ only in label case, in internal whitespace, or in the case of
+ * their unit cannot coexist. Two spellings of one label are therefore one mapping by construction,
+ * and matching case-insensitively is the only reading consistent with that.
+ *
+ * ── What it deliberately does not widen ────────────────────────────────────
+ *
+ * Only the comparison is normalised. The HIGH-confidence requirement, the seeded-key requirement
+ * and the rejected/superseded exclusion are untouched, so no mapping becomes acceptable that was
+ * not already acceptable under some spelling of its label.
+ */
+const NORMALIZED_LABEL = (column: string): string =>
+  `lower(btrim(regexp_replace(${column}, '\\s+', ' ', 'g')))`;
+
+/**
+ * The unit half, normalised the way `mappingLookupKey` normalises it: `(u ?? "").trim()
+ * .toLowerCase()`. No whitespace collapsing — that is the label rule, not the unit rule.
+ *
+ * **`coalesce` is the whole point, and it is a correction.** The importer coerces a missing unit
+ * to the empty string BEFORE folding, so a fact carrying no unit and a mapping carrying `''` have
+ * the same unit key and match. Comparing `lower(btrim(NULL))` instead yields NULL, which is not
+ * true, so that pair silently failed to match here while the importer resolved it — the same class
+ * of defect as the raw label comparison, one column over. Unit-specific mappings are dormant in the
+ * current dictionary (all 75 seeds carry `rawUnit: null`), so this corrects a latent divergence
+ * rather than a live one.
+ */
+const NORMALIZED_UNIT = (column: string): string => `lower(btrim(coalesce(${column}, '')))`;
+
+/**
+ * The importer's lookup rule as a SQL join predicate — **the single copy both consumers use.**
+ *
+ * `RESOLVED_MAPPING` below decides whether a Specification may be approved; the reviewer-facing
+ * mapping list in `catalog-review.service.ts` decides what a reviewer is SHOWN. Were the two to
+ * match differently, a reviewer could be shown a resolving mapping for a subject the gate then
+ * refused as unresolved, or the reverse, which is worse. They are the same string rather than two
+ * strings a comment asks you to keep aligned.
+ *
+ * A mapping with a unit is unit-specific and must agree on the unit; a mapping without one is
+ * unit-agnostic and matches the label alone. That is `MAPPINGS_BY_LABEL_AND_UNIT` and
+ * `MAPPINGS_BY_LABEL`, restated in SQL.
+ */
+export const mappingMatchesFactSql = (mapping: string, fact: string): string =>
+  `${NORMALIZED_LABEL(`${mapping}."raw_property"`)} = ${NORMALIZED_LABEL(`${fact}."raw_property"`)}
+   AND (${mapping}."raw_unit" IS NULL
+        OR ${NORMALIZED_UNIT(`${mapping}."raw_unit"`)} = ${NORMALIZED_UNIT(`${fact}."raw_unit"`)})`;
+
+/**
+ * One matching mapping the gate is willing to consider: the shared predicate, plus the two filters
+ * that make a mapping authoritative. `resolvedMappingSql` needs this twice — once to aggregate
+ * over and once to ask whether a unit-specific candidate exists — so it is written once.
+ */
+const eligibleMappingSql = (mapping: string): string =>
+  `${mappingMatchesFactSql(mapping, "sf")}
+     AND ${mapping}."confidence" = 'high'
+     AND ${mapping}."review_status" NOT IN ('rejected', 'superseded')`;
+
+/**
+ * The resolved property key for one SourceFact, or NULL when the mappings do not settle it.
+ *
+ * ── Tier preference: specific over generic, among APPROVABLE mappings ───────
+ *
+ * `(m."raw_unit" IS NOT NULL) = EXISTS (… an approvable unit-specific match …)` is the
+ * specific-over-generic rule: when a unit-specific mapping is available, only unit-specific
+ * mappings are considered; otherwise only unit-agnostic ones are.
+ *
+ * **This is close to the importer's `specific ?? generic` but is deliberately NOT identical, and
+ * the difference is ratified rather than accidental.** `resolveProperty` selects the mapping
+ * FIRST and judges confidence SECOND, so a LOW unit-specific mapping shadows a HIGH generic one
+ * and the fact resolves to nothing. Here the approval filter runs first, so a LOW — or rejected,
+ * or superseded — unit-specific mapping never claims the tier, and a qualifying generic mapping
+ * resolves instead. The reviewer contract is "the specific tier among mappings eligible for
+ * approval", which is also what the previous `ORDER BY … LIMIT 1` did; it is preserved here, not
+ * changed. `catalog-review-integration.spec.ts` pins every combination against a real PostgreSQL.
+ *
+ * It is a correlated `EXISTS` rather than a ranked derived table because the whole constant is
+ * already a LATERAL subquery over `sf`, and ordinary correlation is the form whose scoping is
+ * beyond doubt.
+ *
+ * ── Ambiguity, and why it still fails closed ────────────────────────────────
+ *
+ * Normalising the comparison makes rows equivalent that the database still stores as distinct, and
+ * the two sides of that are now in different states:
+ *
+ *   - **The importer's seed cannot collide.** `duplicateMappingIdentities` runs at module load in
+ *     `../import/spec-property-dictionary.ts` and throws, so two seeds sharing a normalised
+ *     identity are unrepresentable — the silent last-write-wins in its `Map`s is closed
+ *     structurally.
+ *   - **Database rows still can.** `spec_property_mappings_raw_property_raw_unit_key` is UNIQUE on
+ *     the RAW pair and is NULLS DISTINCT, so `('Flash Point', NULL)` and `('Flash  Point', NULL)`
+ *     remain two legal rows, as do two rows carrying the identical label and a NULL unit. A
+ *     normalised unique index would close that; it is a migration, and it is deferred while the
+ *     live table has zero collisions.
+ *
+ * So ambiguity reaching this query is database-originated, and this query is where it is caught. A
+ * bare `LIMIT 1` had nothing to decide which row won, so the same specification could be
+ * approvable on one call and blocked on the next; adding a tiebreaker would invent an answer the
+ * contract does not give. It therefore yields a key only when every candidate in the winning tier
+ * carries the SAME non-null key, and NULL — `PROPERTY_MAPPING_UNRESOLVED`, blocked — when they
+ * disagree or when any of them names no key at all.
+ *
+ * Failing closed is the safe direction: blocking a subject is recoverable by fixing the data,
+ * while approving one on a coin toss publishes an unreviewed technical fact.
+ */
+const resolvedMappingSql = (relation: string): string => `
+  SELECT CASE
+           WHEN count(*) = count(m."spec_property_key")
+            AND count(DISTINCT m."spec_property_key") = 1
+           THEN min(m."spec_property_key")
+         END AS "spec_property_key"
+    FROM ${relation} m
+   WHERE ${eligibleMappingSql("m")}
+     AND (m."raw_unit" IS NOT NULL) = EXISTS (
+           SELECT 1
+             FROM ${relation} m2
+            WHERE ${eligibleMappingSql("m2")}
+              AND m2."raw_unit" IS NOT NULL
+         )`;
+
+/**
+ * Exported ONLY so the integration suite can drive the identical text over a `VALUES` relation of
+ * synthetic candidates. Production always reads the real table; nothing else may pass a relation.
+ */
+export const resolvedMappingSqlOver = resolvedMappingSql;
+
+const RESOLVED_MAPPING = resolvedMappingSql('"spec_property_mappings"');
 
 /**
  * The `specifications_value_shape` CHECK, restated.

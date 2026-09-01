@@ -18,6 +18,7 @@ import {
   PRODUCT_COPY_UNRESOLVED_SQL,
   SPECIFICATION_ELIGIBILITY_SQL,
   SPECIFICATION_UNRESOLVED_SQL,
+  mappingMatchesFactSql,
   productClaimApprovalBlockers,
   productClaimApprovalWarnings,
   productCopyApprovalBlockers,
@@ -1346,12 +1347,18 @@ const EVIDENCE_SQL_BY_SUBJECT: Readonly<Record<ReviewSubjectType, string>> = {
 /**
  * Every mapping that bears on the raw labels this Specification's evidence carries.
  *
- * **The label comparison is normalised exactly as `RESOLVED_MAPPING` in `review-eligibility.ts`
- * is, and it has to be.** This query is what a reviewer SEES as the mappings behind a
- * specification; that constant is what decides whether the specification may be approved. Were the
- * two to match differently, a reviewer could be shown a resolving mapping for a subject the gate
- * then refused as unresolved — or the reverse, which is worse. The rule is the importer's; see the
- * note on that constant for why case-insensitive is the authoritative reading.
+ * **The match is `mappingMatchesFactSql` — literally the same string the approval gate joins on**,
+ * imported rather than restated. This query is what a reviewer SEES as the mappings behind a
+ * specification; `RESOLVED_MAPPING` in `review-eligibility.ts` decides whether it may be approved.
+ * Were the two to match differently, a reviewer could be shown a resolving mapping for a subject
+ * the gate then refused as unresolved — or the reverse, which is worse. Sharing the constant makes
+ * that impossible rather than merely discouraged; `mapping-normalization.spec.ts` asserts both
+ * consumers still use it.
+ *
+ * What is deliberately NOT shared is the filtering. The gate demands HIGH confidence and excludes
+ * rejected and superseded rows; this list applies neither, because a reviewer deciding a blocked
+ * subject needs to see the MEDIUM or rejected mapping that explains why it is blocked. Only the
+ * question "does this mapping bear on this fact" is common to both.
  */
 const SPECIFICATION_MAPPING_SQL = `
 SELECT DISTINCT
@@ -1364,8 +1371,7 @@ SELECT DISTINCT
 FROM "specification_evidence" se
 JOIN "source_facts" sf ON sf."id" = se."source_fact_id"
 JOIN "spec_property_mappings" m
-  ON m."raw_property" = sf."raw_property"
- AND (m."raw_unit" = sf."raw_unit" OR m."raw_unit" IS NULL)
+  ON ${mappingMatchesFactSql("m", "sf")}
 WHERE se."specification_id" = $1::uuid
 ORDER BY 1, 2`;
 
