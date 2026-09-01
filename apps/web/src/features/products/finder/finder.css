@@ -24,8 +24,8 @@
  * to do with. Restating any of them under a `pf-` name would produce two visual answers to one
  * question, and they would drift on the first change to either.
  *
- * What remains below is only what this page genuinely adds: its hero, the stacking of two filter
- * rows into one bar, and the spacing between that bar and its results.
+ * What remains below is only what this page genuinely adds: its hero, the stacking of the search
+ * field and the three filter rows into one bar, and the spacing between that bar and its results.
  *
  * Reveals come from `packages/ui`'s `motion.css` — scroll-driven `animation-timeline: view()`, no
  * JavaScript.
@@ -125,12 +125,15 @@
 }
 
 /*
- * Two `.pl-filter` rows read as ONE bar rather than as two independent controls.
+ * Three `.pl-filter` rows read as ONE bar rather than as three independent controls.
  *
  * `.pl-filter` draws a rule above and below itself, which is right for the single Segment row on a
- * Product Family page and wrong for two rows stacked: the adjacent pair would paint a double line
- * between Family and Segment and a stray gap either side of it. The rules are collapsed below so
- * the bar has one top edge, one shared divider and one bottom edge.
+ * Product Family page and wrong for rows stacked: each adjacent pair would paint a double line
+ * between them and a stray gap either side of it. The rules are collapsed below so the bar has one
+ * top edge, a shared divider between each pair, and one bottom edge.
+ *
+ * The collapse is written as an adjacent-sibling rule rather than as a count, so a row added or
+ * removed needs no edit here — which is what a third row proved rather than assumed.
  *
  * The rows keep their own borders as the default, so nothing changes for the family pages.
  */
@@ -196,7 +199,7 @@
   margin-top: 0;
 }
 
-/* The second row's own top rule is the first row's bottom rule; one of them has to go. */
+/* Each later row's own top rule is the previous row's bottom rule; one of them has to go. */
 .pf-filters .pl-filter + .pl-filter {
   border-top: none;
 }
@@ -239,6 +242,81 @@
   margin-top: clamp(22px, 2.4vw, 32px);
 }
 
+/* ------------------------------------------------------------- pagination */
+
+/*
+ * Previous · where you are · Next.
+ *
+ * Three columns rather than a flex row with `space-between`, so the position label sits in the
+ * MIDDLE of the block and not in the middle of whatever is left after the two controls. That is what
+ * lets the first, middle and last page of a list draw at identical measurements — the disabled
+ * control still occupies its column, so nothing under the visitor's cursor moves between pages.
+ *
+ * Logical properties throughout, and no `left`/`right` anywhere: in `ar` and `fa` the whole row
+ * mirrors, Previous lands on the right, and the reading order still runs from the start edge.
+ */
+.pf-pages {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: clamp(12px, 2vw, 24px);
+  margin-top: clamp(28px, 3vw, 44px);
+  padding-block: clamp(16px, 1.8vw, 22px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+/*
+ * The two directions. Drawn as chips, because that is what every other control on this page is —
+ * and sized past the 24px SC 2.5.8 minimum by the same padding the filter chips use.
+ */
+.pf-page-step {
+  justify-self: end;
+  min-block-size: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 999px;
+  font-family: var(--font-technical);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.pf-page-step:last-child {
+  justify-self: start;
+}
+
+.pf-page-step:hover,
+.pf-page-step:focus-visible {
+  border-color: var(--color-border-accent);
+  color: var(--color-text-primary);
+}
+
+/*
+ * The direction that leads nowhere. A `span`, so it is already unfocusable and unannounced as a
+ * link — this only has to make it LOOK inert, and it does so by receding rather than by graying to
+ * a value that would fail contrast on its own.
+ */
+.pf-page-step[aria-disabled="true"] {
+  border-style: dashed;
+  color: var(--color-text-tertiary);
+}
+
+.pf-page-at {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
 @media (max-width: 700px) {
   .pf-search {
     grid-template-columns: 1fr;
@@ -247,5 +325,18 @@
 
   .pf-search-control {
     grid-template-columns: 1fr;
+  }
+
+  /*
+   * The pagination row keeps its three columns and only loses the padding around them. Stacking it
+   * would put the position label between two controls a thumb has to travel past, and the row fits:
+   * "Previous" and "Next" are one word each and "Page 2 of 2" does not wrap.
+   */
+  .pf-pages {
+    gap: 10px;
+  }
+
+  .pf-page-step {
+    padding-inline: 14px;
   }
 }

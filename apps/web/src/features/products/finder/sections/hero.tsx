@@ -8,14 +8,20 @@ import { ROUTES } from "@/features/site/site-routes";
  * ── Nothing here is a claim about the catalog ───────────────────────────────
  *
  * No count, no range, no capability and no marketing copy. The only substantive sentence describes
- * the two controls immediately below it, which is a fact about this page rather than an assertion
+ * the controls immediately below it, which is a fact about this page rather than an assertion
  * about products — and no source document supplies approved copy for this page, so anything richer
  * would be invented (CLAUDE.md §4).
  *
- * **It does not restate the four facets the landing page's teaser names.** That teaser describes
- * category, industry, application and packaging; this page offers two axes, because those are the
- * two the API can actually filter on today. Repeating the teaser's four here would promise controls
- * that are not on the page.
+ * **It names exactly the axes the bar draws, and it is edited when that changes.** The lead read
+ * "product family or buyer segment" while the filter bar drew three rows, which is the one kind of
+ * error this sentence can make: a description of the controls that undercounts them tells a visitor
+ * the tool cannot do something it can. Product Type is named because ADR-020 §2 approved it as a
+ * Finder axis and `filters.tsx` draws it.
+ *
+ * **It still does not restate the four facets the landing page's teaser names.** That teaser
+ * describes category, industry, application and packaging; industry, application and packaging are
+ * not filters this API can apply — `ProductListQuery` declares none of the three, because no column
+ * backs them — so repeating the teaser's four here would promise controls that are not on the page.
  *
  * ── The breadcrumb is two crumbs, and stops ─────────────────────────────────
  *
@@ -45,8 +51,8 @@ export function FinderHero({ locale }: { readonly locale: string }): ReactNode {
 
         <p className="fs-lead pf-lead">
           Search by product name, grade, or public specification value, then narrow the published
-          range by product family or buyer segment. Every selection stays in the address, ready to
-          share, bookmark, or reopen.
+          range by product family, buyer segment, or product type. Every selection stays in the
+          address, ready to share, bookmark, or reopen.
         </p>
       </div>
     </section>

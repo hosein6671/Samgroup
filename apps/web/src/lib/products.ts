@@ -87,10 +87,13 @@ function rejectedFilterField(details: readonly { field: string }[] | null): stri
 /**
  * The taxonomy axes `GET /products` is asked to narrow on.
  *
- * Both are optional and **both are omitted from the request when absent** rather than sent blank
- * — see `getProducts`. Product Type is deliberately not a member: no ProductType row is approved
- * (ADR-008), every non-blank `?productType=` answers 400, and a field here would be an invitation
- * to send one.
+ * All are optional and **each is omitted from the request when absent** rather than sent blank —
+ * see `getProducts`.
+ *
+ * `productType` was deliberately absent, on the grounds that no ProductType row was approved and
+ * every non-blank `?productType=` answered 400. Both halves are now out of date: `product_types`
+ * holds eight rows, all 100 products carry one, and the endpoint filters on it
+ * (`?productType=engine-oils` → 33 of 100). See `features/products/product-types-data.ts`.
  */
 export type ProductFilters = {
   /**
@@ -103,8 +106,26 @@ export type ProductFilters = {
    * filtering, so this never sends two.
    */
   readonly segment?: string;
+  /**
+   * A `ProductType.slug` — never a name and never `type`, which ADR-008 rejects as a parameter
+   * spelling. Single-valued for the same reason `segment` is.
+   */
+  readonly productType?: string;
   /** Free-text search supported by the public catalogue endpoint. */
   readonly q?: string;
+  /**
+   * The 1-based page of the filtered set, or `undefined` for the endpoint's first page.
+   *
+   * The only member that is not a filter — it selects a window over what the others selected. Sent
+   * only when it is not page 1, on the same rule as every field above: a parameter that restates a
+   * default should not appear in the request.
+   *
+   * **There is deliberately no `limit` and no `sort`.** `GET /products` accepts both and this client
+   * offers neither, by owner decision: the finder takes `limit=20` and `sort=name` as the endpoint's
+   * to choose, and a page number only means anything against a page size the caller is not also
+   * varying.
+   */
+  readonly page?: number;
 };
 
 /**
@@ -137,7 +158,11 @@ export async function getProducts(
     // in the request at all.
     ...(filters.category === undefined ? {} : { category: filters.category }),
     ...(filters.segment === undefined ? {} : { segment: filters.segment }),
+    ...(filters.productType === undefined ? {} : { productType: filters.productType }),
     ...(filters.q === undefined ? {} : { q: filters.q }),
+    // `page=1` is the endpoint's own default, so asking for it explicitly says nothing the empty
+    // request did not. Every page after the first is sent.
+    ...(filters.page === undefined || filters.page <= 1 ? {} : { page: String(filters.page) }),
   });
 
   if (!result.ok) {

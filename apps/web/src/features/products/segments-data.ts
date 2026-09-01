@@ -41,9 +41,13 @@
  *
  * ── What is NOT here ────────────────────────────────────────────────────────
  *
- * **No Product Type.** No ProductType name or slug is approved (ADR-008), `product_types` holds
- * zero rows, and every non-blank `?productType=` answers 400. A control for it would be a UI for a
- * vocabulary that does not exist.
+ * **No Product Type — it has its own registry now.** This note used to read "No ProductType name or
+ * slug is approved (ADR-008), `product_types` holds zero rows, and every non-blank `?productType=`
+ * answers 400", and every clause of it is out of date: ADR-020 approved the eight slugs and display
+ * names on 31 August 2026, the table holds those eight rows, and the endpoint filters on them. The
+ * vocabulary lives in `product-types-data.ts`, a sibling of this file rather than a section of it,
+ * because the two are separate axes over Product (ADR-020 §3) and merging their registries would be
+ * the first step towards deriving one from the other — which ADR-008 forbids and ADR-020 restates.
  *
  * **No per-family Segment lists.** ADR-007 leaves the per-Segment Product Type lists open and
  * nothing approves a Family→Segment mapping, so every family offers every Segment and the backend

@@ -31,11 +31,19 @@ import { getActiveLocales } from "@/lib/locales";
  *
  * ── Filtering is the API's, in full ─────────────────────────────────────────
  *
- * This route reads two query parameters, normalizes them, and passes them to `GET /products`.
- * Nothing here fetches a wider set and narrows it, nothing here validates a slug against a local
- * vocabulary, and nothing here decides what combining the two axes means — ADR-008 fixed those
- * semantics and the service implements them. A second implementation in `apps/web` could only ever
- * agree with the first by coincidence.
+ * This route reads five query parameters — `category`, `segment`, `productType`, `q` and `page` —
+ * normalizes them, and passes them to `GET /products`. Nothing here fetches a wider set and narrows
+ * it, nothing here validates a slug against a local vocabulary, and nothing here decides what
+ * combining the three taxonomy axes with the search term means: ADR-008 fixed those semantics,
+ * `buildWhere` composes them as sibling `where` keys that Prisma ANDs, and a second implementation
+ * in `apps/web` could only ever agree with the first by coincidence.
+ *
+ * **Pagination is the API's too, and this route makes exactly one request for it.** `page` is passed
+ * through; `limit` and `sort` are not sent at all, so the endpoint's `limit=20` and `sort=name`
+ * stand. A page past the end of the result set is answered by the response's own `meta` — a 200
+ * carrying zero rows and a real `total` — and rendered as its own state. It is never retried, never
+ * clamped into a second request, and never converted into a 404: this route issues one fetch per
+ * render whatever `?page=` says.
  *
  * ── No `generateStaticParams`, and no `dynamicParams` ───────────────────────
  *
@@ -66,7 +74,7 @@ import { getActiveLocales } from "@/lib/locales";
  */
 const FINDER_TITLE = "Product Finder | SAM Group";
 const FINDER_DESCRIPTION =
-  "Search SAM Group products by name, grade, or public specification, then narrow the published range by product family and buyer segment.";
+  "Search SAM Group products by name, grade, or public specification, then narrow the published range by product family, buyer segment, and product type.";
 
 export async function generateMetadata({
   params,
@@ -124,7 +132,14 @@ export default async function ProductFinderPage({
   const products = getProducts(locale, {
     category: query.category ?? undefined,
     segment: query.segment ?? undefined,
+    productType: query.productType ?? undefined,
     q: query.q ?? undefined,
+    /*
+     * `page` needs no `?? undefined`: it is never null, because an absent or malformed `?page=` is
+     * already page 1 by the time it reaches here. The client omits page 1 from the request, so a
+     * first-page finder issues exactly the request it issued before pagination existed.
+     */
+    page: query.page,
   });
 
   return (
