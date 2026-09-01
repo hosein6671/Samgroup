@@ -488,10 +488,29 @@
   gap: 16px;
   height: 78px;
 }
+/*
+ * The lockup never compresses. `flex: none` is the whole fix.
+ *
+ * `.fs-nav-in` is a `space-between` flex row and every child defaulted to `flex: 0 1 auto`, so
+ * when the seven nav links plus the right cluster overran the bar, the browser shrank the logo
+ * — the one element in the header whose proportions are the brand. Measured before this change,
+ * at three widths:
+ *
+ *   1181px  logo 140.41px  →  "SAM GROUP" on 2 lines, sub-label on 2 lines, lockup 68.19px tall
+ *   1280px  logo 195.23px  →  sub-label on 2 lines, lockup 49.19px tall
+ *    320px  logo 139.27px  →  "SAM GROUP" on 2 lines, sub-label on 2 lines, lockup 68.19px tall
+ *
+ * So the reported mobile break was one end of a defect that also had a ~120px-wide desktop band
+ * (1181–1300px) nobody had looked at. `flex: none` plus the `nowrap` below removes both at once
+ * and by construction, rather than by keeping a width budget balanced: the lockup now always
+ * takes its intrinsic width, and the row's overflow is resolved where it should be — by the
+ * drawer breakpoint, which moves to 1340px for exactly this reason.
+ */
 .fs-logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: none;
   color: #fff;
 }
 
@@ -535,6 +554,7 @@
 [dir="rtl"] .fs-mark__img {
   transform: translate(50%, -50%);
 }
+/* The company name is one word-group and never breaks, at any width. */
 .fs-logo-txt {
   font-family: var(--font-display);
   font-weight: 500;
@@ -542,15 +562,32 @@
   letter-spacing: -0.02em;
   line-height: 1;
   display: block;
+  white-space: nowrap;
 }
+/*
+ * 12px, not 8.5px.
+ *
+ * This is technical text, and 8.5px is below the floor DESIGN_SYSTEM §7.1 states ("No role
+ * renders below 12px") and §7.2 sets for the technical register specifically — a floor ADR-022
+ * §4.6 restates for the public site. It carries the company's discipline in the one lockup that
+ * appears on every page, to an audience largely not reading in a first language.
+ *
+ * Tracking drops 0.3em → 0.14em to pay for the size. Measured, "Petroleum Engineering" set in
+ * IBM Plex Mono goes 160.66px at 8.5px/0.3em to 186.5px at 12px/0.14em — the lockup widens by
+ * ~26px and the letterforms get materially larger while the word-image stays the same shape.
+ * It stays one line down to ~372px; below that the ≤400px block lets it stack as two whole
+ * words rather than shrink back under the floor.
+ */
 .fs-logo-sub {
   font-family: var(--font-technical);
-  font-size: 8.5px;
-  letter-spacing: 0.3em;
+  font-size: 12px;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
   color: var(--fs-gold);
   text-transform: uppercase;
   margin-top: 3px;
   display: block;
+  white-space: nowrap;
 }
 .fs-nav-links {
   display: flex;
@@ -3252,12 +3289,25 @@
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1340px) {
   /*
    * Seven primary destinations plus a language selector and the quote button do not fit a
-   * single row below roughly 1180px — measured, the flat links begin colliding with the right
-   * cluster. The drawer takes over from here rather than letting the row wrap or shrink the
-   * type below its legible floor.
+   * single row below roughly 1340px. The drawer takes over from here rather than letting the
+   * row wrap or shrink the type below its legible floor.
+   *
+   * **This was 1180px, and 1180px was too low.** The original figure was measured when the
+   * lockup was still allowed to compress, so "it fits" meant "the row does not overflow" — not
+   * "every element is intact". It was not: between 1181px and ~1300px the row balanced only by
+   * squeezing the logo, breaking "SAM GROUP" onto two lines at 1181px and wrapping the
+   * sub-label up to ~1300px. The measurements are on `.fs-logo` above.
+   *
+   * 1340px is the re-measured figure against a lockup that can no longer be squeezed, and it
+   * includes the sub-label's move to the 12px floor, which widened the lockup by ~26px. It is
+   * one number in one place, so it is re-measurable when the header's contents next change.
+   *
+   * Only the header rules moved. The `@media (max-width: 1180px)` block above keeps its page
+   * layout rules at 1180px — those are about content columns and have nothing to do with the
+   * nav row's budget.
    */
   .fs-nav-links {
     display: none;
@@ -3375,22 +3425,39 @@
   }
 }
 
-@media (max-width: 520px) {
+/*
+ * ------------------------------------------------------- the bar sheds the CTA (≤620px)
+ *
+ * These two rules were in the `max-width: 520px` block below. They are the header's, and the
+ * header's budget changed twice in this gate — the lockup can no longer be squeezed, and it
+ * grew ~26px when the sub-label moved to the 12px floor. Re-measured, the bar holds the lockup,
+ * the language selector and the quote button down to 603px, not 520px.
+ *
+ *   logo 242.73  +  gap 16  +  right cluster 283.41  =  542.14px of content
+ *   content available = vw − 2 × gutter = 0.9 × vw   →   fits while vw ≥ 603
+ *
+ * 620px is that figure with margin. Below it the quote button is **not dropped** — it is pinned
+ * to the drawer foot, where it stays prominent — and the mark trims to 22px, both exactly as
+ * they did at 520px. Only the width at which it happens moved.
+ *
+ * The rest of the 520px block is page layout — hero buttons, story meta, photo captions — and
+ * stays at 520px, because none of it is about the nav row.
+ */
+@media (max-width: 620px) {
   /*
    * The official mark is 1.58:1 where the placeholder was square, so it is ~10px wider at the
-   * same height. Measured at 390px, that left exactly 0px between the nav lockup and the
-   * partnership button. Trimming the mark here — and only here — restores the breathing room
-   * without touching desktop or altering the lockup's proportions.
+   * same height. Trimming it here — and only here — restores breathing room in the bar without
+   * touching desktop or altering the lockup's proportions.
    */
   .fs-nav .fs-mark {
     --mark-h-override: 22px;
   }
-  /* Below this width the bar cannot hold the lockup, the language selector and the button.
-     The button is not dropped — it is pinned to the drawer foot, where it stays prominent. */
   .fs-nav-cta {
     display: none;
   }
+}
 
+@media (max-width: 520px) {
   .fs-hero-cta .fs-btn {
     width: 100%;
   }
@@ -3423,6 +3490,72 @@
   }
   .fs-trust-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/*
+ * ------------------------------------------------------ narrow phones (≤430px)
+ *
+ * The lockup can no longer shrink (`.fs-logo` is `flex: none`), so on the narrowest phones the
+ * space it needs has to come from somewhere real rather than from the brand. It comes from the
+ * right cluster, which is the part of the bar with slack in it.
+ *
+ * The budget at 320px, measured. Before: the text block got 92.5px, against 104.16px for
+ * "SAM GROUP" — so the name broke in two. The four trims below return 38px:
+ *
+ *   language globe hidden          14px + 8px gap  = 22px
+ *   language button padding 14→10   4px × 2        =  8px
+ *   nav row gap 16→12                              =  4px
+ *   right cluster gap 12→8                         =  4px
+ *
+ * which puts the text block at ~130px — comfortably clear of what the name needs, at the narrowest
+ * width the site supports.
+ *
+ * **Hiding the globe removes nothing.** It is `aria-hidden` decoration; the button's accessible
+ * name is its `aria-label` ("Language: EN") and the visible "EN" stays, so the control reads
+ * identically to a screen reader and identically to a sighted reader who knows what EN means.
+ * The 40px button and the 44px burger are untouched — no target gets smaller.
+ */
+@media (max-width: 430px) {
+  .fs-nav-in {
+    gap: 12px;
+  }
+  .fs-nav-right {
+    gap: 8px;
+  }
+  .fs-logo {
+    gap: 10px;
+  }
+  .fs-lang-btn {
+    padding: 0 10px;
+  }
+  .fs-lang-btn > svg {
+    display: none;
+  }
+  /*
+   * The sub-label stacks rather than shrinking.
+   *
+   * At 12px it needs ~186px on one line and only ~130px is available at 320px, so something has
+   * to give — and it is not the 12px floor (DESIGN_SYSTEM §7.2, ADR-022 §4.6).
+   *
+   * `max-inline-size: min-content` is what makes the stack DETERMINISTIC rather than incidental.
+   * With `white-space: normal` alone the break depends on the width left over, and the arithmetic
+   * put the tipping point at 374px — one pixel from the 375px reference device, so a font
+   * fallback or a scrollbar would decide whether the lockup had two lines or three. `min-content`
+   * sizes the box to its longest word instead, so it always breaks at the space and only at the
+   * space: PETROLEUM / ENGINEERING, two whole words, identically at 320px and 375px. One narrow
+   * treatment, no knife edge, and no possibility of a mid-word break.
+   *
+   * It also removes the overflow that `flex: none` would otherwise cause here: the lockup's
+   * max-content width drops from 231.25px to ~149px, which fits the ~177px available at 320px,
+   * so the language button and burger stay inside the gutter.
+   *
+   * The lockup is then ~48px tall inside the 78px bar, and `.fs-nav-in` centres it, so both
+   * controls stay on the bar's centre line exactly as they do at every other width.
+   */
+  .fs-logo-sub {
+    white-space: normal;
+    max-inline-size: min-content;
   }
 }
 
