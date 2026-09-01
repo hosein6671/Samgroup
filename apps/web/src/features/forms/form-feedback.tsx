@@ -107,27 +107,45 @@ export function FieldError({
 }
 
 /**
- * The submit button, disabled while the action is in flight.
+ * The submit button, disabled while the action is in flight — and while anything else says the form
+ * is not ready to send.
  *
- * `useFormStatus` rather than a prop: it reads the pending state of the `<form>` this button is
- * inside, which is React's own answer and cannot disagree with reality. It requires the button to
- * be a descendant of the form rather than the component that renders it — which is why this is its
- * own component and not a branch inside the form.
+ * `useFormStatus` rather than a prop for the pending half: it reads the pending state of the
+ * `<form>` this button is inside, which is React's own answer and cannot disagree with reality. It
+ * requires the button to be a descendant of the form rather than the component that renders it —
+ * which is why this is its own component and not a branch inside the form.
  *
  * Disabling is what prevents the double submission that creates two identical leads. The label
  * changes with it, because a disabled button with unchanged text reads as broken rather than busy.
+ *
+ * `blocked` is the second half, and today its only source is the Turnstile challenge: there is no
+ * point offering a control whose submission the API will refuse for want of a token. A disabled
+ * control that does not say why is the failure mode of the pattern, so `describedBy` is required to
+ * carry the id of the sentence that explains it — the label deliberately does **not** change, since
+ * the reason is not "busy" and belongs in prose rather than in a verb.
  */
 export function SubmitButton({
   label,
   pendingLabel,
+  blocked = false,
+  describedBy,
 }: {
   readonly label: string;
   readonly pendingLabel: string;
+  /** True when something outside the submission itself says the form cannot be sent yet. */
+  readonly blocked?: boolean;
+  /** The id of the element explaining `blocked`. */
+  readonly describedBy?: string | undefined;
 }): ReactNode {
   const { pending } = useFormStatus();
 
   return (
-    <button type="submit" className="fs-btn fs-btn--gold" disabled={pending}>
+    <button
+      type="submit"
+      className="fs-btn fs-btn--gold"
+      disabled={pending || blocked}
+      aria-describedby={blocked ? describedBy : undefined}
+    >
       {pending ? pendingLabel : label}
     </button>
   );

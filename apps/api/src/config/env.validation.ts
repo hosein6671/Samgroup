@@ -260,6 +260,26 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   LEAD_NOTIFICATION_TO?: string;
+
+  /**
+   * Cloudflare Turnstile's **secret** key — a real secret, never logged and never returned.
+   *
+   * **Optional here, and that is a statement about BOOT rather than about the runtime
+   * requirement.** An API that refused to start without it would take every read endpoint down over
+   * an anti-spam control, so startup does not depend on it. The runtime requirement is enforced
+   * where it applies: in a production process an unset secret makes the two public form endpoints
+   * answer 503 instead of accepting unverified submissions, and outside production it stands the
+   * check down. `TurnstileVerifier` owns that rule and is where it is asserted.
+   *
+   * A present-but-blank value is treated exactly as an unset one, which is what a copied
+   * `.env.example` produces — the same reading `SMTP_PORT` and the Payload pair already take.
+   *
+   * The **site** key is public, is rendered in the browser, and belongs to `apps/web`'s
+   * environment (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`). It is deliberately not validated here.
+   */
+  @IsOptional()
+  @IsString()
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 /**

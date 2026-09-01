@@ -17,6 +17,8 @@ import {
 } from "./workflow/lead-workflow.controller";
 import { LeadWorkflowService } from "./workflow/lead-workflow.service";
 import { SmtpMailer } from "./notification/smtp.mailer";
+import { TurnstileGuard } from "./turnstile/turnstile.guard";
+import { TurnstileVerifier } from "./turnstile/turnstile.verifier";
 
 /**
  * The **Forms** module — ARCHITECTURE.md §Modules, "sample requests, custom formulation requests,
@@ -80,6 +82,29 @@ import { SmtpMailer } from "./notification/smtp.mailer";
  * 3. **No mailbox is hard-coded.** Sender and recipient are environment configuration with no
  *    defaults; unconfigured means the attempt is skipped and logged, not that mail goes somewhere
  *    unintended.
+ *
+ * ── Anti-abuse: rate limiting and, now, an invisible challenge ──────────────
+ *
+ * `TurnstileGuard` is attached to the two **public** controllers beside `ThrottlerGuard` and to
+ * nothing else — not to the Admin controllers, which are authenticated, and not globally.
+ * `TurnstileVerifier` is the only file that knows Cloudflare exists; both are private to this
+ * module, because the challenge protects these two endpoints and no others.
+ *
+ * **Unlike the notification, this one fails closed**, and the difference is the point. A mail relay
+ * that is unconfigured or down loses a notification about a lead that was still stored; an
+ * anti-abuse check that is unconfigured or down would mean accepting unverified writes on a public,
+ * unauthenticated endpoint. So:
+ *
+ * 1. **The check runs before the DTO is built** (guards precede pipes), which is what makes it
+ *    cheap against the traffic it exists to stop.
+ * 2. **An unconfigured secret is not a skip in production.** Outside production the check stands
+ *    down — the development default. In a production process an unset secret answers 503 on both
+ *    endpoints and stores nothing.
+ * 3. **A Cloudflare outage refuses the submission** rather than accepting it unverified, and is
+ *    logged at error level on every occurrence.
+ *
+ * Each is asserted rather than described — see `TurnstileVerifier`, which owns the whole rule and
+ * every line this feature logs.
  */
 @Module({
   imports: [PrismaModule, CatalogModule, IdentityModule],
@@ -97,6 +122,8 @@ import { SmtpMailer } from "./notification/smtp.mailer";
     LeadNotificationService,
     LeadWorkflowService,
     SmtpMailer,
+    TurnstileVerifier,
+    TurnstileGuard,
   ],
 })
 export class FormsModule {}

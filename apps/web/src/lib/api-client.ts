@@ -105,12 +105,25 @@ export type ApiNoContentResult = { readonly ok: true } | ApiFailure;
  * credential is usable, and hands the raw value down. Inverting that would put cookie knowledge in
  * the one module every public page already depends on.
  *
- * **This is not a general header escape hatch.** It is one named credential field, so no caller can
- * use it to set `Cookie`, `Host`, or anything else on a server-to-server request, and there is no
- * shape here that a browser-originated proxy could be built out of.
+ * **This is not a general header escape hatch.** It is a closed set of named fields, so no caller
+ * can use it to set `Cookie`, `Host`, or anything else on a server-to-server request, and there is
+ * no shape here that a browser-originated proxy could be built out of.
  */
 export type RequestOptions = {
   readonly accessToken?: string;
+  /**
+   * The Cloudflare Turnstile token from the submitted form, forwarded as `CF-Turnstile-Response`.
+   *
+   * A second named field rather than a widening of the type, for the reason above. It is supplied
+   * by `features/forms/submit.ts` — the transport knows nothing about challenges, exactly as it
+   * knows nothing about sessions — and it is verified by `apps/api`, which is the security
+   * boundary: a check that ran only in a Server Action would leave the public endpoint unprotected
+   * against anyone posting to it directly.
+   *
+   * A header rather than a body field so the frozen submission contract gains no property and the
+   * token can never be persisted alongside the lead.
+   */
+  readonly turnstileToken?: string;
 };
 
 /**
@@ -371,6 +384,14 @@ function composeHeaders(method: HttpMethod, options: RequestOptions | undefined)
    */
   if (options?.accessToken !== undefined && options.accessToken !== "") {
     headers.authorization = `Bearer ${options.accessToken}`;
+  }
+
+  /*
+   * Cloudflare's own field name. Sent only when the widget produced a token — an absent header and
+   * an empty one mean the same thing to the API, and the shorter request states it more clearly.
+   */
+  if (options?.turnstileToken !== undefined && options.turnstileToken !== "") {
+    headers["cf-turnstile-response"] = options.turnstileToken;
   }
 
   return headers;

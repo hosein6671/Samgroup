@@ -41,6 +41,37 @@ export type AppConfig = {
    * silently.
    */
   mail: MailConfig;
+  /**
+   * Cloudflare Turnstile — the approved invisible anti-abuse challenge on the two public write
+   * endpoints (SITE_STRUCTURE.md §10).
+   *
+   * **Optional for BOOT, required for the two protected writes in production.** This is not the
+   * "degrades as one capability" arrangement the Payload pair and the SMTP group have, and the
+   * difference is deliberate: an unconfigured mail relay loses a notification about a lead that was
+   * still stored, whereas an unconfigured captcha would mean accepting unverified submissions on a
+   * public, unauthenticated endpoint.
+   *
+   * So the two halves are split. The API still **boots** without the secret, because refusing to
+   * start would take the catalog, the blog and every read endpoint down over an anti-spam control.
+   * But in a production process an unset secret makes `POST /inquiries` and
+   * `POST /custom-formulation-requests` answer 503 rather than accept unverified writes. Outside
+   * production an unset secret stands the check down, which is the development default and cannot
+   * reach production — see `TurnstileVerifier`.
+   */
+  turnstile: TurnstileConfig;
+};
+
+/**
+ * `secretKey` is a REAL SECRET, the same class as `smtpPassword` and `jwtSecret`. It is read here,
+ * handed to `TurnstileVerifier`, and never logged, never put in an error message, never returned by
+ * any endpoint and never quoted in a validation message.
+ *
+ * The **site** key is deliberately absent: it is public by design, it is rendered in the browser,
+ * and it belongs to `apps/web`'s environment. Carrying it here would imply the API needs it, which
+ * it does not.
+ */
+export type TurnstileConfig = {
+  secretKey: string;
 };
 
 /**
@@ -91,5 +122,10 @@ export default (): AppConfig => ({
     smtpSecure: process.env.SMTP_SECURE?.trim() === "true",
     from: process.env.MAIL_FROM?.trim() ?? "",
     leadNotificationTo: process.env.LEAD_NOTIFICATION_TO?.trim() ?? "",
+  },
+  turnstile: {
+    // Deliberately NOT trimmed, for the reason smtpPassword is not: silently altering a credential
+    // produces a verification failure nobody can explain from the message.
+    secretKey: process.env.TURNSTILE_SECRET_KEY ?? "",
   },
 });

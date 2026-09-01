@@ -1,6 +1,6 @@
 "use server";
 
-import { buildBody, checked, submitTo, text, textList } from "./submit";
+import { buildBody, checked, submitTo, text, textList, turnstileToken } from "./submit";
 
 import type { SubmissionState } from "./submission-state";
 
@@ -30,6 +30,15 @@ import type { SubmissionState } from "./submission-state";
  * `forbidNonWhitelisted`, required fields, lengths, enum membership, `consentGiven === true`), and
  * a second copy of those rules in the browser would be a second thing to keep in step. What comes
  * back is `details: [{field, issue}]`, keyed by the same names the inputs carry.
+ *
+ * ── The anti-abuse token is forwarded, never judged ─────────────────────────
+ *
+ * Both actions read `cf-turnstile-response` — the input Turnstile's own script writes into the
+ * form — and hand it to `submitTo`, which sends it as a header. **Neither action decides anything
+ * about it**: an absent token is forwarded as absent and the API refuses the submission, because
+ * the endpoint is public and a check that lived here would protect the form rather than the
+ * endpoint. It stays out of the request body for the same reason it stays out of the redrawn form
+ * — see `turnstileToken` in `submit.ts`.
  */
 
 /**
@@ -66,6 +75,7 @@ export async function submitInquiry(
       consentGiven: checked(form, "consentGiven"),
     }),
     previous,
+    turnstileToken(form),
   );
 }
 
@@ -99,5 +109,6 @@ export async function submitCustomFormulationRequest(
       consentGiven: checked(form, "consentGiven"),
     }),
     previous,
+    turnstileToken(form),
   );
 }

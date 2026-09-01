@@ -3,6 +3,7 @@ import { SkipThrottle, ThrottlerGuard } from "@nestjs/throttler";
 
 import { CreateInquiryDto } from "./dto/create-inquiry.dto";
 import { InquiriesService } from "./inquiries.service";
+import { TurnstileGuard } from "./turnstile/turnstile.guard";
 
 import type { SubmissionResponse } from "./dto/submission.response";
 
@@ -50,9 +51,19 @@ import type { SubmissionResponse } from "./dto/submission.response";
  * MINUTES — a stricter budget over a shorter window than this endpoint's 5 per hour. Without the
  * skip, a legitimate burst of form submissions would be blocked by a limit that exists to slow
  * credential stuffing. See throttle.config.ts.
+ *
+ * ── The invisible challenge runs beside the rate limit ─────────────────────
+ *
+ * `TurnstileGuard` is listed **after** `ThrottlerGuard`, and the order is load-bearing: guards run
+ * left to right, so a client already over its 5/hour budget is answered 429 without this endpoint
+ * spending a verification round trip on our Cloudflare account.
+ *
+ * Like the throttler it is attached here rather than globally — SITE_STRUCTURE.md §10 asks for an
+ * invisible captcha on the public submission forms, not on every read the platform serves. A
+ * refused challenge answers **403 `FORBIDDEN`**; see `turnstile.guard.ts` for why it is not a 400.
  */
 @SkipThrottle({ login: true })
-@UseGuards(ThrottlerGuard)
+@UseGuards(ThrottlerGuard, TurnstileGuard)
 @Controller("inquiries")
 export class InquiriesController {
   constructor(private readonly inquiriesService: InquiriesService) {}

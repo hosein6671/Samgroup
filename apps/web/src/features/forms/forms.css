@@ -134,6 +134,69 @@
   accent-color: var(--fs-gold);
 }
 
+/*
+ * The Privacy Policy link inside the consent sentence. It renders only while a published policy
+ * exists (see `features/forms/consent-label.tsx`), and it is underlined rather than merely
+ * recoloured so it is distinguishable from the sentence around it without relying on colour alone
+ * (WCAG 1.4.1). `.fm-consent` sits on a midnight panel on both forms that use it, so the hover
+ * state resolves to the panel's own foreground rather than to a second accent.
+ */
+.fm-consent-policy {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.fm-consent-policy:hover,
+.fm-consent-policy:focus-visible {
+  color: #fff;
+}
+
+/*
+ * The Turnstile container. It is normally EMPTY — `data-appearance="interaction-only"` means
+ * Cloudflare injects nothing unless the visitor needs to interact — so this reserves no height and
+ * adds no margin in the common case. `:not(:empty)` is what keeps a blank gap from appearing above
+ * the submit button on every visit.
+ */
+.fm-turnstile:not(:empty) {
+  margin-top: 18px;
+}
+
+/*
+ * The sentence that explains why the submit control is not available yet, and the
+ * one the submit button's `aria-describedby` points at. It is not decoration: it
+ * is the reason a disabled control gives for being disabled, so it is sized and
+ * coloured to be read rather than skimmed past, and left-aligned even inside the
+ * Customized Solutions form's end-justified submit block.
+ *
+ * `#eef1f6` at full opacity on the midnight panel rather than the 0.72 the first
+ * draft used — this carries an error state, and WCAG 1.4.3's 4.5:1 is not
+ * something to spend on a tint.
+ */
+.fm-turnstile-note {
+  margin: 14px 0 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: start;
+  color: #eef1f6;
+}
+
+/*
+ * The dead end — the script did not load, or Cloudflare reported an error — as
+ * opposed to the two states that resolve on their own. It is distinguished by
+ * the same border-plus-text treatment `.fm-banner--bad` uses rather than by hue
+ * alone, and it carries role="alert" in the markup, so the state is available to
+ * someone who cannot see the colour at all.
+ */
+.fm-turnstile-note--alert {
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 180, 162, 0.5);
+  border-radius: 10px;
+  background: rgba(255, 180, 162, 0.08);
+  color: #ffd8cd;
+}
+
 .fm-actions {
   margin-top: 28px;
   display: flex;

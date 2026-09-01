@@ -7,6 +7,7 @@ import { CreateCustomFormulationRequestDto } from "./dto/create-custom-formulati
 import { CreateInquiryDto } from "./dto/create-inquiry.dto";
 import { InquiriesController } from "./inquiries.controller";
 import { InquiriesService } from "./inquiries.service";
+import { TurnstileGuard } from "./turnstile/turnstile.guard";
 
 const RESULT = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -23,6 +24,11 @@ const RESULT = {
  * a rate limit. The limit itself is tested against the real guard and the real storage in
  * `common/throttling/throttle.config.spec.ts`, including that these two controllers are the ones
  * carrying it.
+ *
+ * `TurnstileGuard` is overridden for exactly the same reason and with the same stub: it would
+ * otherwise need `TurnstileVerifier`, which needs `ConfigService`, none of which this file is about.
+ * The challenge is tested against the real guard and a stubbed verifier in
+ * `turnstile/turnstile.guard.spec.ts`, and the verifier against a stubbed `fetch` beside it.
  */
 const ALLOW_ALL = { canActivate: (): boolean => true };
 
@@ -34,6 +40,8 @@ describe("Forms controllers", () => {
       providers: [{ provide: InquiriesService, useValue: { create } }],
     })
       .overrideGuard(ThrottlerGuard)
+      .useValue(ALLOW_ALL)
+      .overrideGuard(TurnstileGuard)
       .useValue(ALLOW_ALL)
       .compile();
 
@@ -50,6 +58,8 @@ describe("Forms controllers", () => {
       providers: [{ provide: CustomFormulationRequestsService, useValue: { create } }],
     })
       .overrideGuard(ThrottlerGuard)
+      .useValue(ALLOW_ALL)
+      .overrideGuard(TurnstileGuard)
       .useValue(ALLOW_ALL)
       .compile();
 

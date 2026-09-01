@@ -5,6 +5,8 @@ import { useActionState } from "react";
 import type { ReactNode } from "react";
 
 import { submitInquiry } from "./actions";
+import { ConsentLabel } from "./consent-label";
+import { TurnstileWidget } from "./turnstile-widget";
 import {
   FieldError,
   FormStatus,
@@ -63,6 +65,7 @@ export type ProductContext = {
 export function InquiryForm({
   inquiryType,
   lockInquiryType = false,
+  privacyPolicyHref = null,
   product = null,
   variant = "full",
 }: {
@@ -74,6 +77,14 @@ export function InquiryForm({
    * rather than a mis-filed lead.
    */
   readonly lockInquiryType?: boolean;
+  /**
+   * The published Privacy Policy's address in this locale, or `null` when none is published.
+   *
+   * Resolved on the server by the section that renders this form and passed in, because this is a
+   * Client Component and the lookup is a server-side API read. `null` is the default so a caller
+   * that has not resolved one renders the sentence unlinked rather than a broken link.
+   */
+  readonly privacyPolicyHref?: string | null;
   readonly product?: ProductContext | null;
   /** A shorter homepage treatment; it keeps every API-required field and the message. */
   readonly variant?: "full" | "compact";
@@ -251,28 +262,44 @@ export function InquiryForm({
 
         <div className="fm-consent">
           <input id="inq-consent" name="consentGiven" type="checkbox" required />
-          <label htmlFor="inq-consent">{CONSENT_LABEL}</label>
+          <label htmlFor="inq-consent">
+            <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
+          </label>
         </div>
         <FieldError id="inq-consent-error" issues={issuesFor(state, "consentGiven")} />
 
-        <div className="fm-actions">
-          <SubmitButton label="Send enquiry" pendingLabel="Sending…" />
-          <p className="fm-required-note">Fields marked required must be completed.</p>
-        </div>
+        {/*
+         * Inside the `<form>`, so the token is part of this form's `FormData`, and wrapping the
+         * submit control so it stays disabled until a token exists. Placed after consent: on the
+         * rare visit where a challenge does appear, it appears where the person is already looking.
+         */}
+        <TurnstileWidget>
+          {({ blocked, describedBy }) => (
+            <div className="fm-actions">
+              <SubmitButton
+                label="Send enquiry"
+                pendingLabel="Sending…"
+                blocked={blocked}
+                describedBy={describedBy}
+              />
+              <p className="fm-required-note">Fields marked required must be completed.</p>
+            </div>
+          )}
+        </TurnstileWidget>
       </form>
     </>
   );
 }
 
 /**
- * The consent checkbox label.
+ * The form-specific opening of the consent sentence.
  *
- * Names the privacy policy without linking to it: `/privacy-policy` is a real route in the sitemap
- * with no page and no approved legal text, and SITE_STRUCTURE's Outstanding Confirmations lists
- * legal review as a launch blocker. A link to a 404 beside a consent checkbox is worse than no
- * link. The same wording the Custom Product Request form already carries.
+ * It stops immediately before the policy is named, because whether that name is a link depends on
+ * whether one is published — `ConsentLabel` completes the sentence either way, with the identical
+ * wording this constant carried in full before. The Custom Product Request form carries the same
+ * construction with its own lead.
  */
-const CONSENT_LABEL = "I agree to be contacted about this enquiry and accept the privacy policy.";
+const CONSENT_LEAD = "I agree to be contacted about this enquiry and accept the";
 
 /**
  * The required marker. The asterisk is decorative; the word is what a screen reader reads — an

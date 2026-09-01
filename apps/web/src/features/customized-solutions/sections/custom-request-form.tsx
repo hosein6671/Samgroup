@@ -5,6 +5,8 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import { submitCustomFormulationRequest } from "@/features/forms/actions";
+import { ConsentLabel } from "@/features/forms/consent-label";
+import { TurnstileWidget } from "@/features/forms/turnstile-widget";
 import {
   FieldError,
   FormStatus,
@@ -17,7 +19,7 @@ import {
 import { IDLE, type SubmissionState } from "@/features/forms/submission-state";
 
 import { ANCHORS } from "../solutions-anchors";
-import { CONSENT_LABEL, REQUEST_GROUPS, type RequestField } from "../solutions-form";
+import { CONSENT_LEAD, REQUEST_GROUPS, type RequestField } from "../solutions-form";
 
 /**
  * 4 · Custom Product Request — SITE_STRUCTURE §5's `[FORM]`, and this page's terminal section.
@@ -49,7 +51,18 @@ import { CONSENT_LABEL, REQUEST_GROUPS, type RequestField } from "../solutions-f
  * did not. It posts through a Server Action, so the browser never calls NestJS — which it could not
  * do anyway, `apps/api` runs with `cors: false`.
  */
-export function CustomRequestForm(): ReactNode {
+export function CustomRequestForm({
+  privacyPolicyHref = null,
+}: {
+  /**
+   * The published Privacy Policy's address in this locale, or `null` when none is published.
+   *
+   * Resolved on the server by the route and passed down, because this is a Client Component and the
+   * lookup is a server-side API read. `null` is the default so a caller that has not resolved one
+   * renders the consent sentence unlinked rather than a broken link.
+   */
+  readonly privacyPolicyHref?: string | null;
+} = {}): ReactNode {
   const [state, action] = useActionState<SubmissionState, FormData>(
     submitCustomFormulationRequest,
     IDLE,
@@ -188,13 +201,28 @@ export function CustomRequestForm(): ReactNode {
                     <div className="cs-submit-block">
                       <div className="pr-consent">
                         <input id="cs-consentGiven" name="consentGiven" type="checkbox" required />
-                        <label htmlFor="cs-consentGiven">{CONSENT_LABEL}</label>
+                        <label htmlFor="cs-consentGiven">
+                          <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
+                        </label>
                       </div>
                       <FieldError
                         id="cs-consentGiven-error"
                         issues={issuesFor(state, "consentGiven")}
                       />
-                      <SubmitButton label="Submit request" pendingLabel="Submitting…" />
+                      {/*
+                       * Same construction as the inquiry form: inside the form, and wrapping the
+                       * submit control so it stays disabled until a token exists.
+                       */}
+                      <TurnstileWidget>
+                        {({ blocked, describedBy }) => (
+                          <SubmitButton
+                            label="Submit request"
+                            pendingLabel="Submitting…"
+                            blocked={blocked}
+                            describedBy={describedBy}
+                          />
+                        )}
+                      </TurnstileWidget>
                     </div>
                   )}
                 </div>

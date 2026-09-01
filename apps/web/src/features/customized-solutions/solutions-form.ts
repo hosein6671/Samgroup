@@ -179,15 +179,15 @@ export const REQUEST_GROUPS: readonly RequestGroup[] = [
 ];
 
 /**
- * The consent checkbox.
+ * The consent checkbox's opening clause.
  *
  * Separate from the groups above because it is not a data field the buyer is describing their
  * requirement with — it is the lawful basis for holding any of the rest. DATA_MODEL_GAP_REVIEW §1
  * is explicit that it is "legally required before this form can collect data at all".
  *
- * The privacy policy it refers to is a real route in the sitemap (`/privacy-policy`) that has no
- * page and no approved legal text yet — SITE_STRUCTURE's Outstanding Confirmations lists legal
- * review as a launch blocker. So the label names the policy without linking to a 404.
+ * It stops immediately before the policy is named: whether that name is a link depends on whether
+ * the CMS is serving a published Privacy Policy, and `features/forms/consent-label.tsx` completes
+ * the sentence either way. Unlinked, the wording is identical to the full sentence this constant
+ * carried before.
  */
-export const CONSENT_LABEL =
-  "I agree to be contacted about this request and accept the privacy policy.";
+export const CONSENT_LEAD = "I agree to be contacted about this request and accept the";
