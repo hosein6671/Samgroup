@@ -18,6 +18,33 @@ not a page-by-page specification — that is [SITE_STRUCTURE.md](../SITE_STRUCTU
 is not the frontend's technical architecture, which is
 [frontend/FRONTEND_ARCHITECTURE.md](../frontend/FRONTEND_ARCHITECTURE.md).
 
+> ### Which surface this document governs
+>
+> **This document governs the Admin Dashboard and the shared primitives — not the public site.**
+> Recorded in [ADR-022](../ADR/ADR-022-public-visual-system-boundary.md).
+>
+> The public site ships the **Flagship** identity: dark navy, brass/gold, restrained industrial,
+> implemented in `apps/web/src/features/home/flagship.css` under `[data-brand="flagship"]`. It
+> re-binds this system's semantic token names inside its own scope; it does not replace them, and
+> `packages/ui/src/tokens/*.ts` is untouched by it.
+>
+> Three decisions below are therefore **true of the Admin surface and not of the public site**, and
+> reading either document alone gives the wrong answer for the other:
+>
+> | §                           | Says                                              | On the public site                                          |
+> | --------------------------- | ------------------------------------------------- | ----------------------------------------------------------- |
+> | §2 Light luxury first       | Warm white canvas; midnight is the exception      | Dark-first. Midnight is the dominant surface.               |
+> | §3.1 Sam Blue               | `#0a4a80` is the identity and the only accent     | Brass/gold is the accent; `sam-blue` is not used.           |
+> | §3.4 Brass — rare highlight | Gold is never a call to action, never interactive | Gold **is** the call to action, and the interactive colour. |
+>
+> Everything else here — the semantic-token discipline (§3.5), the specification-first posture (§6),
+> the 12px type floor (§7.1, §7.2), the RTL divergences (§7.4), the motion principles (§8), the
+> exclusions (§9) and the change rules (§12) — applies to **both** surfaces, and ADR-022 §4 restates
+> the binding ones as requirements on public UI work.
+>
+> ADR-022 is a scope clarification. It authorizes no redesign of either surface, and no token
+> migration in either direction.
+
 ---
 
 ## 1. Positioning

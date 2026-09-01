@@ -24,8 +24,15 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-018](./ADR-018-bounded-incremental-catalog-patches.md)           | Named, bounded and transactional incremental catalog patches without repair, approval or public-source leakage                            | Accepted |
 | [ADR-019](./ADR-019-product-copy-review-subject.md)                   | Product copy as a third review subject, giving the 66 drafted descriptions an approval path                                               | Accepted |
 | [ADR-020](./ADR-020-product-type-vocabulary-and-finder-scope.md)      | The eight Product Type slugs and display names are approved vocabulary, and may be shown as a public Finder filter axis                   | Accepted |
+| ADR-021 — _reserved, not yet written_                                 | Privacy-policy revision binding, so the published revision identifier and `ACTIVE_PRIVACY_POLICY_REVISION` cannot drift                   | Open     |
+| [ADR-022](./ADR-022-public-visual-system-boundary.md)                 | Flagship dark/navy/brass is the public-site identity; `packages/ui` remains the Admin and shared-primitives system                        | Accepted |
 
-These twenty accepted decisions, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+**ADR-021 is reserved, not free.** No file carries that number yet, but two live documents already
+cite it for the policy-revision decision — [`docs/legal/DRAFT-privacy-policy-REVIEW-ONLY.md`](../legal/DRAFT-privacy-policy-REVIEW-ONLY.md)
+(publication blocker 6) and [`docs/legal/OWNER-QUESTIONNAIRE-privacy-policy.md`](../legal/OWNER-QUESTIONNAIRE-privacy-policy.md)
+(question 21). Do not assign it to anything else.
+
+These twenty-one accepted decisions, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 
