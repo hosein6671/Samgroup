@@ -160,7 +160,22 @@
   --color-text-on-accent: #1a1204;
   --color-border-hairline: rgba(6, 19, 70, 0.13);
   --color-border-strong: rgba(6, 19, 70, 0.42);
-  --color-border-accent: var(--fs-gold);
+  /*
+   * The DARKENED gold, not `--fs-gold`, and only in this context.
+   *
+   * Measured: raw `--fs-gold` (#c39a4e) is 2.61:1 on white and 2.37:1 on `--fs-paper`. WCAG 1.4.11
+   * puts a 3:1 floor under a boundary that identifies a control, and this token draws exactly
+   * that — accent hairlines, the secondary button's edge, the input focus border. It failed.
+   *
+   * #8a6a2a is not a new colour: it is the gold this context already darkened to clear 4.5:1 as
+   * text, and it is already `--color-highlight-rare` and `--color-focus-ring` here. Reusing it
+   * measures 5.03:1 on white, 4.57:1 on `--fs-paper` and 4.09:1 on `--fs-silver-2`.
+   *
+   * The DARK context keeps `--fs-gold` untouched — it measures 7.52:1 on ink and 6.79:1 on the
+   * raised surface, so it was never the failing half, and the Flagship's dominant surface is
+   * unchanged.
+   */
+  --color-border-accent: #8a6a2a;
   --color-accent-default: var(--fs-gold);
   --color-accent-hover: var(--fs-gold-2);
   --color-accent-muted: rgba(195, 154, 78, 0.12);

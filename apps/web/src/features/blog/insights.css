@@ -191,9 +191,17 @@
   color: var(--color-text-accent);
 }
 
-/* The focus ring belongs on the card, since the card is what the pointer target covers. */
+/*
+ * The focus ring belongs on the card, since the card is what the pointer target covers.
+ *
+ * `--color-focus-ring`, not `--color-border-accent`. They resolved to different colours on light
+ * surfaces — the border token was the raw gold, which measures 2.61:1 on white and so did not
+ * carry the 3:1 that WCAG 1.4.11 puts under a focus indicator. The focus token is the one audited
+ * against that floor in both surface contexts, which is what it exists for, and every other
+ * focus ring on the platform already uses it (`packages/ui/src/styles/base.css`, `admin.css`).
+ */
 .in-card:has(.in-card-link:focus-visible) {
-  outline: 2px solid var(--color-border-accent);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
