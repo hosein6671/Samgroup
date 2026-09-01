@@ -62,8 +62,8 @@ const STALE_HASH = "b".repeat(64);
  * A Specification that passes every rule.
  *
  * `methodRequirement: "required"` with a normalized method that IS evidenced is the realistic
- * baseline — 1,367 of the 1,398 live Specifications sit on a required-method property — so a rule
- * that fired on the common shape would be caught here rather than only in the integration suite.
+ * baseline: required-method properties are the common catalogue shape, so a rule that fired on
+ * that shape would be caught here rather than only in the integration suite.
  */
 const ELIGIBLE_SPEC: SpecificationEligibilityRow = {
   live: true,

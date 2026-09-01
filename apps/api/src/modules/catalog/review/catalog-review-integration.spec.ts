@@ -117,7 +117,7 @@ const FORBIDDEN_PUBLIC_KEYS: readonly string[] = [
 /**
  * Candidate rows for the two new fail-closed rules — a PRE-FILTER, never the rule itself.
  *
- * These narrow 1,398 Specifications to the handful worth probing so the finder does not walk the
+ * These narrow 1,402 Specifications to the handful worth probing so the finder does not walk the
  * whole table through the API. The verdict is still the service's: `findBlockedSpecification` loads
  * each candidate's real detail response and keeps the first one whose `approvalBlockers` actually
  * carries the code. A wrong pre-filter therefore makes the test FAIL to find a subject; it can
@@ -274,7 +274,7 @@ suite("the catalog review service over the imported catalogue", () => {
       const before = await counts(url);
 
       expect(await prisma.product.count()).toBe(100);
-      expect(await prisma.specification.count()).toBe(1398);
+      expect(await prisma.specification.count()).toBe(1402);
       expect(await prisma.productClaim.count()).toBe(148);
       expect(before["technical_reviews"]).toBe(0);
       expect(before["specifications_approved"]).toBe(0);
@@ -293,7 +293,8 @@ suite("the catalog review service over the imported catalogue", () => {
     /**
      * The two IMPORTER-written subject counts are fixed; the third is not.
      *
-     * 1,398 Specifications and 148 ProductClaims are what the import produced, and asserting them
+     * 1,402 Specifications — 1,398 from the ratified first import plus the four the ADR-018
+     * coolant patch added — and 148 ProductClaims are the committed catalogue, and asserting them
      * exactly is the point of this file. ProductCopy has no importer: its rows arrive from
      * `load-product-copy-drafts.ts`, an explicitly armed editorial script that may or may not have
      * been run against the template this suite clones.
@@ -310,7 +311,7 @@ suite("the catalog review service over the imported catalogue", () => {
         const first = await review.queue({ limit: 10, sort: "createdAt" });
         const second = await review.queue({ limit: 10, page: 2, sort: "createdAt" });
 
-        expect(first.total).toBe(1398 + 148 + copy.total);
+        expect(first.total).toBe(1402 + 148 + copy.total);
         expect(first.items).toHaveLength(10);
         expect(second.items).toHaveLength(10);
 
@@ -327,7 +328,7 @@ suite("the catalog review service over the imported catalogue", () => {
         const specs = await review.queue({ subjectType: "specification", limit: 5 });
         const claims = await review.queue({ subjectType: "product_claim", limit: 5 });
 
-        expect(specs.total).toBe(1398);
+        expect(specs.total).toBe(1402);
         expect(claims.total).toBe(148);
         expect(specs.items.every((item) => item.subjectType === "specification")).toBe(true);
         expect(claims.items.every((item) => item.subjectType === "product_claim")).toBe(true);
@@ -348,7 +349,7 @@ suite("the catalog review service over the imported catalogue", () => {
          */
         const copy = await review.queue({ subjectType: "product_copy", limit: 1 });
 
-        expect(needsReview.total).toBe(63 + 67);
+        expect(needsReview.total).toBe(67 + 67);
         expect(sourceRecorded.total).toBe(1335 + 81 + copy.total);
       },
       TIMEOUT_MS,
@@ -431,9 +432,9 @@ suite("the catalog review service over the imported catalogue", () => {
         const resolved = await review.queue({ unresolvedFindings: false, limit: 1 });
 
         expect(unresolved.total + resolved.total).toBe(all.total);
-        // The importer flagged 63 specifications and 67 claims, plus the specifications whose
+        // The importer flagged 67 specifications and 67 claims, plus the specifications whose
         // property mapping does not resolve.
-        expect(unresolved.total).toBeGreaterThanOrEqual(63 + 67);
+        expect(unresolved.total).toBeGreaterThanOrEqual(67 + 67);
       },
       TIMEOUT_MS,
     );
@@ -743,8 +744,8 @@ suite("the catalog review service over the imported catalogue", () => {
       "blocks exactly the ratified rows on the required-method and capture rules",
       async () => {
         expect(await eligibilityCensus()).toEqual({
-          specifications: 1398,
-          specificationsEligible: 1338,
+          specifications: 1402,
+          specificationsEligible: 1342,
           specificationsRequiredMethodAbsent: 5,
           specificationsMethodNotEvidenced: 0,
           specificationsSourceAssetAbsent: 60,
