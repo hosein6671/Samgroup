@@ -57,6 +57,80 @@
   --fs-maxw: 1560px;
   --fs-section-pad-y: clamp(80px, 8vw, 128px);
 
+  /*
+   * `--fs-wrap-max` is an ALIAS for `--fs-maxw`, not a second width.
+   *
+   * Five page stylesheets already reach for this name — `about.css`, `solutions.css` (twice),
+   * `quality.css` and `export-logistics.css` — and nothing defined it. Four of them carried a
+   * hardcoded `1240px` fallback and so silently rendered at a width the wrapper does not use;
+   * the fifth (`.el-fallback-note`) had no fallback, resolved to `none`, and went full-bleed.
+   * That is the drift ADR-022 §4.2 names: a per-call-site fallback is a second definition.
+   *
+   * It resolves to `--fs-maxw` because the construction it is asked to line up with is `.fs-wrap`,
+   * whose `max-width` is `--fs-maxw`. One wrapper width, one name for it.
+   */
+  --fs-wrap-max: var(--fs-maxw);
+
+  /* ------------------------------------------------------------------------
+   * FOUNDATIONAL SEMANTIC TOKENS (ADR-022 §4)
+   *
+   * These NAME the geometry the Flagship already ships. They are additive: nothing below is
+   * applied to a page in this gate, and no rendered value changes because they exist. They give
+   * the next gate a vocabulary to migrate *to*, so a page stops carrying `font-size: 14.5px`
+   * and `min-height: 52px` as literals.
+   *
+   * Where a token's value differs from what a class ships today, the token is the CORRECT value
+   * and the class is the one that moves later. Two such cases exist and are marked.
+   * ---------------------------------------------------------------------- */
+
+  /* --- Type roles. Values read off `.fs-d1`…`.fs-mono` below. --- */
+  --fs-text-display-1: clamp(46px, 7.6vw, 124px);
+  --fs-text-display-2: clamp(36px, 5.2vw, 84px);
+  --fs-text-display-3: clamp(26px, 3.1vw, 46px);
+  --fs-text-title: clamp(19px, 1.6vw, 25px);
+  --fs-text-lead: clamp(16px, 1.25vw, 19px);
+  --fs-text-body: 16px;
+  --fs-text-body-sm: 14.5px;
+  /*
+   * The technical register's floor is 12px — DESIGN_SYSTEM §7.1 ("No role renders below 12px")
+   * and §7.2, restated for the public site by ADR-022 §4.6.
+   *
+   * `.fs-eyebrow` (11px) and `.fs-mono` (11.5px) are BELOW this token and are deliberately left
+   * alone in this gate: they appear on every public page, so moving them is a migration, not a
+   * token addition. They are the two call sites this token exists to correct later.
+   */
+  --fs-text-technical: 12px;
+
+  /* --- Section rhythm. Three heights from one anchor. ---
+   * `--fs-section-pad-y` above is the default and is unchanged. Compact and editorial are the
+   * documented system's own 3 : 5 : 7 (min), 6 : 9 : 13 (vw), 6 : 10 : 14 (max) ratios from
+   * DESIGN_SYSTEM §5.2, re-anchored on the Flagship's measured default rather than re-invented.
+   */
+  --fs-sec-compact: clamp(48px, 4.8vw, 77px);
+  --fs-sec-default: var(--fs-section-pad-y);
+  --fs-sec-editorial: clamp(112px, 11.2vw, 179px);
+
+  /* --- Radii. `--radius-pill` is the shared token (packages/ui), not a Flagship value. --- */
+  --fs-radius-panel: var(--radius-panel);
+  --fs-radius-lg: var(--radius-lg);
+  --fs-radius-control: var(--radius-pill);
+
+  /* --- Control heights. Read off `.fs-btn` (52), `.fs-lang-btn` (40), `.fs-burger` (44). ---
+   * `--fs-control-min` is the accessibility floor, not a size: WCAG 2.2 AA SC 2.5.8 Target Size
+   * (Minimum) is 24×24 CSS px. The three heights above all clear it with room to spare, which is
+   * the intended posture — comfortable targets, correctly cited.
+   */
+  --fs-control-h-sm: 40px;
+  --fs-control-h: 44px;
+  --fs-control-h-lg: 52px;
+  --fs-control-min: 24px;
+
+  /* --- Icon sizes. Read off the nav caret (10), arrow (13) and language globe (14). --- */
+  --fs-icon-xs: 10px;
+  --fs-icon-sm: 13px;
+  --fs-icon-md: 14px;
+  --fs-icon-lg: 20px;
+
   /* --- Motion. Expo-out for entrances, a short curve for micro-interaction. --- */
   --e-entrance: cubic-bezier(0.19, 1, 0.22, 1);
   --e-micro: cubic-bezier(0.33, 1, 0.68, 1);

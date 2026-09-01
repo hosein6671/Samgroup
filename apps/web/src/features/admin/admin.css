@@ -2305,17 +2305,33 @@
  * No max-height and no overflow clipping, for the same reason: a truncated
  * paragraph is text the reviewer did not read but signed for.
  */
+/*
+ * Four token names in this block were defined nowhere — `--space-4`, `--space-2`,
+ * `--font-size-sm` and `--font-size-base`. They are the file's only four outliers: every other
+ * rule here already uses `--text-caption` / `--text-technical` / `--text-body` / `--text-title`
+ * for type and `--spacing-*` for space. Each resolved to nothing, so the label and the draft text
+ * both fell back to the inherited 16px and the padding and margins computed to 0.
+ * Resolved to the roles this file already uses (ADR-022 §4.2), not to new names.
+ *
+ * `calc(var(--spacing) * n)` and NOT Tailwind's `--spacing(n)` shorthand, which `base.css` uses.
+ * That shorthand is a build-time function, and it is only expanded in files Tailwind processes
+ * through its own entry (`packages/config/tailwind/preset.css`). This file is imported straight
+ * into the Admin layout, so the function is not expanded here — it reaches the browser verbatim
+ * and is discarded as invalid. Verified in the browser: with `--spacing(4)` the computed padding
+ * was `0px`; with the `calc()` it is `16px`. `--spacing` itself is an ordinary custom property
+ * (`0.25rem`) and resolves anywhere, which is why composing it by hand works.
+ */
 .ad-review-copy-draft {
-  margin-top: var(--space-4);
-  padding: var(--space-4);
+  margin-top: calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 4);
   border-radius: var(--radius-md);
   background: var(--color-surface-sunken);
 }
 
 .ad-review-copy-draft__label {
-  margin: 0 0 var(--space-2);
+  margin: 0 0 calc(var(--spacing) * 2);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-caption);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -2324,7 +2340,7 @@
 .ad-review-copy-draft__text {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: var(--font-size-base);
+  font-size: var(--text-body);
   line-height: 1.65;
   white-space: pre-wrap;
 }

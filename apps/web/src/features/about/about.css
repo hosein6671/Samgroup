@@ -1233,10 +1233,10 @@
  * carries that to assistive technology, so the meaning does not depend on the band's colour.
  */
 .ab-fallback-note {
-  max-width: var(--fs-wrap-max, 1240px);
+  max-width: var(--fs-wrap-max);
   margin: 0 auto;
-  padding: 14px clamp(20px, 4vw, 56px) 0;
+  padding: 14px var(--fs-gutter) 0;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--color-text-muted, #5a6072);
+  color: var(--color-text-secondary);
 }
