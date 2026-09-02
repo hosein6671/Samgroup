@@ -4,6 +4,7 @@ import { useFormStatus } from "react-dom";
 import type { ReactNode } from "react";
 
 import { FAILURE_MESSAGE, SUCCESS_MESSAGE, type SubmissionState } from "./submission-state";
+import { FieldErrorIcon, FormErrorIcon, FormSuccessIcon, SubmitIcon } from "./wizard/icons";
 
 /**
  * The parts of a submission form that are identical whichever form it is — the outcome banner, the
@@ -39,6 +40,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
   if (state.status === "success") {
     return (
       <p className="fm-banner fm-banner--ok" role="status">
+        <FormSuccessIcon />
         {SUCCESS_MESSAGE}
       </p>
     );
@@ -47,6 +49,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
   if (state.status === "throttled") {
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
+        <FormErrorIcon />
         {FAILURE_MESSAGE.throttled}
       </p>
     );
@@ -55,6 +58,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
   if (state.status === "unavailable") {
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
+        <FormErrorIcon />
         {FAILURE_MESSAGE.unavailable}
       </p>
     );
@@ -63,6 +67,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
   if (state.status === "error") {
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
+        <FormErrorIcon />
         {FAILURE_MESSAGE.error}
       </p>
     );
@@ -71,6 +76,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
   if (state.status === "invalid" && state.formError !== null) {
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
+        <FormErrorIcon />
         {state.formError}
       </p>
     );
@@ -101,6 +107,7 @@ export function FieldError({
 
   return (
     <p className="fs-err" id={id}>
+      <FieldErrorIcon />
       {issues[0]}
     </p>
   );
@@ -146,6 +153,12 @@ export function SubmitButton({
       disabled={pending || blocked}
       aria-describedby={blocked ? describedBy : undefined}
     >
+      {/*
+       * The send mark is dropped while the submission is in flight. The pending label is the
+       * state — "Sending…" — and an icon that says "send" beside a word that says "sending" is
+       * two claims about the same thing, one of which is now stale.
+       */}
+      {!pending && <SubmitIcon size="sm" />}
       {pending ? pendingLabel : label}
     </button>
   );

@@ -607,160 +607,12 @@
   backdrop-filter: blur(20px);
 }
 
-.cs-form-progress {
-  padding-bottom: clamp(22px, 2.5vw, 30px);
-  border-bottom: 1px solid var(--color-border-hairline);
-}
-
-.cs-form-progress ol {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-}
-
-.cs-form-progress li {
-  position: relative;
-}
-
-.cs-form-progress li:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  top: 17px;
-  inset-inline: calc(50% + 34px) calc(-50% + 34px);
-  height: 1px;
-  background: var(--color-border-hairline);
-}
-
-.cs-form-progress button {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font-family: var(--font-technical);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-align: start;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  transition: color var(--t-micro) var(--e-micro);
-}
-
-.cs-form-progress button span {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--color-border-hairline);
-  border-radius: 50%;
-  background: var(--color-surface-canvas);
-  transition:
-    border-color var(--t-micro) var(--e-micro),
-    background-color var(--t-micro) var(--e-micro);
-}
-
-.cs-form-progress li[data-active="true"] button {
-  color: var(--color-text-primary);
-}
-
-.cs-form-progress li[data-active="true"] button span {
-  border-color: var(--color-border-accent);
-  background: rgba(218, 180, 94, 0.1);
-  color: var(--color-text-accent);
-}
-
-/* The inert notice is the first thing inside the panel, above the first group. */
 .cs-request-panel .pr-inert {
   margin-top: 0;
   margin-bottom: clamp(20px, 2.4vw, 30px);
 }
 
-.cs-group + .cs-group {
-  margin-top: clamp(28px, 3vw, 40px);
-  padding-top: clamp(24px, 2.6vw, 34px);
-  border-top: 1px solid var(--color-border-hairline);
-}
-
-.cs-group[hidden] {
-  display: none;
-}
-
-.cs-group:not([hidden]) {
-  margin-top: clamp(28px, 3vw, 40px);
-  padding-top: 0;
-  border-top: 0;
-  animation: cs-form-step-in 360ms var(--e-micro) both;
-}
-
-@keyframes cs-form-step-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.cs-group-title {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 8px;
-}
-
-.cs-group-title p {
-  order: 2;
-  margin: 0;
-  font-family: var(--font-technical);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
-
-.cs-group-head {
-  margin: 0;
-  font-family: var(--font-technical);
-  font-size: 9.5px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--color-text-accent);
-}
-
-.cs-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 18px;
-}
-
-.cs-grid .fs-field {
-  min-width: 0;
-}
-
-.cs-field--wide {
-  grid-column: 1 / -1;
-}
-
-/*
- * The file input.
- *
- * `.fs-field input` is authored for text entry — a fixed min-height and a text baseline — and a
- * file input's button sits badly in it. This restores a natural height and gives the browser's own
- * button a surface that belongs to the palette, without restyling the control itself (which would
- * mean replacing it, and a replaced file input is a control that no longer announces its state).
+* mean replacing it, and a replaced file input is a control that no longer announces its state).
  */
 .cs-file {
   min-height: 0;
@@ -780,54 +632,23 @@
   cursor: pointer;
 }
 
-.cs-request-actions {
-  align-items: flex-end;
-  margin-top: 0;
-  justify-content: flex-end;
-}
-
-.cs-attachment-note {
-  margin-block: 20px 6px;
-}
-
-.cs-form-footer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: clamp(28px, 3vw, 40px);
-  padding-top: clamp(22px, 2.5vw, 30px);
-  border-top: 1px solid var(--color-border-hairline);
-}
-
-.cs-form-footer > p {
-  margin: 0 0 13px;
-  font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  color: var(--color-text-tertiary);
-}
-
-.cs-submit-block {
-  display: grid;
-  justify-items: end;
-  gap: 16px;
-  max-width: 620px;
-}
-
-.cs-submit-block .pr-consent {
-  margin: 0;
-  text-align: start;
-}
-
-/* ============================================================================
-   5 · RESPONSIVE
-   ============================================================================
-   The same three breakpoints the Products landing and the category template use, so the four
-   pages change shape at the same widths rather than each at its own.
-   ============================================================================ */
-
-@media (max-width: 1180px) {
+pages
+  change
+  shape
+  at
+  the
+  same
+  widths
+  rather
+  than
+  each
+  at
+  its
+  own.
+  ============================================================================
+  */
+  @media
+  (max-width: 1180px) {
   /* The hero's two columns stop being a composition once the display type loses its measure. */
   .cs-hero-inner {
     grid-template-columns: minmax(0, 1fr);
@@ -919,58 +740,6 @@
   .cs-intro-head h2,
   .cs-process-head h2 {
     max-width: 18ch;
-  }
-}
-
-@media (max-width: 620px) {
-  /* The rail's own two-column band is declared above, with the three-column one it excludes. */
-  .cs-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .cs-form-progress ol {
-    gap: 4px;
-  }
-
-  .cs-form-progress button {
-    display: grid;
-    justify-items: start;
-    gap: 8px;
-    line-height: 1.35;
-  }
-
-  .cs-form-progress li:not(:last-child)::after {
-    top: 17px;
-    inset-inline-start: 34px;
-    inset-inline-end: -4px;
-  }
-
-  .cs-form-footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .cs-form-footer > p {
-    margin: 0;
-  }
-
-  .cs-request-actions,
-  .cs-submit-block {
-    align-items: stretch;
-    width: 100%;
-    justify-items: stretch;
-  }
-
-  .cs-request-actions .fs-btn,
-  .cs-submit-block .fs-btn {
-    justify-content: center;
-    width: 100%;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cs-group:not([hidden]) {
-    animation: none;
   }
 }
 

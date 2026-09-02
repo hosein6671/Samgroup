@@ -1,7 +1,7 @@
 "use client";
 
 import { VisuallyHidden } from "@sam-group/ui";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState } from "react";
 import type { ReactNode } from "react";
 
 import { submitCustomFormulationRequest } from "@/features/forms/actions";
@@ -9,14 +9,14 @@ import { ConsentLabel } from "@/features/forms/consent-label";
 import { TurnstileWidget } from "@/features/forms/turnstile-widget";
 import {
   FieldError,
-  FormStatus,
   SubmitButton,
-  formKey,
   invalidProps,
   issuesFor,
   valueFor,
 } from "@/features/forms/form-feedback";
 import { IDLE, type SubmissionState } from "@/features/forms/submission-state";
+import { FormWizard } from "@/features/forms/wizard/form-wizard";
+import type { WizardStep } from "@/features/forms/wizard/wizard-steps";
 
 import { ANCHORS } from "../solutions-anchors";
 import { CONSENT_LEAD, REQUEST_GROUPS, type RequestField } from "../solutions-form";
@@ -67,44 +67,6 @@ export function CustomRequestForm({
     submitCustomFormulationRequest,
     IDLE,
   );
-  const [activeStep, setActiveStep] = useState(0);
-  const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    if (state.status !== "invalid") return;
-
-    const firstInvalidGroup = REQUEST_GROUPS.findIndex((group) =>
-      group.fields.some((field) => state.fieldErrors[field.name] !== undefined),
-    );
-
-    setActiveStep(firstInvalidGroup >= 0 ? firstInvalidGroup : REQUEST_GROUPS.length - 1);
-  }, [state]);
-
-  function advance(): void {
-    const currentGroup = formRef.current?.querySelector<HTMLElement>(
-      `[data-request-step="${activeStep}"]`,
-    );
-    const controls = currentGroup?.querySelectorAll<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >("input, select, textarea");
-
-    if (controls !== undefined) {
-      for (const control of controls) {
-        if (!control.reportValidity()) return;
-      }
-    }
-
-    setActiveStep((step) => Math.min(step + 1, REQUEST_GROUPS.length - 1));
-  }
-
-  function navigateToStep(step: number): void {
-    if (step <= activeStep) {
-      setActiveStep(step);
-      return;
-    }
-
-    advance();
-  }
 
   return (
     <section className="fs-sec cs-request" id={ANCHORS.request} data-surface="midnight">
@@ -113,7 +75,7 @@ export function CustomRequestForm({
       <div className="fs-wrap cs-request-inner">
         <header className="cs-request-head reveal-fade-rise">
           <p className="fs-eyebrow">Custom product request</p>
-          <h2 className="fs-d2">State the requirement.</h2>
+          <h2 className="fs-d3">State the requirement.</h2>
           <p className="fs-lead">
             The more of a specification that arrives with the request, the fewer rounds it takes to
             get to a sample.
@@ -121,119 +83,128 @@ export function CustomRequestForm({
         </header>
 
         <div className="cs-request-panel reveal-fade-rise">
-          <FormStatus state={state} />
-
-          {/*
-           * The success state replaces the form rather than sitting above it. A filled-in form left
-           * standing under a confirmation reads as "not sent" and produces a duplicate request.
-           */}
-          {state.status !== "success" && (
-            <form action={action} key={formKey(state)} ref={formRef}>
-              <nav className="cs-form-progress" aria-label="Request form progress">
-                <ol>
-                  {REQUEST_GROUPS.map((group, index) => (
-                    <li key={group.id} data-active={index === activeStep}>
-                      <button
-                        type="button"
-                        onClick={() => navigateToStep(index)}
-                        aria-current={index === activeStep ? "step" : undefined}
-                      >
-                        <span>{String(index + 1).padStart(2, "0")}</span>
-                        {group.heading}
-                      </button>
-                    </li>
-                  ))}
-                </ol>
-              </nav>
-
-              {REQUEST_GROUPS.map((group, index) => (
-                <div
-                  className="cs-group"
-                  data-request-step={index}
-                  hidden={index !== activeStep}
-                  key={group.id}
-                >
-                  <div className="cs-group-title">
-                    <p>
-                      Step {index + 1} of {REQUEST_GROUPS.length}
-                    </p>
-                    <h3 className="cs-group-head">{group.heading}</h3>
-                  </div>
-
-                  {group.id === "delivery" && (
-                    <p className="pr-inert cs-attachment-note">
-                      <span aria-hidden="true">◇</span>
-                      <span>
-                        <strong>Attachments are not available yet.</strong> Add the relevant
-                        specification details in the fields below.
-                      </span>
-                    </p>
-                  )}
-
-                  <div className="cs-grid">
-                    {group.fields.map((field) => (
-                      <Field field={field} state={state} key={field.name} />
-                    ))}
-                  </div>
+          <FormWizard
+            action={action}
+            state={state}
+            steps={SOLUTIONS_STEPS}
+            idPrefix="cs"
+            fieldLabels={SOLUTIONS_FIELD_LABELS}
+            consent={
+              <>
+                <div className="pr-consent">
+                  <input id="cs-consentGiven" name="consentGiven" type="checkbox" required />
+                  <label htmlFor="cs-consentGiven">
+                    <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
+                  </label>
                 </div>
-              ))}
+                <FieldError id="cs-consentGiven-error" issues={issuesFor(state, "consentGiven")} />
+              </>
+            }
+            submitSlot={
+              /*
+               * Composed here rather than in the shell, so `TurnstileWidget` keeps handing
+               * `blocked` and `describedBy` to the submit control. That pair is the fail-closed
+               * behaviour, and it is unchanged — only its position moved, to the review step.
+               */
+              <TurnstileWidget>
+                {({ blocked, describedBy }) => (
+                  <SubmitButton
+                    label="Submit request"
+                    pendingLabel="Submitting…"
+                    blocked={blocked}
+                    describedBy={describedBy}
+                  />
+                )}
+              </TurnstileWidget>
+            }
+          >
+            {(step) => (
+              <>
+                {step.id === "request" && (
+                  <p className="pr-inert cs-attachment-note">
+                    <span aria-hidden="true">◇</span>
+                    <span>
+                      <strong>Attachments are not available yet.</strong> Add the relevant
+                      specification details in the fields below.
+                    </span>
+                  </p>
+                )}
 
-              <div className="cs-form-footer">
-                <p>
-                  {String(activeStep + 1).padStart(2, "0")} /{" "}
-                  {String(REQUEST_GROUPS.length).padStart(2, "0")}
-                </p>
-                <div className="fs-cta-actions cs-request-actions">
-                  {activeStep > 0 && (
-                    <button
-                      type="button"
-                      className="fs-btn fs-btn--glass"
-                      onClick={() => setActiveStep((step) => step - 1)}
-                    >
-                      Back
-                    </button>
-                  )}
-                  {activeStep < REQUEST_GROUPS.length - 1 ? (
-                    <button type="button" className="fs-btn fs-btn--gold" onClick={advance}>
-                      Continue
-                    </button>
-                  ) : (
-                    <div className="cs-submit-block">
-                      <div className="pr-consent">
-                        <input id="cs-consentGiven" name="consentGiven" type="checkbox" required />
-                        <label htmlFor="cs-consentGiven">
-                          <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
-                        </label>
-                      </div>
-                      <FieldError
-                        id="cs-consentGiven-error"
-                        issues={issuesFor(state, "consentGiven")}
-                      />
-                      {/*
-                       * Same construction as the inquiry form: inside the form, and wrapping the
-                       * submit control so it stays disabled until a token exists.
-                       */}
-                      <TurnstileWidget>
-                        {({ blocked, describedBy }) => (
-                          <SubmitButton
-                            label="Submit request"
-                            pendingLabel="Submitting…"
-                            blocked={blocked}
-                            describedBy={describedBy}
-                          />
-                        )}
-                      </TurnstileWidget>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </form>
-          )}
+                {step.fields.map((name) => {
+                  const field = REQUEST_FIELDS_BY_NAME[name];
+
+                  return field ? <Field field={field} state={state} key={name} /> : null;
+                })}
+              </>
+            )}
+          </FormWizard>
         </div>
       </div>
     </section>
   );
 }
+
+/**
+ * The Custom Product Request's two data steps.
+ *
+ * ── Regrouped, not re-specified ─────────────────────────────────────────────
+ *
+ * `REQUEST_GROUPS` in `solutions-form.ts` is untouched: it is the module that mirrors the
+ * `POST /custom-formulation-requests` DTO and the `custom_formulation_requests` NOT NULL columns,
+ * and it stays the source of every field's name, kind, options and required flag. What changed is
+ * only which step a field is *presented* in, which is a UI decision and belongs here.
+ *
+ * Two regroupings, both in service of the owner decision that every inquiry form is the same
+ * three-step experience:
+ *
+ *   1. **"What is required" and "Where it is going" merge into one Request step.** The form had
+ *      three data groups; the unified experience has two plus the review. No field was dropped —
+ *      all nine are in step two.
+ *   2. **`industry` moves from the requirement group to Contact details**, because that is where
+ *      the Inquiry form has always had it. Two forms whose "Contact details" step means different
+ *      things would defeat the point of sharing the shell.
+ *
+ * Nothing was added, removed, renamed, or made more or less required, and the submitted payload is
+ * identical to the one the three-group form produced.
+ */
+const SOLUTIONS_STEPS: readonly WizardStep[] = [
+  {
+    id: "contact",
+    label: "Contact",
+    heading: "Contact details",
+    fields: ["companyName", "country", "email", "phone", "industry"],
+  },
+  {
+    id: "request",
+    label: "Request",
+    heading: "Request details",
+    fields: [
+      "productOrApplication",
+      "requiredSpecifications",
+      "estimatedQuantity",
+      "packagingRequirements",
+      "destinationCountry",
+      "preferredIncoterm",
+      "additionalInformation",
+      "technicalSpecifications",
+    ],
+  },
+];
+
+/** Every declared field, by submitted name, so a step can render its own by lookup. */
+const REQUEST_FIELDS_BY_NAME: Readonly<Record<string, RequestField>> = Object.fromEntries(
+  REQUEST_GROUPS.flatMap((group) => group.fields).map((field) => [field.name, field]),
+);
+
+/**
+ * Submitted name → the label the review summary shows it under.
+ *
+ * Derived from `REQUEST_GROUPS` rather than retyped, because the labels are already data here.
+ * The Inquiry form lists its own by hand only because its labels live in JSX.
+ */
+const SOLUTIONS_FIELD_LABELS: Readonly<Record<string, string>> = Object.fromEntries(
+  REQUEST_GROUPS.flatMap((group) => group.fields).map((field) => [field.name, field.label]),
+);
 
 /**
  * One control, chosen by `kind`, with its label, its error message and the wiring between them.
@@ -273,7 +244,7 @@ function Field({
 
   const className = [
     "fs-field",
-    field.wide === true ? "cs-field--wide" : "",
+    field.wide === true ? "fm-field--wide" : "",
     field.disabled === true ? "fm-field--disabled" : "",
   ]
     .filter((token) => token !== "")

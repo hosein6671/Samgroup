@@ -18,7 +18,7 @@
 .fm-banner {
   margin: 0 0 22px;
   padding: 14px 18px;
-  border-radius: 12px;
+  border-radius: var(--fs-radius-field);
   font-size: 14px;
   line-height: 1.55;
   border: 1px solid transparent;
@@ -68,8 +68,9 @@
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  /* 12px floor, tracking eased to pay for it — see `.fs-field label` in flagship.css. */
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(238, 241, 246, 0.55);
 }
@@ -89,7 +90,7 @@
   margin: 0 0 24px;
   padding: 12px 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
+  border-radius: var(--fs-radius-field);
   font-size: 13.5px;
   color: rgba(238, 241, 246, 0.72);
 }
@@ -192,7 +193,7 @@
 .fm-turnstile-note--alert {
   padding: 10px 14px;
   border: 1px solid rgba(255, 180, 162, 0.5);
-  border-radius: 10px;
+  border-radius: var(--fs-radius-field);
   background: rgba(255, 180, 162, 0.08);
   color: #ffd8cd;
 }
@@ -227,4 +228,451 @@
  */
 .fm-field--disabled {
   opacity: 0.55;
+}
+
+/* ============================================================================
+   THE SHARED INQUIRY WIZARD — `.fw-*`
+   ----------------------------------------------------------------------------
+   One three-step experience behind every public customer-inquiry form: the
+   Contact Us enquiry, Request a Quote, the homepage partnership panel and the
+   Custom Product Request. It lives in `features/forms/` beside the `.fm-*`
+   constructions because both forms already import this file, which is what
+   makes "one shared source of truth" true of the styling as well as the
+   behaviour.
+
+   It replaces `.cs-form-progress` / `.cs-group` / `.cs-form-footer` in
+   `solutions.css`, which styled a stepper only one of the four surfaces had.
+   ============================================================================ */
+
+/* --- the step indicator -------------------------------------------------- */
+
+.fw-progress {
+  padding-bottom: clamp(20px, 2.4vw, 28px);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+/*
+ * The progress sentence. It is the line that says "Step 2 of 3" in words, and it
+ * is `aria-live`, so it is also what announces a step change. Kept above the
+ * list rather than inside it: a live region containing three buttons would
+ * re-announce all of them.
+ */
+.fw-progress-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0 0 clamp(14px, 1.8vw, 20px);
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fw-progress-current {
+  color: var(--color-text-accent);
+}
+
+.fw-progress-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.fw-progress-list li {
+  position: relative;
+}
+
+/*
+ * The connector between steps. `inset-inline` and not `left`/`right`, so the
+ * rule runs the correct way under `dir="rtl"` with no mirrored stylesheet.
+ */
+.fw-progress-list li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 15px;
+  inset-inline: calc(50% + 22px) calc(-50% + 22px);
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+
+.fw-progress-list li[data-state="done"]:not(:last-child)::after {
+  background: var(--color-border-accent);
+}
+
+/*
+ * Number above label, at every width.
+ *
+ * A row layout fits comfortably on a desktop and truncates at 320px, where three
+ * steps share about 240px. Stacking is the same construction at every size, so
+ * the label is never clipped and there is no breakpoint at which the indicator
+ * changes shape. `text-wrap: balance` keeps a two-word label from breaking to a
+ * single orphaned word.
+ */
+.fw-progress-step {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-technical);
+  /* 12px floor. The stepper this replaces set its labels at 9px. */
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  text-wrap: balance;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+.fw-progress-step:disabled {
+  cursor: default;
+}
+
+.fw-progress-num {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-canvas);
+  transition:
+    border-color var(--t-micro) var(--e-micro),
+    background-color var(--t-micro) var(--e-micro),
+    color var(--t-micro) var(--e-micro);
+}
+
+.fw-progress-list li[data-state="current"] .fw-progress-step {
+  color: var(--color-text-primary);
+}
+
+.fw-progress-list li[data-state="current"] .fw-progress-num {
+  border-color: var(--color-border-accent);
+  background: var(--color-accent-muted);
+  color: var(--color-text-accent);
+}
+
+/*
+ * The completed state differs from the current one in fill as well as colour, and
+ * carries a visually-hidden "completed" in the markup — the two together are what
+ * keep the state from depending on hue alone (WCAG 1.4.1).
+ */
+.fw-progress-list li[data-state="done"] .fw-progress-num {
+  border-color: var(--color-border-accent);
+  background: var(--color-accent-muted);
+  color: var(--color-text-accent);
+}
+
+.fw-progress-list li[data-state="done"] .fw-progress-step {
+  color: var(--color-text-secondary);
+}
+
+/*
+ * The upcoming state is carried by the numeral, the unfilled circle and `disabled` — NOT by
+ * opacity.
+ *
+ * An `opacity: 0.55` here measured **2.71:1** against the midnight canvas, under WCAG 1.4.3's
+ * 4.5:1 for 12px text. `--color-text-tertiary` alone measures 6.04:1, and the state is already
+ * unambiguous without dimming it: a completed step shows a brass tick in a filled circle, the
+ * current step shows a brass numeral in a filled circle, and an upcoming one shows a plain numeral
+ * in an empty circle.
+ *
+ * The disabled-control exemption in 1.4.3 would arguably cover it, but these labels are
+ * informational — they tell a visitor what is still to come — so leaning on that exemption to keep
+ * a decorative fade would be reading the criterion for permission rather than for intent.
+ */
+.fw-progress-list li[data-state="todo"] .fw-progress-step {
+  color: var(--color-text-tertiary);
+}
+
+/* --- the panels ---------------------------------------------------------- */
+
+.fw-panel {
+  margin-top: clamp(26px, 3vw, 38px);
+}
+
+.fw-panel[hidden] {
+  display: none;
+}
+
+/*
+ * The panel heading is the focus target after every step change, so it carries a
+ * focus ring like any other focusable element. `:focus-visible` and not `:focus`
+ * — the ring should appear for the keyboard and screen-reader move, not as a
+ * flash for a mouse user who clicked Continue.
+ */
+.fw-panel-head {
+  margin: 0 0 clamp(18px, 2vw, 26px);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+}
+
+.fw-panel-head:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 4px;
+}
+
+/* --- the review summary -------------------------------------------------- */
+
+.fw-review {
+  display: grid;
+  gap: clamp(18px, 2.2vw, 26px);
+}
+
+.fw-review-group {
+  padding: clamp(16px, 1.8vw, 22px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--fs-radius-field);
+  background: var(--color-glass-fill);
+}
+
+.fw-review-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fw-review-title {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+/*
+ * The Edit control.
+ *
+ * ── Two target criteria, and they are not the same number ───────────────────
+ *
+ * WCAG 2.2 **AA** is SC 2.5.8 Target Size (Minimum) at **24x24** CSS px.
+ * WCAG 2.2 **AAA** is SC 2.5.5 Target Size (Enhanced) at **44x44** CSS px.
+ *
+ * `min-block-size: var(--fs-control-min)` gives the visible box 24px, which meets AA. It does
+ * **not** meet AAA, and an earlier note here implied otherwise. The rest of this form's controls
+ * already clear 44px — the field inputs and both step buttons are 52px, the indicator steps 57px —
+ * so this was the one target sitting at the lower of the two floors, and the inconsistency was in
+ * the claim rather than only in the pixels.
+ *
+ * The underline keeps it distinguishable from the heading beside it without relying on colour
+ * (WCAG 1.4.1).
+ */
+.fw-review-edit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--fs-control-min);
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+/*
+ * The pointer target, grown to 44x44 without growing the control.
+ *
+ * An absolutely-positioned overlay rather than padding or a taller `min-block-size`: this element
+ * sits in a `space-between` flex header aligned on the baseline, so making its own box 44px tall
+ * would push the heading beside it out of alignment and add ~20px to every review group. The
+ * overlay is out of flow, so the glyph, the type size, the underline and the header's spacing are
+ * all exactly as they were.
+ *
+ * `min(0px, …)` is what makes it grow-only. The expression resolves the shortfall on each axis and
+ * halves it outward — at 24px tall that is -10px block-start and -10px block-end, giving 44px —
+ * while an axis that already exceeds 44px (the inline one does; the control is ~57px wide) yields
+ * a positive number, which `min` clamps to 0 so the target is never pulled inwards.
+ *
+ * Percentages in `inset` resolve against the containing block, which `position: relative` above
+ * makes this control's own padding box. Logical properties throughout, so the growth is symmetric
+ * in both writing directions with no RTL special case.
+ *
+ * It cannot collide with anything: the 10px it gains upward lies inside the group's own padding,
+ * and the 10px downward inside `.fw-review-head`'s 12px bottom margin. The next interactive
+ * element in either direction is the other group's Edit control or the consent checkbox, both
+ * separated by a full group gap.
+ */
+.fw-review-edit::after {
+  content: "";
+  position: absolute;
+  inset-block: min(0px, calc((44px - 100%) / -2));
+  inset-inline: min(0px, calc((44px - 100%) / -2));
+}
+
+/*
+ * The focus ring stays on the visible control, not on the expanded target. It comes from the
+ * platform's `:focus-visible` rule in `packages/ui/src/styles/base.css`; the overlay above is
+ * `content: ""` with no border or background, so it draws nothing and cannot be outlined.
+ */
+.fw-review-edit:hover,
+.fw-review-edit:focus-visible {
+  color: var(--color-text-primary);
+}
+
+.fw-review-list {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+/*
+ * Label above value, not beside it. A two-column review reads well until a value
+ * is a three-line specification, and the pairs then stop lining up. Stacking is
+ * the same at 320px and 1920px.
+ */
+.fw-review-row {
+  display: grid;
+  gap: 3px;
+}
+
+.fw-review-row dt {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fw-review-row dd {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  /* A pasted specification keeps its line breaks, and a long unbroken token wraps. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* "Not provided" is a statement about the field, not a value — so it is toned back. */
+.fw-review-row dd[data-empty="true"] {
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+/* --- consent, submit and navigation -------------------------------------- */
+
+.fw-submit {
+  margin-top: clamp(22px, 2.6vw, 30px);
+}
+
+.fw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: clamp(24px, 2.8vw, 34px);
+  padding-top: clamp(20px, 2.4vw, 28px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+/*
+ * Back sits before Continue in the source, which is the order a keyboard walks
+ * them and the order they read. `margin-inline-start: auto` on Continue pushes it
+ * to the trailing edge in both writing directions without reordering the DOM.
+ */
+.fw-actions .fs-btn--gold {
+  margin-inline-start: auto;
+}
+
+/* The screen-reader-only suffix on the Edit buttons' accessible names. */
+.fw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-progress-step,
+  .fw-progress-num {
+    transition: none;
+  }
+}
+
+/* --- icons --------------------------------------------------------------- */
+
+/*
+ * The Lucide set, sized from the shared icon tokens rather than from Lucide's numeric `size` prop,
+ * so these scale with the rest of the Flagship system instead of carrying a private scale.
+ *
+ * `flex: none` because every one of them sits in a flex row beside text — a button label, a banner
+ * sentence, a step label — and an icon that shrinks when the sentence is long is an icon that
+ * eventually disappears.
+ */
+.fw-icon {
+  flex: none;
+  inline-size: var(--fs-icon-md);
+  block-size: var(--fs-icon-md);
+}
+
+.fw-icon--sm {
+  inline-size: var(--fs-icon-sm);
+  block-size: var(--fs-icon-sm);
+}
+
+.fw-icon--lg {
+  inline-size: var(--fs-icon-lg);
+  block-size: var(--fs-icon-lg);
+}
+
+/*
+ * The two navigation arrows mirror under RTL, following the rule `flagship.css` already applies to
+ * `.fs-ar`: a directional glyph has to point the way the interface reads, not the way English does.
+ * Only Back and Continue carry this — a tick, a shield and a pencil have no direction to mirror.
+ */
+[dir="rtl"] .fw-icon--dir {
+  transform: scaleX(-1);
+}
+
+/*
+ * Icons sit on the text baseline inside the banners and messages that carry them. `align-items:
+ * flex-start` rather than `center` because a banner's sentence can wrap to three lines, and a
+ * vertically-centred mark beside a paragraph reads as floating.
+ */
+.fm-banner,
+.fs-err {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.fm-banner .fw-icon,
+.fs-err .fw-icon {
+  margin-block-start: 0.15em;
+}
+
+.fm-turnstile-note--alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }

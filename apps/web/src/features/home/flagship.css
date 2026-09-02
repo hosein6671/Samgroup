@@ -114,6 +114,14 @@
   --fs-radius-panel: var(--radius-panel);
   --fs-radius-lg: var(--radius-lg);
   --fs-radius-control: var(--radius-pill);
+  /*
+   * The form-control radius. It NAMES the 12px the inputs already ship rather than moving them to
+   * `--fs-radius-panel`'s 18px — the shape of a text field is part of the layout identity and this
+   * gate does not redesign it. What it buys is consistency: the same 12px was written as a literal
+   * in four places and as `10px` in a fifth (`.fm-turnstile-note--alert`), so the alert box was the
+   * only bordered box on the form with a different corner.
+   */
+  --fs-radius-field: 12px;
 
   /* --- Control heights. Read off `.fs-btn` (52), `.fs-lang-btn` (40), `.fs-burger` (44). ---
    * `--fs-control-min` is the accessibility floor, not a size: WCAG 2.2 AA SC 2.5.8 Target Size
@@ -3063,11 +3071,25 @@
 .fs-field {
   margin-top: 18px;
 }
+/*
+ * The form label — 12px, not 9.5px.
+ *
+ * This is the single most-read piece of technical text on the platform: it names what a buyer is
+ * being asked to type, on the one surface that reaches a person, to an audience largely not reading
+ * in a first language. At 9.5px it was the smallest type anywhere on the site, well under the floor
+ * DESIGN_SYSTEM §7.1 and §7.2 set and ADR-022 §4.6 restates for the public site.
+ *
+ * Tracking drops 0.18em → 0.14em to pay for the size, the same trade the header lockup made.
+ * Measured, the longest label on the enquiry form, "Preferred Incoterm", goes 116.4px → 158.9px —
+ * comfortably inside the 240px minimum column the field grid uses, so nothing wraps or reflows.
+ *
+ * `--fs-text-technical` rather than a literal: this is the token that exists to hold the floor.
+ */
 .fs-field label {
   display: block;
   font-family: var(--font-technical);
-  font-size: 9.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(238, 241, 246, 0.6);
   margin-bottom: 8px;
@@ -3076,9 +3098,15 @@
 .fs-field select,
 .fs-field textarea {
   width: 100%;
-  min-height: 50px;
+  /*
+   * 52px, matching `.fs-btn`. The controls were 50px and the submit button beside them 52px — two
+   * pixels apart for no reason, which is exactly the kind of drift the control-height tokens were
+   * added to end. Both now read the same token, so a field and the button that submits it are one
+   * height by construction rather than by coincidence.
+   */
+  min-height: var(--fs-control-h-lg);
   padding: 13px 16px;
-  border-radius: 12px;
+  border-radius: var(--fs-radius-field);
   background: rgba(255, 255, 255, 0.05);
   /*
    * The token, not a literal. This outline is the only thing identifying the control, which puts

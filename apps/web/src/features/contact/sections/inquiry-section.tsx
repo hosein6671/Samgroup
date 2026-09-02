@@ -20,11 +20,17 @@ export function InquirySection({
   copy,
   inquiryType,
   lockInquiryType = false,
+  privacyPolicyHref = null,
   product = null,
 }: {
   readonly copy: FormHeading;
   readonly inquiryType: string;
   readonly lockInquiryType?: boolean;
+  /**
+   * The published Privacy Policy's address, or `null` when none is published. Resolved by the route
+   * and passed straight through — the form is a Client Component and cannot read the API itself.
+   */
+  readonly privacyPolicyHref?: string | null;
   readonly product?: ProductContext | null;
 }): ReactNode {
   return (
@@ -33,7 +39,7 @@ export function InquirySection({
         <div className="ct-form-intro">
           <header className="ct-form-head reveal-fade-rise">
             <p className="fs-eyebrow">{copy.eyebrow}</p>
-            <h2 className="fs-d2">{copy.heading}</h2>
+            <h2 className="fs-d3">{copy.heading}</h2>
             <p className="fs-lead">{copy.lead}</p>
           </header>
 
@@ -55,6 +61,7 @@ export function InquirySection({
           <InquiryForm
             inquiryType={inquiryType}
             lockInquiryType={lockInquiryType}
+            privacyPolicyHref={privacyPolicyHref}
             product={product}
           />
         </div>

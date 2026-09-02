@@ -7,17 +7,11 @@ import type { ReactNode } from "react";
 import { submitInquiry } from "./actions";
 import { ConsentLabel } from "./consent-label";
 import { TurnstileWidget } from "./turnstile-widget";
-import {
-  FieldError,
-  FormStatus,
-  SubmitButton,
-  formKey,
-  invalidProps,
-  issuesFor,
-  valueFor,
-} from "./form-feedback";
+import { FieldError, SubmitButton, invalidProps, issuesFor, valueFor } from "./form-feedback";
 import { INQUIRY_INCOTERMS, INQUIRY_TYPE_OPTIONS } from "./inquiry-vocabulary";
 import { IDLE, type SubmissionState } from "./submission-state";
+import { FormWizard } from "./wizard/form-wizard";
+import type { WizardStep } from "./wizard/wizard-steps";
 
 /**
  * The Inquiry form — one component behind General Contact, Request a Quote and Request a Sample.
@@ -92,14 +86,8 @@ export function InquiryForm({
   const [state, action] = useActionState<SubmissionState, FormData>(submitInquiry, IDLE);
   const compact = variant === "compact";
 
-  if (state.status === "success") {
-    return <FormStatus state={state} />;
-  }
-
   return (
     <>
-      <FormStatus state={state} />
-
       {product !== null && (
         <p className="fm-context">
           <span>This enquiry references</span>
@@ -108,188 +96,243 @@ export function InquiryForm({
         </p>
       )}
 
-      {/*
-       * `key` remounts every control after each failed attempt, which is what restores the values
-       * React 19 wiped when it reset the form. See `Resubmittable` for why that reset happens.
-       */}
-      <form action={action} noValidate key={formKey(state)}>
-        {/*
-         * Hidden, verified, and never rendered as an editable field. The visitor chose a product by
-         * clicking a CTA on its page, not by typing an id — offering it as an input would invite
-         * exactly the tampering the server-side check exists to catch.
-         */}
-        {product !== null && <input type="hidden" name="relatedProductId" value={product.id} />}
-        {lockInquiryType && <input type="hidden" name="inquiryType" value={inquiryType} />}
-
-        <div className="fm-group">
-          <h3 className="fm-group-head">
-            {compact ? "Contact and requirement" : "Contact details"}
-          </h3>
-
-          <div className="fm-grid">
-            <Field
-              label="First name"
-              name="firstName"
-              state={state}
-              required
-              autoComplete="given-name"
-            />
-            <Field
-              label="Last name"
-              name="lastName"
-              state={state}
-              required
-              autoComplete="family-name"
-            />
-            <Field
-              label="Company name"
-              name="companyName"
-              state={state}
-              required
-              autoComplete="organization"
-            />
-            <Field
-              label="Country"
-              name="country"
-              state={state}
-              required
-              autoComplete="country-name"
-            />
-            <Field
-              label="Email address"
-              name="email"
-              type="email"
-              state={state}
-              required
-              autoComplete="email"
-            />
-            {!compact && (
-              <Field
-                label="Phone / WhatsApp"
-                name="phone"
-                type="tel"
-                state={state}
-                autoComplete="tel"
-              />
-            )}
-            <Field label="Industry" name="industry" state={state} required />
-
-            {!lockInquiryType && (
-              <div className="fs-field">
-                <label htmlFor="inq-inquiryType">
-                  Enquiry type
-                  <Required />
-                </label>
-                <select
-                  id="inq-inquiryType"
-                  name="inquiryType"
-                  defaultValue={valueFor(state, "inquiryType") ?? inquiryType}
-                  required
-                  {...invalidProps(state, "inquiryType", "inq-inquiryType-error")}
-                >
-                  {INQUIRY_TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <FieldError id="inq-inquiryType-error" issues={issuesFor(state, "inquiryType")} />
+      <FormWizard
+        action={action}
+        state={state}
+        steps={INQUIRY_STEPS}
+        idPrefix="inq"
+        fieldLabels={INQUIRY_FIELD_LABELS}
+        hiddenFields={
+          <>
+            {/*
+             * Hidden, verified, and never rendered as an editable field. The visitor chose a product
+             * by clicking a CTA on its page, not by typing an id — offering it as an input would
+             * invite exactly the tampering the server-side check exists to catch.
+             */}
+            {product !== null && <input type="hidden" name="relatedProductId" value={product.id} />}
+            {lockInquiryType && <input type="hidden" name="inquiryType" value={inquiryType} />}
+          </>
+        }
+        consent={
+          <>
+            <div className="fm-consent">
+              <input id="inq-consent" name="consentGiven" type="checkbox" required />
+              <label htmlFor="inq-consent">
+                <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
+              </label>
+            </div>
+            <FieldError id="inq-consent-error" issues={issuesFor(state, "consentGiven")} />
+          </>
+        }
+        submitSlot={
+          /*
+           * Composed here, not in the shell. `TurnstileWidget` hands `blocked` and `describedBy` to
+           * its child, and those are what keep the submission fail-closed — unchanged from before
+           * this form was stepped. All that moved is where it renders: the review step, which is
+           * now the only step that can submit.
+           */
+          <TurnstileWidget>
+            {({ blocked, describedBy }) => (
+              <div className="fm-actions">
+                <SubmitButton
+                  label="Send enquiry"
+                  pendingLabel="Sending…"
+                  blocked={blocked}
+                  describedBy={describedBy}
+                />
+                <p className="fm-required-note">Fields marked required must be completed.</p>
               </div>
             )}
+          </TurnstileWidget>
+        }
+      >
+        {(step) =>
+          step.id === "contact" ? (
+            <>
+              <Field
+                label="First name"
+                name="firstName"
+                state={state}
+                required
+                autoComplete="given-name"
+              />
+              <Field
+                label="Last name"
+                name="lastName"
+                state={state}
+                required
+                autoComplete="family-name"
+              />
+              <Field
+                label="Company name"
+                name="companyName"
+                state={state}
+                required
+                autoComplete="organization"
+              />
+              <Field
+                label="Country"
+                name="country"
+                state={state}
+                required
+                autoComplete="country-name"
+              />
+              <Field
+                label="Email address"
+                name="email"
+                type="email"
+                state={state}
+                required
+                autoComplete="email"
+              />
+              {!compact && (
+                <Field
+                  label="Phone / WhatsApp"
+                  name="phone"
+                  type="tel"
+                  state={state}
+                  autoComplete="tel"
+                />
+              )}
+              <Field label="Industry" name="industry" state={state} required />
 
-            {compact && (
+              {!lockInquiryType && (
+                <div className="fs-field">
+                  <label htmlFor="inq-inquiryType">
+                    Enquiry type
+                    <Required />
+                  </label>
+                  <select
+                    id="inq-inquiryType"
+                    name="inquiryType"
+                    defaultValue={valueFor(state, "inquiryType") ?? inquiryType}
+                    required
+                    {...invalidProps(state, "inquiryType", "inq-inquiryType-error")}
+                  >
+                    {INQUIRY_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <FieldError id="inq-inquiryType-error" issues={issuesFor(state, "inquiryType")} />
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/*
+               * The compact variant keeps every API-required field and the message, and drops the
+               * three optional supply fields. It therefore has a shorter second step, not an empty
+               * one — the message is a request detail on both variants.
+               */}
+              {!compact && (
+                <>
+                  <Field label="Required quantity" name="requiredQuantity" state={state} />
+                  <Field
+                    label="Destination country / port"
+                    name="destinationCountryPort"
+                    state={state}
+                  />
+
+                  <div className="fs-field">
+                    <label htmlFor="inq-preferredIncoterm">Preferred Incoterm</label>
+                    <select
+                      id="inq-preferredIncoterm"
+                      name="preferredIncoterm"
+                      defaultValue={valueFor(state, "preferredIncoterm") ?? ""}
+                    >
+                      <option value="">Select</option>
+                      {INQUIRY_INCOTERMS.map((incoterm) => (
+                        <option key={incoterm} value={incoterm}>
+                          {incoterm}
+                        </option>
+                      ))}
+                    </select>
+                    <FieldError
+                      id="inq-preferredIncoterm-error"
+                      issues={issuesFor(state, "preferredIncoterm")}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="fs-field fm-field--wide">
                 <label htmlFor="inq-message">Product requirement</label>
                 <textarea
                   id="inq-message"
                   name="message"
-                  rows={4}
+                  rows={compact ? 4 : 5}
                   defaultValue={valueFor(state, "message")}
                   {...invalidProps(state, "message", "inq-message-error")}
                 />
                 <FieldError id="inq-message-error" issues={issuesFor(state, "message")} />
               </div>
-            )}
-          </div>
-        </div>
-
-        {!compact && (
-          <div className="fm-group">
-            <h3 className="fm-group-head">Product and supply details</h3>
-
-            <div className="fm-grid">
-              <Field label="Required quantity" name="requiredQuantity" state={state} />
-              <Field
-                label="Destination country / port"
-                name="destinationCountryPort"
-                state={state}
-              />
-
-              <div className="fs-field">
-                <label htmlFor="inq-preferredIncoterm">Preferred Incoterm</label>
-                <select
-                  id="inq-preferredIncoterm"
-                  name="preferredIncoterm"
-                  defaultValue={valueFor(state, "preferredIncoterm") ?? ""}
-                >
-                  <option value="">Select</option>
-                  {INQUIRY_INCOTERMS.map((incoterm) => (
-                    <option key={incoterm} value={incoterm}>
-                      {incoterm}
-                    </option>
-                  ))}
-                </select>
-                <FieldError
-                  id="inq-preferredIncoterm-error"
-                  issues={issuesFor(state, "preferredIncoterm")}
-                />
-              </div>
-
-              <div className="fs-field fm-field--wide">
-                <label htmlFor="inq-message">Product requirement</label>
-                <textarea
-                  id="inq-message"
-                  name="message"
-                  rows={5}
-                  defaultValue={valueFor(state, "message")}
-                  {...invalidProps(state, "message", "inq-message-error")}
-                />
-                <FieldError id="inq-message-error" issues={issuesFor(state, "message")} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="fm-consent">
-          <input id="inq-consent" name="consentGiven" type="checkbox" required />
-          <label htmlFor="inq-consent">
-            <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
-          </label>
-        </div>
-        <FieldError id="inq-consent-error" issues={issuesFor(state, "consentGiven")} />
-
-        {/*
-         * Inside the `<form>`, so the token is part of this form's `FormData`, and wrapping the
-         * submit control so it stays disabled until a token exists. Placed after consent: on the
-         * rare visit where a challenge does appear, it appears where the person is already looking.
-         */}
-        <TurnstileWidget>
-          {({ blocked, describedBy }) => (
-            <div className="fm-actions">
-              <SubmitButton
-                label="Send enquiry"
-                pendingLabel="Sending…"
-                blocked={blocked}
-                describedBy={describedBy}
-              />
-              <p className="fm-required-note">Fields marked required must be completed.</p>
-            </div>
-          )}
-        </TurnstileWidget>
-      </form>
+            </>
+          )
+        }
+      </FormWizard>
     </>
   );
 }
+
+/**
+ * The Inquiry form's two data steps. The review step is the shell's and is never declared.
+ *
+ * The field lists are the **superset** across both variants — `compact` renders neither `phone` nor
+ * the three supply fields. That is deliberate and is what lets one step table serve both: the shell
+ * validates only controls that exist, and the review lists only fields the form actually rendered.
+ * A second table per variant would be two places for the same grouping to drift.
+ *
+ * No field moved between forms, changed name, or changed meaning. The split follows the two group
+ * headings this form already had — "Contact details" and "Product and supply details" — so the
+ * payload is byte-for-byte the one the single-page form produced.
+ */
+const INQUIRY_STEPS: readonly WizardStep[] = [
+  {
+    id: "contact",
+    label: "Contact",
+    heading: "Contact details",
+    fields: [
+      "firstName",
+      "lastName",
+      "companyName",
+      "country",
+      "email",
+      "phone",
+      "industry",
+      "inquiryType",
+    ],
+  },
+  {
+    id: "request",
+    label: "Request",
+    heading: "Request details",
+    fields: ["requiredQuantity", "destinationCountryPort", "preferredIncoterm", "message"],
+  },
+];
+
+/**
+ * Submitted name → the label the review summary shows it under.
+ *
+ * The same strings the controls above carry. They are listed once more here rather than derived,
+ * because the controls are JSX and the summary needs the mapping as data; the spec asserts the two
+ * agree, so a renamed label cannot leave the review showing the old one.
+ */
+const INQUIRY_FIELD_LABELS: Readonly<Record<string, string>> = {
+  firstName: "First name",
+  lastName: "Last name",
+  companyName: "Company name",
+  country: "Country",
+  email: "Email address",
+  phone: "Phone / WhatsApp",
+  industry: "Industry",
+  inquiryType: "Enquiry type",
+  requiredQuantity: "Required quantity",
+  destinationCountryPort: "Destination country / port",
+  preferredIncoterm: "Preferred Incoterm",
+  message: "Product requirement",
+};
 
 /**
  * The form-specific opening of the consent sentence.

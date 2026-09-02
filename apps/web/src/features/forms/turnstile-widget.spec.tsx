@@ -343,15 +343,39 @@ describe("both public forms mount the challenge around their submit control", ()
     join(__dirname, "..", "customized-solutions", "sections", "custom-request-form.tsx"),
   ];
 
-  it.each(FORMS)("%s mounts TurnstileWidget inside the <form>", (file) => {
+  /*
+   * The `<form>` element now belongs to the shared wizard shell, so neither form file contains a
+   * `</form>` to measure against and the original source-proximity check could no longer run.
+   *
+   * The property it protected has not changed and is still asserted, in two halves that together
+   * say the same thing:
+   *
+   *   - each form hands its `TurnstileWidget` to the shell through `submitSlot`, and
+   *   - the shell renders `submitSlot` inside its own `<form>`, on the review step.
+   *
+   * Splitting it this way is what the shared shell makes necessary, and it is also stricter than
+   * the original: the second half is asserted once and therefore holds for every form that uses the
+   * shell, including any added later.
+   */
+  it.each(FORMS)("%s hands TurnstileWidget to the shell as its submit slot", (file) => {
     const source = readFileSync(file, "utf8");
     const widget = source.indexOf("<TurnstileWidget>");
-    const closingForm = source.indexOf("</form>");
+    const slot = source.indexOf("submitSlot={");
 
     expect(source).toContain("turnstile-widget");
-    expect(widget).toBeGreaterThan(-1);
-    expect(closingForm).toBeGreaterThan(-1);
-    expect(widget).toBeLessThan(closingForm);
+    expect(slot).toBeGreaterThan(-1);
+    expect(widget).toBeGreaterThan(slot);
+  });
+
+  it("the shell renders the submit slot inside its <form>", () => {
+    const shell = readFileSync(join(__dirname, "wizard", "form-wizard.tsx"), "utf8");
+    const openingForm = shell.indexOf("<form");
+    const slot = shell.indexOf("{submitSlot}");
+    const closingForm = shell.indexOf("</form>");
+
+    expect(openingForm).toBeGreaterThan(-1);
+    expect(slot).toBeGreaterThan(openingForm);
+    expect(closingForm).toBeGreaterThan(slot);
   });
 
   it.each(FORMS)("%s renders its SubmitButton inside the widget", (file) => {

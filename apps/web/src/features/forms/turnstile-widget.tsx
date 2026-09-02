@@ -15,6 +15,7 @@ import {
 } from "./turnstile";
 
 import type { TurnstileMount, TurnstileStatus, TurnstileWindow } from "./turnstile";
+import { ChallengeErrorIcon } from "./wizard/icons";
 import type { ReactNode } from "react";
 
 /**
@@ -277,6 +278,13 @@ function TurnstileGate({
           id={noticeId}
           role={notice.role}
         >
+          {/*
+           * The dead-end variant gains a shield mark; the two self-resolving states stay plain
+           * text. The icon is decorative — the sentence is the message, and `role="alert"` is what
+           * announces it — so it distinguishes the state a visitor must act on from the two they
+           * can wait out, without becoming the only thing that says so.
+           */}
+          {notice.role === "alert" && <ChallengeErrorIcon />}
           {notice.text}
         </p>
       )}

@@ -140,12 +140,42 @@ describe("public form controls", () => {
     expect(rule(CONTROLS).body.replace(/\s+/g, "")).not.toContain("rgba(255,255,255,.16)");
   });
 
-  it("changes no control dimension, radius or fill", () => {
-    expect(declaration(CONTROLS, "min-height")).toBe("50px");
+  /*
+   * This assertion was written by DS-2B as a scope guard: that gate replaced one hardcoded
+   * boundary colour with a token, and pinning the four neighbouring declarations as literals was
+   * how it proved it had changed nothing else. It was never a rule that a control dimension may
+   * never move.
+   *
+   * The Contact/Form gate moves two of them deliberately, so the assertion now pins the tokens
+   * rather than the literals — which is a stronger guard than the original, because a literal
+   * creeping back in place of either token now fails here.
+   *
+   *   min-height     50px → var(--fs-control-h-lg)   52px, the height `.fs-btn` already used; the
+   *                                                  field and the button that submits it were two
+   *                                                  pixels apart for no reason.
+   *   border-radius  12px → var(--fs-radius-field)   the same 12px, named. The value does not move;
+   *                                                  what moves is that four rules now share one
+   *                                                  source instead of repeating the number.
+   *
+   * `padding`, `background` and `width` are still literals and still pinned, because those genuinely
+   * did not change.
+   */
+  it("takes its height and radius from the control tokens, and changes no other dimension", () => {
+    expect(declaration(CONTROLS, "min-height")).toBe("var(--fs-control-h-lg)");
+    expect(declaration(CONTROLS, "border-radius")).toBe("var(--fs-radius-field)");
     expect(declaration(CONTROLS, "padding")).toBe("13px 16px");
-    expect(declaration(CONTROLS, "border-radius")).toBe("12px");
     expect(declaration(CONTROLS, "background")).toBe("rgba(255, 255, 255, 0.05)");
     expect(declaration(CONTROLS, "width")).toBe("100%");
+  });
+
+  /*
+   * The 12px floor on the form label, asserted so it cannot quietly slide back under it. This is
+   * the most-read technical text on the platform — it names what a buyer is being asked to type —
+   * and it sat at 9.5px until this gate. DESIGN_SYSTEM §7.1/§7.2, ADR-022 §4.6.
+   */
+  it("sets the form label at the 12px technical floor", () => {
+    expect(declaration(".fs-field label", "font-size")).toBe("var(--fs-text-technical)");
+    expect(declaration(".fs-field label", "letter-spacing")).toBe("0.14em");
   });
 
   it("leaves the focus and invalid treatments exactly as they were", () => {
