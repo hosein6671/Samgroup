@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { HomeExperience } from "@/features/home/home-experience";
 import { getActiveLocales } from "@/lib/locales";
+import { gateProofRouteForProduction } from "@/features/site/proof-routes";
 
 /** The proof tree sits outside `[locale]`, so it renders the default locale. */
 const PROOF_LOCALE = "en";
@@ -27,6 +28,8 @@ const PROOF_LOCALE = "en";
  * renders a language switcher it cannot populate is showing something the platform does not have.
  */
 export default async function HomeProofPage(): Promise<ReactNode> {
+  gateProofRouteForProduction("/design-proof");
+
   const locales = await getActiveLocales();
 
   return <HomeExperience locale={PROOF_LOCALE} locales={locales} />;

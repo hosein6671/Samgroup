@@ -8,6 +8,7 @@ import { getContentPage } from "@/lib/content";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getActiveLocales } from "@/lib/locales";
+import { gateCmsProofRouteForProduction, isProductionRuntime } from "@/features/site/proof-routes";
 
 /**
  * The CMS content proof — `/{locale}/cms-proof/{slug}`.
@@ -92,6 +93,16 @@ export async function generateMetadata({
 }: {
   readonly params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
+  /*
+   * In production this route is 404 and has nothing to describe, so it returns before the fetch.
+   *
+   * The 404 itself is the page component's — `notFound()` there is what sets the status. This is
+   * only about not issuing an upstream request for a response that is already decided: Next runs
+   * `generateMetadata` alongside the component rather than after it, so without this the gate would
+   * still cost one NestJS call, and through it one Payload call, per request.
+   */
+  if (isProductionRuntime()) return {};
+
   const { locale, slug } = await params;
   const result = await resolveCmsPage(slug, locale);
 
@@ -170,6 +181,15 @@ export default async function CmsProofPage({
 }: {
   readonly params: Promise<{ locale: string; slug: string }>;
 }): Promise<ReactNode> {
+  /*
+   * Production answers 404 here, ahead of `params` and every fetch — owner decision, 2 September
+   * 2026, implemented in `features/site/proof-routes.ts`. This is the one proof route with no
+   * canonical target to redirect to: its counterparts are the legal pages, and every one of them
+   * is blocked on approved, legally reviewed text that does not exist. The gate becomes a redirect
+   * when that content is published, then a deletion, per ADR-010 §9.
+   */
+  gateCmsProofRouteForProduction();
+
   const { locale, slug } = await params;
   const locales = await getActiveLocales();
 

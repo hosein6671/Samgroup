@@ -5,6 +5,7 @@ import { getQualityCertificationsContent } from "@/lib/content";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { getActiveLocales } from "@/lib/locales";
+import { gateProofRouteForProduction } from "@/features/site/proof-routes";
 
 /** The proof tree sits outside `[locale]`, so it renders the default locale. */
 const PROOF_LOCALE = "en";
@@ -35,6 +36,8 @@ export const metadata: Metadata = {
 };
 
 export default async function QualityCertificationsProofPage(): Promise<ReactNode> {
+  gateProofRouteForProduction("/design-proof/quality-certifications");
+
   const locales = await getActiveLocales();
   const result = await getQualityCertificationsContent(PROOF_LOCALE);
 

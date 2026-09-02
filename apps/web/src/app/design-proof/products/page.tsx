@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { ProductsExperience } from "@/features/products/products-experience";
 import { getActiveLocales } from "@/lib/locales";
+import { gateProofRouteForProduction } from "@/features/site/proof-routes";
 
 /** The proof tree sits outside `[locale]`, so it renders the default locale. */
 const PROOF_LOCALE = "en";
@@ -27,6 +28,8 @@ export const metadata: Metadata = {
 
 /** `async` for the same reason `design-proof/page.tsx` is — see the note there. */
 export default async function ProductsProofPage(): Promise<ReactNode> {
+  gateProofRouteForProduction("/design-proof/products");
+
   const locales = await getActiveLocales();
 
   return <ProductsExperience locale={PROOF_LOCALE} locales={locales} />;
