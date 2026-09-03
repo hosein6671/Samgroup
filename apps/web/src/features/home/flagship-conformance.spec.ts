@@ -385,3 +385,30 @@ describe("token values", () => {
     expect(declaration(MIDNIGHT, "--color-border-strong")).toBe("rgba(255, 255, 255, 0.4)");
   });
 });
+
+/* ------------------------------------ 7 · the Admin midnight gradient stays cancelled */
+
+describe("midnight surface treatment", () => {
+  /**
+   * `packages/ui/src/styles/surfaces.css` paints every `[data-surface="midnight"]` element with
+   * `background-image: var(--gradient-midnight-depth)`, and the generated token holds the **Admin**
+   * palette — `#1b2740 -> #0b1220 -> #070c18`, a desaturated slate that is not in the Flagship's
+   * ink family at all. The Flagship remaps `--color-surface-canvas`, so the background *colour*
+   * resolved correctly to `--fs-ink` and the background *image* was never remapped.
+   *
+   * Which sections it reached was then decided by CSS shorthand rather than by design: a rule
+   * written `background: var(--fs-ink)` resets `background-image` to none, a rule that sets only
+   * the colour does not. Measured on `/en` at 1440 before the fix, `#trust-indicators` and
+   * `#industries` computed the slate gradient while `#top`, `#products` and `#network` computed
+   * `none` — five midnight sections, two treatments, and a hard seam wherever one met the other.
+   *
+   * This is the only thing that has to hold for that not to come back, and it has to hold in
+   * `flagship.css`: overriding the token in the Flagship's own dark context covers every current
+   * midnight section and every future one, and leaves the Admin Dashboard's gradient intact.
+   */
+  it("neutralises --gradient-midnight-depth in the Flagship dark context", () => {
+    expect(
+      declaration('[data-brand="flagship"] [data-surface="midnight"]', "--gradient-midnight-depth"),
+    ).toBe("none");
+  });
+});

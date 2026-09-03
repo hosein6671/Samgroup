@@ -21,8 +21,8 @@ import type { Family } from "../home-data";
  * - **`ang += 0.00085` per frame**, with every node's position written straight to
  *   `style.left/top` inside the loop. No React state per frame — re-rendering five nodes at
  *   60fps would be the most expensive thing on the page.
- * - **Links and dots** redraw each frame; the selected family's link switches to gold
- *   (`rgba(201,167,92,.5)`) from the default `rgba(125,169,255,.2)`.
+ * - **Links and dots** redraw each frame; the selected family's link switches to `--fs-gold`
+ *   from the steel default. Both were prototype blues and are corrected — see `IDLE_LINK`.
  * - **Selection on hover, focus and click**, exactly as the reference binds them.
  *
  * The loop is cancelled by an IntersectionObserver when the orbit leaves the viewport, and
@@ -54,6 +54,17 @@ import type { Family } from "../home-data";
  * decorative and `aria-hidden`; the section's existing `aria-live` detail panel announces the
  * selection, so a keyboard user tabbing the ring hears each family as it lands.
  */
+/*
+ * The link colours. `--fs-gold` when a family is selected, steel otherwise.
+ *
+ * The idle link was `rgba(125,169,255,.2)` — the prototype's cornflower blue, which is in
+ * neither the Flagship palette nor the documented system (ADR-022 §1). The active link was
+ * `rgba(201,167,92,.5)`, a gold two points off `--fs-gold` (195,154,78); both are now the
+ * real values.
+ */
+const ACTIVE_LINK = "rgba(195, 154, 78, 0.55)";
+const IDLE_LINK = "rgba(152, 163, 180, 0.22)";
+
 const SPEED = 0.00085;
 /** Stage width below which the reference two-ring geometry can no longer clear the core. */
 const COMPACT_AT = 520;
@@ -132,10 +143,7 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
           link.setAttribute("y1", String(cy));
           link.setAttribute("x2", String(x));
           link.setAttribute("y2", String(y));
-          link.setAttribute(
-            "stroke",
-            f.id === activeRef.current ? "rgba(201,167,92,.5)" : "rgba(125,169,255,.2)",
-          );
+          link.setAttribute("stroke", f.id === activeRef.current ? ACTIVE_LINK : IDLE_LINK);
         }
         const dot = dotRefs.current[i];
         if (dot) {
@@ -195,11 +203,11 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
   return (
     <div className="fs-orbit" ref={wrapRef}>
       <svg className="fs-orbit-svg" ref={svgRef} aria-hidden="true">
-        <circle ref={ring0Ref} fill="none" stroke="rgba(190,212,245,.11)" strokeWidth="1" />
+        <circle ref={ring0Ref} fill="none" stroke="rgba(199, 205, 214, 0.12)" strokeWidth="1" />
         <circle
           ref={ring1Ref}
           fill="none"
-          stroke="rgba(190,212,245,.07)"
+          stroke="rgba(199, 205, 214, 0.08)"
           strokeWidth="1"
           strokeDasharray="2 7"
         />
@@ -209,7 +217,7 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
             ref={(el) => {
               linkRefs.current[i] = el;
             }}
-            stroke="rgba(125,169,255,.22)"
+            stroke={IDLE_LINK}
             strokeWidth="1"
           />
         ))}
@@ -220,16 +228,29 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
               dotRefs.current[i] = el;
             }}
             r="2.4"
-            fill="#7DA9FF"
+            fill="var(--fs-steel-2)"
             fillOpacity=".7"
           />
         ))}
       </svg>
 
+      {/*
+       * The core of the orbit is the base stock every other family is built from, which is why
+       * Base Oils sits in the middle and the rest orbit it.
+       *
+       * The third line read **"GROUP I – III+"**. That is the API base-oil group classification —
+       * a standard — and `home-data.ts` forbids naming a standard, licence or approval anywhere on
+       * this page; the certification marquee and the families' `["Standards", …]` rows were removed
+       * for the same reason, and this was the last one left, sitting inside a visual where a text
+       * search for the claim would not find it. It also measured 3.81:1 against the orbit's ground
+       * at 12px, under WCAG 1.4.3's 4.5:1, because of the 0.55 alpha it carried.
+       *
+       * "The base stock" states what the centre is without classifying it.
+       */}
       <div className="fs-core">
-        <span className="k">Core stream</span>
-        <span className="t">Base Oils</span>
-        <span className="s">GROUP I – III+</span>
+        <span className="k">Product portfolio</span>
+        <span className="t">Six families</span>
+        <span className="s">One enquiry route</span>
       </div>
 
       {families.map((f, i) => (
@@ -238,7 +259,7 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
           type="button"
           className="fs-orbit-node"
           data-on={f.id === activeId || undefined}
-          aria-label={`${f.name} — show details`}
+          aria-label={`${f.short} — show details`}
           aria-pressed={f.id === activeId}
           ref={(el) => {
             nodeRefs.current[i] = el;
@@ -248,7 +269,7 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
           onClick={() => onSelect(f.id)}
         >
           <i aria-hidden="true" />
-          {f.name}
+          {f.short}
         </button>
       ))}
     </div>

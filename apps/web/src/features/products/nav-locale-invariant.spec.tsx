@@ -5,8 +5,8 @@ import { hrefsIn, isInternalPath, localeEscapees, renderHtml } from "@test/rende
 import { Ecosystem } from "@/features/home/sections/ecosystem";
 import { Hero as HomeHero } from "@/features/home/sections/hero";
 import { Insights } from "@/features/home/sections/insights";
-import { Lab } from "@/features/home/sections/lab";
-import { Partnership } from "@/features/home/sections/partnership";
+import { CustomFormulation } from "@/features/home/sections/custom-formulation";
+import { WhoWeAre } from "@/features/home/sections/who-we-are";
 
 import { getCategoryContent } from "./category/data";
 import { CategoryApplications } from "./category/sections/applications";
@@ -101,11 +101,13 @@ function surfaces(locale: string): Record<string, string> {
 
   return {
     home: [
+      /* Realigned to the workbook's Home segments: `Lab` and `Partnership` are removed, and
+         `WhoWeAre` and `CustomFormulation` are the link-emitting sections that replaced them. */
       renderHtml(<HomeHero locale={locale} />),
+      renderHtml(<WhoWeAre locale={locale} />),
       renderHtml(<Ecosystem locale={locale} />),
-      renderHtml(<Lab />),
+      renderHtml(<CustomFormulation locale={locale} />),
       renderHtml(<Insights locale={locale} />),
-      renderHtml(<Partnership locale={locale} />),
     ].join(""),
 
     "products landing": [

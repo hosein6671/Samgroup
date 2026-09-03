@@ -9,6 +9,14 @@ import { useCanvas } from "../motion/use-canvas";
 /**
  * 5 · Global export network.
  *
+ * ── Restored, with its data brought in line ────────────────────────────────────────────────
+ *
+ * This section was removed with the Home-page realignment — the workbook has no segment for it —
+ * and the owner asked for it back. The construction below is unchanged. Its **destinations** are
+ * not: thirteen named ports with invented transit times became the three regions the workbook’s
+ * `Notes` sheet names, drawn as six points. See `HUBS` in `home-data.ts`. Nothing on this map is
+ * labelled "illustrative" any more, because nothing on it is.
+ *
  * A dot-matrix world with animated lanes departing one complex. Continents are coarse polygons
  * rasterised by point-in-polygon at ~2° — so the dots visibly *are* the drawing's precision,
  * which is more honest than a traced coastline that is wrong at the third decimal.
@@ -20,6 +28,24 @@ import { useCanvas } from "../motion/use-canvas";
  * **Hovering a hub is an enhancement, not the content.** Every lane is also listed as text in
  * the HUD chip and the stats grid below, so nothing is reachable only by pointer.
  */
+/*
+ * The map's palette, named once.
+ *
+ * Canvas cannot read a CSS custom property, so these are the only place the Flagship values are
+ * written as literals on this surface — and writing them once is what stops a sixth shade
+ * appearing the next time a stroke is tuned.
+ *
+ * They replace the approved prototype's BLUE accent — #7FA8FF and rgba(127,168,255,…) — which is
+ * in neither the Flagship palette nor the documented system. ADR-022 §1 records the public
+ * identity as dark navy with brass/gold as the accent; a cornflower-blue route map reads as a
+ * different brand sitting inside this one.
+ */
+const GOLD_2 = "#e3c689"; /* --fs-gold-2 */
+const STEEL_2 = "#98a3b4"; /* --fs-steel-2 */
+const LANE = "rgba(152, 163, 180, 0.26)"; /* --fs-steel-2, at the alpha the blue lane used */
+const LANE_RING = "rgba(152, 163, 180, 0.3)";
+const LAND_DOT = "rgba(152, 163, 180, 0.3)";
+
 export function Network(): ReactNode {
   const [hover, setHover] = useState(-1);
   const hoverRef = useRef(-1);
@@ -70,7 +96,7 @@ export function Network(): ReactNode {
       ctx.clearRect(0, 0, w, h);
 
       const r = w < 700 ? 1 : 1.3;
-      ctx.fillStyle = "rgba(160,175,205,.30)";
+      ctx.fillStyle = LAND_DOT;
       for (const d of dots.current) {
         ctx.beginPath();
         ctx.arc(d.x, d.y, r, 0, 6.2832);
@@ -91,7 +117,7 @@ export function Network(): ReactNode {
         ctx.beginPath();
         ctx.moveTo(hq.x, hq.y);
         ctx.quadraticCurveTo(cx, cy, hb.x, hb.y);
-        ctx.strokeStyle = on ? "rgba(227,198,137,.85)" : "rgba(127,168,255,.24)";
+        ctx.strokeStyle = on ? "rgba(227, 198, 137, 0.85)" : LANE;
         ctx.lineWidth = on ? 1.6 : 0.9;
         ctx.stroke();
 
@@ -114,11 +140,11 @@ export function Network(): ReactNode {
         const on = i === hoverRef.current;
         ctx.beginPath();
         ctx.arc(hb.x, hb.y, on ? 5.5 : 3.4, 0, 6.2832);
-        ctx.fillStyle = on ? "#E3C689" : "#7FA8FF";
+        ctx.fillStyle = on ? GOLD_2 : STEEL_2;
         ctx.fill();
         ctx.beginPath();
         ctx.arc(hb.x, hb.y, on ? 12 : 8, 0, 6.2832);
-        ctx.strokeStyle = on ? "rgba(227,198,137,.6)" : "rgba(127,168,255,.28)";
+        ctx.strokeStyle = on ? "rgba(227, 198, 137, 0.6)" : LANE_RING;
         ctx.lineWidth = 1;
         ctx.stroke();
         // Labels only where there is room for them, or on the hovered hub.
@@ -226,7 +252,7 @@ export function Network(): ReactNode {
         <div className="fs-globe-head fs-section-head fs-rv">
           <div>
             <div className="fs-eyebrow">Export enquiry and logistics planning</div>
-            <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "15ch" }}>
+            <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "22ch" }}>
               Define the product. Prepare the shipment brief.
             </h2>
           </div>
@@ -235,7 +261,7 @@ export function Network(): ReactNode {
             term into the same conversation.{" "}
             {/* Explicit space: JSX trims the whitespace before an expression, which ran the
                 sentences together as "sales map.Tap a hub". */}
-            {verb} a hub to read its lane.
+            {verb} a destination to read it.
           </p>
         </div>
 
@@ -257,7 +283,7 @@ export function Network(): ReactNode {
                   <b>{hovered.n}</b> · {hovered.lane}
                 </>
               ) : (
-                <span>{verb} a hub for lane detail</span>
+                <span>{verb} a destination</span>
               )}
             </span>
           </div>
@@ -270,13 +296,15 @@ export function Network(): ReactNode {
             /*
              * Describes the drawing, and names no facility. It previously read "Sam Group export
              * routes from the Persian Gulf to hubs across…", which asserted both a named production
-             * site and a served-market list — the same Persian Gulf plant claim removed from the
-             * footer in this pass, and the market list is one of SITE_STRUCTURE's open
-             * confirmations. The lanes and transit times this map draws are placeholder data, and
-             * the label now says so to a screen reader exactly as the page's notice says it to
-             * everyone else.
+             * site and a served-market list.
+             *
+             * It then read "Illustrative world map … the routes, hubs and transit times shown are
+             * placeholder data", which was true of the thirteen invented ports it was drawing and
+             * was the honest label for them. **Both the hedge and the reason for it are gone**: the
+             * destinations are now the three regions the workbook's `Notes` sheet names, so the
+             * label states what the map shows instead of apologising for it.
              */
-            aria-label="Illustrative world map of export shipping lanes. The routes, hubs and transit times shown are placeholder data."
+            aria-label="World map marking the regions SAM Group exports to: Türkiye, the countries around India, and Africa. Every destination is listed as text beneath the map."
             role="img"
           />
 
@@ -287,12 +315,12 @@ export function Network(): ReactNode {
            */}
           <div className="fs-map-legend">
             <span className="fs-lg">
-              <i style={{ background: "#7FA8FF" }} />
-              <span>Illustrative route hub</span>
+              <i style={{ background: STEEL_2 }} />
+              <span>Export destination</span>
             </span>
             <span className="fs-lg">
               <i style={{ background: "rgba(199,205,214,.5)" }} />
-              <span>Illustrative destination</span>
+              <span>Route drawn to destination</span>
             </span>
           </div>
         </div>

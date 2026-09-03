@@ -231,6 +231,21 @@
   --fs-icon-sm: 13px;
   --fs-icon-md: 14px;
   --fs-icon-lg: 20px;
+  /*
+   * `xl` is the subject-matter size: a glyph that names a substance or a process inside a node
+   * plate, rather than a status mark sitting beside a line of text. 22px is the largest size at
+   * which Lucide's 24-unit grid still renders its 1.75 stroke crisply without hinting artefacts.
+   */
+  --fs-icon-xl: 22px;
+  /*
+   * The stroke width, in CSS as well as in TypeScript.
+   *
+   * `features/site/icons.tsx` and `features/forms/wizard/icons.tsx` both export `STROKE = 1.75`
+   * and pass it to Lucide as a prop. Hand-authored SVG on this surface has no way to read that
+   * constant, so it is published here too — one number, two consumers, and a drifting third
+   * stroke width becomes visible rather than plausible.
+   */
+  --fs-icon-stroke: 1.75;
 
   /* --- Motion. Expo-out for entrances, a short curve for micro-interaction. --- */
   --e-entrance: cubic-bezier(0.19, 1, 0.22, 1);
@@ -312,6 +327,31 @@
   --color-focus-ring: var(--fs-gold-2);
   --color-glass-fill: rgba(255, 255, 255, 0.045);
   --color-glass-border: rgba(255, 255, 255, 0.14);
+
+  /*
+   * Cancel the Admin design system’s midnight gradient. This is a correction, not a preference.
+   *
+   * `packages/ui/src/styles/surfaces.css` paints every [data-surface="midnight"] element with
+   * `background-image: var(--gradient-midnight-depth)`, and that token is generated for the
+   * *Admin* palette: #1b2740 -> #0b1220 -> #070c18, a desaturated slate. The Flagship remaps
+   * --color-surface-canvas above, so the background COLOUR arrives correct at --fs-ink (#030b1f);
+   * the background IMAGE was never remapped, and painted the Admin slate on top of it.
+   *
+   * Which sections it reached was decided by CSS shorthand, not by design. .fs-hero, .fs-eco and
+   * .fs-globe declare `background: var(--fs-ink)` — the shorthand resets background-image to
+   * none, so those three rendered flat ink. .fs-trust and .fs-ind set no background of their own,
+   * so the slate gradient survived on them. Measured on /en at 1440: #trust-indicators and
+   * #industries computed the radial gradient while #top, #products and #network computed "none"
+   * — five midnight sections, two treatments, and a hard seam wherever one met the other. That
+   * seam is what the owner reported: the visible cut between Trust Indicators and Our Products.
+   *
+   * `none` rather than a Flagship-palette gradient, because the Flagship already has its own
+   * devices for depth on a dark band — .fs-hero-veil and the .fs-blueprint grid — and three of the
+   * five sections were flat to begin with. Overriding the token here fixes every current midnight
+   * section and every future one, and it leaves packages/ui untouched, so the Admin Dashboard
+   * keeps the gradient the token was generated for.
+   */
+  --gradient-midnight-depth: none;
 }
 
 [data-brand="flagship"] {
@@ -571,6 +611,17 @@
   stroke-dashoffset: 0;
 }
 
+/*
+ * An icon draws faster than a schematic.
+ *
+ * 1800ms was authored for a full-width technical drawing, where the stroke has distance to travel.
+ * On a 20px glyph the same duration reads as hesitation rather than as drawing — the line is
+ * finished long before the clock is. 900ms lands it with the row it belongs to.
+ */
+[data-reveal-armed="true"] .fs-icon.fs-draw :is(path, circle, line, rect) {
+  transition-duration: 900ms;
+}
+
 /* ============================================================================
    5 · CHROME — progress, nav, boot curtain, pointer ring
    ============================================================================ */
@@ -806,7 +857,14 @@
 .fs-nav-trigger[aria-expanded="true"]::after {
   transform: scaleX(1);
 }
+/*
+ * The caret is now a wrapper around a Lucide `ChevronDown` rather than a hand-drawn path, so the
+ * rotation lives on the wrapper: rotating the `<svg>` itself would fight the `inline-size` the
+ * `.fs-icon` class sets on it, and the two hand-drawn chevrons this replaced carried stroke widths
+ * of 2.2 and 2 against the 1.75 every other glyph on the page now uses.
+ */
 .fs-nav-caret {
+  display: inline-flex;
   transition: transform var(--t-micro) var(--e-micro);
   flex: none;
 }
@@ -863,8 +921,16 @@
   flex-direction: column;
   gap: 2px;
 }
+/*
+ * A row is a glyph and a label, not a label with a glyph before it — so `flex` with a fixed gap
+ * rather than an inline icon in the text flow. That keeps every label on one left edge whether its
+ * name wraps or not: "Engine Oils & Automotive Lubricants" is 35 characters and does wrap in a
+ * three-column panel, and with an inline glyph its second line would start under the icon.
+ */
 .fs-mega-col a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 11px;
   padding: 9px 10px;
   margin-inline: -10px;
   border-radius: 10px;
@@ -874,6 +940,18 @@
   transition:
     background var(--t-micro),
     color var(--t-micro);
+}
+/*
+ * The glyph sits one step back from its label and steps forward with it on hover, so the icon
+ * reads as belonging to the row rather than as a second, competing mark. Steel, never gold: none
+ * of these is the panel's call to action.
+ */
+.fs-mega-col a .fs-icon {
+  color: var(--color-text-tertiary);
+  transition: color var(--t-micro);
+}
+.fs-mega-col a:hover .fs-icon {
+  color: var(--fs-gold-2);
 }
 .fs-mega-col a::after {
   content: none; /* the underline belongs to the top row, not to panel items */
@@ -1150,14 +1228,26 @@
   margin: 0;
   padding: 4px 0 12px;
 }
+/* Same row construction as the desktop panel: glyph and label as two flex items on one baseline,
+   so a wrapped family name keeps one left edge. `padding-inline-start`, not `padding-left` — the
+   rule that draws the accordion's spine is `border-inline-start` and the two must stay on the same
+   side under RTL. */
 .fs-drawer-panel a {
-  display: block;
-  padding: 12px 0 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 12px;
+  padding-inline: 16px 0;
   min-height: 44px;
   font-size: var(--fs-text-body-sm);
   line-height: var(--fs-text-body-sm--line-height);
   color: rgba(238, 241, 246, 0.68);
   border-inline-start: 1px solid var(--color-glass-border);
+}
+.fs-drawer-panel a .fs-icon,
+.fs-drawer-panel a .fs-ar {
+  color: var(--color-text-tertiary);
+  flex: none;
 }
 .fs-drawer-foot {
   display: grid;
@@ -1369,29 +1459,74 @@
       rgba(3, 11, 31, 0.86) 92%
     );
 }
+/*
+ * `stretch`, not `flex-end`.
+ *
+ * The hero is `min-height: 100svh` and its copy is bottom-aligned, so with `flex-end` the grid was
+ * only as tall as its own content and ALL the surplus viewport height collected into one dead band
+ * above the eyebrow — measured at 348px on a 914px-tall viewport and 505px at 1080. Nothing could
+ * be placed in it, because nothing in the grid could reach it.
+ *
+ * Stretching the grid to the full body height changes no position on its own: `align-items: end`
+ * below still drops both columns to the bottom of their rows, so the copy sits exactly where it
+ * did. What it buys is that `.fs-hero-side` can now opt into the full height and become a rail,
+ * which is what the schematic needs to exist at all.
+ */
 .fs-hero-body {
   position: relative;
   z-index: 3;
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   padding-block: 104px 0;
 }
+/*
+ * `center`, not `end`.
+ *
+ * With the copy bottom-anchored and the rail full-height, the surplus viewport height collected
+ * into two voids: 385px above the eyebrow on the left, and a 160px hole between the schematic and
+ * the specification panel on the right. Centring both columns distributes that surplus to the top
+ * and bottom of each, which is the composition the hero was drawn as — copy and rail reading as a
+ * pair rather than as two things that happen to share a row.
+ */
 .fs-hero-grid {
   width: 100%;
-  align-items: end;
+  align-items: center;
 }
 .fs-hero-copy {
   grid-column: 1 / span 8;
 }
+/*
+ * The right rail: schematic at the top, specification panel at the bottom, the surplus height
+ * between them rather than above everything. `space-between` rather than a spacer element, so the
+ * distribution is the layout's job and there is no empty node in the DOM to explain.
+ */
 .fs-hero-side {
   grid-column: 9 / span 4;
   padding-bottom: 0;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(28px, 4vh, 64px);
 }
+/*
+ * The measure, and why it moved from 16ch.
+ *
+ * Each `.fs-line-mask` is one authored line and the reveal slides it up from behind its own
+ * overflow box — a stagger that only reads as "line by line" while every mask holds exactly one
+ * line. At 16ch (518px) the first line, "Base oils and lubricants.", wrapped: measured 128px tall
+ * against 70px for its two siblings, so it rose as a two-line block while the others rose as one.
+ * The animation was fighting the measure.
+ *
+ * 26ch fits the longest authored line on one row at every width from 1024 up, inside the copy
+ * column's own 844px. Below 1024 the lines wrap and the stagger degrades to block-by-block, which
+ * is the correct behaviour there — a phone cannot hold a 25-character line at display size.
+ */
 .fs-hero h1 {
   margin: 22px 0 0;
-  max-width: 16ch;
+  max-width: 26ch;
   font-size: var(--fs-text-hero);
   letter-spacing: var(--fs-text-hero--letter-spacing);
   line-height: var(--fs-text-hero--line-height);
@@ -1456,6 +1591,308 @@
   color: #fff;
   letter-spacing: 0.04em;
 }
+
+/* The row label and its glyph are one unit; the figure stays hard against the opposite edge. */
+.fs-spec-row dt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/*
+ * Steel, not gold. The panel's own `h2` is already gold and the hero spends gold three more times
+ * — the headline's `em`, the primary button, the header's quote button. On the Flagship gold is
+ * the INTERACTIVE colour, so three gold glyphs on three rows that do nothing would be three
+ * promises the panel does not keep.
+ */
+.fs-spec-row dt .fs-icon {
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   5a · CARD GRID  ·  Trust Indicators · Why Choose SAM Group · Industries We Serve
+   ============================================================================
+   Three of the workbook's Home segments are flat lists of an icon, a title and a sentence — four
+   indicators, six advantages, five industries. They share one construction rather than three,
+   because three separately-designed grids on one page is exactly what makes a page read as a
+   collection of blocks instead of a document, which is the thing this realignment was asked to
+   fix. Column count is the only thing that varies, and it varies through `data-columns`.
+
+   The column count is **declared, not derived**. An `auto-fit` / `minmax` rule was tried first and
+   is wrong here for one measurable reason: at 1440 it fitted the six advantages into four tracks,
+   leaving a row of four and an orphan row of two. A six-item argument reads as 3 x 2; a five-item
+   list reads as one row. Those are editorial decisions about each list, so each section states its
+   own count and the grid obeys it above 1024px.
+
+   Below that the counts collapse together — two columns, then one — because at tablet width the
+   difference between a four-item and a six-item grid stops being meaningful.
+   ============================================================================ */
+
+.fs-cards {
+  list-style: none;
+  margin: clamp(40px, 4vw, 64px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(14px, 1.6vw, 24px);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 620px) {
+  .fs-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .fs-cards[data-columns="3"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .fs-cards[data-columns="4"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .fs-cards[data-columns="5"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.fs-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: clamp(22px, 2.2vw, 30px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--fs-radius-panel);
+  background: var(--color-glass-fill);
+  transition:
+    border-color var(--t-micro) var(--e-micro),
+    background var(--t-micro) var(--e-micro);
+}
+.fs-card:hover {
+  border-color: var(--color-border-accent);
+  background: var(--color-accent-muted);
+}
+
+/*
+ * The glyph sits in its own plate, the same 44px plate the hero's route schematic uses, so the two
+ * decorative-icon treatments on the page are one treatment. Steel, not gold — none of these cards
+ * is an action, and on the Flagship gold means "act here".
+ */
+.fs-card-glyph {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  margin-bottom: 4px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 14px;
+  color: var(--color-text-tertiary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+.fs-card:hover .fs-card-glyph {
+  color: var(--color-text-accent);
+}
+
+/*
+ * Two lines reserved, always.
+ *
+ * Four of the eleven card titles on this page wrap — "Supply built around the order", "Automotive
+ * & Transportation", "Industrial Manufacturing", "Packaging & Specialty Industries" — and their
+ * neighbours do not. Without a reserved height the bodies in a row start at different baselines,
+ * which is the thing that makes a grid look assembled rather than designed.
+ *
+ * `calc` rather than the `lh` unit: `2lh` says this more directly but is Chrome 109 /
+ * Safari 16.4 and newer, and this is load-bearing alignment rather than an enhancement.
+ */
+.fs-card-title {
+  margin: 0;
+  min-block-size: calc(2 * var(--fs-text-title--line-height) * var(--fs-text-title));
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  color: var(--color-text-primary);
+  text-wrap: balance;
+}
+
+.fs-card-body {
+  margin: 0;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+
+/*
+ * Row alignment across a card row, at every width — the reserved two lines are a floor, not a fix.
+ *
+ * `min-block-size` above reserves two lines for the title, which is right until a title needs a
+ * third. Measured on Industries, whose five columns are the narrowest on the page: at 1425px every
+ * title fits two lines and all five bodies start 146px into the card, but at 1238px and at 1009px
+ * "Packaging & Specialty Industries" takes three, and that one body starts 24px below the other
+ * four. The row stops reading as a row. Widening the reserve to three lines would fix it by
+ * putting a blank line under ten titles that do not need one.
+ *
+ * Subgrid is the fix that costs nothing: each card spans three of the list's rows and adopts them,
+ * so the title track is as tall as the tallest title *in that row* and every body starts level.
+ * When no title wraps past two lines the tracks collapse to the reserve and nothing changes.
+ *
+ * The card keeps its own row gap, which a subgrid is allowed to override for the axis it adopts —
+ * without it the 12px inner rhythm would inherit the list's much larger gutter.
+ */
+@supports (grid-template-rows: subgrid) {
+  .fs-card {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 12px;
+  }
+}
+
+/* Five across is a narrower column than four or three, so the industries carry less text per card
+   and a tighter inner rhythm rather than a smaller type size. */
+.fs-card--compact {
+  gap: 10px;
+  padding: clamp(20px, 1.9vw, 26px);
+}
+
+/* ============================================================================
+   5b · ICONS  ·  the shared sizing contract for `features/site/icons.tsx`
+   ============================================================================
+   The forms' `.fw-icon` set in `forms.css` is the same contract on the other surface. The two are
+   deliberately separate class names — one belongs to the wizard, one to the public pages — but
+   they read the same `--fs-icon-*` tokens, so a glyph is the same size in both. Merging them is a
+   later tidy-up, not this gate's business.
+   ============================================================================ */
+
+.fs-icon {
+  flex: none;
+  inline-size: var(--fs-icon-md);
+  block-size: var(--fs-icon-md);
+}
+.fs-icon--sm {
+  inline-size: var(--fs-icon-sm);
+  block-size: var(--fs-icon-sm);
+}
+.fs-icon--lg {
+  inline-size: var(--fs-icon-lg);
+  block-size: var(--fs-icon-lg);
+}
+.fs-icon--xl {
+  inline-size: var(--fs-icon-xl);
+  block-size: var(--fs-icon-xl);
+}
+
+/*
+ * A directional glyph points the way the interface reads, not the way English does — the rule
+ * `.fs-ar` and `.fw-icon--dir` already follow. Nothing in the public set is directional yet; the
+ * class exists so the first one that is does not invent its own mirror.
+ */
+[dir="rtl"] .fs-icon--dir {
+  transform: scaleX(-1);
+}
+
+/* ============================================================================
+   5c · PRODUCT ROUTE SCHEMATIC  ·  the hero's right rail
+   ============================================================================
+   Five stages down the tall side column, in the blueprint register the manufacturing journey and
+   the ecosystem diagram already speak: hairline connectors, square node plates, a tabular index,
+   and a subject-matter glyph per stage. Steel and silver only — the hero already spends its gold
+   three times (the `em` in the headline, the primary button, the header's quote button), and a
+   fourth would stop gold meaning "act here".
+
+   Rendered by `visuals/product-route-schematic.tsx`, which records why this is DOM rather than
+   one `<svg viewBox>`: text inside a viewBox scales with the container and falls under the 12px
+   floor, which is the defect the journey's own illustrations still carry.
+   ============================================================================ */
+
+.fs-route {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.fs-route-head {
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.fs-route-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(14px, 1.5vh, 26px);
+}
+
+.fs-route-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+/*
+ * The connector, drawn from each node down to the next rather than as one rule behind the list.
+ * Per-step means the last node has no tail and the gap can stay fluid — a single absolutely
+ * positioned spine would have to be re-measured every time the gap clamp resolves differently.
+ */
+.fs-route-step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 21px;
+  inset-block-start: 44px;
+  block-size: calc(100% - 44px + clamp(14px, 1.5vh, 26px));
+  inline-size: 1px;
+  background: linear-gradient(to bottom, rgba(199, 205, 214, 0.28), rgba(199, 205, 214, 0.08));
+}
+
+.fs-route-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(20px);
+  color: var(--fs-silver);
+}
+
+.fs-route-copy {
+  display: grid;
+  gap: 3px;
+  min-inline-size: 0;
+}
+
+.fs-route-index {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  color: var(--color-text-tertiary);
+}
+
+.fs-route-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  color: #fff;
+}
+
+.fs-route-detail {
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
+  color: var(--color-text-secondary);
+}
+
 .fs-hero-stats {
   position: relative;
   z-index: 3;
@@ -1517,7 +1954,14 @@
   line-height: var(--fs-text-technical--line-height);
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  /*
+   * The token, not `rgba(255, 255, 255, 0.45)`. That literal composited to **4.48:1** on
+   * `--fs-ink` — 0.02 short of the 4.5:1 WCAG 1.4.3 floor this 12px text has to clear, which is
+   * the kind of miss no eye catches and no reviewer can argue about. `--color-text-tertiary`
+   * resolves to #8d99ad in the midnight context and measures 6.81:1 on the same ground, and it is
+   * what this string actually is: tertiary text.
+   */
+  color: var(--color-text-tertiary);
 }
 .fs-scroll-hint i {
   display: block;
@@ -1545,57 +1989,10 @@
   }
 }
 
-/* ============================================================================
-   8 · PLACEHOLDER-DATA NOTICE
-   ----------------------------------------------------------------------------
-   Occupies the slot the certification marquee used to hold. That marquee is
-   gone rather than restyled: it published ten unverified standards, and
-   SITE_STRUCTURE §7 forbids publishing a placeholder certification at all.
-
-   Deliberately not subtle. A provisional-data notice that reads as decoration
-   is the same failure as the source comment that claimed this note existed
-   while nothing rendered it.
-   ============================================================================ */
-
-.fs-demo-note {
-  background: var(--fs-ink);
-  border-top: 1px solid rgba(201, 167, 92, 0.34);
-  border-bottom: 1px solid rgba(201, 167, 92, 0.34);
-  padding: 14px 0;
-}
-
-.fs-demo-note-inner {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.fs-demo-tag {
-  flex: none;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  text-transform: uppercase;
-  color: var(--fs-ink);
-  background: var(--fs-gold);
-  border-radius: 4px;
-  padding: 4px 9px;
-}
-
-.fs-demo-note p {
-  margin: 0;
-  max-width: 92ch;
-  font-size: var(--fs-text-caption);
-  line-height: var(--fs-text-caption--line-height);
-  color: rgba(238, 241, 246, 0.72);
-}
-
-.fs-demo-note strong {
-  color: #fff;
-  font-weight: 500;
-}
+/* Section 8 was the PLACEHOLDER-DATA NOTICE. `sections/demo-data-notice.tsx` is deleted — every
+   illustrative figure it disclaimed went with the sections that carried them — so its rules are
+   deleted too rather than left as dead weight. They were also the last off-palette gold on the
+   page: `rgba(201, 167, 92, …)` is the prototype's #C9A75C, two points off `--fs-gold`. */
 
 /* ============================================================================
    9 · MANUFACTURING STORY
@@ -1679,6 +2076,26 @@
   font-weight: 600;
   letter-spacing: var(--fs-text-technical--letter-spacing);
 }
+/*
+ * The caption sits ON the photograph, so its contrast is a property of whatever pixel is behind it
+ * — which nothing in CSS can guarantee. Measured against the figure's own ground it read 1.32:1,
+ * and against a bright crest in a real photograph it would be worse.
+ *
+ * `::before` is the guarantee: a scrim from transparent to near-opaque ink across the bottom third
+ * of the frame, so the caption always has a dark ground of its own. White at 0.88 alpha over
+ * `rgba(3,11,31,.82)` composited on any photograph measures above 12:1. The gradient is tall and
+ * soft enough to read as the image's own vignette rather than as a bar laid over it.
+ */
+.fs-branded-photo::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 42%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(3, 11, 31, 0) 0%, rgba(3, 11, 31, 0.82) 78%);
+}
 .fs-branded-photo figcaption {
   position: absolute;
   inset-inline: 18px;
@@ -1721,6 +2138,92 @@
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
+/* ---------------------------------------------------- Who We Are · the three claims
+   `.fs-story-meta`'s slot, holding sentences instead of counters. The Who We Are segment replaced
+   three figures — six families, a hundred products, five pathways — with three statements about
+   what SAM Group does, because the workbook gives credibility figures their own segment and this
+   one is about position, not scale. Same rule above it, same measure, no numbers. */
+/*
+ * Three rows: a glyph plate, a label, and the claim.
+ *
+ * It was a two-column `<dl>` — a 128px label track against a sentence — which put the label and
+ * the sentence on the same baseline and gave the eye nothing to travel down. Two things changed
+ * and both are about the same problem:
+ *
+ *   1. **A glyph plate**, the same 38px construction the cards use one size up. It gives each row
+ *      a fixed left edge, so the three claims read as a set rather than as three paragraphs.
+ *   2. **A hairline between rows**, so the list has the ledger rhythm the rest of the page uses.
+ *      The single rule above the list stays; it separates the list from the lead.
+ *
+ * The label sits above its claim rather than beside it. At 128px the track was wide enough for
+ * "We formulate" and nothing else, so a fourth claim with a longer label would have forced the
+ * whole column wider or wrapped alone.
+ */
+.fs-who-list {
+  margin: 40px 0 0;
+  padding-top: 26px;
+  border-top: 1px solid rgba(6, 19, 70, 0.13);
+  display: grid;
+  max-width: 560px;
+}
+.fs-who-list > div {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 3px 18px;
+  padding-block: 18px;
+}
+.fs-who-list > div + div {
+  border-top: 1px solid rgba(6, 19, 70, 0.09);
+}
+/*
+ * 44px and a 20px glyph — the same plate the cards and the hero's route schematic use. It was 38px
+ * around a 14px icon, which left the glyph adrift in its own box and made this the only plate size
+ * on the page.
+ */
+.fs-who-glyph {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  margin-top: 1px;
+  border: 1px solid rgba(6, 19, 70, 0.13);
+  border-radius: 14px;
+  /* Steel, like every other non-interactive glyph on the page. The label beside it is already
+     accent gold, and this section spends gold three more times — the eyebrow, the heading's `i`,
+     and three labels. A gold glyph on each row would be six marks competing in one column. */
+  color: var(--color-text-tertiary);
+}
+.fs-who-list dt {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+/*
+ * The index, in the page's own numbering vocabulary — the hero route, the customization steps and
+ * the product families all count themselves this way. Tertiary rather than accent, so the number
+ * orders the row without competing with the label it introduces.
+ */
+.fs-who-index {
+  color: var(--color-text-tertiary);
+}
+.fs-who-list dd {
+  margin: 0;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+.fs-who-cta {
+  margin-top: 34px;
+}
+
 .fs-panel-stack {
   display: flex;
   flex-direction: column;
@@ -1920,6 +2423,12 @@
   gap: clamp(24px, 4vw, 64px);
   align-items: center;
 }
+/* Below 1180px the stage is one column, so the strip reads as a filter above the panel. */
+@media (max-width: 1180px) {
+  .fs-eco-side {
+    align-content: start;
+  }
+}
 .fs-eco-canvas {
   position: relative;
   aspect-ratio: 1/1;
@@ -1966,16 +2475,26 @@
   display: grid;
   place-content: center;
   text-align: center;
+  /*
+   * Brass, not cornflower blue.
+   *
+   * This core, the orbit nodes below it and the export map all carried the approved prototype's
+   * BLUE accent — #2F6BFF, #7DA9FF, #7FA8FF — which is in neither the Flagship palette nor the
+   * documented system. ADR-022 §1 records the public identity as dark navy with brass/gold as the
+   * accent and the interactive colour; a bright blue highlight on the page's signature visual is
+   * the one thing that reads as a different brand. Every value here is now `--fs-gold` or
+   * `--fs-gold-2`, at the same alphas the blue used, over the same ink.
+   */
   background: radial-gradient(
     circle at 34% 28%,
-    rgba(125, 169, 255, 0.36),
-    rgba(47, 107, 255, 0.1) 46%,
+    rgba(227, 198, 137, 0.3),
+    rgba(195, 154, 78, 0.1) 46%,
     rgba(8, 12, 22, 0.9) 74%
   );
-  border: 1px solid rgba(125, 169, 255, 0.34);
+  border: 1px solid rgba(195, 154, 78, 0.34);
   box-shadow:
-    0 0 90px -14px rgba(47, 107, 255, 0.62),
-    inset 0 0 60px -18px rgba(125, 169, 255, 0.7);
+    0 0 90px -14px rgba(195, 154, 78, 0.45),
+    inset 0 0 60px -18px rgba(227, 198, 137, 0.5);
   backdrop-filter: blur(10px);
 }
 .fs-core .k {
@@ -1995,11 +2514,16 @@
   margin-top: 7px;
   color: #fff;
 }
+/* Not `rgba(238, 241, 246, 0.55)`, which measured 3.81:1 against the orbit's ground at 12px —
+   under WCAG 1.4.3's 4.5:1 for normal text. `--color-text-secondary` was the first correction and
+   reached only 4.41:1: the core sits on a lit glass plate, not on the section's ink, so the
+   midnight secondary tone is measured against a lighter ground here than anywhere else on the
+   page. `--fs-silver` is the next step up the same palette and clears the floor. */
 .fs-core .s {
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   line-height: var(--fs-text-technical--line-height);
-  color: rgba(238, 241, 246, 0.55);
+  color: var(--fs-silver);
   margin-top: 6px;
   letter-spacing: var(--fs-text-technical--letter-spacing);
 }
@@ -2009,7 +2533,7 @@
   position: absolute;
   inset: -14%;
   border-radius: 50%;
-  border: 1px solid rgba(125, 169, 255, 0.13);
+  border: 1px solid rgba(199, 205, 214, 0.16);
   animation: fs-spin 26s linear infinite;
 }
 @keyframes fs-spin {
@@ -2046,16 +2570,19 @@
   inline-size: 5px;
   block-size: 5px;
   border-radius: 99px;
-  background: #2f6bff;
+  background: var(--fs-steel-2);
   flex: none;
   transition: 0.35s;
 }
 .fs-orbit-node:hover,
 .fs-orbit-node[data-on] {
   color: #fff;
-  border-color: rgba(125, 169, 255, 0.6);
-  background: rgba(24, 44, 88, 0.82);
-  box-shadow: 0 0 40px -8px rgba(47, 107, 255, 0.8);
+  border-color: rgba(195, 154, 78, 0.6);
+  /* A brass-tinted glass, not a navy fill. Gold is the Flagship's interactive colour (ADR-022 §1),
+     so the selected station should read as the same signal the buttons use — the navy fill it
+     carried was the prototype's, and against the section's ink it read as a blue chip. */
+  background: rgba(195, 154, 78, 0.16);
+  box-shadow: 0 0 40px -8px rgba(195, 154, 78, 0.55);
 }
 .fs-orbit-node[data-on] i {
   background: var(--fs-gold);
@@ -2140,11 +2667,24 @@
   line-height: var(--fs-text-caption--line-height);
   letter-spacing: 0.04em;
 }
+/*
+ * The right column: the tab strip stacked on the panel it drives. See the comment in
+ * `sections/ecosystem.tsx` for why the strip moved here out of a full-width row below the stage.
+ *
+ * `align-content: center` rather than `stretch`, because the panel's height is content-driven and
+ * a stretched column would leave the same empty band the move was made to remove — only inside the
+ * panel's border instead of underneath it.
+ */
+.fs-eco-side {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+  min-width: 0;
+}
 .fs-eco-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 26px;
 }
 .fs-eco-tab {
   font-family: var(--font-technical);
@@ -2993,7 +3533,11 @@
 }
 .fs-jrny-head h2 {
   margin-top: 22px;
-  max-inline-size: 16ch;
+  /* Widened from the measure this heading carried when `.fs-d2` rendered at 74.9px. The type is
+     now 35.8px and `text-wrap: balance` distributes the lines, so a narrow `ch` cap only forces a
+     third line and splits a phrase across it — "Prepare the / shipment brief." was the worst of
+     them. */
+  max-inline-size: 22ch;
   color: var(--fs-navy);
 }
 .fs-jrny-head-copy > p {
@@ -3005,6 +3549,23 @@
   line-height: var(--fs-text-lead--line-height);
   color: var(--color-text-secondary);
 }
+
+/*
+ * The Custom Formulation segment's two actions.
+ *
+ * The workbook gives this segment the CTA "Request Custom Solution"; the second, quieter action to
+ * Contact Us is here because the `Home Page` sheet has no final-CTA segment and the page's closing
+ * section was removed. This is the last point on the page where a reader is holding a specific
+ * requirement, so it is where the contact route belongs — not appended to the end as a block that
+ * asks again for what the page has already asked for twice.
+ */
+.fs-jrny-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: clamp(26px, 2.6vw, 36px);
+}
+
 .fs-jrny-photo {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -3494,10 +4055,26 @@
   .fs-hero-copy {
     grid-column: 1 / span 12;
   }
+  /*
+   * The rail stops being a rail here and stacks under the copy, so it drops back to being a block
+   * that is exactly as tall as its content — `stretch` and `space-between` would otherwise leave a
+   * gap between the schematic and the panel proportional to whatever height the row happened to
+   * take. The schematic itself is hidden below (see `.fs-route`), so only the panel remains.
+   */
   .fs-hero-side {
     grid-column: 1 / span 12;
     padding-bottom: 0;
     margin-top: 34px;
+    align-self: end;
+    display: block;
+  }
+  /*
+   * A five-step vertical route stacked above the specification panel would push both calls to
+   * action below the fold at this width, and the hero has no dead band left to fill here — it is
+   * down to its 104px padding once the columns collapse. Hidden rather than compressed.
+   */
+  .fs-route {
+    display: none;
   }
   .fs-story-left {
     grid-column: 1 / span 12;

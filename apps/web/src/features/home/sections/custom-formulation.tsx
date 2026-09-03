@@ -3,10 +3,34 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { STAGES } from "../home-data";
+import { Arrow } from "@/features/site/logo-mark";
+import { localeHref } from "@/features/site/site-routes";
+
+import { CUSTOM_CTA, CUSTOM_STEPS } from "../home-data";
 
 /**
- * 7 · Manufacturing journey — rebuilt from the approved `sam-group.html` reference.
+ * 7 · Custom Formulation Highlight — the workbook's seventh Home segment.
+ *
+ * ── The construction is the manufacturing journey's, and it is kept ────────────────────────
+ *
+ * This section was "Six decisions that move an enquiry forward", a generic account of the buyer's
+ * path. The workbook has no segment for that; it has one for the customization process, and that
+ * process happens to be six steps long, which is exactly what this apparatus renders. So the
+ * machinery below — the pin, the horizontal track, the ghost numerals, the progress rail — is
+ * untouched, and only its subject changed.
+ *
+ * ── Six steps, not five ──────────────────────────────────────────────────────────────────────
+ *
+ * The workbook disagrees with itself: its `Home Page` sheet gives five stages and its
+ * `Customized Solutions` sheet gives six. The owner chose six, so both surfaces render the
+ * `Customized Solutions` sequence and cannot drift apart.
+ *
+ * ── The section's two actions ────────────────────────────────────────────────────────────────
+ *
+ * The sheet gives this segment the CTA "Request Custom Solution". A second, quieter action to
+ * Contact Us sits beside it because the workbook's Home sheet has **no final-CTA segment** and the
+ * page's previous closing section was removed — this is the last point on the page where a reader
+ * is holding a specific requirement, so it is where the contact route belongs.
  *
  * A horizontal storytelling timeline where **each step occupies the full viewport**. A sticky
  * child holds the viewport while the track translates by scroll progress through it, so one
@@ -28,7 +52,23 @@ import { STAGES } from "../home-data";
  * that preference asks us not to do — and drops the pin for a native swipe list, as narrow
  * viewports also do.
  */
-export function Journey(): ReactNode {
+/**
+ * Vertical scroll spent per horizontal step, in viewport heights.
+ *
+ * The track's horizontal distance is fixed at one viewport width per step — that is what makes a
+ * step fill the screen — but the *vertical* scroll mapped onto it is a free choice, and it was
+ * one screen per step. Measured on the finished page, that made this section **6072px of a
+ * 13493px homepage: 45%**, 6.6 screens of a 14.8-screen page, for a segment whose own call to
+ * action sends the reader to `/customized-solutions`, where the process is the whole page.
+ *
+ * At 50 the same six steps and the same artwork pass in half the scrolling. Nothing is removed
+ * and nothing moves faster on screen than the reader's own gesture — one wheel notch simply
+ * advances twice as far along the track. `measure()` derives its span from the section's real
+ * height, so this constant is the only place the ratio is written.
+ */
+const TRAVEL_VH_PER_STEP = 50;
+
+export function CustomFormulation({ locale }: { readonly locale: string }): ReactNode {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -41,7 +81,7 @@ export function Journey(): ReactNode {
     const track = trackRef.current;
     if (!section || !track) return;
 
-    const n = STAGES.length;
+    const n = CUSTOM_STEPS.length;
     const narrow = window.matchMedia("(max-width: 759px)");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -113,9 +153,10 @@ export function Journey(): ReactNode {
         return;
       }
       setMode("pin");
-      // The heading's height is added on top of the step travel, so the six steps still get
-      // exactly (n − 1) viewports of horizontal movement once the sticky pins.
-      section.style.height = `calc(${n * 100}vh + ${headOffset()}px)`;
+      // One viewport for the pin itself, then TRAVEL_VH_PER_STEP per transition, with the
+      // heading's height on top so travel starts where the pin does. The steps still cross
+      // exactly (n − 1) viewports horizontally; only the scroll mapped onto that changes.
+      section.style.height = `calc(${100 + (n - 1) * TRAVEL_VH_PER_STEP}vh + ${headOffset()}px)`;
       measure();
       current = target;
       paint();
@@ -141,37 +182,59 @@ export function Journey(): ReactNode {
     <section
       ref={sectionRef}
       className="fs-journey"
-      id="journey"
+      id="custom-formulation"
       data-surface="light"
       data-mode={mode}
     >
       {/* Scrolls away before the sticky track pins; its height is accounted for in the travel. */}
       <div className="fs-jrny-head" ref={headRef}>
         <div className="fs-wrap fs-jrny-intro">
-          <div className="fs-jrny-head-copy">
-            <div className="fs-eyebrow">From requirement to supply planning</div>
-            <h2 className="fs-d2">Six decisions that move an enquiry forward.</h2>
-            <p>
-              Start with the operating need, identify the relevant product route, and carry the
-              reviewed technical and commercial details into supply planning.
+          {/*
+           * The only section on the page that arrived with no entrance at all: a reveal-coverage
+           * probe across all nine `main > section` elements returned `rv 0, rvl 0, masks 0` here
+           * while every neighbour reported at least one block. The heading, the paragraph and both
+           * calls to action simply appeared. `.fs-rv` on the copy column makes it the
+           * orchestration unit and `.fs-rv-l` on its four parts gives the engine something to
+           * stagger — the same construction Who We Are uses one surface change earlier.
+           */}
+          <div className="fs-jrny-head-copy fs-rv">
+            <div className="fs-eyebrow fs-rv-l">Customized solutions</div>
+            <h2 className="fs-d2 fs-rv-l">When the catalogue is only part of the answer.</h2>
+            <p className="fs-rv-l">
+              Where a standard product does not meet the requirement, the product is developed
+              against it instead. Six steps take a stated need to a delivered order.
             </p>
+            <div className="fs-jrny-cta fs-rv-l">
+              <a href={localeHref(locale, CUSTOM_CTA.primary.href)} className="fs-btn fs-btn--gold">
+                {CUSTOM_CTA.primary.label}
+                <Arrow size={14} />
+              </a>
+              <a
+                href={localeHref(locale, CUSTOM_CTA.secondary.href)}
+                /* `--outline`, not `--glass`: this intro is on the light surface, where the glass
+                   variant is white text on a near-transparent white fill — measured 1:1. */
+                className="fs-btn fs-btn--outline"
+              >
+                {CUSTOM_CTA.secondary.label}
+              </a>
+            </div>
           </div>
 
-          <figure className="fs-jrny-photo">
+          <figure className="fs-jrny-photo fs-rv">
             <Image
               src="/images/home/journey-requirement-to-supply.webp"
               alt="Oil sample review beside packaged lubricants and an export container"
               fill
               sizes="(max-width: 900px) calc(100vw - 40px), 54vw"
             />
-            <figcaption>From product review to supply brief</figcaption>
+            <figcaption>From requirement to finished product</figcaption>
           </figure>
         </div>
       </div>
 
       <div className="fs-jrny-sticky">
         <div className="fs-jrny-track" ref={trackRef}>
-          {STAGES.map((stage) => (
+          {CUSTOM_STEPS.map((stage) => (
             <article className="fs-jstep" key={stage.n}>
               <span className="fs-jstep-ghost" aria-hidden="true">
                 {stage.n}
@@ -179,7 +242,7 @@ export function Journey(): ReactNode {
 
               <div className="fs-jstep-copy">
                 <span className="fs-jstep-no">
-                  STEP {stage.n} / {String(STAGES.length).padStart(2, "0")}
+                  STEP {stage.n} / {String(CUSTOM_STEPS.length).padStart(2, "0")}
                 </span>
                 <h3>{stage.title}</h3>
                 <p>{stage.body}</p>
@@ -205,7 +268,7 @@ export function Journey(): ReactNode {
           <i ref={barRef} />
         </div>
         <div className="fs-jrny-count" aria-hidden="true">
-          {count} / {String(STAGES.length).padStart(2, "0")}
+          {count} / {String(CUSTOM_STEPS.length).padStart(2, "0")}
         </div>
       </div>
     </section>

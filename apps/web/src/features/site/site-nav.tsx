@@ -4,6 +4,17 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
+import {
+  AdditivesIcon,
+  AutomotiveIcon,
+  BaseOilsIcon,
+  CatalogueDownloadIcon,
+  CoolantsIcon,
+  DisclosureCaretIcon,
+  FinderIcon,
+  IndustrialIcon,
+  MarineIcon,
+} from "./icons";
 import { Arrow, LogoMark } from "./logo-mark";
 import {
   DRAWER_FOCUSABLE,
@@ -21,7 +32,27 @@ import {
   structuralPathOf,
 } from "./site-routes";
 
-import type { LocaleResponse } from "@sam-group/types";
+import type { LocaleResponse, ProductFamilyKey } from "@sam-group/types";
+
+/**
+ * A glyph for each of the six families, keyed by the family key rather than by its label.
+ *
+ * `Record<ProductFamilyKey, …>` is the point: a seventh family added to `PRODUCT_CATEGORIES`
+ * without a glyph here is a **compile error**, not a menu row with a hole in it. Keying on the
+ * label instead would have made a copy edit silently drop an icon.
+ *
+ * Every one is decorative. The family name is right beside it and says the same thing, which is
+ * why they are `aria-hidden` — a screen reader announcing "droplet, Base Oils" is worse than
+ * "Base Oils".
+ */
+const FAMILY_GLYPHS: Record<ProductFamilyKey, (props: { readonly size: "md" }) => ReactNode> = {
+  "base-oils": BaseOilsIcon,
+  "lubricant-additives": AdditivesIcon,
+  "engine-oils-automotive-lubricants": AutomotiveIcon,
+  "industrial-oils-lubricants": IndustrialIcon,
+  "marine-oils-lubricants": MarineIcon,
+  "antifreeze-coolants": CoolantsIcon,
+};
 
 /**
  * The flagship header.
@@ -261,18 +292,9 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                   onClick={() => setMega((v) => !v)}
                 >
                   {item.label}
-                  <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    aria-hidden="true"
-                    className="fs-nav-caret"
-                  >
-                    <path d="M5 9l7 7 7-7" />
-                  </svg>
+                  <span className="fs-nav-caret">
+                    <DisclosureCaretIcon size="sm" />
+                  </span>
                 </button>
 
                 <div className="fs-mega-panel" id={megaId} data-open={mega || undefined}>
@@ -286,11 +308,18 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                           </p>
                         )}
                         <ul>
-                          {col.map((cat) => (
-                            <li key={cat.key}>
-                              <Link href={cat.href}>{cat.label}</Link>
-                            </li>
-                          ))}
+                          {col.map((cat) => {
+                            const Glyph = FAMILY_GLYPHS[cat.key];
+
+                            return (
+                              <li key={cat.key}>
+                                <Link href={cat.href}>
+                                  <Glyph size="md" />
+                                  {cat.label}
+                                </Link>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     ))}
@@ -299,7 +328,10 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                       <p className="fs-mega-head">Find &amp; download</p>
                       <ul>
                         <li>
-                          <Link href={finderHref}>Product Finder</Link>
+                          <Link href={finderHref}>
+                            <FinderIcon size="md" />
+                            Product Finder
+                          </Link>
                         </li>
                         <li>
                           {/*
@@ -308,7 +340,10 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                            * — now a locale-prefixed page. It is not a route of its own and no
                            * fragment id was invented to keep it alive.
                            */}
-                          <Link href={documentationHref}>Download Catalogue</Link>
+                          <Link href={documentationHref}>
+                            <CatalogueDownloadIcon size="md" />
+                            Download Catalogue
+                          </Link>
                         </li>
                       </ul>
                       <Link href={productsHref} className="fs-mega-all">
@@ -407,18 +442,9 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                   onClick={() => setDrawerProducts((v) => !v)}
                 >
                   {item.label}
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                    className="fs-nav-caret"
-                  >
-                    <path d="M5 9l7 7 7-7" />
-                  </svg>
+                  <span className="fs-nav-caret">
+                    <DisclosureCaretIcon />
+                  </span>
                 </button>
                 <div
                   className="fs-drawer-panel"
@@ -427,19 +453,35 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                 >
                   <div>
                     <ul>
-                      {families.map((cat) => (
-                        <li key={cat.key}>
-                          <Link href={cat.href}>{cat.label}</Link>
-                        </li>
-                      ))}
+                      {families.map((cat) => {
+                        const Glyph = FAMILY_GLYPHS[cat.key];
+
+                        return (
+                          <li key={cat.key}>
+                            <Link href={cat.href}>
+                              <Glyph size="md" />
+                              {cat.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
                       <li>
-                        <Link href={finderHref}>Product Finder</Link>
+                        <Link href={finderHref}>
+                          <FinderIcon size="md" />
+                          Product Finder
+                        </Link>
                       </li>
                       <li>
-                        <Link href={documentationHref}>Download Catalogue</Link>
+                        <Link href={documentationHref}>
+                          <CatalogueDownloadIcon size="md" />
+                          Download Catalogue
+                        </Link>
                       </li>
                       <li>
-                        <Link href={productsHref}>All products</Link>
+                        <Link href={productsHref}>
+                          <Arrow size={13} />
+                          All products
+                        </Link>
                       </li>
                     </ul>
                   </div>
