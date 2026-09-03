@@ -98,8 +98,8 @@
 }
 
 .qc-slot-cap {
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -165,8 +165,9 @@
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -193,8 +194,9 @@
 .qc-chain-num {
   flex: none;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -204,16 +206,16 @@
 }
 
 .qc-chain-body b {
-  font-size: 15px;
+  font-size: var(--fs-text-title);
   font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.012em;
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .qc-chain-body small {
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-tertiary);
 }
@@ -287,8 +289,9 @@
 .qc-stage-num {
   display: block;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -296,16 +299,16 @@
   margin: clamp(12px, 1.4vw, 18px) 0 0;
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(24px, 2.8vw, 40px);
-  line-height: 1.1;
-  letter-spacing: -0.024em;
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .qc-stage-when {
   margin: clamp(10px, 1.2vw, 14px) 0 0;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -321,8 +324,8 @@
 .qc-approach-foot {
   margin: clamp(24px, 2.6vw, 36px) 0 0;
   max-width: 68ch;
-  font-size: 13.5px;
-  line-height: 1.65;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -379,8 +382,9 @@
   margin: 0;
   padding-block: 14px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -422,14 +426,15 @@
 .qc-property-num {
   flex: none;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .qc-property-name {
-  font-size: clamp(14.5px, 1.15vw, 16.5px);
-  line-height: 1.35;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   letter-spacing: -0.008em;
   color: var(--color-text-primary);
@@ -447,15 +452,21 @@
   border-radius: var(--radius-lg);
 }
 
+/*
+ * This is a real `<h3>` (`sections/laboratory.tsx`), and it was set at 13px — smaller than the
+ * body copy it introduces, which reads as a caption rather than as the heading it is. `title` is
+ * the role for a heading at this depth; the panel's restraint comes from its dashed edge and its
+ * weight, not from setting a heading below reading size.
+ */
 .qc-pending-head {
   display: flex;
   align-items: baseline;
   gap: 12px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-text-title);
   font-weight: 500;
-  line-height: 1.55;
-  letter-spacing: 0;
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -476,14 +487,15 @@
 }
 
 .qc-pending-list b {
-  font-size: 12.5px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
 .qc-pending-list span {
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -522,8 +534,9 @@
   gap: 8px;
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -541,8 +554,9 @@
 .qc-certs-statement {
   margin: clamp(22px, 2.4vw, 32px) 0 0;
   max-width: 64ch;
-  font-size: clamp(15px, 1.2vw, 17.5px);
-  line-height: 1.68;
+  font-size: var(--fs-text-lead);
+  letter-spacing: var(--fs-text-lead--letter-spacing);
+  line-height: var(--fs-text-lead--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -550,9 +564,9 @@
 .qc-certs-note {
   margin: clamp(16px, 1.8vw, 22px) 0 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  line-height: 1.6;
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  line-height: var(--fs-text-technical--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -583,8 +597,8 @@
   padding-inline-start: 16px;
   border-inline-start: 1px solid var(--color-border-accent);
   max-width: 54ch;
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -622,8 +636,9 @@
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -650,8 +665,9 @@
 .qc-doc-num {
   flex: none;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -661,16 +677,16 @@
 }
 
 .qc-doc-body b {
-  font-size: 15px;
+  font-size: var(--fs-text-title);
   font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: -0.012em;
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .qc-doc-body small {
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-tertiary);
 }
@@ -696,9 +712,9 @@
   max-width: 22ch;
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(28px, 4vw, 60px);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
+  font-size: var(--fs-text-heading);
+  line-height: var(--fs-text-heading--line-height);
+  letter-spacing: var(--fs-text-heading--letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -716,8 +732,9 @@
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -737,8 +754,8 @@
   min-height: 24px;
   padding-block: 11px;
   border-bottom: 1px solid var(--color-border-hairline);
-  font-size: 14.5px;
-  line-height: 1.35;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   text-decoration: none;
   color: var(--color-text-secondary);
@@ -761,8 +778,8 @@
 
 .qc-sampling-limit {
   margin: clamp(14px, 1.6vw, 20px) 0 0;
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-tertiary);
 }
@@ -817,8 +834,9 @@
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -837,7 +855,8 @@
   min-height: 24px;
   padding-block: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
-  font-size: 15px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   text-decoration: none;
   color: var(--color-text-secondary);
@@ -1004,8 +1023,8 @@
   max-width: var(--fs-wrap-max);
   margin: 0 auto;
   padding: 14px var(--fs-gutter) 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 

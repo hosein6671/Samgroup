@@ -169,8 +169,9 @@
   align-items: center;
   gap: 10px;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   margin-bottom: 22px;
@@ -245,8 +246,8 @@
 
 .pc-index-note {
   margin: 14px 0 0;
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -280,8 +281,9 @@
   gap: 10px;
   margin: 0 0 8px;
   font-family: var(--font-technical);
-  font-size: 9.5px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -330,17 +332,19 @@
 
 .pc-index-num {
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
   flex: none;
 }
 
 .pc-index-name {
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
   transition: color var(--t-micro) var(--e-micro);
 }
@@ -360,8 +364,9 @@
 
 .pc-index-grades li {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-hairline);
   border-radius: 5px;
@@ -413,8 +418,9 @@
 
 .pc-marker dt {
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -422,9 +428,10 @@
 .pc-marker dd {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
-  letter-spacing: -0.012em;
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
   text-align: end;
 }
@@ -467,8 +474,9 @@
 .pc-axes-label {
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -487,8 +495,9 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-hairline);
   border-radius: 6px;
@@ -497,14 +506,16 @@
 }
 
 .pc-axes-list li span {
-  font-size: 9px;
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  line-height: var(--fs-text-technical--line-height);
   color: var(--color-text-accent);
 }
 
 .pc-axes-note {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
   max-width: 46ch;
   justify-self: end;
@@ -540,8 +551,9 @@
   gap: 16px;
   margin: 0 0 4px;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -595,8 +607,9 @@
 .pc-sub-index {
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
   padding-top: 6px;
 }
@@ -604,26 +617,27 @@
 .pc-sub-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(22px, 2.1vw, 30px);
+  font-size: var(--fs-text-subheading);
   font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-sub-qualifier {
   margin: 8px 0 0;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
 
 .pc-sub-summary {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.62;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
   max-width: 66ch;
@@ -646,8 +660,9 @@
   gap: 12px;
   margin: 0 0 12px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -692,15 +707,16 @@
 
 .pc-grade b {
   font-family: var(--font-technical);
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--color-text-primary);
 }
 
 .pc-grade small {
-  font-size: 11.5px;
-  line-height: 1.4;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -751,8 +767,9 @@
   gap: 16px;
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -774,8 +791,8 @@
 .pc-props-group-note {
   margin: 0;
   max-width: 62ch;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -795,8 +812,9 @@
 .pc-method-note {
   margin: 14px 0 0;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -839,17 +857,19 @@
 
 .pc-axis-num {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
   padding-top: 4px;
 }
 
 .pc-axis-name {
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
-  letter-spacing: -0.012em;
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
   display: block;
 }
@@ -858,10 +878,11 @@
   display: block;
   margin-top: 8px;
   max-width: 28ch;
-  font-family: var(--font-body);
-  font-size: 12px;
+  /* `--font-body` is defined nowhere; the reading face is `--font-text` (ADR-022 §4.2). */
+  font-family: var(--font-text);
+  font-size: var(--fs-text-caption);
   font-weight: 400;
-  line-height: 1.5;
+  line-height: var(--fs-text-caption--line-height);
   letter-spacing: 0;
   color: var(--color-text-tertiary);
 }
@@ -893,8 +914,9 @@
   margin-inline-start: 7px;
   font-family: var(--font-technical);
   font-style: normal;
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
 }
 
@@ -905,14 +927,16 @@
   align-items: baseline;
   gap: 8px;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pc-axis-method small {
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
 }
 
@@ -932,8 +956,8 @@
 .pc-table-note {
   margin: clamp(28px, 3vw, 44px) 0 0;
   max-width: 74ch;
-  font-size: 14.5px;
-  line-height: 1.62;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
   padding-inline-start: 16px;
@@ -986,8 +1010,9 @@
   text-align: start;
   padding: 16px 18px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   border-bottom: 1px solid var(--color-border-hairline);
@@ -1011,7 +1036,8 @@
   align-items: baseline;
   gap: 6px;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 500;
   letter-spacing: -0.005em;
   color: var(--color-text-primary);
@@ -1020,8 +1046,9 @@
 .pc-th-name em {
   font-family: var(--font-technical);
   font-style: normal;
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
 }
 
@@ -1029,8 +1056,9 @@
   display: block;
   margin-top: 5px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -1072,16 +1100,18 @@
   min-width: 196px;
   max-width: 240px;
   font-family: var(--font-technical) !important;
-  font-size: 11px !important;
-  line-height: 1.5;
-  letter-spacing: 0.06em;
+  /* `!important` is kept: `.pc-table td` sets the cell type and wins on specificity otherwise. */
+  font-size: var(--fs-text-technical) !important;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent) !important;
 }
 
 .pc-row-label {
   display: block;
   font-family: var(--font-technical);
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--color-text-primary);
@@ -1090,13 +1120,16 @@
 .pc-row-scope {
   display: block;
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  line-height: var(--fs-text-technical--line-height);
   color: var(--color-text-tertiary);
 }
 
 .pc-table td {
   font-family: var(--font-technical);
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-primary);
 }
 
@@ -1222,8 +1255,9 @@
 .pc-stage-num {
   position: relative;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
   padding-inline-start: 26px;
   padding-top: 4px;
@@ -1245,16 +1279,17 @@
 .pc-stage-name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(19px, 1.8vw, 25px);
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
   font-weight: 400;
-  letter-spacing: -0.018em;
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-stage-note {
   margin: 10px 0 0;
-  font-size: 15px;
-  line-height: 1.62;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
   max-width: 44ch;
@@ -1282,16 +1317,17 @@
 .pc-named-name {
   margin: 14px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(22px, 2.2vw, 30px);
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
   font-weight: 400;
-  letter-spacing: -0.022em;
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-named-note {
   margin: 12px 0 0;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -1311,8 +1347,9 @@
   gap: 16px;
   margin: 0 0 4px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -1330,23 +1367,25 @@
   gap: 16px;
   padding-block: 11px;
   border-bottom: 1px solid var(--color-border-hairline);
-  font-size: 14px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-primary);
 }
 
 .pc-test-list li b {
   font-family: var(--font-technical);
-  font-size: 11px;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
   flex: none;
 }
 
 .pc-tests-foot {
   margin: 16px 0 0;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -1439,26 +1478,27 @@
   border: 1px solid var(--color-border-accent);
   border-radius: 10px;
   font-family: var(--font-technical);
-  font-size: 13px;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
   font-weight: 500;
-  letter-spacing: 0.2em;
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pc-flow-name {
   margin: 16px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(22px, 2.1vw, 30px);
+  font-size: var(--fs-text-subheading);
   font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: -0.022em;
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-flow-note {
   margin: 12px 0 0;
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -1527,18 +1567,19 @@
 .pc-branch-code {
   display: block;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pc-branch-title {
   margin: 8px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(20px, 1.9vw, 27px);
+  font-size: var(--fs-text-subheading);
   font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
 }
 
 /*
@@ -1591,8 +1632,8 @@
 
 .pc-branch-note {
   margin: 10px 0 0;
-  font-size: 14.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
   max-width: 52ch;
@@ -1609,8 +1650,9 @@
 
 .pc-branch-fields li {
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border-hairline);
   border-radius: 6px;
@@ -1660,25 +1702,26 @@
 .pc-gate-num {
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pc-gate-axis {
   margin: 12px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(20px, 1.8vw, 26px);
+  font-size: var(--fs-text-subheading);
   font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-gate-note {
   margin: 10px 0 0;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -1705,7 +1748,8 @@
 .pc-gate-options b {
   display: block;
   font-family: var(--font-technical);
-  font-size: 12.5px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   letter-spacing: 0.08em;
   color: var(--color-text-primary);
@@ -1719,8 +1763,8 @@
 .pc-gate-options small {
   display: block;
   margin-top: 4px;
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -1749,14 +1793,16 @@
 
 .pc-industry-list b {
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: var(--fs-text-title);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
   color: var(--color-text-primary);
 }
 
 .pc-industry-list span {
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -1795,8 +1841,9 @@
 
 .pc-formats li {
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-hairline);
   border-radius: 7px;
@@ -1806,8 +1853,8 @@
 
 .pc-terms {
   margin: clamp(22px, 2.4vw, 30px) 0 0;
-  font-size: 14.5px;
-  line-height: 1.62;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-tertiary);
   max-width: 52ch;
   padding-inline-start: 16px;
@@ -1853,23 +1900,25 @@
 
 .pc-incoterm-num {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
 }
 
 .pc-incoterm b {
   font-family: var(--font-display);
-  font-size: 21px;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-incoterms-foot {
   margin: 16px 0 0;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -1903,8 +1952,9 @@
 .pc-docs-scope {
   margin: clamp(22px, 2.4vw, 30px) 0 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -1927,9 +1977,10 @@
 
 .pc-doc-code {
   font-family: var(--font-technical);
-  font-size: 13px;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -1940,15 +1991,16 @@
 
 .pc-doc-body b {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
-  letter-spacing: -0.014em;
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .pc-doc-body small {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -1956,8 +2008,9 @@
 /* The access mark. "No form" is the point of the section, so it is the one that reads loudest. */
 .pc-doc-access {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   border: 1px solid var(--color-border-hairline);
@@ -1986,8 +2039,9 @@
   min-block-size: 24px;
   gap: 7px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
   text-decoration: none;
@@ -2041,10 +2095,10 @@
   cursor: pointer;
   list-style: none;
   font-family: var(--font-display);
-  font-size: clamp(17px, 1.5vw, 21px);
+  font-size: var(--fs-text-title);
   font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.014em;
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
   transition: color var(--t-micro) var(--e-micro);
 }
@@ -2091,8 +2145,8 @@
 
 .pc-faq-answer p {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.66;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -2112,8 +2166,9 @@
   min-block-size: 24px;
   gap: 8px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
   text-decoration: none;
@@ -2154,8 +2209,9 @@
   min-block-size: 24px;
   gap: 8px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
   text-decoration: none;
@@ -2203,14 +2259,15 @@
 
 .pc-related-code {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pc-related-name {
-  font-size: 14.5px;
-  line-height: 1.35;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
 }
 
@@ -2365,8 +2422,9 @@
     gap: 8px;
     margin: 0 0 10px;
     font-family: var(--font-technical);
-    font-size: 10px;
-    letter-spacing: 0.2em;
+    font-size: var(--fs-text-technical);
+    line-height: var(--fs-text-technical--line-height);
+    letter-spacing: var(--fs-text-technical--letter-spacing);
     text-transform: uppercase;
     color: var(--color-text-tertiary);
   }

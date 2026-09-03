@@ -129,8 +129,8 @@
 
 .cs-index-note {
   margin: 14px 0 0;
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -144,7 +144,8 @@
   padding-top: 14px;
   border-top: 1px solid var(--color-border-hairline);
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   color: var(--color-text-primary);
   transition: color var(--t-micro) var(--e-micro);
@@ -240,25 +241,27 @@
 .cs-scope-list li > span {
   padding-top: 4px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .cs-scope-list h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(20px, 2vw, 27px);
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
   font-weight: 400;
-  letter-spacing: -0.025em;
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .cs-scope-list p {
   max-width: 58ch;
   margin: 8px 0 0;
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -280,8 +283,8 @@
   align-items: flex-start;
   gap: 12px;
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -306,14 +309,15 @@
 }
 
 .cs-pending-list b {
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
 .cs-pending-list span {
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -440,8 +444,9 @@
   border: 1px solid var(--color-border-accent);
   background: rgba(218, 180, 94, 0.08);
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -473,9 +478,10 @@
   margin: 16px 0 0;
   text-align: start;
   font-family: var(--font-display);
-  font-size: clamp(17px, 1.5vw, 21px);
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
   font-weight: 400;
-  letter-spacing: -0.015em;
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -483,8 +489,8 @@
 .cs-step-note {
   margin: 8px 0 0;
   text-align: start;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -539,8 +545,8 @@
   padding: 14px 16px;
   border: 1px dashed var(--color-border-strong);
   border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -612,12 +618,19 @@
   margin-bottom: clamp(20px, 2.4vw, 30px);
 }
 
-* mean replacing it, and a replaced file input is a control that no longer announces its state).
+/*
+ * The file input.
+ *
+ * `.fs-field input` is authored for text entry — a fixed min-height and a text baseline — and a
+ * file input's button sits badly in it. This restores a natural height and gives the browser's own
+ * button a surface that belongs to the palette, without restyling the control itself (which would
+ * mean replacing it, and a replaced file input is a control that no longer announces its state).
  */
 .cs-file {
   min-height: 0;
   padding: 11px 14px;
-  font-size: 13px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
 }
 
 .cs-file::file-selector-button {
@@ -628,27 +641,19 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   cursor: pointer;
 }
 
-pages
-  change
-  shape
-  at
-  the
-  same
-  widths
-  rather
-  than
-  each
-  at
-  its
-  own.
-  ============================================================================
-  */
-  @media
-  (max-width: 1180px) {
+/* ============================================================================
+   5 · RESPONSIVE
+   ============================================================================
+   The same three breakpoints the Products landing and the category template use, so the four
+   pages change shape at the same widths rather than each at its own.
+   ============================================================================ */
+
+@media (max-width: 1180px) {
   /* The hero's two columns stop being a composition once the display type loses its measure. */
   .cs-hero-inner {
     grid-template-columns: minmax(0, 1fr);
@@ -759,8 +764,8 @@ pages
   max-width: var(--fs-wrap-max);
   margin: 0 auto;
   padding: 14px var(--fs-gutter) 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 

@@ -173,9 +173,16 @@ describe("public form controls", () => {
    * the most-read technical text on the platform — it names what a buyer is being asked to type —
    * and it sat at 9.5px until this gate. DESIGN_SYSTEM §7.1/§7.2, ADR-022 §4.6.
    */
-  it("sets the form label at the 12px technical floor", () => {
+  /*
+   * The size half of this assertion is the Contact/Form gate's and is unchanged. The tracking half
+   * moved: it pinned `0.14em`, one of the eleven different values the technical register carried
+   * across the site, and the typography gate collapsed all of them onto the role's own 0.12em.
+   */
+  it("sets the form label at the 12px technical floor, at the register's tracking", () => {
     expect(declaration(".fs-field label", "font-size")).toBe("var(--fs-text-technical)");
-    expect(declaration(".fs-field label", "letter-spacing")).toBe("0.14em");
+    expect(declaration(".fs-field label", "letter-spacing")).toBe(
+      "var(--fs-text-technical--letter-spacing)",
+    );
   });
 
   it("leaves the focus and invalid treatments exactly as they were", () => {
@@ -200,9 +207,30 @@ describe("footer legal bar", () => {
     expect(rule(".fs-fbot").body.replace(/\s+/g, "")).not.toContain("rgba(238,241,246,0.4)");
   });
 
-  it("changes no type, spacing or layout", () => {
-    expect(declaration(".fs-fbot", "font-size")).toBe("10px");
-    expect(declaration(".fs-fbot", "letter-spacing")).toBe("0.14em");
+  /*
+   * DS-2B wrote this as a scope guard: it changed one colour and pinned the neighbouring
+   * declarations as literals to prove it had changed nothing else. It was never a rule that the
+   * legal bar's type may not move.
+   *
+   * The typography gate moves the two type declarations deliberately and the assertion now pins
+   * the tokens, which is the stronger guard — a literal creeping back in place of either token
+   * now fails here.
+   *
+   *   font-size       10px    → var(--fs-text-technical)          the 12px floor. This bar is
+   *                                                               the copyright and legal links;
+   *                                                               10px uppercase at 0.14em was
+   *                                                               the smallest text on the site.
+   *   letter-spacing  0.14em  → var(--fs-text-technical--…)       0.12em, one tracking for the
+   *                                                               whole technical register.
+   *
+   * `text-transform`, `margin-top` and `padding-top` are still literals and still pinned, because
+   * those genuinely did not change.
+   */
+  it("sets the legal bar at the technical floor and changes no spacing or layout", () => {
+    expect(declaration(".fs-fbot", "font-size")).toBe("var(--fs-text-technical)");
+    expect(declaration(".fs-fbot", "letter-spacing")).toBe(
+      "var(--fs-text-technical--letter-spacing)",
+    );
     expect(declaration(".fs-fbot", "text-transform")).toBe("uppercase");
     expect(declaration(".fs-fbot", "margin-top")).toBe("48px");
     expect(declaration(".fs-fbot", "padding-top")).toBe("22px");
@@ -216,9 +244,15 @@ describe(".fs-gpanel-idx", () => {
     expect(declaration(".fs-gpanel-idx", "color")).toBe("var(--color-text-secondary)");
   });
 
-  it("changes no typography", () => {
-    expect(declaration(".fs-gpanel-idx", "font-size")).toBe("10.5px");
-    expect(declaration(".fs-gpanel-idx", "letter-spacing")).toBe("0.2em");
+  /*
+   * Same story as `.fs-fbot` above — a DS-2B scope guard, re-pinned on the tokens the typography
+   * gate moved it to. 10.5px at 0.2em became the technical role: 12px at 0.12em.
+   */
+  it("takes its type from the technical role", () => {
+    expect(declaration(".fs-gpanel-idx", "font-size")).toBe("var(--fs-text-technical)");
+    expect(declaration(".fs-gpanel-idx", "letter-spacing")).toBe(
+      "var(--fs-text-technical--letter-spacing)",
+    );
     expect(declaration(".fs-gpanel-idx", "font-family")).toBe("var(--font-technical)");
   });
 });

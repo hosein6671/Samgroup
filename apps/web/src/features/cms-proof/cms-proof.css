@@ -38,8 +38,8 @@
   padding: clamp(72px, 8vh, 96px) clamp(20px, 5vw, 64px) clamp(12px, 1.4vw, 18px);
   background: var(--color-surface-canvas);
   color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
 }
 
@@ -76,8 +76,8 @@
 .cms-fallback-note {
   margin: clamp(18px, 2vw, 26px) 0 0;
   max-width: 62ch;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -94,8 +94,8 @@
 
 .cms-body-inner p {
   margin: 0 0 clamp(16px, 1.8vw, 24px);
-  font-size: 16px;
-  line-height: 1.75;
+  font-size: var(--fs-text-body);
+  line-height: var(--fs-text-body--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -112,8 +112,8 @@
 .cms-body-inner ol {
   margin: 0 0 clamp(16px, 1.8vw, 24px);
   padding-inline-start: 1.4em;
-  font-size: 16px;
-  line-height: 1.75;
+  font-size: var(--fs-text-body);
+  line-height: var(--fs-text-body--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }

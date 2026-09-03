@@ -59,13 +59,15 @@
   display: grid;
   gap: 7px;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
 }
 
 .ct-hero-media figcaption span {
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.14em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -128,7 +130,8 @@
 .ct-pathway-code {
   padding-top: 3px;
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.1em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -139,14 +142,15 @@
 
 .ct-pathway-copy strong {
   font-family: var(--font-display);
-  font-size: clamp(19px, 1.8vw, 25px);
-  line-height: 1.16;
+  font-size: var(--fs-text-subheading);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
+  line-height: var(--fs-text-subheading--line-height);
   font-weight: 300;
 }
 
 .ct-pathway-copy small {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -206,7 +210,8 @@
 .ct-directory-item dt {
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.14em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -304,7 +309,8 @@
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.14em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -320,8 +326,8 @@
   padding: 13px 0 13px 20px;
   border-bottom: 1px solid var(--color-border-hairline);
   color: var(--color-text-primary);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
 }
 
 .ct-brief li::before {
@@ -338,8 +344,8 @@
 .ct-brief > p:last-child {
   margin: 16px 0 0;
   color: var(--color-text-secondary);
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
 }
 
 .ct-form-panel {

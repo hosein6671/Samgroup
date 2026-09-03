@@ -118,8 +118,8 @@
 
 .pr-arch-note {
   margin: 16px 0 0;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -206,14 +206,15 @@
   flex: none;
   width: 58px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pr-arch-name {
-  font-size: 13.5px;
-  line-height: 1.35;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
 }
 
 /*
@@ -298,10 +299,6 @@
   width: auto;
 }
 
-.pr-hero-index .pr-arch-name {
-  font-size: 12.5px;
-}
-
 /* ============================================================================
    2 · REGISTER — the six families
    ============================================================================ */
@@ -348,8 +345,9 @@
   margin-left: -1px;
   border-left: 1px solid transparent;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
   transition:
     color var(--t-micro) var(--e-micro),
@@ -375,9 +373,14 @@
    * The family name's size lives here rather than on the title, because two things need it: the
    * title itself, and the arrow, which is centred on the title's first line rather than on the
    * row. Declaring it once means the two cannot drift apart when the scale is retuned.
+   *
+   * These are ALIASES of the `subheading` role, not a second scale — the same construction
+   * `--fs-wrap-max` uses for `--fs-maxw`. `.pr-entry-title` is a family name, one rung under the
+   * page's own `.fs-d2` section headings, and `.pr-entry-go`'s optical centring needs the size
+   * and the leading as separate values it can multiply.
    */
-  --pr-title-size: clamp(23px, 2.05vw, 33px);
-  --pr-title-leading: 1.12;
+  --pr-title-size: var(--fs-text-subheading);
+  --pr-title-leading: var(--fs-text-subheading--line-height);
 
   position: relative;
   display: grid;
@@ -430,8 +433,9 @@
 
 .pr-entry-index {
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
   padding-top: 0.55em;
 }
@@ -460,7 +464,7 @@
   font-weight: 400;
   font-size: var(--pr-title-size);
   line-height: var(--pr-title-leading);
-  letter-spacing: -0.021em;
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   margin: 0;
 }
 
@@ -491,8 +495,8 @@
   max-width: 62ch;
   color: var(--color-text-secondary);
   font-weight: 300;
-  font-size: clamp(15px, 1.05vw, 16.5px);
-  line-height: 1.62;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
 }
 
 /*
@@ -522,8 +526,9 @@
 
 .pr-ranges li {
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.13em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   padding: 6px 16px 6px 0;
@@ -544,8 +549,9 @@
   border: 1px solid var(--color-border-accent);
   border-radius: 999px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -686,8 +692,9 @@
   border-bottom: 1px solid var(--color-border-hairline);
   background: var(--color-surface-sunken);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -712,15 +719,17 @@
 
 .pr-matrix-index {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .pr-matrix-name {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.15em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-primary);
 }
@@ -729,8 +738,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -794,15 +803,16 @@
 .pr-tier h3 {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(19px, 1.6vw, 24px);
-  letter-spacing: -0.014em;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   margin: 14px 0 0;
 }
 
 .pr-tier-note {
   margin: 12px 0 0;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-secondary);
   font-weight: 300;
 }
@@ -821,8 +831,8 @@
   max-width: 48ch;
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 13.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
 }
 
 .pr-catalogue-route .fs-btn {
@@ -843,14 +853,16 @@
   gap: 16px;
   padding: 15px 0;
   border-bottom: 1px solid var(--color-border-hairline);
-  font-size: 14.5px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-primary);
 }
 
 .pr-doclist span {
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
   white-space: nowrap;
@@ -883,8 +895,8 @@
   padding: 14px 16px;
   border: 1px dashed var(--color-border-strong);
   border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -909,8 +921,8 @@
   align-items: flex-start;
   gap: 10px;
   margin-top: 18px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -979,8 +991,9 @@
   margin: 0 0 6px;
   padding-bottom: 14px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -1032,8 +1045,9 @@
 .pr-step-index {
   flex: none;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -1046,9 +1060,9 @@
   display: block;
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(17px, 1.35vw, 21px);
-  letter-spacing: -0.012em;
-  line-height: 1.2;
+  font-size: var(--fs-text-title);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  line-height: var(--fs-text-title--line-height);
   color: var(--color-text-primary);
   transition: color var(--t-micro) var(--e-micro);
 }
@@ -1060,8 +1074,8 @@
 .pr-step small {
   display: block;
   margin-top: 7px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }

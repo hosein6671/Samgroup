@@ -3,7 +3,8 @@
   margin: 0 auto;
   padding: 92px var(--fs-gutter) 0;
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
 }
 .el-hero {
   position: relative;
@@ -60,8 +61,9 @@
   inset-inline: 24px;
   bottom: 22px;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-secondary);
 }
@@ -113,16 +115,17 @@
 .el-brief-list dt span {
   display: block;
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 .el-brief-list dd,
 .el-term-list dd {
   margin: 0;
   color: var(--color-text-secondary);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
 }
 .el-route,
 .el-terms {
@@ -167,15 +170,18 @@
 }
 .el-route-list span {
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 .el-route-list h3,
 .el-pack-grid h3 {
   margin: 36px 0 0;
   font-family: var(--font-display);
-  font-size: clamp(24px, 2.1vw, 34px);
+  font-size: var(--fs-text-subheading);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
+  line-height: var(--fs-text-subheading--line-height);
   font-weight: 300;
   color: var(--color-text-primary);
 }
@@ -183,8 +189,8 @@
 .el-pack-grid p {
   margin: 14px 0 0;
   color: var(--color-text-secondary);
-  font-size: 13.5px;
-  line-height: 1.65;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
 }
 .el-pack-grid {
   display: grid;

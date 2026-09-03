@@ -19,8 +19,8 @@
   margin: 0 0 22px;
   padding: 14px 18px;
   border-radius: var(--fs-radius-field);
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   border: 1px solid transparent;
 }
 
@@ -70,7 +70,8 @@
   font-family: var(--font-technical);
   /* 12px floor, tracking eased to pay for it — see `.fs-field label` in flagship.css. */
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.14em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: rgba(238, 241, 246, 0.55);
 }
@@ -91,7 +92,8 @@
   padding: 12px 16px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--fs-radius-field);
-  font-size: 13.5px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: rgba(238, 241, 246, 0.72);
 }
 
@@ -113,8 +115,8 @@
   align-items: flex-start;
   gap: 10px;
   margin-top: 26px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: rgba(238, 241, 246, 0.72);
 }
 
@@ -177,8 +179,8 @@
 .fm-turnstile-note {
   margin: 14px 0 0;
   max-width: 52ch;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   text-align: start;
   color: #eef1f6;
 }
@@ -213,7 +215,8 @@
 
 .fm-required-note {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: rgba(238, 241, 246, 0.5);
 }
 
@@ -265,7 +268,8 @@
   margin: 0 0 clamp(14px, 1.8vw, 20px);
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.1em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -326,7 +330,8 @@
   font-family: var(--font-technical);
   /* 12px floor. The stepper this replaces set its labels at 9px. */
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.08em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-align: center;
   text-transform: uppercase;
   text-wrap: balance;
@@ -417,9 +422,9 @@
   margin: 0 0 clamp(18px, 2vw, 26px);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(19px, 1.6vw, 22px);
-  line-height: 1.25;
-  letter-spacing: -0.012em;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -454,7 +459,8 @@
   margin: 0;
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.12em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -486,7 +492,8 @@
   background: transparent;
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.08em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -553,15 +560,16 @@
 .fw-review-row dt {
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
-  letter-spacing: 0.1em;
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .fw-review-row dd {
   margin: 0;
-  font-size: 14.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-primary);
   /* A pasted specification keeps its line breaks, and a long unbroken token wraps. */
   white-space: pre-wrap;

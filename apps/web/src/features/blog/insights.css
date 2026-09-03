@@ -68,21 +68,24 @@
   gap: 10px;
   margin: 0 0 clamp(16px, 1.8vw, 22px);
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .in-count span {
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   letter-spacing: 0.08em;
   color: var(--color-text-accent);
 }
 
 .in-count small {
-  font-size: 10.5px;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-tertiary);
 }
 
@@ -97,8 +100,8 @@
 .in-fallback-note {
   margin: 0 0 clamp(18px, 2vw, 26px);
   max-width: 62ch;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-tertiary);
 }
@@ -147,8 +150,9 @@
   gap: 10px;
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -160,10 +164,10 @@
 .in-card-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(18px, 1.5vw, 22px);
+  font-size: var(--fs-text-title);
   font-weight: 400;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -258,16 +262,18 @@
   /* Pushed between the two controls so Newer sits left and Older sits right. */
   order: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
 
 .in-pager-link {
   font-family: var(--font-technical);
-  font-size: 11.5px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-primary);
   text-underline-offset: 4px;
   transition: color 0.2s ease;
@@ -300,16 +306,17 @@
 .in-notice-heading {
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
 
 .in-notice-body {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
   max-width: 62ch;
@@ -318,8 +325,9 @@
 .in-notice-reset {
   margin-top: 4px;
   font-family: var(--font-technical);
-  font-size: 11.5px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-primary);
   text-underline-offset: 4px;
 }
@@ -354,8 +362,9 @@
   margin: 0 0 clamp(24px, 3vw, 38px);
   padding: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -392,8 +401,9 @@
   gap: 12px;
   margin: 0 0 clamp(14px, 1.6vw, 20px);
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -428,8 +438,8 @@
 
 .in-post-body-inner p {
   margin: 0 0 clamp(16px, 1.8vw, 24px);
-  font-size: 16px;
-  line-height: 1.75;
+  font-size: var(--fs-text-body);
+  line-height: var(--fs-text-body--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
   /* The body is plain text and may carry long unbroken strings; this keeps them inside the column. */
@@ -450,8 +460,9 @@
   border: 1px solid var(--color-border-hairline);
   border-radius: 999px;
   font-family: var(--font-technical);
-  font-size: 11.5px;
-  letter-spacing: 0.06em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-secondary);
 }
 
@@ -460,8 +471,9 @@
   padding-top: clamp(18px, 2vw, 26px);
   border-top: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 11.5px;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
 }
 
 .in-post-back a {

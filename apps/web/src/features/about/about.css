@@ -128,8 +128,9 @@
   position: relative;
   margin: 0;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   text-align: center;
   color: var(--color-text-accent);
@@ -141,7 +142,8 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-tertiary);
 }
@@ -162,8 +164,8 @@
 }
 
 .ab-slot-cap {
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -174,9 +176,9 @@
   display: flex;
   gap: 8px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  line-height: 1.5;
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  line-height: var(--fs-text-technical--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -258,8 +260,9 @@
   padding-inline-end: clamp(20px, 3vw, 44px);
   border-inline-end: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
@@ -319,8 +322,9 @@
 }
 
 .ab-index .fs-tnum {
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -385,16 +389,17 @@
 
 .ab-position dt {
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-accent);
 }
 
 .ab-position dd {
   margin: 0;
-  font-size: 14.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -415,8 +420,9 @@
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -438,8 +444,8 @@
   /* 24px minimum target, the same floor the footer links were corrected to. */
   min-height: 24px;
   padding-block: 7px;
-  font-size: 13.5px;
-  line-height: 1.35;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   text-decoration: none;
   color: var(--color-text-secondary);
@@ -477,8 +483,8 @@
   align-items: flex-start;
   gap: 12px;
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
 
@@ -504,14 +510,15 @@
 }
 
 .ab-pending-list b {
-  font-size: 13px;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 500;
   color: var(--color-text-primary);
 }
 
 .ab-pending-list span {
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-tertiary);
 }
 
@@ -562,8 +569,9 @@
   margin: 0;
   padding-block: 14px;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -585,17 +593,18 @@
 .ab-register-num {
   flex: none;
   font-family: var(--font-technical);
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
 .ab-register-name {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(22px, 2.6vw, 38px);
-  line-height: 1.12;
-  letter-spacing: -0.022em;
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   color: var(--color-text-primary);
 }
 
@@ -605,8 +614,8 @@
   border-top: 1px solid var(--color-border-hairline);
   padding-block: 20px 0;
   font-family: var(--font-text);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   letter-spacing: 0;
   text-transform: none;
   max-width: 62ch;
@@ -710,16 +719,17 @@
 .ab-team-functions h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(20px, 2vw, 28px);
+  font-size: var(--fs-text-subheading);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
   font-weight: 300;
-  line-height: 1.15;
+  line-height: var(--fs-text-subheading--line-height);
   color: var(--color-text-primary);
 }
 
 .ab-team-functions p {
   margin: 10px 0 0;
-  font-size: 13.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -815,8 +825,9 @@
 .ab-commitment-num {
   flex: none;
   font-family: var(--font-technical);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   color: var(--color-text-accent);
 }
 
@@ -826,16 +837,16 @@
 }
 
 .ab-commitment-body b {
-  font-size: clamp(15px, 1.3vw, 18px);
+  font-size: var(--fs-text-title);
   font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: -0.012em;
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
 .ab-commitment-body small {
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -843,8 +854,8 @@
 .ab-quality-foot {
   margin: clamp(18px, 2vw, 26px) 0 0;
   max-width: 58ch;
-  font-size: 13.5px;
-  line-height: 1.6;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
 }
@@ -913,8 +924,9 @@
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
   font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
 }
@@ -933,7 +945,8 @@
   min-height: 24px;
   padding-block: 12px;
   border-bottom: 1px solid var(--color-border-hairline);
-  font-size: 15px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
   font-weight: 300;
   text-decoration: none;
   color: var(--color-text-secondary);
@@ -1236,7 +1249,7 @@
   max-width: var(--fs-wrap-max);
   margin: 0 auto;
   padding: 14px var(--fs-gutter) 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
