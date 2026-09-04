@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { HomeExperience } from "@/features/home/home-experience";
+import { getPrivacyPolicyHref } from "@/features/legal/privacy-policy";
 import { getActiveLocales } from "@/lib/locales";
 
 /**
@@ -98,6 +99,8 @@ export default async function HomePage({
 }): Promise<ReactNode> {
   const { locale } = await params;
   const locales = await getActiveLocales();
+  // `null` unless a Privacy Policy is published — see `features/legal/privacy-policy.ts`.
+  const privacyPolicyHref = await getPrivacyPolicyHref(locale);
 
-  return <HomeExperience locale={locale} locales={locales} />;
+  return <HomeExperience locale={locale} locales={locales} privacyPolicyHref={privacyPolicyHref} />;
 }

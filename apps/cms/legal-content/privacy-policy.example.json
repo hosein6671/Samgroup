@@ -1,0 +1,37 @@
+{
+  "slug": "privacy-policy",
+  "lastUpdatedDate": "",
+  "revision": "",
+  "locales": {
+    "en": {
+      "title": "",
+      "metaTitle": "",
+      "metaDescription": "",
+      "body": [
+        { "kind": "heading", "level": 2, "text": "" },
+        { "kind": "paragraph", "text": "" },
+        { "kind": "list", "items": [""] }
+      ]
+    },
+    "fa": {
+      "title": "",
+      "metaTitle": "",
+      "metaDescription": "",
+      "body": [
+        { "kind": "heading", "level": 2, "text": "" },
+        { "kind": "paragraph", "text": "" },
+        { "kind": "list", "items": [""] }
+      ]
+    },
+    "ar": {
+      "title": "",
+      "metaTitle": "",
+      "metaDescription": "",
+      "body": [
+        { "kind": "heading", "level": 2, "text": "" },
+        { "kind": "paragraph", "text": "" },
+        { "kind": "list", "items": [""] }
+      ]
+    }
+  }
+}

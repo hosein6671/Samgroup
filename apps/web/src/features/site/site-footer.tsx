@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { getPrivacyPolicyHref } from "@/features/legal/privacy-policy";
+
 import { LogoMark } from "./logo-mark";
 import { ROUTES, footerColumnsFor, localeHref } from "./site-routes";
 
@@ -41,15 +43,30 @@ import { ROUTES, footerColumnsFor, localeHref } from "./site-routes";
  * now. The Products column pointed five links at `#products`, an id that exists on two unrelated
  * sections and on no other route — that column is the six canonical families, resolved from
  * `PRODUCT_CATEGORIES` by `footerColumnsFor`.
+ *
+ * ── The legal bar, and why it is `async` ────────────────────────────────────
+ *
+ * SITE_STRUCTURE §0 places the Privacy Policy in the footer and nowhere else in the navigation, so
+ * this is the surface that has to carry it. It is the only link here that is not a constant: the
+ * canonical route answers 404 until an editor publishes the policy in Payload, and a dead privacy
+ * link in the footer of **every** page is the largest broken promise the platform could make. So
+ * the address is asked for rather than assumed — `getPrivacyPolicyHref` returns one only while the
+ * CMS is actually serving a published policy, and the bar renders the copyright line alone
+ * otherwise. See `features/legal/privacy-policy.ts` for the five states it collapses.
+ *
+ * That is what makes this component `async`. It costs one API read per render, memoized per request
+ * and shared with the consent labels and the Privacy Policy route itself, and every consumer of
+ * this footer is a Server Component, so no call site changes.
  */
-export function SiteFooter({
+export async function SiteFooter({
   locale,
 }: {
   /** The route's locale segment, resolved on the server. The footer never negotiates one. */
   readonly locale: string;
-}): ReactNode {
+}): Promise<ReactNode> {
   const columns = footerColumnsFor(locale);
   const homeHref = localeHref(locale, ROUTES.home);
+  const privacyPolicyHref = await getPrivacyPolicyHref(locale);
 
   return (
     <footer className="fs-footer" data-surface="midnight">
@@ -109,9 +126,18 @@ export function SiteFooter({
           </div>
         </div>
 
-        {/* The certification bar is gone; the copyright line is the whole of the legal bar today. */}
+        {/*
+         * The certification bar is gone. What remains is the copyright line and — only once a
+         * published policy exists — the Privacy Policy link beside it. `.fs-fbot` is a
+         * `space-between` flex row, so it lays out correctly with one child or with two.
+         */}
         <div className="fs-fbot">
           <span>© 2026 Sam Group · All rights reserved</span>
+          {privacyPolicyHref !== null && (
+            <Link href={privacyPolicyHref} className="fs-flegal">
+              Privacy Policy
+            </Link>
+          )}
         </div>
       </div>
     </footer>

@@ -12,6 +12,7 @@
     "generate:types": "payload generate:types",
     "seed:demo": "payload run src/seed/seed-cms-demo.ts",
     "publish:company-content": "node --env-file=.env --import tsx src/editorial/publish-company-pages.ts",
+    "publish:legal-content": "node --env-file=.env --import tsx src/editorial/publish-legal-pages.ts",
     "rotate:content-service-key": "node --env-file=.env --import tsx src/editorial/rotate-content-service-key.ts"
   },
   "dependencies": {

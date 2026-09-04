@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
-import { cache } from "react";
 
 import { LegalPageTemplate } from "@/features/legal/legal-page-template";
 import { LegalPageUnavailable } from "@/features/legal/legal-page-unavailable";
-import { getContentPage } from "@/lib/content";
+import { PRIVACY_POLICY_SLUG, resolvePrivacyPolicy } from "@/features/legal/privacy-policy";
+import { pageAlternates, structuralAlternates } from "@/features/seo/alternates";
+import { ROUTES } from "@/features/site/site-routes";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -62,23 +63,19 @@ import { getActiveLocales } from "@/lib/locales";
  * the company had withdrawn its privacy policy.
  */
 
-/**
- * The slug of the Payload `Pages` document this route renders.
+/*
+ * The slug and the lookup both live in `features/legal/privacy-policy.ts`, and are imported rather
+ * than declared here.
  *
- * A constant, not a URL segment. It matches the route path because structural URLs stay fixed
- * English (PROJECT_HANDOFF.md §6.12) and the `Pages.slug` field is deliberately not localized for
- * the same reason — so one value is correct for all three locales.
- */
-const PRIVACY_POLICY_SLUG = "privacy-policy";
-
-/**
- * One lookup per request, shared by `generateMetadata` and the component.
+ * They moved when the footer and the two consent labels started linking this route: the slug is a
+ * constant three other surfaces now have to agree with, and the lookup is a per-request memo that
+ * dedupes only if every consumer shares one instance of it. A second `cache(getContentPage)` in
+ * this file would issue a second request to NestJS — and, through it, to Payload — on every render
+ * of this page, and the two could disagree about whether the policy exists.
  *
- * `cache` is React's per-request memo, the same arrangement `resolvePost` and the CMS proof route
- * use. Without it this page would issue two identical requests to NestJS and, through it, two to
- * Payload, and the two could disagree.
+ * Nothing about this route's behaviour changed with the move. The slug is still a constant rather
+ * than a URL segment, so no demo or draft document can be served here by asking for it in the URL.
  */
-const resolvePrivacyPolicy = cache(getContentPage);
 
 /**
  * Metadata, mapped from the normalized `SeoFields` record NestJS serves.
@@ -102,8 +99,20 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const result = await resolvePrivacyPolicy(PRIVACY_POLICY_SLUG, locale);
+  const alternates = structuralAlternates(locale, ROUTES.privacyPolicy);
 
-  if (!result.ok) return {};
+  /*
+   * **The canonical is emitted; the title still is not.** Both halves are deliberate.
+   *
+   * The address is canonical whether or not a policy is published there — a canonical describes
+   * which URL is authoritative for a page, which is true of the unavailable state too. What must
+   * NOT appear is a `<title>` naming the route, because on a page with no published policy that
+   * would imply one exists. So this returns the address and nothing that describes content.
+   *
+   * On `not-found` the component calls `notFound()` immediately afterwards and Next renders its
+   * own not-found page, so the canonical never reaches a rendered document in that case.
+   */
+  if (!result.ok) return { alternates };
 
   const { seo, title } = result.page;
 
@@ -138,13 +147,13 @@ export async function generateMetadata({
     title: seo.metaTitle ?? title,
     ...(seo.metaDescription !== null && { description: seo.metaDescription }),
     /*
-     * `canonicalUrl` is emitted only when an editor set one. The contract is explicit that this
-     * field is an override and that the §2 fallback — "the entity's own resolved URL" — is a
-     * URL-composition step belonging to the frontend, which cannot run without a public origin.
-     * `metadataBase` is the SEO gate's to set, and `hreflang` alternates from `seo.alternates` need
-     * the same absolute origin, so both are deferred rather than approximated here.
+     * An editor's explicit override still wins. Its absence no longer means "no canonical": the
+     * §2 fallback is "the entity's own resolved URL", which is a URL-composition step belonging to
+     * the frontend, and `structuralAlternates` is that step. This route previously emitted a
+     * canonical only when an editor had set one, so the common case emitted none at all.
      */
-    ...(seo.canonicalUrl !== null && { alternates: { canonical: seo.canonicalUrl } }),
+    alternates:
+      seo.canonicalUrl === null ? alternates : pageAlternates({ canonicalPath: seo.canonicalUrl }),
     /*
      * `robots` is deliberately NOT mapped, and the omission is load-bearing.
      *

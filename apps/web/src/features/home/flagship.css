@@ -4043,6 +4043,21 @@
   color: var(--color-text-tertiary);
 }
 
+/* The Privacy Policy link in the legal bar. It inherits `.fs-fbot`'s technical type and tertiary
+   tone so it reads as part of the same line as the copyright, and takes an underline rather than a
+   colour change so it is distinguishable from the text beside it without relying on colour alone
+   (WCAG 1.4.1). It renders only when a published policy exists — see `site-footer.tsx`. */
+.fs-flegal {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.fs-flegal:hover,
+.fs-flegal:focus-visible {
+  color: #fff;
+}
+
 /* The success toast is removed with the homepage partnership form. It was the mechanism by which
    that form told a visitor "Request logged" about a lead it had just discarded; the real forms
    report their outcome from what the API actually answered (`features/forms/form-feedback.tsx`). */

@@ -36,12 +36,12 @@ export const ROUTES = {
    * The canonical Privacy Policy — `/{locale}/privacy-policy`, per SITE_STRUCTURE §0 and
    * FRONTEND_ARCHITECTURE §1.
    *
-   * **Present here, and deliberately linked from nowhere.** The route is implemented and reads the
-   * Content API, but no approved Privacy Policy text exists in the CMS, so it answers 404 in every
-   * locale until an editor publishes one after legal review (SITE_STRUCTURE §12). Adding it to the
-   * header, the footer or a form's consent label today would create a link to a 404 beside a
-   * consent checkbox, which is worse than the plain wording those labels already carry — see
-   * `features/forms/inquiry-form.tsx`. Linking it is part of the gate that has the content.
+   * **Linked conditionally, never unconditionally.** The route reads the Content API and answers 404
+   * in every locale until an editor publishes a policy after legal review (SITE_STRUCTURE §12), so
+   * nothing on the platform emits this address on faith. The footer's legal bar and both consent
+   * labels ask `features/legal/privacy-policy.ts` whether a published policy exists and render a
+   * link only when it says yes — plain text otherwise, which is the wording those labels carried
+   * before. The header still does not link it at all; SITE_STRUCTURE §0 places it in the footer.
    *
    * It belongs in this constant regardless: `middleware.ts` derives `STRUCTURAL_SEGMENTS` from
    * these values, and that is what makes locale-less `/privacy-policy` negotiate a locale and
