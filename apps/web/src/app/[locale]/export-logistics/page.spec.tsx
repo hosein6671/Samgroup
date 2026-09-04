@@ -6,7 +6,11 @@ describe("Export & Logistics metadata", () => {
     const metadata = await generateMetadata({ params: Promise.resolve({ locale: "en" }) });
     expect(metadata.title).toBe("Petroleum Product Export & Logistics | SAM Group");
     expect(metadata.description).toContain("quantity, packaging, destination, and Incoterm");
-    expect(metadata.alternates).toEqual({ canonical: "/en/export-logistics" });
+    // Absolute now, and built by the one helper the sitemap and the JSON-LD `@id` also use — a
+    // relative value was correct in the rendered tag but was not the same string as those two.
+    expect(metadata.alternates).toEqual({
+      canonical: "https://samgp.com/en/export-logistics",
+    });
   });
   it("does not advertise unreviewed language alternates", async () => {
     const metadata = await generateMetadata({ params: Promise.resolve({ locale: "fa" }) });

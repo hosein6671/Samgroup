@@ -2,6 +2,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { JsonLd } from "@/features/seo/json-ld";
+import { robotsMetadata } from "@/features/seo/indexing";
+import { siteJsonLd } from "@/features/seo/structured-data";
+import { siteUrl } from "@/features/seo/site";
 import { getActiveLocales, getLocaleByCode } from "@/lib/locales";
 
 import { FONT_VARIABLES } from "../fonts";
@@ -68,15 +72,36 @@ export async function generateStaticParams(): Promise<{ locale: string }[]> {
  */
 export const dynamicParams = false;
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://samgp.com"),
-  applicationName: "SAM Group",
-  authors: [{ name: "SAM Group", url: "https://samgp.com" }],
-  creator: "SAM Group",
-  publisher: "SAM Group",
-  // Inherited by every page in this tree. See the module note: P1 is not the SEO launch.
-  robots: { index: false, follow: false },
-};
+/**
+ * Site-wide metadata, resolved per request rather than declared as a literal.
+ *
+ * Two values changed and both for the same reason — neither may be a hard-coded string any more.
+ *
+ * **`metadataBase`** comes from `features/seo/site.ts`, the one place the public origin is decided.
+ * It was `new URL("https://samgp.com")` here and the same literal in ten other files; every
+ * canonical URL, JSON-LD `@id` and sitemap entry is now built from one value that cannot disagree
+ * with itself.
+ *
+ * **`robots`** comes from `features/seo/indexing.ts`, which `app/robots.ts` also reads. The
+ * directive is unchanged in every environment today — the gate defaults to closed, so this still
+ * resolves to `noindex, nofollow` exactly as the literal did. What changed is that `robots.txt` and
+ * the pages can no longer contradict each other, and that opening the site is one environment
+ * variable rather than an edit in two files.
+ *
+ * A function rather than a `const`: a literal is evaluated once when this module is first imported,
+ * which would bake the deployed container's gate state in at whatever it was at process start.
+ */
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: siteUrl(),
+    applicationName: "SAM Group",
+    authors: [{ name: "SAM Group", url: siteUrl().href }],
+    creator: "SAM Group",
+    publisher: "SAM Group",
+    // Inherited by every page in this tree. See the module note: P1 is not the SEO launch.
+    robots: robotsMetadata(),
+  };
+}
 
 export default async function LocaleLayout({
   children,
@@ -99,6 +124,15 @@ export default async function LocaleLayout({
   return (
     <html lang={record.code} dir={record.direction} className={FONT_VARIABLES}>
       <body>
+        {/*
+         * `Organization` + `WebSite`, once per page, for every route in the canonical tree
+         * (SEO_ARCHITECTURE.md §8 makes both global types). Emitted here rather than per route so
+         * the two nodes exist exactly once and every page-level node can reference them by `@id`.
+         *
+         * It asserts no company fact — name, origin and logo file only. The Contact Us page adds
+         * the confirmed contact channels to the same `@id` when the CMS is serving them.
+         */}
+        <JsonLd data={siteJsonLd(record.code)} />
         {/* Same skip link the single root layout carried; `HomeExperience` supplies the target. */}
         <a className="skip-link" href="#main-content">
           Skip to content

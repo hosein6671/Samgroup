@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 
 import { InsightsTemplate } from "@/features/blog/insights-template";
 import { readInsightsQuery } from "@/features/blog/insights-query";
+import { structuralAlternates, localePath } from "@/features/seo/alternates";
+import { JsonLd } from "@/features/seo/json-ld";
+import { absoluteUrl } from "@/features/seo/site";
+import { collectionPageJsonLd } from "@/features/seo/structured-data";
+import { ROUTES } from "@/features/site/site-routes";
 import { getBlogPosts } from "@/lib/blog";
 import { getActiveLocales } from "@/lib/locales";
 
@@ -18,18 +23,45 @@ import { getActiveLocales } from "@/lib/locales";
  * database and no CMS — Blog is Prisma-owned and NestJS is the only API surface.
  */
 
+const TITLE = "Insights | SAM Group";
+const DESCRIPTION = "Articles published by SAM Group.";
+
 /**
- * A static title and description: this page has no record to be titled after.
+ * The title and description are this page's own — it has no record to be titled after — but the
+ * **canonical is not optional**, and this route had none.
  *
- * No `robots`, no canonical and no `hreflang`. `app/[locale]/layout.tsx` declares
- * `robots: { index: false, follow: false }` for this whole tree and every page inherits it, so a
- * route-level override would be a second answer to a settled question. Canonical and `hreflang`
- * belong to the SEO launch gate — the same position the product routes hold.
+ * That mattered more here than on a plain structural page: the index accepts `?category=` and
+ * `?page=`, so every filter and every page of results is a distinct URL for what is one listing.
+ * SEO_ARCHITECTURE.md §7's rule is that a filtered or paginated list canonicalises to the clean,
+ * unfiltered, page-1 URL, and that is exactly what is emitted here — deliberately built from the
+ * route rather than from `searchParams`, so no query string can ever reach it.
+ *
+ * `robots` is still not declared. `app/[locale]/layout.tsx` owns that for the whole tree and a
+ * route-level override would be a second answer to a settled question. No `hreflang`: the index's
+ * own chrome is code-owned English in all three locales.
  */
-export const metadata: Metadata = {
-  title: "Insights",
-  description: "Articles published by SAM Group.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return {
+    title: TITLE,
+    description: DESCRIPTION,
+    alternates: structuralAlternates(locale, ROUTES.insights),
+    openGraph: {
+      type: "website",
+      siteName: "SAM Group",
+      title: TITLE,
+      description: DESCRIPTION,
+      url: absoluteUrl(localePath(locale, ROUTES.insights)),
+      locale,
+    },
+    twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+  };
+}
 
 export default async function InsightsPage({
   params,
@@ -62,5 +94,23 @@ export default async function InsightsPage({
     page: query.page,
   });
 
-  return <InsightsTemplate locales={locales} posts={posts} locale={locale} query={query} />;
+  return (
+    <>
+      {/*
+       * `CollectionPage`, and nothing about the collection's contents: the list varies per request,
+       * per locale and per filter, and structured data that disagrees with the rendered page is
+       * worse than none (SEO_ARCHITECTURE.md §9). The `url` is the clean canonical, matching the
+       * tag `generateMetadata` emits.
+       */}
+      <JsonLd
+        data={collectionPageJsonLd({
+          url: absoluteUrl(localePath(locale, ROUTES.insights)),
+          name: TITLE,
+          description: DESCRIPTION,
+          locale,
+        })}
+      />
+      <InsightsTemplate locales={locales} posts={posts} locale={locale} query={query} />
+    </>
+  );
 }

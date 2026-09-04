@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { FAMILIES } from "@/features/products/products-data";
 import { ProductsExperience } from "@/features/products/products-experience";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
+import { absoluteUrl } from "@/features/seo/site";
 import { getActiveLocales } from "@/lib/locales";
 
 /**
@@ -108,12 +109,12 @@ export default async function ProductsPage({
   const { locale } = await params;
   const locales = await getActiveLocales();
   const canonical = `/${locale}/products`;
-  const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+  const pageUrl = absoluteUrl(canonical);
   const schema: JsonLdObject = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "@id": `${absoluteUrl}#collectionpage`,
-    url: absoluteUrl,
+    "@id": `${pageUrl}#collectionpage`,
+    url: pageUrl,
     name: PRODUCTS_TITLE,
     description: PRODUCTS_DESCRIPTION,
     inLanguage: locale,
@@ -123,7 +124,7 @@ export default async function ProductsPage({
         "@type": "ListItem",
         position: index + 1,
         name: family.name,
-        url: new URL(`/${locale}${family.href}`, "https://samgp.com").href,
+        url: absoluteUrl(`/${locale}${family.href}`),
       })),
     },
   };

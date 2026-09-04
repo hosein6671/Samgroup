@@ -2,7 +2,17 @@ import { cache } from "react";
 
 import { QualityExperience } from "@/features/quality/quality-experience";
 import { QualityUnavailable } from "@/features/quality/quality-unavailable";
+import { pageAlternates, structuralAlternates } from "@/features/seo/alternates";
+import { ROUTES } from "@/features/site/site-routes";
 import { getQualityCertificationsContent } from "@/lib/content";
+
+/**
+ * The route's own published label — the same string `SECONDARY_NAV` renders in the footer.
+ *
+ * Used only as the `<title>` fallback when the CMS has no content to title the page after. It is
+ * the site's own name for this destination, not a claim about certifications.
+ */
+const QUALITY_TITLE = "Quality & Certifications | SAM Group";
 import { defaultLocale } from "@/lib/locale-contract";
 import { getActiveLocales } from "@/lib/locales";
 
@@ -75,7 +85,21 @@ export async function generateMetadata({
   const { locale } = await params;
   const result = await resolveQuality(locale);
 
-  if (!result.ok) return {};
+  /*
+   * The canonical is emitted **whatever the CMS answered**, and that is the fix.
+   *
+   * This route previously returned `{}` on any non-`ok` result, so a page that renders a perfectly
+   * real "not published yet" or "temporarily unavailable" state emitted no canonical at all — and
+   * because the route never 404s, that state is a live, crawlable URL. A canonical describes the
+   * address, not the content at it, so it belongs on the page in every state.
+   *
+   * The title falls back to the site's own published label for this route (the same string
+   * `SECONDARY_NAV` renders in the footer) rather than to nothing. It invents no claim: it names
+   * the page, which is what a `<title>` is for.
+   */
+  const alternates = structuralAlternates(locale, ROUTES.qualityCertifications);
+
+  if (!result.ok) return { title: QUALITY_TITLE, alternates };
 
   const { hero, seo } = result.content;
 
@@ -98,7 +122,13 @@ export async function generateMetadata({
   return {
     title: seo.metaTitle ?? hero.title,
     ...(seo.metaDescription !== null && { description: seo.metaDescription }),
-    ...(seo.canonicalUrl !== null && { alternates: { canonical: seo.canonicalUrl } }),
+    /*
+     * An editor's explicit `canonicalUrl` override still wins; what changed is that its absence no
+     * longer means "no canonical". The §2 fallback — "the entity's own resolved URL" — is a
+     * URL-composition step belonging to the frontend, and this is it.
+     */
+    alternates:
+      seo.canonicalUrl === null ? alternates : pageAlternates({ canonicalPath: seo.canonicalUrl }),
     openGraph: {
       title: seo.ogTitle ?? seo.metaTitle ?? hero.title,
       ...(seo.ogDescription !== null || seo.metaDescription !== null

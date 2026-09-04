@@ -5,6 +5,11 @@ import type { ReactNode } from "react";
 import { PostTemplate } from "@/features/blog/post-template";
 import { PostUnavailable } from "@/features/blog/post-unavailable";
 import { resolvePost } from "@/features/blog/resolve-post";
+import { pageAlternates, localePath } from "@/features/seo/alternates";
+import { JsonLd } from "@/features/seo/json-ld";
+import { absoluteUrl } from "@/features/seo/site";
+import { articleJsonLd, breadcrumbJsonLd } from "@/features/seo/structured-data";
+import { ROUTES } from "@/features/site/site-routes";
 import { getActiveLocales } from "@/lib/locales";
 
 /**
@@ -68,7 +73,31 @@ export async function generateMetadata({
   const { locale, slug } = await params;
   const result = await resolvePost(slug, locale);
 
-  return result.ok ? { title: result.record.title } : {};
+  if (!result.ok) return {};
+
+  /*
+   * The canonical is built from the record's **resolved** slug, not from the requested one.
+   *
+   * The API resolves an article's slug per locale, so a request can legitimately arrive on one
+   * spelling and resolve to the record's own — and the canonical must name the record, or two URLs
+   * claim to be the same page without either pointing at the other.
+   *
+   * No `hreflang`. Article slugs are localized and `BlogPostResponse` carries no alternates list, so
+   * there is no record of which locales this post is genuinely translated into; inventing the set by
+   * assuming every active locale would be the false-language signal
+   * `features/seo/alternates.ts` exists to prevent.
+   */
+  return {
+    title: result.record.title,
+    alternates: pageAlternates({
+      canonicalPath: articlePath(locale, result.record.slug),
+    }),
+  };
+}
+
+/** One article's site-relative path. The index's segment is structural; the slug is localized. */
+function articlePath(locale: string, slug: string): string {
+  return `${localePath(locale, ROUTES.insights)}/${slug}`;
 }
 
 export default async function InsightPostPage({
@@ -89,13 +118,40 @@ export default async function InsightPostPage({
   const result = await resolvePost(slug, locale);
 
   if (result.ok) {
+    const url = absoluteUrl(articlePath(locale, result.record.slug));
+
     return (
-      <PostTemplate
-        locales={locales}
-        post={result.record}
-        locale={locale}
-        localeFallback={result.localeFallback}
-      />
+      <>
+        {/*
+         * `Article` + `BreadcrumbList` — SEO_ARCHITECTURE.md §8's rows for a blog post detail page,
+         * which this route emitted neither of before.
+         *
+         * Everything in them is a value this page already renders: the record's own title, its own
+         * `publishedAt`, and the two-step trail the reader can actually see. No author, no
+         * `dateModified` and no image are asserted — see `articleJsonLd` for why each is absent
+         * rather than filled in.
+         */}
+        <JsonLd
+          data={articleJsonLd({
+            url,
+            headline: result.record.title,
+            datePublished: result.record.publishedAt,
+            locale,
+          })}
+        />
+        <JsonLd
+          data={breadcrumbJsonLd([
+            { name: "Insights", path: localePath(locale, ROUTES.insights) },
+            { name: result.record.title, path: articlePath(locale, result.record.slug) },
+          ])}
+        />
+        <PostTemplate
+          locales={locales}
+          post={result.record}
+          locale={locale}
+          localeFallback={result.localeFallback}
+        />
+      </>
     );
   }
 

@@ -11,6 +11,7 @@ import { ProductUnavailable } from "@/features/products/detail/product-unavailab
 import { resolveProduct } from "@/features/products/detail/resolve-product-page";
 import { isReservedProductSlug } from "@/features/products/reserved-slugs";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
+import { absoluteUrl } from "@/features/seo/site";
 import { getProductsByCategory } from "@/lib/products";
 import { getActiveLocales } from "@/lib/locales";
 
@@ -345,26 +346,26 @@ export default async function ProductFamilyPage({
     if (!page) notFound();
 
     const canonical = `/${locale}/products/${slug}`;
-    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const pageUrl = absoluteUrl(canonical);
     const schema: JsonLdObject = {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "Product",
-          "@id": `${absoluteUrl}#product-family`,
-          url: absoluteUrl,
+          "@id": `${pageUrl}#product-family`,
+          url: pageUrl,
           name: page.family.name,
           description: page.content.meta.description,
           category: page.family.name,
           brand: { "@type": "Brand", name: "SAM Group" },
           ...(page.content.hero.image && {
-            image: new URL(page.content.hero.image.src, "https://samgp.com").href,
+            image: absoluteUrl(page.content.hero.image.src),
           }),
         },
         {
           "@type": "FAQPage",
-          "@id": `${absoluteUrl}#faq`,
-          url: `${absoluteUrl}#faq`,
+          "@id": `${pageUrl}#faq`,
+          url: `${pageUrl}#faq`,
           inLanguage: locale,
           mainEntity: page.content.faq.map((entry) => ({
             "@type": "Question",
@@ -407,15 +408,15 @@ export default async function ProductFamilyPage({
   if (result.ok) {
     const product = result.record;
     const canonical = `/${locale}/products/${product.slug}`;
-    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const pageUrl = absoluteUrl(canonical);
     const editorial = getProductDetailEditorial(product.category.slug);
     const generatedSchema: JsonLdObject = {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "Product",
-          "@id": `${absoluteUrl}#product`,
-          url: absoluteUrl,
+          "@id": `${pageUrl}#product`,
+          url: pageUrl,
           name: product.name,
           description:
             product.seo.metaDescription ??
@@ -423,7 +424,7 @@ export default async function ProductFamilyPage({
             `${product.name} in the ${product.category.name} product family.`,
           category: product.category.name,
           brand: { "@type": "Brand", name: "SAM Group" },
-          image: new URL(product.images[0]?.url ?? editorial.image.src, "https://samgp.com").href,
+          image: absoluteUrl(product.images[0]?.url ?? editorial.image.src),
           ...(product.productType && { additionalType: product.productType.name }),
           ...(product.specifications.length > 0 && {
             additionalProperty: product.specifications.map((specification) => ({
@@ -441,16 +442,15 @@ export default async function ProductFamilyPage({
               "@type": "ListItem",
               position: 1,
               name: "Products",
-              item: new URL(`/${locale}/products`, "https://samgp.com").href,
+              item: absoluteUrl(`/${locale}/products`),
             },
             {
               "@type": "ListItem",
               position: 2,
               name: product.category.name,
-              item: new URL(`/${locale}/products/${product.category.slug}`, "https://samgp.com")
-                .href,
+              item: absoluteUrl(`/${locale}/products/${product.category.slug}`),
             },
-            { "@type": "ListItem", position: 3, name: product.name, item: absoluteUrl },
+            { "@type": "ListItem", position: 3, name: product.name, item: pageUrl },
           ],
         },
       ],

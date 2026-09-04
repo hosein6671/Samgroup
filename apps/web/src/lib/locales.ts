@@ -50,17 +50,42 @@ export class LocaleSourceError extends Error {
 }
 
 /**
- * The build-time memo.
+ * The memo.
  *
  * `generateStaticParams` and the `[locale]` root layout both need the list, and with three locales
  * the layout is rendered once per locale — so without this the same request would be issued four
  * times per build for a value that cannot change within one. `apiGet` stays `cache: "no-store"`;
  * this is a module-scope memo in front of it, not a change to the client's policy.
  *
- * **A rejection is memoized too, and that is intended.** If the locale source is unavailable, every
- * consumer in this build should fail with the same error rather than retrying and producing a
- * partially-generated tree from a source that answered inconsistently. The memo lives for the
- * lifetime of the module, which for a build is the lifetime of the build.
+ * ── A SUCCESS is memoized for the module's lifetime ────────────────────────
+ *
+ * Unchanged, and safe: the active locale set cannot change within a build, and it cannot change
+ * within a running process either — `dynamicParams = false` bakes the route tree, so a new locale
+ * needs a rebuild by design (INTERNATIONALIZATION_STRATEGY.md §1).
+ *
+ * ── A REJECTION is no longer memoized, and that is the fix ─────────────────
+ *
+ * It used to be, and the note here argued for it: every consumer in one build should fail with the
+ * same error rather than retrying and producing a partially-generated tree from a source that
+ * answered inconsistently. **That reasoning was written for build time and is still right there —
+ * but this module also runs on every request**, where "the lifetime of the module" is the lifetime
+ * of the server process rather than of a build.
+ *
+ * The consequence was measured, not theorised: start `next start` while the API is briefly
+ * unavailable and the first render caches a rejected promise, after which **every page on the site
+ * answers 500 until the process is restarted by hand** — including long after the API has
+ * recovered. A transient upstream blip became a permanent outage.
+ *
+ * So the memo is cleared when the attempt rejects, and the two properties the original note cared
+ * about both survive:
+ *
+ * - **Concurrent consumers still share one attempt and one error.** They are all awaiting the same
+ *   promise, so a build's four callers still see one failure from one request, not four.
+ * - **A build still fails loudly.** `generateStaticParams` throwing ends the build before any
+ *   retry can occur, so no partially-generated tree is reachable through this path.
+ *
+ * What changes is only what happens *after* a rejection has settled: the next caller tries again
+ * instead of being handed a failure recorded minutes ago.
  */
 let activeLocales: Promise<readonly LocaleResponse[]> | undefined;
 
@@ -99,7 +124,21 @@ async function load(): Promise<readonly LocaleResponse[]> {
  *   Both are fatal by design — see the module note.
  */
 export function getActiveLocales(): Promise<readonly LocaleResponse[]> {
-  activeLocales ??= load();
+  /*
+   * `catch` rather than `finally`, and the distinction is the whole point: a resolved list is kept
+   * forever, a rejection is forgotten. The handler clears the memo and rethrows, so the promise this
+   * returns still rejects with the original error and every caller already awaiting it sees exactly
+   * that error — the shared-failure property the original design wanted.
+   *
+   * The reassignment inside the handler is safe against the obvious race: a caller that arrives
+   * while the attempt is still in flight is handed the same promise and joins the same outcome; only
+   * a caller arriving after it has settled starts a new one.
+   */
+  activeLocales ??= load().catch((error: unknown) => {
+    activeLocales = undefined;
+
+    throw error;
+  });
 
   return activeLocales;
 }

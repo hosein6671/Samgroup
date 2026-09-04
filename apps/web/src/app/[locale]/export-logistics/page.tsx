@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { ExportLogisticsExperience } from "@/features/export-logistics/export-logistics-experience";
+import { structuralAlternates, localePath } from "@/features/seo/alternates";
+import { JsonLd } from "@/features/seo/json-ld";
+import { absoluteUrl } from "@/features/seo/site";
+import { webPageJsonLd } from "@/features/seo/structured-data";
+import { ROUTES } from "@/features/site/site-routes";
 import { getActiveLocales } from "@/lib/locales";
 
 const TITLE = "Petroleum Product Export & Logistics | SAM Group";
@@ -14,11 +19,18 @@ export async function generateMetadata({
   readonly params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const canonical = `/${locale}/export-logistics`;
+  /*
+   * The canonical was `/${locale}/export-logistics` — a site-relative string that Next resolved
+   * against `metadataBase`, so the rendered tag was correct but the value was not the same string
+   * the sitemap and the JSON-LD `@id` are built from. It now comes from the one helper all three
+   * use. No `hreflang`: this page's copy is code-owned English in all three locales, and annotating
+   * it as a Persian or Arabic version would be a false signal — see `features/seo/alternates.ts`.
+   */
+  const canonical = absoluteUrl(localePath(locale, ROUTES.exportLogistics));
   return {
     title: TITLE,
     description: DESCRIPTION,
-    alternates: { canonical },
+    alternates: structuralAlternates(locale, ROUTES.exportLogistics),
     openGraph: {
       type: "website",
       siteName: "SAM Group",
@@ -51,5 +63,12 @@ export default async function ExportLogisticsPage({
 }): Promise<ReactNode> {
   const { locale } = await params;
   const locales = await getActiveLocales();
-  return <ExportLogisticsExperience locale={locale} locales={locales} />;
+  const url = absoluteUrl(localePath(locale, ROUTES.exportLogistics));
+
+  return (
+    <>
+      <JsonLd data={webPageJsonLd({ url, name: TITLE, description: DESCRIPTION, locale })} />
+      <ExportLogisticsExperience locale={locale} locales={locales} />
+    </>
+  );
 }
