@@ -71,6 +71,7 @@ export type {
 } from "./catalog-review";
 export type {
   AboutUsClosing,
+  AboutUsCompetitiveAdvantages,
   AboutUsContent,
   AboutUsExpertise,
   AboutUsHero,
@@ -78,6 +79,7 @@ export type {
   AboutUsTeam,
   AboutUsResponse,
   AboutUsWhoWeAre,
+  CompetitiveAdvantageIconKey,
   ContactUsContent,
   ContactUsResponse,
   ContentAnchorCta,
@@ -93,6 +95,7 @@ export type {
   CustomizedSolutionsIntroduction,
   CustomizedSolutionsProcess,
   CustomizedSolutionsResponse,
+  ExpertiseIconKey,
   ProductFamilyKey,
   QualityApproach,
   QualityCertificationsContent,
