@@ -1494,14 +1494,27 @@
 }
 
 /* Rich text from the CMS: the same measure and rhythm the section's own paragraphs had. */
-.ab-who-prose {
-  display: grid;
-  gap: clamp(16px, 1.8vw, 22px);
-}
-
+/*
+ * `p`, not a `> *` grid gap — descendant, not direct-child.
+ *
+ * The API's rich-text converter wraps `bodyHtml` in its own `<div class="payload-richtext">`
+ * (`apps/api/src/modules/content/rich-text.sanitizer.ts` names it explicitly as structural markup
+ * this stylesheet is meant to read past), so `.ab-who-prose`'s actual DOM child is that one div,
+ * not the three `<p>` elements inside it — a `display: grid; gap` here had nothing to apply to but
+ * that single wrapper, and every real paragraph ran together with no space between them the moment
+ * this page was first published against real API output rather than the dev preview's raw,
+ * unwrapped `<p>` string fixture. `margin-bottom` on the `p` selector is the same fix
+ * `.lg-body-inner p` already uses for the identical `bodyHtml` shape on the legal pages, and reads
+ * through any wrapper depth by construction.
+ */
 .ab-who-prose p {
+  margin: 0 0 clamp(16px, 1.8vw, 22px);
   font: inherit;
   color: inherit;
+}
+
+.ab-who-prose p:last-child {
+  margin-bottom: 0;
 }
 
 /*
