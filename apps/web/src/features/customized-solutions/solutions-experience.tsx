@@ -57,6 +57,7 @@ export function SolutionsExperience({
   locale,
   locales,
   fallbackLocale = null,
+  privacyPolicyHref = null,
 }: {
   readonly content: CustomizedSolutionsContent;
   readonly locale: string;
@@ -68,6 +69,14 @@ export function SolutionsExperience({
    * `code` and `direction`, read from the `Locale` table rather than inferred from the code.
    */
   readonly fallbackLocale?: { readonly code: string; readonly direction: "ltr" | "rtl" } | null;
+  /**
+   * The published Privacy Policy's address in this locale, or `null` when none is published.
+   *
+   * Resolved by the route and threaded through rather than fetched here, so the request form's
+   * consent label links the policy exactly when one exists. See
+   * `features/legal/privacy-policy.ts`.
+   */
+  readonly privacyPolicyHref?: string | null;
 }): ReactNode {
   return (
     <div data-brand="flagship">
@@ -107,7 +116,7 @@ export function SolutionsExperience({
           <CustomizationScope capabilities={content.capabilities} />
         )}
         {content.process !== null && <CustomizationProcess process={content.process} />}
-        <CustomRequestForm />
+        <CustomRequestForm privacyPolicyHref={privacyPolicyHref} />
       </main>
 
       <SiteFooter locale={locale} />

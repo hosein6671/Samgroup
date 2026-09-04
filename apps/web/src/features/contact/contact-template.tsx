@@ -16,11 +16,9 @@ import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ContactHero } from "./sections/hero";
 import { InquirySection } from "./sections/inquiry-section";
 import { ContactPathways } from "./sections/pathways";
-import { ContactDirectory } from "./sections/contact-directory";
 
 import type { FormHeading } from "./contact-data";
 import type { ProductContext } from "@/features/forms/inquiry-form";
-import type { ContactUsContent } from "@sam-group/types";
 
 /**
  * The Contact Us template — one component behind both `/contact-us` and
@@ -39,22 +37,33 @@ import type { ContactUsContent } from "@sam-group/types";
  */
 export function ContactTemplate({
   copy,
+  directory = null,
   inquiryType,
   locale,
   locales,
   lockInquiryType = false,
+  privacyPolicyHref = null,
   product = null,
-  contactDetails = null,
 }: {
   readonly copy: FormHeading;
+  /**
+   * The contact-channel directory, supplied by the route as a node rather than as data.
+   *
+   * It arrives already wrapped in its own `Suspense` boundary so the CMS read behind it cannot
+   * delay the hero or the enquiry form, and it is a **node** so a route that has no directory to
+   * show — `/contact-us/request-a-quote`, which is the same template with the type fixed — simply
+   * passes nothing instead of taking on a data dependency it does not use.
+   */
+  readonly directory?: ReactNode;
   readonly inquiryType: string;
   /** The route locale segment, forwarded to the shared chrome — see `SiteNavProps`. */
   readonly locale: string;
   readonly locales: SiteNavProps["locales"];
   readonly lockInquiryType?: boolean;
+  /** The published Privacy Policy's address, or `null` when none is published. */
+  readonly privacyPolicyHref?: string | null;
   /** Resolved by the route from `?product=`, or null when the form was opened without one. */
   readonly product?: ProductContext | null;
-  readonly contactDetails?: ContactUsContent | null;
 }): ReactNode {
   return (
     <div data-brand="flagship">
@@ -63,12 +72,13 @@ export function ContactTemplate({
       <main id="main-content">
         <ContactHero />
         <ContactPathways locale={locale} />
-        <ContactDirectory content={contactDetails} />
+        {directory}
 
         <InquirySection
           copy={copy}
           inquiryType={inquiryType}
           lockInquiryType={lockInquiryType}
+          privacyPolicyHref={privacyPolicyHref}
           product={product}
         />
       </main>

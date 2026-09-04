@@ -1,8 +1,14 @@
+import { Suspense } from "react";
+
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { FORM_HEADINGS } from "@/features/contact/contact-data";
 import { ContactTemplate } from "@/features/contact/contact-template";
+import {
+  ContactDirectorySection,
+  ContactDirectorySkeleton,
+} from "@/features/contact/sections/contact-directory-section";
 import { resolveProductContext, single } from "@/features/contact/resolve-product-context";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import {
@@ -10,8 +16,11 @@ import {
   SAMPLE_INQUIRY_TYPE,
   isInquiryType,
 } from "@/features/forms/inquiry-vocabulary";
+import { getPrivacyPolicyHref } from "@/features/legal/privacy-policy";
+import { structuralAlternates, localePath } from "@/features/seo/alternates";
+import { absoluteUrl, organizationId } from "@/features/seo/site";
+import { ROUTES } from "@/features/site/site-routes";
 import { getActiveLocales } from "@/lib/locales";
-import { getContactUsContent } from "@/lib/content";
 
 /**
  * The Contact Us route — `/{locale}/contact-us`.
@@ -56,12 +65,12 @@ export async function generateMetadata({
   readonly params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const canonical = `/${locale}/contact-us`;
+  const canonical = absoluteUrl(localePath(locale, ROUTES.contactUs));
 
   return {
     title: TITLE,
     description: DESCRIPTION,
-    alternates: { canonical },
+    alternates: structuralAlternates(locale, ROUTES.contactUs),
     openGraph: {
       type: "website",
       siteName: "SAM Group",
@@ -96,11 +105,16 @@ export default async function ContactUsPage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
-  const [locales, contactResult] = await Promise.all([
+  /*
+   * The contact channels are deliberately NOT awaited here. They are read inside
+   * `ContactDirectorySection`, behind the `Suspense` boundary below, so a slow or stopped CMS
+   * delays neither the page shell nor the enquiry form — the one route on this page that reaches a
+   * person, and the one that needs no CMS at all.
+   */
+  const [locales, privacyPolicyHref] = await Promise.all([
     getActiveLocales(),
-    getContactUsContent(locale),
+    getPrivacyPolicyHref(locale),
   ]);
-  const contactDetails = contactResult.ok ? contactResult.content : null;
 
   const requestedType = single(query.type);
   const inquiryType = isInquiryType(requestedType)
@@ -109,50 +123,38 @@ export default async function ContactUsPage({
 
   const product = await resolveProductContext(single(query.product), locale);
 
-  const canonical = `/${locale}/contact-us`;
-  const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+  const absoluteUrl_ = absoluteUrl(localePath(locale, ROUTES.contactUs));
   const schema: JsonLdObject = {
     "@context": "https://schema.org",
     "@type": "ContactPage",
-    "@id": `${absoluteUrl}#contactpage`,
-    url: absoluteUrl,
+    "@id": `${absoluteUrl_}#contactpage`,
+    url: absoluteUrl_,
     name: TITLE,
     description: DESCRIPTION,
     inLanguage: locale,
-    about: { "@id": "https://samgp.com/#organization" },
+    about: { "@id": organizationId() },
   };
 
-  const organization: JsonLdObject = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": "https://samgp.com/#organization",
-    name: "SAM Group",
-    url: "https://samgp.com",
-    ...(contactDetails?.mainPhone ? { telephone: contactDetails.mainPhone } : {}),
-    ...(contactDetails?.generalEmail ? { email: contactDetails.generalEmail } : {}),
-    ...(contactDetails?.address ? { address: contactDetails.address } : {}),
-    ...(contactDetails
-      ? {
-          sameAs: [
-            contactDetails.linkedinUrl,
-            contactDetails.instagramUrl,
-            contactDetails.telegramUrl,
-          ].filter((value): value is string => value !== null),
-        }
-      : {}),
-  };
-
+  /*
+   * The `Organization` node moved into `ContactDirectorySection` with the values it is assembled
+   * from. Only `ContactPage` is emitted here, because only it can be written without reading the
+   * CMS — and structured data is not worth blocking a page render on.
+   */
   return (
     <>
       <JsonLd data={schema} />
-      <JsonLd data={organization} />
       <ContactTemplate
         locales={locales}
         locale={locale}
         copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}
         inquiryType={inquiryType}
+        privacyPolicyHref={privacyPolicyHref}
         product={product}
-        contactDetails={contactDetails}
+        directory={
+          <Suspense fallback={<ContactDirectorySkeleton />}>
+            <ContactDirectorySection locale={locale} />
+          </Suspense>
+        }
       />
     </>
   );

@@ -40,10 +40,19 @@ export function SolutionsUnavailable({
   locale,
   locales,
   reason,
+  privacyPolicyHref = null,
 }: {
   readonly locale: string;
   readonly locales: SiteNavProps["locales"];
   readonly reason: "not-configured" | "service";
+  /**
+   * The published Privacy Policy's address in this locale, or `null` when none is published.
+   *
+   * Resolved by the route and threaded through rather than fetched here, so the request form's
+   * consent label links the policy exactly when one exists. See
+   * `features/legal/privacy-policy.ts`.
+   */
+  readonly privacyPolicyHref?: string | null;
 }): ReactNode {
   return (
     <div data-brand="flagship">
@@ -80,7 +89,7 @@ export function SolutionsUnavailable({
          * The same component the published page renders, taking no props and no CMS input. It is
          * here because it still works — see the note above.
          */}
-        <CustomRequestForm />
+        <CustomRequestForm privacyPolicyHref={privacyPolicyHref} />
       </main>
 
       <SiteFooter locale={locale} />

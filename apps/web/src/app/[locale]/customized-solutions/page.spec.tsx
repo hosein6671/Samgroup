@@ -19,8 +19,17 @@ const { getCustomizedSolutionsContent } = vi.hoisted(() => ({
   getCustomizedSolutionsContent: vi.fn(),
 }));
 const { getActiveLocales } = vi.hoisted(() => ({ getActiveLocales: vi.fn() }));
+/*
+ * `getContentPage` is mocked alongside the page's own reader because the shared footer now asks
+ * whether a Privacy Policy is published before it decides whether to link one. It answers
+ * `not-found`, which is the true state of this project: no policy is published, so no link is
+ * rendered. Without it this module-level mock would be missing an export the footer imports.
+ */
+const { getContentPage } = vi.hoisted(() => ({
+  getContentPage: vi.fn(async () => ({ ok: false, reason: "not-found" })),
+}));
 
-vi.mock("@/lib/content", () => ({ getCustomizedSolutionsContent }));
+vi.mock("@/lib/content", () => ({ getCustomizedSolutionsContent, getContentPage }));
 vi.mock("@/lib/locales", () => ({ getActiveLocales }));
 
 const LOCALES = [

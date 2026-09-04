@@ -2,6 +2,8 @@ import { cache } from "react";
 
 import { SolutionsExperience } from "@/features/customized-solutions/solutions-experience";
 import { SolutionsUnavailable } from "@/features/customized-solutions/solutions-unavailable";
+import { getPrivacyPolicyHref } from "@/features/legal/privacy-policy";
+import { absoluteUrl, webSiteId } from "@/features/seo/site";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { getCustomizedSolutionsContent } from "@/lib/content";
 import { defaultLocale } from "@/lib/locale-contract";
@@ -105,6 +107,12 @@ export default async function CustomizedSolutionsPage({
   const { locale } = await params;
   const locales = await getActiveLocales();
   const result = await resolveSolutions(locale);
+  /*
+   * Resolved here rather than inside the request form, which is a Client Component and cannot read
+   * the API. `null` whenever no Privacy Policy is published, which is what keeps the consent label
+   * from linking a 404 — see `features/legal/privacy-policy.ts`.
+   */
+  const privacyPolicyHref = await getPrivacyPolicyHref(locale);
 
   if (result.ok) {
     /*
@@ -114,18 +122,18 @@ export default async function CustomizedSolutionsPage({
      */
     const served = result.localeFallback ? defaultLocale(await getActiveLocales()) : null;
     const canonical = result.content.seo.canonicalUrl ?? `/${locale}/customized-solutions`;
-    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const pageUrl = absoluteUrl(canonical);
     const schema: JsonLdObject = {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      "@id": `${absoluteUrl}#webpage`,
-      url: absoluteUrl,
+      "@id": `${pageUrl}#webpage`,
+      url: pageUrl,
       name: result.content.seo.metaTitle ?? result.content.hero.title,
       ...(result.content.seo.metaDescription !== null && {
         description: result.content.seo.metaDescription,
       }),
       inLanguage: served?.code ?? locale,
-      isPartOf: { "@id": "https://samgp.com/#website" },
+      isPartOf: { "@id": webSiteId() },
     };
 
     return (
@@ -135,6 +143,7 @@ export default async function CustomizedSolutionsPage({
           locales={locales}
           content={result.content}
           locale={locale}
+          privacyPolicyHref={privacyPolicyHref}
           fallbackLocale={
             served === null ? null : { code: served.code, direction: served.direction }
           }
@@ -144,7 +153,14 @@ export default async function CustomizedSolutionsPage({
   }
 
   if (result.reason === "not-configured") {
-    return <SolutionsUnavailable locales={locales} locale={locale} reason="not-configured" />;
+    return (
+      <SolutionsUnavailable
+        locales={locales}
+        locale={locale}
+        reason="not-configured"
+        privacyPolicyHref={privacyPolicyHref}
+      />
+    );
   }
 
   console.warn(
@@ -156,5 +172,12 @@ export default async function CustomizedSolutionsPage({
           : `the platform API answered, but not with page content (HTTP ${String(result.status)})`),
   );
 
-  return <SolutionsUnavailable locales={locales} locale={locale} reason="service" />;
+  return (
+    <SolutionsUnavailable
+      locales={locales}
+      locale={locale}
+      reason="service"
+      privacyPolicyHref={privacyPolicyHref}
+    />
+  );
 }
