@@ -769,9 +769,26 @@
   color: var(--color-text-secondary);
 }
 
-.cs-intro-prose {
-  display: grid;
-  gap: clamp(16px, 1.8vw, 22px);
+/*
+ * `p`, not a `> *` grid gap — descendant, not direct-child.
+ *
+ * The API's rich-text converter wraps `bodyHtml` in its own `<div class="payload-richtext">`
+ * (`apps/api/src/modules/content/rich-text.sanitizer.ts` names it explicitly as structural markup
+ * this stylesheet is meant to read past), so `.cs-intro-prose`'s actual DOM child is that one
+ * wrapper div, not the `<p>` elements inside it — a `display: grid; gap` here has nothing to apply
+ * to but that single wrapper. Dormant today because the Introduction segment carries exactly one
+ * paragraph (nothing to space), but the same defect broke `.ab-who-prose` on the About Us page the
+ * moment it was published against real API output rather than a raw, unwrapped `<p>` fixture.
+ * `margin-bottom` on the `p` selector is the fix that page now uses, and the one `.lg-body-inner p`
+ * already established for the identical `bodyHtml` shape on the legal pages — it reads through any
+ * wrapper depth by construction.
+ */
+.cs-intro-prose p {
+  margin: 0 0 clamp(16px, 1.8vw, 22px);
+}
+
+.cs-intro-prose p:last-child {
+  margin-bottom: 0;
 }
 
 .cs-unavailable {
