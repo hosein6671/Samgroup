@@ -53,7 +53,21 @@ const PUBLISHED_DOC = {
   expertise: {
     heading: "VERIFICATION EXPERTISE",
     lead: "VERIFICATION EXPERTISE LEAD",
-    items: [{ id: "b1", name: "VERIFICATION AREA" }],
+    items: [
+      { id: "b1", name: "VERIFICATION AREA", note: "VERIFICATION AREA NOTE", icon: "product" },
+    ],
+  },
+  competitiveAdvantages: {
+    heading: "VERIFICATION ADVANTAGES",
+    lead: "VERIFICATION ADVANTAGES LEAD",
+    items: [
+      {
+        id: "e1",
+        name: "VERIFICATION REASON",
+        note: "VERIFICATION REASON NOTE",
+        icon: "manufacturer",
+      },
+    ],
   },
   team: {
     eyebrow: "VERIFICATION TEAM",
@@ -144,7 +158,12 @@ describe("AboutUsService", () => {
       expect(content.whoWeAre?.positions).toEqual([
         { term: "VERIFICATION TERM", note: "VERIFICATION NOTE" },
       ]);
-      expect(content.expertise?.items).toEqual([{ name: "VERIFICATION AREA" }]);
+      expect(content.expertise?.items).toEqual([
+        { name: "VERIFICATION AREA", note: "VERIFICATION AREA NOTE", icon: "product" },
+      ]);
+      expect(content.competitiveAdvantages?.items).toEqual([
+        { name: "VERIFICATION REASON", note: "VERIFICATION REASON NOTE", icon: "manufacturer" },
+      ]);
       expect(content.team?.functions).toEqual([
         { name: "VERIFICATION FUNCTION", note: "VERIFICATION FUNCTION NOTE" },
       ]);
@@ -218,6 +237,7 @@ describe("AboutUsService", () => {
       findGlobal.mockResolvedValue({
         hero: { title: "VERIFICATION HERO TITLE" },
         expertise: { heading: "", lead: null, items: [] },
+        competitiveAdvantages: { heading: "", lead: null, items: [] },
         team: { heading: "", lead: null, functions: [] },
         qualityStandards: {},
         closing: { routes: [] },
@@ -229,6 +249,7 @@ describe("AboutUsService", () => {
 
       expect(content.whoWeAre).toBeNull();
       expect(content.expertise).toBeNull();
+      expect(content.competitiveAdvantages).toBeNull();
       expect(content.team).toBeNull();
       expect(content.qualityStandards).toBeNull();
       expect(content.closing).toBeNull();

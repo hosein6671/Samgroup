@@ -30,6 +30,7 @@ const CONTENT: AboutUsContent = {
   },
   whoWeAre: null,
   expertise: null,
+  competitiveAdvantages: null,
   team: null,
   qualityStandards: null,
   closing: null,
