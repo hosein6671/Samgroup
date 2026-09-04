@@ -3,17 +3,28 @@ import { contentRouteHref } from "@/features/site/site-routes";
 
 import { ANCHORS } from "../about-anchors";
 
-import { SectionFigure } from "./hero";
-
 import type { AboutUsQualityStandards } from "@sam-group/types";
 import type { ReactNode } from "react";
 
 /**
- * Quality & Standards — the commitments that accompany a batch, and the footnote beneath them.
+ * Quality & Standards — a compact supporting section, not a fourth full-width argument.
  *
- * The commitments are a list rather than a grid of cards for the same reason the expertise register
- * is an ordered list: they are a set of statements, and the numbering is positional. Each may carry
- * an optional second line, which renders only when the editor wrote one.
+ * ── Why this shrank ───────────────────────────────────────────────────────────
+ *
+ * `_v2`'s `About Us` sheet has no segment for this at all; it survives on the page by owner
+ * decision, kept as a pointer toward the dedicated Quality & Certifications page rather than as a
+ * third telling of the same claims. The previous construction was a two-column grid — a ruled list
+ * of full description rows beside an optional photograph — the same visual weight as Expertise or
+ * the Team section either side of it. That made a page section the owner called "supporting" read
+ * as equal in importance to the page's main argument.
+ *
+ * Nothing about the CMS record changed to shrink it: `qualityStandards.figure` is still part of
+ * `AboutUsQualityStandards` and still populated when an editor uploads one, and every item still
+ * carries its own optional `note`. This component simply stops spending a two-column layout, a
+ * photograph slot and full description rows on a section whose job is now to hand the reader to
+ * `/quality-certifications` quickly — the item names become a short tag row, the item notes and the
+ * figure are not rendered here, and the footnote sits directly beside the button it explains rather
+ * than as its own paragraph.
  */
 export function AboutQualityStandards({
   qualityStandards,
@@ -26,56 +37,38 @@ export function AboutQualityStandards({
 
   return (
     <section className="fs-sec ab-quality" id={ANCHORS.quality} data-surface="light">
-      <div
-        className="fs-wrap ab-quality-grid"
-        data-figure={qualityStandards.figure === null ? "no" : "yes"}
-      >
-        <header className="ab-quality-head reveal-fade-rise">
+      <div className="fs-wrap ab-quality-compact">
+        <div className="ab-quality-compact-copy reveal-fade-rise">
           <p className="fs-eyebrow">Quality &amp; standards</p>
           {qualityStandards.heading !== null && (
-            <h2 className="fs-d2">{qualityStandards.heading}</h2>
+            <h2 className="fs-d3">{qualityStandards.heading}</h2>
           )}
-          {qualityStandards.lead !== null && <p className="fs-lead">{qualityStandards.lead}</p>}
-        </header>
+          {qualityStandards.lead !== null && (
+            <p className="ab-quality-compact-lead">{qualityStandards.lead}</p>
+          )}
 
-        <div className="ab-quality-body">
           {qualityStandards.items.length > 0 && (
-            <ul className="ab-commitments reveal-stagger">
-              {qualityStandards.items.map((item, index) => (
-                <li className="ab-commitment" key={item.name}>
-                  <span className="ab-commitment-num fs-tnum">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="ab-commitment-body">
-                    <b>{item.name}</b>
-                    {item.note !== null && <small>{item.note}</small>}
-                  </span>
-                </li>
+            <ul className="ab-quality-tags">
+              {qualityStandards.items.map((item) => (
+                <li key={item.name}>{item.name}</li>
               ))}
             </ul>
           )}
-
-          {footnote !== null && (
-            <p className="ab-quality-foot reveal-fade-rise">
-              {footnote}
-              {footnoteCta !== null && (
-                <>
-                  {" "}
-                  <a href={contentRouteHref(locale, footnoteCta.route)}>
-                    {footnoteCta.label}
-                    <Arrow size={13} />
-                  </a>
-                </>
-              )}
-            </p>
-          )}
         </div>
 
-        {qualityStandards.figure !== null && (
-          <SectionFigure
-            figure={qualityStandards.figure}
-            className="ab-quality-media reveal-fade-rise"
-          />
+        {(footnote !== null || footnoteCta !== null) && (
+          <div className="ab-quality-compact-action reveal-fade-rise">
+            {footnote !== null && <p className="ab-quality-compact-foot">{footnote}</p>}
+            {footnoteCta !== null && (
+              <a
+                href={contentRouteHref(locale, footnoteCta.route)}
+                className="fs-btn fs-btn--outline"
+              >
+                {footnoteCta.label}
+                <Arrow size={14} />
+              </a>
+            )}
+          </div>
         )}
       </div>
     </section>

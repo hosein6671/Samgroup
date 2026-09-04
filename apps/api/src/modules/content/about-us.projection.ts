@@ -3,16 +3,19 @@ import { normalizeSeo } from "./seo.normalizer";
 
 import type {
   AboutUsClosing,
+  AboutUsCompetitiveAdvantages,
   AboutUsContent,
   AboutUsExpertise,
   AboutUsHero,
   AboutUsQualityStandards,
   AboutUsTeam,
   AboutUsWhoWeAre,
+  CompetitiveAdvantageIconKey,
   ContentCta,
   ContentFigure,
   ContentImage,
   ContentRouteKey,
+  ExpertiseIconKey,
 } from "@sam-group/types";
 
 /**
@@ -47,6 +50,33 @@ const ROUTE_KEYS: ReadonlySet<string> = new Set<ContentRouteKey>([
   "contact-us",
   "request-a-quote",
 ]);
+
+/** Mirrors `about-us.ts`'s `EXPERTISE_ICON_OPTIONS` and `ADVANTAGE_ICON_OPTIONS`. */
+const EXPERTISE_ICON_KEYS: ReadonlySet<string> = new Set<ExpertiseIconKey>([
+  "product",
+  "application",
+  "blend",
+  "formulation",
+  "documentation",
+  "supply",
+]);
+const ADVANTAGE_ICON_KEYS: ReadonlySet<string> = new Set<CompetitiveAdvantageIconKey>([
+  "manufacturer",
+  "customization",
+  "quality",
+  "supply",
+  "expertise",
+  "partnership",
+]);
+
+/**
+ * A glyph-vocabulary value, or `null` for anything unrecognised — including a value from a schema
+ * newer than this file. The same fallback `cta()` gives an unrecognised route key: `apps/web` owns
+ * a fixed glyph table and has nothing to resolve an unknown key to.
+ */
+function iconKey<T extends string>(value: unknown, allowed: ReadonlySet<string>): T | null {
+  return typeof value === "string" && allowed.has(value) ? (value as T) : null;
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -185,9 +215,35 @@ function expertiseOf(doc: Record<string, unknown>): AboutUsExpertise | null {
   const heading = text(source.heading);
   const lead = text(source.lead);
   const items = rows(source.items)
-    .map((row) => text(row.name))
-    .filter((name): name is string => name !== null)
-    .map((name) => ({ name }));
+    .map((row) => ({
+      name: text(row.name),
+      note: text(row.note),
+      icon: iconKey<ExpertiseIconKey>(row.icon, EXPERTISE_ICON_KEYS),
+    }))
+    .filter(
+      (row): row is { name: string; note: string | null; icon: ExpertiseIconKey | null } =>
+        row.name !== null,
+    );
+
+  return isEmpty(heading, lead, items) ? null : { heading, lead, items };
+}
+
+function competitiveAdvantagesOf(
+  doc: Record<string, unknown>,
+): AboutUsCompetitiveAdvantages | null {
+  const source = group(doc.competitiveAdvantages);
+  const heading = text(source.heading);
+  const lead = text(source.lead);
+  const items = rows(source.items)
+    .map((row) => ({
+      name: text(row.name),
+      note: text(row.note),
+      icon: iconKey<CompetitiveAdvantageIconKey>(row.icon, ADVANTAGE_ICON_KEYS),
+    }))
+    .filter(
+      (row): row is { name: string; note: string; icon: CompetitiveAdvantageIconKey | null } =>
+        row.name !== null && row.note !== null,
+    );
 
   return isEmpty(heading, lead, items) ? null : { heading, lead, items };
 }
@@ -264,6 +320,7 @@ export function toAboutUsContent(
     hero,
     whoWeAre: whoWeAreOf(doc),
     expertise: expertiseOf(doc),
+    competitiveAdvantages: competitiveAdvantagesOf(doc),
     team: teamOf(doc),
     qualityStandards: qualityStandardsOf(doc),
     closing: closingOf(doc),

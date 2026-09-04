@@ -31,8 +31,17 @@ import type { AboutUsContent } from "@sam-group/types";
 
 const { getAboutUsContent } = vi.hoisted(() => ({ getAboutUsContent: vi.fn() }));
 const { getActiveLocales } = vi.hoisted(() => ({ getActiveLocales: vi.fn() }));
+/*
+ * `getContentPage` is mocked alongside the page's own reader because the shared footer now asks
+ * whether a Privacy Policy is published before it decides whether to link one. It answers
+ * `not-found`, which is the true state of this project: no policy is published, so no link is
+ * rendered. Without it this module-level mock would be missing an export the footer imports.
+ */
+const { getContentPage } = vi.hoisted(() => ({
+  getContentPage: vi.fn(async () => ({ ok: false, reason: "not-found" })),
+}));
 
-vi.mock("@/lib/content", () => ({ getAboutUsContent }));
+vi.mock("@/lib/content", () => ({ getAboutUsContent, getContentPage }));
 vi.mock("@/lib/locales", () => ({ getActiveLocales }));
 
 /** The frozen Phase 1 set, in the shape the `Locale` table serves it. */
@@ -65,6 +74,7 @@ const CONTENT: AboutUsContent = {
   },
   whoWeAre: null,
   expertise: null,
+  competitiveAdvantages: null,
   team: null,
   qualityStandards: null,
   closing: null,
@@ -253,7 +263,13 @@ describe("/{locale}/about-us", () => {
       });
     });
 
-    it("emits one shared AboutPage and Organization JSON-LD graph", async () => {
+    /**
+     * The `Organization` node this page used to carry is now emitted once per page by
+     * `app/[locale]/layout.tsx`, so the route's own graph holds only the type that is specific to
+     * it. What must survive is the LINK between the two: `about` still references the organization
+     * by the shared `@id`, which is how a consumer joins the layout's node to this one.
+     */
+    it("emits an AboutPage that references the site-wide Organization by @id", async () => {
       getAboutUsContent.mockResolvedValue({ ok: true, content: CONTENT, localeFallback: false });
 
       const scripts = findTags(await AboutUsPage({ params: params() }), "script");
@@ -261,12 +277,15 @@ describe("/{locale}/about-us", () => {
       const scriptPayload = jsonLd?.props.dangerouslySetInnerHTML as
         { readonly __html: string } | undefined;
       const graph = JSON.parse(scriptPayload?.__html ?? "{}") as {
-        "@graph": readonly { "@type": string; url?: string }[];
+        "@graph": readonly { "@type": string; url?: string; about?: { "@id": string } }[];
       };
 
       expect(jsonLd).toBeDefined();
-      expect(graph["@graph"].map((item) => item["@type"])).toEqual(["Organization", "AboutPage"]);
-      expect(graph["@graph"][1]?.url).toBe("https://samgp.com/en/about-us");
+      expect(graph["@graph"].map((item) => item["@type"])).toEqual(["AboutPage"]);
+      expect(graph["@graph"][0]?.url).toBe("https://samgp.com/en/about-us");
+      expect((graph["@graph"][0] as { about?: { "@id"?: string } }).about?.["@id"]).toBe(
+        "https://samgp.com/#organization",
+      );
     });
 
     it("falls back to the hero heading when no meta title is set", async () => {

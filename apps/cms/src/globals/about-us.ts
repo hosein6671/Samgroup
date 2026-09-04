@@ -17,9 +17,12 @@ import type { Field, GlobalConfig } from "payload";
  *
  * ── The schema is the page, and nothing more ───────────────────────────────
  *
- * Milestones and competitive advantages remain absent because their factual content is still not
- * approved. Team was added after explicit editorial approval on 27 August 2026, as accountable
- * business functions rather than an invented roster; names and biographies remain unmodelled.
+ * Milestones remain absent because their factual content is still not approved. Team was added
+ * after explicit editorial approval on 27 August 2026, as accountable business functions rather
+ * than an invented roster; names and biographies remain unmodelled. Competitive Advantages was
+ * added once `Sam Group Website Structure_v2.xlsx` became the site's authoritative content source
+ * (AI_CONTEXT.md) — its `About Us` sheet gives this segment a title and six name/reason pairs, so
+ * the content is sourced rather than invented.
  *
  * Every field below is rendered by the About page today. Nothing here is speculative.
  *
@@ -34,6 +37,30 @@ import type { Field, GlobalConfig } from "payload";
  *   navigation is code (`features/site/site-routes.ts`). Restating it here would put a second copy
  *   of a frozen taxonomy in the one database that must never mirror the other (ADR-002).
  */
+
+/**
+ * The concept an expertise item's glyph represents — a controlled vocabulary, the same construction
+ * `fields/cta.ts`'s `ROUTE_OPTIONS` uses for a destination. An editor picks what the row *means*,
+ * never a Lucide component name; `apps/web` owns the glyph each value maps to.
+ */
+const EXPERTISE_ICON_OPTIONS = [
+  { label: "Product", value: "product" },
+  { label: "Application", value: "application" },
+  { label: "Blend", value: "blend" },
+  { label: "Formulation", value: "formulation" },
+  { label: "Documentation", value: "documentation" },
+  { label: "Supply", value: "supply" },
+];
+
+/** The six reasons `_v2`'s Competitive Advantages segment names, as the same kind of vocabulary. */
+const ADVANTAGE_ICON_OPTIONS = [
+  { label: "Manufacturer", value: "manufacturer" },
+  { label: "Customization", value: "customization" },
+  { label: "Quality", value: "quality" },
+  { label: "Supply", value: "supply" },
+  { label: "Expertise", value: "expertise" },
+  { label: "Partnership", value: "partnership" },
+];
 
 /**
  * An optional photograph for a section, plus its caption.
@@ -85,7 +112,7 @@ export const AboutUs: GlobalConfig = {
   },
   admin: {
     description:
-      "The About Us page. Team functions are modelled without invented names or biographies; milestones and competitive advantages remain unmodelled until their facts are approved.",
+      "The About Us page. Team functions are modelled without invented names or biographies; milestones remain unmodelled until their facts are approved.",
     group: "Company pages",
   },
   /*
@@ -169,7 +196,52 @@ export const AboutUs: GlobalConfig = {
           name: "items",
           type: "array",
           label: "Named areas",
-          fields: [{ name: "name", type: "text", required: true, localized: true }],
+          fields: [
+            { name: "name", type: "text", required: true, localized: true },
+            {
+              name: "note",
+              type: "textarea",
+              localized: true,
+              admin: { description: "Optional one-sentence description." },
+            },
+            {
+              name: "icon",
+              type: "select",
+              options: EXPERTISE_ICON_OPTIONS,
+              // A glyph meaning, not copy — the same reasoning `ctaField`'s `route` states.
+              localized: false,
+              admin: { description: "Optional. Which concept this row's glyph should represent." },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "competitiveAdvantages",
+      type: "group",
+      label: "Competitive advantages",
+      admin: {
+        description:
+          '"Why Partner with SAM Group?" — the _v2 About Us sheet\'s six name/reason pairs. No image and no footnote link, unlike Quality & Standards below: the sheet gives this segment nothing else.',
+      },
+      fields: [
+        { name: "heading", type: "text", localized: true },
+        { name: "lead", type: "textarea", localized: true },
+        {
+          name: "items",
+          type: "array",
+          label: "Reasons",
+          fields: [
+            { name: "name", type: "text", required: true, localized: true },
+            { name: "note", type: "textarea", required: true, localized: true },
+            {
+              name: "icon",
+              type: "select",
+              options: ADVANTAGE_ICON_OPTIONS,
+              localized: false,
+              admin: { description: "Optional. Which concept this row's glyph should represent." },
+            },
+          ],
         },
       ],
     },

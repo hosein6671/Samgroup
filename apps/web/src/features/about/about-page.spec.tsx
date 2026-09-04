@@ -50,7 +50,14 @@ const VERIFICATION_CONTENT: AboutUsContent = {
   expertise: {
     heading: "VERIFICATION EXPERTISE",
     lead: "VERIFICATION EXPERTISE LEAD",
-    items: [{ name: "VERIFICATION AREA" }],
+    items: [{ name: "VERIFICATION AREA", note: "VERIFICATION AREA NOTE", icon: "product" }],
+  },
+  competitiveAdvantages: {
+    heading: "VERIFICATION ADVANTAGES",
+    lead: "VERIFICATION ADVANTAGES LEAD",
+    items: [
+      { name: "VERIFICATION REASON", note: "VERIFICATION REASON NOTE", icon: "manufacturer" },
+    ],
   },
   team: {
     eyebrow: "VERIFICATION TEAM",
@@ -116,10 +123,13 @@ describe("the About page renders what the CMS served", () => {
       "VERIFICATION WHO WE ARE",
       "VERIFICATION TERM",
       "VERIFICATION AREA",
+      "VERIFICATION AREA NOTE",
+      "VERIFICATION ADVANTAGES",
+      "VERIFICATION REASON",
+      "VERIFICATION REASON NOTE",
       "VERIFICATION TEAM HEADING",
       "VERIFICATION FUNCTION",
       "VERIFICATION COMMITMENT",
-      "VERIFICATION SECOND LINE",
       "VERIFICATION FOOTNOTE",
       "VERIFICATION CLOSING",
     ]) {
@@ -160,6 +170,7 @@ describe("optional sections render absent", () => {
     hero: { ...VERIFICATION_CONTENT.hero, figure: null, secondaryCta: null },
     whoWeAre: null,
     expertise: null,
+    competitiveAdvantages: null,
     team: null,
     qualityStandards: null,
     closing: null,
@@ -171,6 +182,7 @@ describe("optional sections render absent", () => {
     expect(text).toContain("VERIFICATION HERO TITLE");
     expect(text).not.toContain("VERIFICATION WHO WE ARE");
     expect(text).not.toContain("Our expertise");
+    expect(text).not.toContain("VERIFICATION ADVANTAGES");
     expect(text).not.toContain("VERIFICATION QUALITY");
     expect(text).not.toContain("VERIFICATION CLOSING");
   });
@@ -201,9 +213,14 @@ describe("optional sections render absent", () => {
 describe("accessibility of the rendered page", () => {
   it("has one h1, and every other section heading is an h2", () => {
     const tree = render();
+    // h3 marks each Expertise flow node and each Team function — the page's only two repeated,
+    // individually-headed items.
+    const expectedH3 =
+      (VERIFICATION_CONTENT.expertise?.items.length ?? 0) +
+      (VERIFICATION_CONTENT.team?.functions.length ?? 0);
 
     expect(findTags(tree, "h1")).toHaveLength(1);
-    expect(findTags(tree, "h3")).toHaveLength(VERIFICATION_CONTENT.team?.functions.length ?? 0);
+    expect(findTags(tree, "h3")).toHaveLength(expectedH3);
     expect(findTags(tree, "h2").length).toBeGreaterThan(0);
   });
 
@@ -231,7 +248,13 @@ describe("accessibility of the rendered page", () => {
       .filter((href) => typeof href === "string" && href.startsWith("#"));
 
     expect(index).toBeDefined();
-    expect(hrefs).toEqual(["#who-we-are", "#expertise", "#team", "#quality-standards"]);
+    expect(hrefs).toEqual([
+      "#who-we-are",
+      "#expertise",
+      "#competitive-advantages",
+      "#team",
+      "#quality-standards",
+    ]);
   });
 
   it("carries the alt text from the Media record onto the image", () => {

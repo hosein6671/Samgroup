@@ -6,6 +6,7 @@ import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import { AboutIndex } from "./about-index";
 import { AboutClosing } from "./sections/closing";
+import { AboutCompetitiveAdvantages } from "./sections/competitive-advantages";
 import { AboutExpertise } from "./sections/expertise";
 import { AboutHero } from "./sections/hero";
 import { AboutQualityStandards } from "./sections/quality-standards";
@@ -31,13 +32,14 @@ import type { ReactNode } from "react";
  *
  * ── Sections render if they exist ───────────────────────────────────────────
  *
- * Four of the five are nullable, and a `null` section is simply not rendered. That is the approved
+ * All but the hero are nullable, and a `null` section is simply not rendered. That is the approved
  * cutover rule, and it is what lets this page be published a section at a time. It also means the
  * page cannot render a heading over an empty band.
  *
- * Company Milestones and Competitive Advantages remain absent until their factual content is
- * approved. Team is represented by accountable functions and approved editorial photography,
- * without fictional names or biographies.
+ * Company Milestones remain absent until their factual content is approved. Team is represented by
+ * accountable functions and approved editorial photography, without fictional names or
+ * biographies. Competitive Advantages is sourced from `Sam Group Website Structure_v2.xlsx`'s
+ * `About Us` sheet — see `sections/competitive-advantages.tsx`.
  *
  * ── Still entirely server-rendered ──────────────────────────────────────────
  *
@@ -98,6 +100,9 @@ export function AboutExperience({
         <AboutIndex content={content} />
         {content.whoWeAre !== null && <AboutWhoWeAre whoWeAre={content.whoWeAre} locale={locale} />}
         {content.expertise !== null && <AboutExpertise expertise={content.expertise} />}
+        {content.competitiveAdvantages !== null && (
+          <AboutCompetitiveAdvantages advantages={content.competitiveAdvantages} />
+        )}
         {content.team !== null && <AboutTeam team={content.team} />}
         {content.qualityStandards !== null && (
           <AboutQualityStandards qualityStandards={content.qualityStandards} locale={locale} />

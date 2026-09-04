@@ -19,6 +19,11 @@ export function AboutIndex({ content }: { readonly content: AboutUsContent }): R
   const items: readonly IndexItem[] = [
     { id: ANCHORS.whoWeAre, label: "Company profile", available: content.whoWeAre !== null },
     { id: ANCHORS.expertise, label: "Capabilities", available: content.expertise !== null },
+    {
+      id: ANCHORS.advantages,
+      label: "Why partner with us",
+      available: content.competitiveAdvantages !== null,
+    },
     { id: ANCHORS.team, label: "How we work", available: content.team !== null },
     {
       id: ANCHORS.quality,

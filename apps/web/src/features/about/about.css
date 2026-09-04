@@ -200,7 +200,20 @@
   background:
     radial-gradient(ellipse 110% 75% at 12% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
     var(--color-surface-canvas);
-  overflow: hidden;
+  /*
+   * `clip`, never `hidden` — the same correction `[data-brand="flagship"]` in `flagship.css`
+   * documents for the same reason. `overflow: hidden` clips the radial gradient's bleed, but it
+   * also makes the section a scroll container, and `animation-timeline: view()` resolves every
+   * `.reveal-*` descendant's entry/exit against its NEAREST scroll-container ancestor rather than
+   * the page. A non-scrolling container's own scrollport never changes as the page scrolls, so a
+   * reveal inside one reads as permanently mid-timeline: it renders in its finished state from
+   * the first frame and never actually plays. Measured on this section before the fix: opacity
+   * held at 1 across the section's full scroll range, on and off screen alike — verified against
+   * `#who-we-are`/`#competitive-advantages`, plain `overflow: visible` sections one below, whose
+   * reveals correctly read 0 off-screen and animate to 1 crossing into view. `clip` cuts the same
+   * bleed without creating that container.
+   */
+  overflow: clip;
 }
 
 /*
@@ -330,6 +343,7 @@
 
 .ab-who,
 .ab-expertise,
+.ab-adv,
 .ab-team,
 .ab-quality,
 .ab-close {
@@ -341,21 +355,66 @@
    ============================================================================ */
 
 /*
- * Three columns of unequal weight: a heading rail, the prose measure, and an aside carrying the
- * media slot with the six families under it. The pending notice spans the full width beneath them
- * — it is about the page rather than about this section, and indenting it into the prose column
- * would file it as part of the argument.
+ * The heading runs the full measure, with the family count as its counterweight, and everything
+ * below it is two columns: the prose-and-positions column, and an aside carrying the media slot
+ * with the six families under it. A prior version gave the heading a narrow column of its own,
+ * matched in height by nothing — whatever the prose and the photo ran to, that column stayed just
+ * the eyebrow and two lines, leaving a tall empty band beside it. Retiring that third column, and
+ * giving the heading a real counterpart instead of open space, is the fix.
  */
-.ab-who-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr) clamp(280px, 25vw, 360px);
-  gap: clamp(28px, 3.4vw, 64px) clamp(28px, 4vw, 72px);
-  align-items: start;
+.ab-who-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin: 0 0 clamp(32px, 3.6vw, 48px);
+  padding-bottom: clamp(22px, 2.4vw, 30px);
+  border-bottom: 1px solid var(--color-border-hairline);
 }
 
+/*
+ * The same stale-cap defect as Team and Closing: 12ch against the live CMS heading — "A clearer
+ * route through a complex product portfolio." — wrapped it into five short lines inside a column
+ * measured at 525px, using well under a third of the available width per line.
+ */
 .ab-who-head h2 {
-  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 26ch;
+}
+
+/* The families count, doubling as the header's counterweight — real data (the same six families
+   the aside nav lists below), not a stat invented to fill the row. */
+.ab-who-tally {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+}
+
+.ab-who-tally-num {
+  font-family: var(--font-display);
+  font-weight: 300;
+  /* `--fs-text-heading` — the same role `.fs-d2` resolves to for the h2 beside it, so the number
+     reads as that heading's visual counterweight rather than a wandering third size. */
+  font-size: var(--fs-text-heading);
+  color: var(--color-text-primary);
+}
+
+.ab-who-tally-label {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
   max-width: 12ch;
+}
+
+.ab-who-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(240px, 0.85fr);
+  gap: clamp(32px, 4vw, 64px);
+  align-items: start;
 }
 
 .ab-who-body {
@@ -370,20 +429,57 @@
 
 /* ---------------------------------------------------------- positions
  *
- * A definition list, because that is what three terms with one line each are. Each entry sits
- * against a hairline rule rather than in a card: three boxes would give three approved facts the
- * visual weight of a feature grid, and the facts are deliberately plainer than that.
+ * A definition list, because that is what three terms with one line each are, set in a panel of
+ * its own below the prose so it reads as a distinct, referenceable summary rather than a fourth
+ * paragraph. Each entry sits against a hairline rule rather than in a card: three boxes would give
+ * three approved facts the visual weight of a feature grid, and the facts are deliberately plainer
+ * than that — the rule is the same one `.ab-position` always drew, just running between columns
+ * now instead of down a single stacked one.
  */
+.ab-who-positions-panel {
+  margin: clamp(28px, 3vw, 40px) 0 0;
+  padding: clamp(22px, 2.6vw, 32px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-canvas),
+    var(--color-surface-sunken) 420%
+  );
+}
+
+.ab-who-positions-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.ab-who-positions-label::before,
+.ab-who-positions-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-strong);
+}
+
 .ab-positions {
-  margin: clamp(8px, 1vw, 14px) 0 0;
+  margin: 0;
   display: grid;
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px clamp(28px, 3.2vw, 44px);
 }
 
 .ab-position {
   display: grid;
-  gap: 5px;
-  padding-inline-start: 16px;
+  gap: 8px;
+  padding-inline-start: 20px;
   border-inline-start: 1px solid var(--color-border-hairline);
 }
 
@@ -427,13 +523,19 @@
   color: var(--color-text-tertiary);
 }
 
+/*
+ * One column, not three: this list now lives in the aside's narrower proportional column rather
+ * than the fixed 280–360px rail it had when the section carried a third grid track, and three
+ * columns of family names — several two- and three-word phrases among them — no longer fit
+ * without wrapping. A single ruled column is also where the family's glyph gets room to sit
+ * beside its name instead of above it.
+ */
 .ab-families ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: clamp(24px, 4vw, 56px);
+  gap: 2px;
 }
 
 .ab-families a {
@@ -452,8 +554,25 @@
   transition: color var(--t-micro) var(--e-micro);
 }
 
+.ab-families-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.ab-families-item .fs-icon {
+  flex: none;
+  color: var(--color-text-tertiary);
+  transition: color var(--t-micro) var(--e-micro);
+}
+
 .ab-families a:hover {
   color: var(--color-text-primary);
+}
+
+.ab-families a:hover .fs-icon {
+  color: var(--color-text-secondary);
 }
 
 .ab-families .fs-ar {
@@ -531,7 +650,10 @@
   background:
     radial-gradient(ellipse 90% 70% at 82% 8%, rgba(18, 41, 110, 0.42), transparent 64%),
     var(--color-surface-canvas);
-  overflow: hidden;
+  /* `clip`, not `hidden` — see the full explanation on `.ab-hero` above. `overflow: hidden` here
+     made this section's own reveals inert: the header held at opacity 1 from the first frame,
+     never having animated in, because `hidden` made it a scroll container of its own. */
+  overflow: clip;
 }
 
 .ab-expertise-inner {
@@ -551,93 +673,194 @@
   max-width: 14ch;
 }
 
-/* ---------------------------------------------------------- the register
+/* ------------------------------------------------------------- the flow
  *
- * Rows spanning the measure, not cards. Two cards in a space specified for six would read as a
- * rendering fault; two ruled rows under a header that says "02 of 06" read as a stated gap.
+ * A labelled capability chain rather than a numbered register — see the construction note in
+ * `sections/expertise.tsx`. One row of nodes, a hairline running the full row behind their
+ * plates, each plate 44px — the same icon-plate size the Competitive Advantages list (§5) and the
+ * Home page's card grids use, so an icon reads at one scale across the site.
+ *
+ * `align-items: start` rather than `stretch`: a shorter description must not stretch its node's
+ * card to match its neighbour's, which is what would turn honestly different-length sentences into
+ * an obviously padded one.
+ *
+ * `repeat(var(--exp-count, 4), …)`, not a literal 4: the column count was hardcoded to the four
+ * areas `_v2` originally named, and the live CMS content now holds six — a fixed 4-column grid
+ * wrapped them 4-and-2, leaving the second row's plates with no row of their own to sit against and
+ * breaking `.ab-exp-flow::before`'s single connecting line for exactly the two nodes it stopped
+ * reaching. `--exp-count` is set from `expertise.items.length` in the component, so the row always
+ * has as many columns as it has nodes, whatever the CMS holds.
  */
-.ab-register {
-  margin-top: clamp(36px, 4vw, 64px);
-  border-top: 1px solid var(--color-border-hairline);
-}
-
-.ab-register-head,
-.ab-register-foot {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 0;
-  padding-block: 14px;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
-
-.ab-register-list {
+.ab-exp-flow {
+  position: relative;
   list-style: none;
-  margin: 0;
+  margin: clamp(40px, 4.5vw, 64px) 0 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--exp-count, 4), minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(20px, 2.6vw, 32px);
 }
 
-.ab-register-row {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(16px, 2.4vw, 36px);
-  padding-block: clamp(20px, 2.4vw, 32px);
-  border-top: 1px solid var(--color-border-hairline);
+/* The connecting hairline: one line the full width of the row, sitting behind every plate at its
+   vertical centre. Decorative — the plates and the ruled headers beside them are what a screen
+   reader encounters, in the same order a sighted reader sees them. */
+.ab-exp-flow::before {
+  content: "";
+  position: absolute;
+  inset-inline: 22px;
+  inset-block-start: 22px;
+  block-size: 1px;
+  background: var(--color-border-hairline);
 }
 
-.ab-register-num {
-  flex: none;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
+.ab-exp-node {
+  position: relative;
+  display: grid;
+  gap: 14px;
+}
+
+.ab-exp-plate {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 14px;
+  background: var(--color-surface-canvas);
   color: var(--color-text-accent);
 }
 
-.ab-register-name {
+/* A node whose editor has not chosen a glyph keeps its plate — the hairline still connects it to
+   its neighbours — with a small dot marking the position instead of an empty box. */
+.ab-exp-plate:empty::before {
+  content: "";
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--color-text-tertiary);
+}
+
+.ab-exp-node h3 {
+  margin: 0;
   font-family: var(--font-display);
-  font-weight: 300;
-  font-size: var(--fs-text-subheading);
-  line-height: var(--fs-text-subheading--line-height);
-  letter-spacing: var(--fs-text-subheading--letter-spacing);
+  font-weight: 400;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
   color: var(--color-text-primary);
 }
 
-/* The footnote is prose, not a register field — it wraps, and it is not set in caps. */
-.ab-register-foot {
-  display: block;
-  border-top: 1px solid var(--color-border-hairline);
-  padding-block: 20px 0;
-  font-family: var(--font-text);
-  font-size: var(--fs-text-caption);
-  line-height: var(--fs-text-caption--line-height);
-  letter-spacing: 0;
-  text-transform: none;
-  max-width: 62ch;
+.ab-exp-node p {
+  margin: 0;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  font-weight: 300;
+  color: var(--color-text-secondary);
+  max-width: 32ch;
 }
 
 /* ============================================================================
-   5 · TEAM
+   5 · COMPETITIVE ADVANTAGES
+   "Why Partner with SAM Group?" — the _v2 About Us sheet's six reasons. No figure and no
+   background flourish, unlike Expertise and Quality either side of it: the section is the header
+   plus the icon-plated list, and nothing else.
+   ============================================================================ */
+
+.ab-adv-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: clamp(24px, 4vw, 72px);
+  align-items: end;
+}
+
+/* No lead sentence, no second column — see the construction note in the component. Without this,
+   a header with only a heading still sat inside the two-column grid above, leaving the reserved
+   lead column an empty band exactly as wide as the heading itself. */
+.ab-adv-head[data-lead="no"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ab-adv-head h2 {
+  margin-top: clamp(14px, 1.6vw, 20px);
+  max-width: 16ch;
+}
+
+/*
+ * A two-column ruled grid — the same construction `.ab-team-functions` uses one section below:
+ * `border-top` + `border-inline-start` on the list, `border-inline-end` + `border-bottom` on each
+ * row, which is what turns two independent declarations into one complete rule grid. Six items
+ * make three full rows; an odd count would leave the last row's second cell blank, which is a
+ * gap of one row's height rather than the half-empty band the single column left on every row.
+ *
+ * `.ab-commitments`/`.ab-commitment` stay a plain single-column ruled list for the next thing that
+ * reuses them; this modifier is where the grid layout and the icon plate both live.
+ */
+.ab-commitments--icon {
+  margin-top: clamp(36px, 4vw, 64px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border-hairline);
+  border-inline-start: 1px solid var(--color-border-hairline);
+}
+
+.ab-commitments--icon .ab-commitment {
+  align-items: center;
+  gap: clamp(16px, 1.8vw, 22px);
+  padding: clamp(18px, 2vw, 26px);
+  border-inline-end: 1px solid var(--color-border-hairline);
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.ab-commitment-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 14px;
+  color: var(--color-text-accent);
+}
+
+/* The same fallback `.ab-exp-plate:empty::before` gives Expertise — a row whose editor has not
+   chosen a glyph keeps its plate, with a small dot marking the position instead of an empty box. */
+.ab-commitment-icon:empty::before {
+  content: "";
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   6 · TEAM
    ============================================================================ */
 
 .ab-team {
   position: relative;
-  overflow: hidden;
+  /* `clip`, not `hidden` — see the full explanation on `.ab-hero` above. This section's header and
+     the photograph's mask-wipe reveal were both stuck at their finished state from the first
+     frame for the same reason. */
+  overflow: clip;
   background:
     radial-gradient(ellipse 90% 68% at 88% 10%, rgba(18, 41, 110, 0.46), transparent 64%),
     var(--color-surface-canvas);
 }
 
+/*
+ * The photograph carried less weight than the text beside it — 0.72fr against 1.28fr, a
+ * proportion tuned for a page that led with argument rather than with the actual people involved.
+ * "A more human presentation of Team" starts with letting the one real photograph this section has
+ * take a genuine half of the section, not a supporting sliver of it.
+ */
 .ab-team-grid {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: minmax(300px, 0.92fr) minmax(0, 1.08fr);
   gap: clamp(30px, 5vw, 88px);
   align-items: start;
 }
@@ -646,9 +869,17 @@
   position: static;
 }
 
+/*
+ * `max-width: 12ch` predates the column it sits in. When the photo took the narrower 0.72fr share
+ * (see the comment on `.ab-team-grid`), the heading's own column was tighter and a short cap kept
+ * it from spanning the whole rail in one line. Widening the photo to 0.92fr widened this column
+ * too, and the old cap was never revisited — "Four functions. One requirement in view." wrapped
+ * into four short, uneven lines inside a column now roomy enough for two balanced ones. `fs-d2`
+ * already carries `text-wrap: balance`; the fix is giving it enough width to balance across.
+ */
 .ab-team-head h2 {
   margin-top: clamp(14px, 1.6vw, 20px);
-  max-width: 12ch;
+  max-width: 22ch;
 }
 
 .ab-team-head .fs-lead {
@@ -678,13 +909,24 @@
   backdrop-filter: blur(14px);
 }
 
+/*
+ * Full width, not confined to the photo's column.
+ *
+ * `grid-column: 2` put the four functions directly beneath the photograph and nowhere near the
+ * header — which left the header's own column empty for everything below its four lines of copy.
+ * Measured at 1440: the header column held content in its top 235px of a 1105px-tall section, 68%
+ * of the section blank in that column alone, exactly the kind of dead space this whole pass was
+ * asked to find. Spanning both columns puts the functions row beneath whichever of header or
+ * photo is taller, using the full measure instead of half of it — four columns instead of two,
+ * since the row now has roughly double the width to work with.
+ */
 .ab-team-functions {
-  grid-column: 2;
+  grid-column: 1 / -1;
   list-style: none;
-  margin: clamp(24px, 3vw, 40px) 0 0;
+  margin: clamp(32px, 3.4vw, 48px) 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid var(--color-border-hairline);
   border-inline-start: 1px solid var(--color-border-hairline);
 }
@@ -735,76 +977,82 @@
 }
 
 /* ============================================================================
-   6 · QUALITY & STANDARDS
+   7 · QUALITY & STANDARDS
    ============================================================================ */
 
-.ab-quality-grid {
+/*
+ * The compact layout that replaced the two-column grid + photograph construction — see the
+ * construction note in `sections/quality-standards.tsx`. One measure of copy, a row of short tags
+ * standing in for the full description rows the section used to spend, and an action block that
+ * carries the footnote and the link to the dedicated Quality & Certifications page. No figure slot:
+ * this section no longer reserves one, which is a large part of what makes it compact.
+ */
+/*
+ * `--fs-sec-compact`, not `.fs-sec`'s default. This section's own comment (§7 above) says "less
+ * vertical rhythm spent here reads as supporting" — a claim this rule never actually kept: the
+ * inner wrap's old `padding-block: clamp(8px, 1.4vw, 16px)` added a few pixels *inside* the
+ * section's unchanged 118px default, so Quality & Standards measured taller than a section with
+ * no inner padding at all, the opposite of "compact". `--fs-sec-compact` is `flagship.css`'s own
+ * token for exactly this — DESIGN_SYSTEM §5.2's compact/default/editorial 3:5:7 rhythm, not a
+ * value invented here.
+ */
+.ab-quality {
+  padding-block: var(--fs-sec-compact);
+}
+
+.ab-quality-compact {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 420px);
-  gap: clamp(28px, 3.4vw, 64px) clamp(28px, 4vw, 72px);
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.5fr);
+  gap: clamp(28px, 4vw, 64px);
   align-items: start;
 }
 
-.ab-quality-head {
-  grid-column: 1;
+.ab-quality-compact-copy h2 {
+  margin-top: clamp(10px, 1.2vw, 16px);
+  max-width: 24ch;
 }
 
-.ab-quality-head h2 {
-  margin-top: clamp(14px, 1.6vw, 20px);
-  max-width: 15ch;
+.ab-quality-compact-lead {
+  margin: clamp(10px, 1.2vw, 16px) 0 0;
+  max-width: 48ch;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  font-weight: 300;
+  color: var(--color-text-secondary);
 }
 
-.ab-quality-head .fs-lead {
-  margin-top: clamp(16px, 1.8vw, 24px);
+.ab-quality-tags {
+  list-style: none;
+  margin: clamp(18px, 2vw, 24px) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.ab-quality-body {
-  grid-column: 1;
+.ab-quality-tags li {
+  padding: 7px 14px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
+  color: var(--color-text-secondary);
 }
 
-/* The media slot spans both rows of the left column so the section reads as two columns rather
-   than as a stack with a picture parked beside the heading. */
-.ab-quality-media {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+.ab-quality-compact-action {
+  display: grid;
+  gap: clamp(10px, 1.4vw, 16px);
+  align-content: start;
+  padding-inline-start: clamp(20px, 2.6vw, 32px);
+  border-inline-start: 1px solid var(--color-border-hairline);
 }
 
-/*
- * ── Why this slot alone stretches ───────────────────────────────────────────
- *
- * Spanning two rows reserved the full height of the left column; the frame's fixed 4/3 ratio then
- * declined to fill it. Measured, that left 287px of empty column at 1440 and 243px at 1024 — the
- * one place on the page where emptiness read as an unfinished layout rather than as a stated gap,
- * which is the opposite of what these frames are for.
- *
- * So here, and only here, the frame takes its height from the column instead of from a ratio: the
- * figure fills the row, the caption keeps its intrinsic height, and the frame takes the rest. The
- * slot's concept is untouched — same border, same blueprint field, same registration marks, same
- * centred intent and pending state, same captioned alt text. What changes is one proportion.
- *
- * The hero and Who We Are slots keep their ratios, because neither sits beside a column whose
- * height it has to answer to.
- *
- * Scoped to the two-column layout. Below 980px this section is a single stack and the slot returns
- * to the shared 4/3, so the rule is written as the min-width counterpart of that breakpoint rather
- * than as a default that later has to be undone.
- */
-@media (min-width: 981px) {
-  .ab-quality-media {
-    align-self: stretch;
-  }
-
-  .ab-quality-media.ab-slot {
-    height: 100%;
-    align-content: stretch;
-    grid-template-rows: minmax(0, 1fr) auto;
-  }
-
-  .ab-quality-media .ab-slot-frame {
-    aspect-ratio: auto;
-    /* A floor, so a short left column can never collapse the frame to its padding. */
-    min-height: 300px;
-  }
+.ab-quality-compact-foot {
+  margin: 0;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
+  font-weight: 300;
+  color: var(--color-text-secondary);
 }
 
 .ab-commitments {
@@ -820,15 +1068,6 @@
   gap: clamp(14px, 2vw, 26px);
   padding-block: clamp(16px, 1.8vw, 22px);
   border-bottom: 1px solid var(--color-border-hairline);
-}
-
-.ab-commitment-num {
-  flex: none;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: var(--color-text-accent);
 }
 
 .ab-commitment-body {
@@ -851,31 +1090,8 @@
   color: var(--color-text-secondary);
 }
 
-.ab-quality-foot {
-  margin: clamp(18px, 2vw, 26px) 0 0;
-  max-width: 58ch;
-  font-size: var(--fs-text-caption);
-  line-height: var(--fs-text-caption--line-height);
-  font-weight: 300;
-  color: var(--color-text-secondary);
-}
-
-.ab-quality-foot a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-text-accent);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.ab-quality-foot a:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* ============================================================================
-   7 · CLOSING
+   8 · CLOSING
    ============================================================================ */
 
 .ab-close {
@@ -883,21 +1099,58 @@
   background:
     radial-gradient(ellipse 100% 80% at 18% 100%, rgba(18, 41, 110, 0.46), transparent 66%),
     var(--color-surface-canvas);
-  overflow: hidden;
+  /* `clip`, not `hidden` — see the full explanation on `.ab-hero` above. The page's own closing
+     argument was the one section whose entrance never played. */
+  overflow: clip;
+}
+
+/*
+ * The one framed surface on the page, reserved for this section alone — see the construction note
+ * in `sections/closing.tsx`. Hero, Expertise and Team are all full-bleed midnight bands with no
+ * edge of their own; this is the page's last section and the only one with a border, so reaching it
+ * reads as arriving somewhere rather than as one more band of the same colour.
+ *
+ * The top edge carries the brand's gold rather than the hairline every other bordered surface on
+ * the site uses (`--color-border-hairline`) — the one deliberate departure, reserved for the single
+ * surface on the page whose job is to close it.
+ */
+.ab-close-panel {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-glass-fill);
+  backdrop-filter: blur(20px);
+  padding: clamp(36px, 5vw, 72px);
+}
+
+.ab-close-panel::before {
+  content: "";
+  position: absolute;
+  inset-inline: clamp(36px, 5vw, 72px);
+  inset-block-start: 0;
+  block-size: 1px;
+  background: linear-gradient(90deg, transparent, var(--fs-gold), transparent);
 }
 
 .ab-close-grid {
-  position: relative;
-  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(300px, 30vw, 440px);
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 28vw, 400px);
   gap: clamp(32px, 4vw, 80px);
   align-items: center;
 }
 
+/*
+ * The same stale-cap defect the Team heading had, found by auditing every other `ch` cap on the
+ * page after that fix: 13ch against the live CMS closing heading — "Bring us a product name, a
+ * specification, or the application itself." — wrapped it into five short, uneven lines. This
+ * column has never been narrow (`minmax(0, 1fr)` against a 400px-max routes panel), so the cap
+ * was simply too tight for a longer heading, not a proportion the layout ever changed under.
+ * 24ch matches Quality & Standards' own heading cap on this same page.
+ */
 .ab-close-copy h2 {
   margin-top: clamp(14px, 1.6vw, 20px);
-  max-width: 13ch;
+  max-width: 24ch;
 }
 
 .ab-close-copy .fs-lead {
@@ -973,29 +1226,29 @@
 }
 
 /* ============================================================================
-   8 · RESPONSIVE
+   9 · RESPONSIVE
    The same breakpoints the four pages before this use: 1180, 980, 900, 620.
    ============================================================================ */
 
 @media (max-width: 1180px) {
-  /* Who We Are drops its third column first — the media slot and the family list move under the
-     prose rather than being squeezed to a strip. */
-  .ab-who-grid {
+  /* Who We Are drops to one column — the media slot and the family list move under the prose
+     rather than being squeezed to a strip. */
+  .ab-who-columns {
     grid-template-columns: 1fr;
   }
 
   .ab-who-aside {
-    grid-column: 1 / -1;
-    grid-template-columns: 1fr;
     align-items: start;
-    max-width: none;
   }
 
+  /* Wider than the desktop cap above, matching this breakpoint's wider single-column measure —
+     not narrower, which is what this read before the base cap itself was corrected. */
   .ab-who-head h2 {
-    max-width: 18ch;
+    max-width: 32ch;
   }
 
-  .ab-expertise-head {
+  .ab-expertise-head,
+  .ab-adv-head {
     grid-template-columns: 1fr;
     gap: clamp(18px, 2.4vw, 28px);
     align-items: start;
@@ -1021,10 +1274,6 @@
     position: static;
   }
 
-  .ab-team-functions {
-    grid-column: 1;
-  }
-
   .ab-hero-inner {
     grid-template-columns: 1fr;
     gap: clamp(32px, 5vw, 48px);
@@ -1036,34 +1285,65 @@
     aspect-ratio: 16 / 9;
   }
 
-  .ab-quality-grid,
   .ab-close-grid {
     grid-template-columns: 1fr;
   }
 
-  .ab-quality-head,
-  .ab-quality-body,
-  .ab-quality-media {
-    grid-column: 1;
+  .ab-quality-compact {
+    grid-template-columns: 1fr;
   }
 
-  .ab-quality-media {
-    grid-row: auto;
-    max-width: 520px;
+  .ab-quality-compact-action {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    padding-top: clamp(18px, 2vw, 24px);
+    border-top: 1px solid var(--color-border-hairline);
+  }
+
+  /* The row's horizontal hairline becomes a column's vertical one, running behind every plate's
+     centre instead of beside it — the same connector, turned 90°. Stacked at the same width every
+     other multi-column section on this page stacks at, rather than staying a cramped four columns
+     down to the phone breakpoint. */
+  .ab-exp-flow {
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 32px);
+  }
+
+  .ab-exp-flow::before {
+    inset-block: 22px;
+    inset-inline-start: 22px;
+    inset-inline-end: auto;
+    block-size: auto;
+    inline-size: 1px;
+  }
+
+  /* Icon beside its text, not above it — the same 44px-column construction
+     `.ab-team-functions li` already uses — so the plate's centre stays under the vertical
+     connector regardless of how many lines the description wraps to. */
+  .ab-exp-node {
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 16px;
+    row-gap: 6px;
+  }
+
+  .ab-exp-node h3,
+  .ab-exp-node p {
+    grid-column: 2;
   }
 }
 
 @media (max-width: 900px) {
-  .ab-who-grid {
-    grid-template-columns: 1fr;
-  }
-
+  /* The aside is already full width by this breakpoint (§9's 1180px rule); capping it keeps the
+     stacked photo and family list from stretching to the tablet measure's full, much wider line. */
   .ab-who-aside {
-    grid-template-columns: 1fr;
     max-width: 520px;
   }
 
-  .ab-families ul {
+  /* The team grid is already a single stacked column by 980px; below 900px that column itself
+     is narrow enough that four function cells crowd their text. Two keeps each cell's measure
+     readable without dropping to the one-column layout 620px still reserves for the phone. */
+  .ab-team-functions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1085,19 +1365,15 @@
     min-height: 68px;
   }
 
-  .ab-families ul {
+  /* The three ruled positions collapse to one stacked column at the same breakpoint every other
+     multi-column repeater on this page stacks at. */
+  .ab-positions {
     grid-template-columns: 1fr;
   }
 
-  .ab-team-functions {
+  .ab-team-functions,
+  .ab-commitments--icon {
     grid-template-columns: 1fr;
-  }
-
-  .ab-register-row {
-    /* Number above name rather than beside it: at this width the two-column row leaves the name
-       four or five words to the line. */
-    flex-direction: column;
-    gap: 8px;
   }
 
   .ab-commitment {
@@ -1114,7 +1390,7 @@
 }
 
 /* ============================================================================
-   8 · CMS STATES
+   10 · CMS STATES
    Added with the CMS-1 cutover: a real photograph in the frame that used to hold
    a commission, the single-column variants for a section whose photograph has
    not been uploaded, and the page's own unavailable state.
@@ -1147,55 +1423,17 @@
 /*
  * No photograph, no column.
  *
- * Each of the three grids reserves a media column. When the CMS holds no image for a section, the
- * column would otherwise stay reserved and the page would carry a large empty band beside the copy.
- * The single-column variants below are what makes "a missing optional section renders absent" true
- * visually and not only structurally.
+ * The hero reserves a media column that would otherwise stay reserved-but-empty when the CMS holds
+ * no image, carrying a large empty band beside the copy — the single-column variant below is what
+ * makes "a missing optional section renders absent" true visually and not only structurally. Who We
+ * Are no longer needs an equivalent: since the layout gave the heading its own full-width row, its
+ * aside column always carries the six-family nav regardless of whether a photo is uploaded, so that
+ * column is never the reserved-but-empty one this rule exists for. Quality & Standards was already
+ * not among them — the compact layout (§7) never reserves a media column at all, with or without a
+ * figure.
  */
 .ab-hero-inner[data-figure="no"] {
   grid-template-columns: minmax(0, 1fr);
-}
-
-.ab-who-grid[data-figure="no"] {
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
-}
-
-.ab-quality-grid[data-figure="no"] {
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  align-items: start;
-}
-
-.ab-quality-grid[data-figure="no"] .ab-quality-head {
-  grid-column: 1;
-}
-
-.ab-quality-grid[data-figure="no"] .ab-quality-body {
-  grid-column: 2;
-}
-
-/* The Who We Are aside still carries the six families when there is no photograph above them. */
-.ab-who-grid[data-figure="no"] .ab-who-aside {
-  grid-column: 1 / -1;
-}
-
-/* The CMS-state selector above is more specific than the responsive base selector. Restate the
-   compact-layout contract here so a page without a Who We Are photograph follows the same single
-   content rail as the sections around it. */
-@media (max-width: 1180px) {
-  .ab-who-grid[data-figure="no"] {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 980px) {
-  .ab-quality-grid[data-figure="no"] {
-    grid-template-columns: 1fr;
-  }
-
-  .ab-quality-grid[data-figure="no"] .ab-quality-head,
-  .ab-quality-grid[data-figure="no"] .ab-quality-body {
-    grid-column: 1;
-  }
 }
 
 /* Rich text from the CMS: the same measure and rhythm the section's own paragraphs had. */
@@ -1219,7 +1457,9 @@
   background:
     radial-gradient(ellipse 105% 70% at 14% 0%, rgba(18, 41, 110, 0.5), transparent 62%),
     var(--color-surface-canvas);
-  overflow: hidden;
+  /* `clip`, not `hidden` — see the full explanation on `.ab-hero` above. No `.reveal-*` element
+     sits inside this one today, but the same defect would apply the moment one did. */
+  overflow: clip;
 }
 
 .ab-unavailable-inner {

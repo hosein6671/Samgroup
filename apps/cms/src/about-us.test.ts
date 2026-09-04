@@ -127,7 +127,7 @@ describe("access", () => {
 });
 
 describe("schema", () => {
-  test("it carries the six sections the About page renders, and the SEO group", () => {
+  test("it carries the seven sections the About page renders, and the SEO group", () => {
     const top = AboutUs.fields
       .filter((entry): entry is Field & { name: string } => "name" in entry)
       .map((entry) => entry.name);
@@ -136,6 +136,7 @@ describe("schema", () => {
       "hero",
       "whoWeAre",
       "expertise",
+      "competitiveAdvantages",
       "team",
       "qualityStandards",
       "closing",
@@ -143,14 +144,15 @@ describe("schema", () => {
     ]);
   });
 
-  test("nothing is modelled for content that has never been approved", () => {
+  test("milestones remain unmodelled — their factual content is still not approved", () => {
     const top = AboutUs.fields
       .filter((entry): entry is Field & { name: string } => "name" in entry)
       .map((entry) => entry.name);
 
-    for (const absent of ["milestones", "competitiveAdvantages"]) {
-      assert.ok(!top.includes(absent), `${absent} must not be modelled before its copy exists`);
-    }
+    assert.ok(
+      !top.includes("milestones"),
+      "milestones must not be modelled before its copy exists",
+    );
   });
 
   test("the hero requires a heading — a document without one is not a page", () => {
@@ -166,6 +168,8 @@ describe("schema", () => {
       "whoWeAre.body",
       "expertise.heading",
       "expertise.lead",
+      "competitiveAdvantages.heading",
+      "competitiveAdvantages.lead",
       "team.eyebrow",
       "team.heading",
       "team.lead",
@@ -190,6 +194,8 @@ describe("schema", () => {
       "whoWeAre.image",
       "team.image",
       "qualityStandards.image",
+      "expertise.items.icon",
+      "competitiveAdvantages.items.icon",
     ]) {
       assert.equal(attribute(path, "localized"), false, `${path} is a fact, not copy`);
     }
@@ -214,6 +220,33 @@ describe("schema", () => {
     assert.deepEqual(names("hero.primaryCta"), ["label", "route"]);
   });
 
+  test("an expertise or advantage glyph is a chosen concept, never a component name", () => {
+    const expertiseIcon = field("expertise.items.icon");
+    const advantageIcon = field("competitiveAdvantages.items.icon");
+    const values = (path: Field): string[] =>
+      "options" in path ? (path.options as { value: string }[]).map((option) => option.value) : [];
+
+    assert.equal(expertiseIcon.type, "select");
+    assert.deepEqual(values(expertiseIcon), [
+      "product",
+      "application",
+      "blend",
+      "formulation",
+      "documentation",
+      "supply",
+    ]);
+
+    assert.equal(advantageIcon.type, "select");
+    assert.deepEqual(values(advantageIcon), [
+      "manufacturer",
+      "customization",
+      "quality",
+      "supply",
+      "expertise",
+      "partnership",
+    ]);
+  });
+
   test("rich text reaches consumers as HTML, and is not stored twice", () => {
     assert.equal(field("whoWeAre.body").type, "richText");
     assert.ok(names("whoWeAre").includes("bodyHtml"), "the HTML rendition must be a sibling");
@@ -236,6 +269,7 @@ describe("schema", () => {
     for (const path of [
       "whoWeAre.positions",
       "expertise.items",
+      "competitiveAdvantages.items",
       "team.functions",
       "qualityStandards.items",
       "closing.routes",

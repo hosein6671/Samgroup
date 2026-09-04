@@ -482,7 +482,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * The About Us page. Team functions are modelled without invented names or biographies; milestones and competitive advantages remain unmodelled until their facts are approved.
+ * The About Us page. Team functions are modelled without invented names or biographies; milestones remain unmodelled until their facts are approved.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-us".
@@ -561,6 +561,32 @@ export interface AboutUs {
     items?:
       | {
           name: string;
+          /**
+           * Optional one-sentence description.
+           */
+          note?: string | null;
+          /**
+           * Optional. Which concept this row's glyph should represent.
+           */
+          icon?: ('product' | 'application' | 'blend' | 'formulation' | 'documentation' | 'supply') | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * "Why Partner with SAM Group?" — the _v2 About Us sheet's six name/reason pairs. No image and no footnote link, unlike Quality & Standards below: the sheet gives this segment nothing else.
+   */
+  competitiveAdvantages?: {
+    heading?: string | null;
+    lead?: string | null;
+    items?:
+      | {
+          name: string;
+          note: string;
+          /**
+           * Optional. Which concept this row's glyph should represent.
+           */
+          icon?: ('manufacturer' | 'customization' | 'quality' | 'supply' | 'expertise' | 'partnership') | null;
           id?: string | null;
         }[]
       | null;
@@ -1183,6 +1209,22 @@ export interface AboutUsSelect<T extends boolean = true> {
           | T
           | {
               name?: T;
+              note?: T;
+              icon?: T;
+              id?: T;
+            };
+      };
+  competitiveAdvantages?:
+    | T
+    | {
+        heading?: T;
+        lead?: T;
+        items?:
+          | T
+          | {
+              name?: T;
+              note?: T;
+              icon?: T;
               id?: T;
             };
       };

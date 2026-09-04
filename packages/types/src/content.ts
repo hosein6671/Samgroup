@@ -116,10 +116,47 @@ export type AboutUsWhoWeAre = {
   figure: ContentFigure | null;
 };
 
+/**
+ * The six concepts an expertise item's glyph may represent — a controlled vocabulary, the same
+ * shape `ContentRouteKey` gives a call to action's destination. An editor picks a *meaning*, never
+ * a Lucide component name, and `null` (no selection, or a value from a schema newer than this file)
+ * falls back to a neutral glyph rather than breaking the row.
+ *
+ * Widened from the original four (`product` | `application` | `formulation` | `supply`) once the
+ * `_v2` About Us sheet's expertise list grew to six areas: `blend` and `documentation` are the two
+ * new concepts, covering the base-oil-and-additive and technical-documentation areas the original
+ * four had no meaning for.
+ */
+export type ExpertiseIconKey =
+  "product" | "application" | "blend" | "formulation" | "documentation" | "supply";
+
 export type AboutUsExpertise = {
   heading: string | null;
   lead: string | null;
-  items: { name: string }[];
+  /**
+   * `note` and `icon` are both optional, exactly like `AboutUsQualityStandards.items[].note`: an
+   * older document saved before these fields existed has only a name, and must keep rendering
+   * rather than disappearing. New copy carries the `_v2` About Us sheet's one-sentence description
+   * of each expertise area, and an editor-chosen icon meaning.
+   */
+  items: { name: string; note: string | null; icon: ExpertiseIconKey | null }[];
+};
+
+/** The six reasons `_v2` names, as a controlled glyph vocabulary — see `ExpertiseIconKey`. */
+export type CompetitiveAdvantageIconKey =
+  "manufacturer" | "customization" | "quality" | "supply" | "expertise" | "partnership";
+
+/**
+ * "Why Partner with SAM Group?" — the reasons a buyer deals with the producer directly, sourced
+ * from `Sam Group Website Structure_v2.xlsx`'s `About Us` sheet, segment "Our Competitive
+ * Advantages". No figure and no footnote CTA: the sheet gives this segment a title and six
+ * name/reason pairs and nothing else, unlike `AboutUsQualityStandards`, which the page also adds a
+ * photograph and a footnote link to.
+ */
+export type AboutUsCompetitiveAdvantages = {
+  heading: string | null;
+  lead: string | null;
+  items: { name: string; note: string; icon: CompetitiveAdvantageIconKey | null }[];
 };
 
 export type AboutUsTeam = {
@@ -169,6 +206,7 @@ export type AboutUsContent = {
   hero: AboutUsHero;
   whoWeAre: AboutUsWhoWeAre | null;
   expertise: AboutUsExpertise | null;
+  competitiveAdvantages: AboutUsCompetitiveAdvantages | null;
   team: AboutUsTeam | null;
   qualityStandards: AboutUsQualityStandards | null;
   closing: AboutUsClosing | null;

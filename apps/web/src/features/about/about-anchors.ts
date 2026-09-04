@@ -11,6 +11,7 @@
 export const ANCHORS = {
   whoWeAre: "who-we-are",
   expertise: "expertise",
+  advantages: "competitive-advantages",
   team: "team",
   quality: "quality-standards",
   next: "next-step",

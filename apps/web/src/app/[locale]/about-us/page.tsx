@@ -3,6 +3,7 @@ import { cache } from "react";
 import { AboutExperience } from "@/features/about/about-experience";
 import { AboutUnavailable } from "@/features/about/about-unavailable";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
+import { absoluteUrl, organizationId } from "@/features/seo/site";
 import { getAboutUsContent } from "@/lib/content";
 import { defaultLocale } from "@/lib/locale-contract";
 import { getActiveLocales } from "@/lib/locales";
@@ -129,27 +130,26 @@ export default async function AboutUsPage({
      */
     const served = result.localeFallback ? defaultLocale(await getActiveLocales()) : null;
     const canonical = result.content.seo.canonicalUrl ?? `/${locale}/about-us`;
-    const absoluteUrl = new URL(canonical, "https://samgp.com").href;
+    const pageUrl = absoluteUrl(canonical);
     const schema: JsonLdObject = {
       "@context": "https://schema.org",
+      /*
+       * The `Organization` node that stood here is gone, not moved: `app/[locale]/layout.tsx` now
+       * emits it on every page from `features/seo/structured-data.ts`, so repeating it here would be
+       * a second definition of one entity — and the two could drift. `about` still references it by
+       * the shared `@id`, which is how a consumer links the two documents.
+       */
       "@graph": [
         {
-          "@type": "Organization",
-          "@id": "https://samgp.com/#organization",
-          name: "SAM Group",
-          url: "https://samgp.com/",
-          logo: "https://samgp.com/brand/sam-group-mark.png",
-        },
-        {
           "@type": "AboutPage",
-          "@id": `${absoluteUrl}#aboutpage`,
-          url: absoluteUrl,
+          "@id": `${pageUrl}#aboutpage`,
+          url: pageUrl,
           name: result.content.seo.metaTitle ?? result.content.hero.title,
           ...(result.content.seo.metaDescription !== null && {
             description: result.content.seo.metaDescription,
           }),
           inLanguage: served?.code ?? locale,
-          about: { "@id": "https://samgp.com/#organization" },
+          about: { "@id": organizationId() },
         },
       ],
     };
