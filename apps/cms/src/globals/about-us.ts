@@ -50,6 +50,7 @@ const EXPERTISE_ICON_OPTIONS = [
   { label: "Formulation", value: "formulation" },
   { label: "Documentation", value: "documentation" },
   { label: "Supply", value: "supply" },
+  { label: "Processing", value: "processing" },
 ];
 
 /** The six reasons `_v2`'s Competitive Advantages segment names, as the same kind of vocabulary. */

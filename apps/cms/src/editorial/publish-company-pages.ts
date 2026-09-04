@@ -124,52 +124,195 @@ const solutionImage =
     },
   }));
 
+const whoWeAreImageFilename = "sam-group-products-portfolio-review.webp";
+const existingWhoWeAreImage = await payload.find({
+  collection: "media",
+  overrideAccess: true,
+  where: { filename: { equals: whoWeAreImageFilename } },
+  limit: 1,
+});
+const whoWeAreImagePath = new URL(
+  "../../../web/public/images/products-portfolio-review.webp",
+  import.meta.url,
+);
+const whoWeAreImageData = readFileSync(whoWeAreImagePath);
+const whoWeAreImage =
+  existingWhoWeAreImage.docs[0] ??
+  (await payload.create({
+    collection: "media",
+    locale: "en",
+    overrideAccess: true,
+    data: {
+      // Reused verbatim from `features/products/sections/hero.tsx`, the image's existing usage —
+      // one description for one photograph, not a second answer to what it shows.
+      alt: "Industrial lubricant containers and oil samples arranged for product review.",
+    },
+    file: {
+      data: whoWeAreImageData,
+      mimetype: "image/webp",
+      name: whoWeAreImageFilename,
+      size: whoWeAreImageData.length,
+    },
+  }));
+
 await payload.updateGlobal({
   slug: "about-us",
   locale: "en",
   overrideAccess: true,
   data: {
     _status: "published",
+    /*
+     * Sourced from `Sam Group Website Structure_v2.xlsx`'s `About Us` sheet, segment "Hero
+     * Section". The sheet's own button label, "Explore Our Products", is used as given. Its title
+     * and supporting text named "Global Industries" and customers "worldwide" — a geographic reach
+     * this repository cannot verify (the Notes sheet supports Türkiye, Africa and the countries
+     * around India, not "global" or "worldwide"). Reworded to what the company does rather than
+     * where it reaches, the same treatment `home/home-data.ts`'s hero applies to the identical
+     * question.
+     */
     hero: {
       eyebrow: "About SAM Group",
-      title: "Petroleum products, technical context, and supply—connected.",
+      title: "Petroleum products and lubricant solutions, from the producer.",
       supportingText:
-        "SAM Group helps professional buyers move from a product name, grade, specification, or application to a requirement that technical and commercial teams can review together.",
-      primaryCta: { label: "View product families", route: "products" },
+        "SAM Group produces and supplies base oils, engine oils, lubricant additives and coolants, developing products to the specification and supply terms each customer needs.",
+      primaryCta: { label: "Explore Our Products", route: "products" },
       secondaryCta: { label: "Talk to our team", route: "contact-us" },
     },
+    /*
+     * Segment "Who We Are". The sheet asks for 2–3 paragraphs covering six things: what SAM Group
+     * does, where it operates, its core product categories, who its customers are, its role as a
+     * direct producer, and its focus on long-term B2B partnerships. All six are here — the first
+     * paragraph covers what/categories/producer role, the second covers where it operates and who
+     * it supplies, the third covers the direct-producer point again from the buyer's side and
+     * long-term partnerships.
+     *
+     * "Where it operates" is two owner-confirmed facts (About Us editorial review, 2026-09-04), not
+     * the sheet's own "global markets": manufacturing and blending are based in Iran, and the
+     * confirmed export markets remain the Notes sheet's Türkiye, Africa and the countries around
+     * India — the same correction the hero makes to the sheet's "worldwide" phrasing. Both are
+     * owner-confirmed business statements, stated once each, without a capacity, certification or
+     * customer-count claim riding along with them.
+     */
     whoWeAre: {
-      heading: "A practical route through a complex product portfolio.",
+      heading: "Who We Are",
       body: paragraphs(
-        "SAM Group serves professional buyers across base oils, lubricant additives and components, automotive and industrial lubricants, marine lubricants, and antifreeze and coolants.",
-        "The portfolio is organised around the details that move an industrial purchase forward: product family, grade, application, required specification, documentation, quantity, packaging, and destination.",
-        "This gives technical, procurement, and commercial teams a shared starting point. Product context and supply requirements remain part of the same conversation from initial enquiry to quotation review.",
+        "SAM Group is a petroleum products manufacturer and supplier, producing base oils, engine oils, lubricant additives and coolants for businesses that buy on specification.",
+        "SAM Group's manufacturing and blending operations are based in Iran, and the company supplies engine oil, industrial and marine lubricant manufacturers, blenders and industrial buyers, with an export operation currently serving Türkiye, Africa and the countries around India.",
+        "Dealing directly with the producer means the formulation, the packaging and the supply terms are agreed in the same conversation — the basis for the long-term B2B relationships SAM Group works to build with its customers.",
       ),
       positions: [
         {
-          term: "Product first",
-          note: "Start from the family, grade, application, or specification that defines the need.",
+          term: "Direct producer",
+          note: "Formulation, packaging and supply terms are agreed directly with the company that makes the product.",
         },
         {
-          term: "Evidence in context",
-          note: "Keep technical data, document availability, and verification status close to the product decision.",
+          term: "Product range",
+          note: "Base oils, engine oils, industrial and marine lubricants, additives and coolants.",
         },
         {
-          term: "Supply made explicit",
-          note: "Bring quantity, packaging, destination, and Incoterm into the brief before commercial review.",
+          term: "Long-term partnerships",
+          note: "Built for repeat supply with distributors, blenders and industrial manufacturers.",
+        },
+      ],
+      image: whoWeAreImage.id,
+      imageCaption: "SAM Group products, prepared for portfolio review.",
+    },
+    /*
+     * Segment "Our Expertise". The sheet gives four named areas and a one-sentence description
+     * for each; both the names and the descriptions are used close to verbatim. One rename: the
+     * sheet's fourth area, "Global Supply" / "Supporting international customers with reliable
+     * sourcing and logistics", is renamed "Supply & Logistics" and reworded to the capability
+     * itself — the same "global"/"international" correction the hero and Who We Are apply.
+     *
+     * A fifth item, Base Oil Processing, is an owner-approved addition (About Us editorial review,
+     * 2026-09-04) — not from the sheet's own four, and not the sheet's separate, unconfirmed
+     * "Quality Laboratory" or "Base Oil Processing" additions either (the sheet's own version of
+     * the latter names no process). This one names a real, independently describable process —
+     * thin-film vacuum distillation — and is bounded by explicit owner limits: it never says who
+     * owns or operates the equipment (no "we operate", no "our plant", no named partner), and it
+     * never claims the output is finished, Group II, or fully purified base oil, that every
+     * contaminant is removed, or that this step alone replaces downstream finishing, treatment or
+     * quality control. It is also never generalised to engine oils, additives, coolants or
+     * lubricant formulation — those stay the other four items' territory.
+     */
+    expertise: {
+      heading: "Our Expertise",
+      lead: "Five areas of technical and commercial capability sit behind every order SAM Group supplies.",
+      items: [
+        {
+          name: "Petroleum Products",
+          note: "Production and supply of petroleum-based products, including base oils and finished lubricants.",
+          icon: "product",
+        },
+        {
+          name: "Lubricant Solutions",
+          note: "Automotive and industrial lubricant formulations, developed to the application's performance requirement.",
+          icon: "application",
+        },
+        {
+          name: "Custom Formulation",
+          note: "Products developed against a customer's own technical and commercial requirement.",
+          icon: "formulation",
+        },
+        {
+          name: "Supply & Logistics",
+          note: "Packaging, documentation and export planning for the destinations SAM Group currently serves.",
+          icon: "supply",
+        },
+        {
+          name: "Base Oil Processing",
+          note: "Thin-film vacuum distillation separates recoverable base-oil fractions from used lubricating oil, water, lighter components and heavy residues while limiting thermal exposure.",
+          icon: "processing",
         },
       ],
     },
-    expertise: {
-      heading: "The information needed to evaluate and source with confidence.",
-      lead: "We structure each enquiry so product evaluation and supply planning begin from the same brief, with assumptions identified before they become commercial terms.",
+    /*
+     * Sourced from `Sam Group Website Structure_v2.xlsx`'s `About Us` sheet, segment "Our
+     * Competitive Advantages" — the sheet's own title and its six name/reason pairs, stated as the
+     * sheet states them. One adjustment: the sheet's sixth pair, "Global Partnerships" / "Building
+     * lasting relationships with customers and distributors worldwide", asserted a geographic reach
+     * this repository cannot verify. Retitled and reworded to the relationship itself, dropping
+     * "Global" and "worldwide" — the same correction `home-data.ts` ADVANTAGES[5] already applies
+     * to the identical claim on the homepage ("Built for repeat supply with distributors, blenders
+     * and industrial manufacturers.", not "worldwide").
+     */
+    competitiveAdvantages: {
+      heading: "Why partner with SAM Group?",
       items: [
-        { name: "Product family and grade selection" },
-        { name: "Application and specification review" },
-        { name: "Base oil and additive context" },
-        { name: "Finished lubricant requirements" },
-        { name: "Technical and batch documentation" },
-        { name: "Packaging and export brief preparation" },
+        {
+          name: "Direct manufacturer",
+          note: "Work directly with the producer for greater supply transparency.",
+          icon: "manufacturer",
+        },
+        {
+          name: "Product customization",
+          note: "Solutions tailored to specific technical and commercial requirements.",
+          icon: "customization",
+        },
+        {
+          /* Company claim, from the sheet. `home-data.ts` ADVANTAGES[2] carries the identical claim
+             marked unverified; this one is owner-confirmed (About Us editorial review, 2026-09-04)
+             — "controlled production and testing" is approved as an owner-confirmed business
+             statement, not merely stated as the workbook states it. */
+          name: "Quality commitment",
+          note: "Consistent quality through controlled production and testing.",
+          icon: "quality",
+        },
+        {
+          name: "Reliable supply",
+          note: "Stable supply solutions designed for long-term business relationships.",
+          icon: "supply",
+        },
+        {
+          name: "Industry expertise",
+          note: "Knowledge of petroleum products and their industrial applications.",
+          icon: "expertise",
+        },
+        {
+          name: "Long-term partnerships",
+          note: "Building lasting relationships with customers and distributors.",
+          icon: "partnership",
+        },
       ],
     },
     team: {
@@ -219,15 +362,21 @@ await payload.updateGlobal({
         "See how verification status, technical documents, sampling, and certification records are handled.",
       footnoteCta: { label: "View quality and documentation", route: "quality-certifications" },
     },
+    /*
+     * Segment "Final CTA". Heading, lead and button are the sheet's own wording. `routes` is not
+     * part of the sheet — it is the page's existing secondary-navigation affordance, kept but
+     * trimmed from three entries to two: "Talk to technical sales" pointed at the same
+     * `contact-us` route the primary "Contact Us" button now does, which made two of the section's
+     * three actions identical.
+     */
     closing: {
-      eyebrow: "Choose the right starting point",
-      heading: "Start with the product—or the requirement it must meet.",
-      lead: "Browse the standard range, request a quotation for a defined requirement, or send the technical and supply details you already know.",
-      primaryCta: { label: "Request a quote", route: "request-a-quote" },
+      eyebrow: "Let's talk",
+      heading: "Let's build a long-term partnership.",
+      lead: "Whether you need a reliable petroleum products supplier, a customized formulation, or a long-term manufacturing partner, SAM Group is ready to work with you.",
+      primaryCta: { label: "Contact Us", route: "contact-us" },
       routes: [
         { label: "Browse the product range", route: "products" },
         { label: "Define a customized requirement", route: "customized-solutions" },
-        { label: "Talk to technical sales", route: "contact-us" },
       ],
     },
     seo: {

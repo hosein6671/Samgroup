@@ -293,6 +293,19 @@
   border-inline-end: 1px solid var(--color-border-hairline);
 }
 
+/*
+ * The divider comes off the last column of every row, not only the last item overall.
+ *
+ * `:last-child` alone is correct for a full grid (a row-count multiple of 4), but this index now
+ * holds five entries — Team's approved V2 addition — so the fifth wraps to a row of its own and
+ * the fourth item, "How we work", is the true last column of row one. `:last-child` never matched
+ * it, so it kept a divider with nothing to its right: a line stranded at the row's own edge,
+ * closing against nothing. `:nth-child(4n)` is the last column of every row this grid can have,
+ * for however many items it holds — four, five, eight, whatever the CMS adds next — and
+ * `:last-child` stays alongside it for the case `:nth-child(4n)` cannot reach: a final row that is
+ * not itself a multiple of four.
+ */
+.ab-index li:nth-child(4n),
 .ab-index li:last-child {
   border-inline-end: 0;
 }
@@ -896,10 +909,28 @@
   padding: 0;
 }
 
+/*
+ * Anchored to `.ab-team-visual`'s top, not its bottom.
+ *
+ * `.ab-team-brand` sits beside `.ab-slot` as a sibling, not inside `.ab-slot-frame` — the nearest
+ * `position: relative` ancestor it can anchor to is `.ab-team-visual`, whose own box is the photo
+ * PLUS the caption below it (`.ab-slot-caption`), not the photo alone. A `bottom` offset measured
+ * from that combined box assumes the photo is tall enough to hold it — true at desktop widths,
+ * where the 16:9 frame is tall enough that even the 62px maximum sits well inside it, but false
+ * once the frame's own height shrinks with the viewport: at 375px the frame is ~187px tall and the
+ * clamp's 42px floor no longer fits inside it, so the badge overshot the photo's bottom edge and
+ * sat in the gap above the caption text, nearly touching it.
+ *
+ * The top of `.ab-team-visual` is always the top of the photo, at any width, because `.ab-slot` is
+ * the first child — so anchoring here instead removes the dependency on the frame's height
+ * entirely, and matches the placement `.fs-photo-brand` already uses for the identical mark-on-photo
+ * treatment everywhere else on the site (`home/flagship.css`), rather than inventing a second
+ * convention for this one page.
+ */
 .ab-team-brand {
   position: absolute;
   inset-inline-start: clamp(16px, 2vw, 26px);
-  bottom: clamp(42px, 5vw, 62px);
+  inset-block-start: clamp(16px, 2vw, 26px);
   display: grid;
   place-items: center;
   padding: 10px 12px;
@@ -1253,6 +1284,46 @@
     gap: clamp(18px, 2.4vw, 28px);
     align-items: start;
   }
+
+  /*
+   * The flow stacks here rather than at 980px (moved from that breakpoint; every other
+   * multi-column section on this page still stacks there).
+   *
+   * At five items — the count once Base Oil Processing joined the original four — the row's own
+   * measured column width falls to roughly 190px at 1024px and 163px at 980px, tight enough that
+   * Base Oil Processing's longer sentence would read as visibly more cramped than its four
+   * neighbours while they all still shared one row. 1180px is the width above which five columns
+   * have room (≈205px+ each, growing to ≈286px at 1920px); below it, the row becomes the same
+   * icon-beside-text single column every other stacked section here already uses, rather than a
+   * second, denser grid state the connecting hairline would have to support.
+   */
+  .ab-exp-flow {
+    grid-template-columns: 1fr;
+    gap: clamp(24px, 4vw, 32px);
+  }
+
+  .ab-exp-flow::before {
+    inset-block: 22px;
+    inset-inline-start: 22px;
+    inset-inline-end: auto;
+    block-size: auto;
+    inline-size: 1px;
+  }
+
+  /* Icon beside its text, not above it — the same 44px-column construction
+     `.ab-team-functions li` already uses — so the plate's centre stays under the vertical
+     connector regardless of how many lines the description wraps to. */
+  .ab-exp-node {
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 16px;
+    row-gap: 6px;
+  }
+
+  .ab-exp-node h3,
+  .ab-exp-node p {
+    grid-column: 2;
+  }
 }
 
 @media (max-width: 980px) {
@@ -1299,38 +1370,6 @@
     padding-top: clamp(18px, 2vw, 24px);
     border-top: 1px solid var(--color-border-hairline);
   }
-
-  /* The row's horizontal hairline becomes a column's vertical one, running behind every plate's
-     centre instead of beside it — the same connector, turned 90°. Stacked at the same width every
-     other multi-column section on this page stacks at, rather than staying a cramped four columns
-     down to the phone breakpoint. */
-  .ab-exp-flow {
-    grid-template-columns: 1fr;
-    gap: clamp(24px, 4vw, 32px);
-  }
-
-  .ab-exp-flow::before {
-    inset-block: 22px;
-    inset-inline-start: 22px;
-    inset-inline-end: auto;
-    block-size: auto;
-    inline-size: 1px;
-  }
-
-  /* Icon beside its text, not above it — the same 44px-column construction
-     `.ab-team-functions li` already uses — so the plate's centre stays under the vertical
-     connector regardless of how many lines the description wraps to. */
-  .ab-exp-node {
-    grid-template-columns: 44px minmax(0, 1fr);
-    align-items: start;
-    column-gap: 16px;
-    row-gap: 6px;
-  }
-
-  .ab-exp-node h3,
-  .ab-exp-node p {
-    grid-column: 2;
-  }
 }
 
 @media (max-width: 900px) {
@@ -1353,12 +1392,30 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ab-index li:nth-child(2) {
+  /*
+   * Written for a fixed four items — `nth-child(2)` as "the one right-hand column there is",
+   * `nth-child(-n + 2)` as "row one, the only row with a row below it". Both stopped being true
+   * once Team's five-item index wrapped to three rows here (2/2/1) instead of two (2/2): item 4
+   * ("How we work") kept a right-hand divider with nothing beside it, and row two (items 3–4)
+   * carried no divider from row three below it at all, while row one's did.
+   *
+   * `:nth-child(2n)` is every right-hand column, for however many rows five items — or six, or
+   * seven — actually make. The bottom rule finds the start of the true last row (a left-column
+   * item, `2n+1`, that is also among the last two items overall, `nth-last-child(-n+2)`) and
+   * removes the divider from it and everything after — the same "last row of an N-column grid"
+   * match the desktop rule above uses, sized to 2 columns instead of 4.
+   */
+  .ab-index li:nth-child(2n) {
     border-inline-end: 0;
   }
 
-  .ab-index li:nth-child(-n + 2) {
+  .ab-index li {
     border-bottom: 1px solid var(--color-border-hairline);
+  }
+
+  .ab-index li:nth-child(2n + 1):nth-last-child(-n + 2),
+  .ab-index li:nth-child(2n + 1):nth-last-child(-n + 2) ~ li {
+    border-bottom: 0;
   }
 
   .ab-index a {

@@ -59,6 +59,7 @@ const EXPERTISE_ICON_KEYS: ReadonlySet<string> = new Set<ExpertiseIconKey>([
   "formulation",
   "documentation",
   "supply",
+  "processing",
 ]);
 const ADVANTAGE_ICON_KEYS: ReadonlySet<string> = new Set<CompetitiveAdvantageIconKey>([
   "manufacturer",

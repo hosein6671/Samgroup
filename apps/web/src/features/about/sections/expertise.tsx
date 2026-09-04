@@ -1,4 +1,5 @@
 import {
+  BaseOilProcessingIcon,
   BaseStockIcon,
   BlendIcon,
   FormulationIcon,
@@ -47,9 +48,11 @@ import type { CSSProperties, ReactNode } from "react";
  * with no glyph rather than guessing one.
  *
  * `ExpertiseIconKey` widened from four values to six alongside `_v2`'s expertise list growing to
- * six areas — `blend` and `formulation` cover the two additive/formulation-facing rows, and
- * `documentation` the technical-and-batch-records row, none of which the original four (built for
- * an older, four-item version of this copy) had a meaning for.
+ * six areas — `blend` covers the base-oil-and-additive row and `documentation` the
+ * technical-and-batch-records row, neither of which the original four (built for an older,
+ * four-item version of this copy) had a meaning for. `processing` is a seventh, narrowly scoped
+ * concept added for the owner-approved Base Oil Processing item — thin-film vacuum distillation —
+ * and used for nothing else.
  */
 
 const GLYPHS: Record<ExpertiseIconKey, (props: { readonly size: "lg" }) => ReactNode> = {
@@ -59,6 +62,7 @@ const GLYPHS: Record<ExpertiseIconKey, (props: { readonly size: "lg" }) => React
   formulation: FormulationIcon,
   documentation: QualityIcon,
   supply: PackagingIcon,
+  processing: BaseOilProcessingIcon,
 };
 
 export function AboutExpertise({ expertise }: { readonly expertise: AboutUsExpertise }): ReactNode {

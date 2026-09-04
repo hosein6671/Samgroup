@@ -234,6 +234,7 @@ describe("schema", () => {
       "formulation",
       "documentation",
       "supply",
+      "processing",
     ]);
 
     assert.equal(advantageIcon.type, "select");

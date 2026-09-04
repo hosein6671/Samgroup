@@ -77,7 +77,7 @@ const PROPOSED_CONTENT: AboutUsContent = {
     heading: "Who We Are",
     bodyHtml:
       "<p>SAM Group is a petroleum products manufacturer and supplier, producing base oils, engine oils, lubricant additives and coolants for businesses that buy on specification.</p>" +
-      "<p>The company supplies engine oil, industrial and marine lubricant manufacturers, blenders and industrial buyers, with an export operation currently serving Türkiye, Africa and the countries around India.</p>" +
+      "<p>SAM Group's manufacturing and blending operations are based in Iran, and the company supplies engine oil, industrial and marine lubricant manufacturers, blenders and industrial buyers, with an export operation currently serving Türkiye, Africa and the countries around India.</p>" +
       "<p>Dealing directly with the producer means the formulation, the packaging and the supply terms are agreed in the same conversation — the basis for the long-term B2B relationships SAM Group works to build with its customers.</p>",
     positions: [
       {
@@ -105,7 +105,7 @@ const PROPOSED_CONTENT: AboutUsContent = {
   },
   expertise: {
     heading: "Our Expertise",
-    lead: "Four areas of technical and commercial capability sit behind every order SAM Group supplies.",
+    lead: "Five areas of technical and commercial capability sit behind every order SAM Group supplies.",
     items: [
       {
         name: "Petroleum Products",
@@ -126,6 +126,11 @@ const PROPOSED_CONTENT: AboutUsContent = {
         name: "Supply & Logistics",
         note: "Packaging, documentation and export planning for the destinations SAM Group currently serves.",
         icon: "supply",
+      },
+      {
+        name: "Base Oil Processing",
+        note: "Thin-film vacuum distillation separates recoverable base-oil fractions from used lubricating oil, water, lighter components and heavy residues while limiting thermal exposure.",
+        icon: "processing",
       },
     ],
   },

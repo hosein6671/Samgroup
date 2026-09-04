@@ -117,18 +117,20 @@ export type AboutUsWhoWeAre = {
 };
 
 /**
- * The six concepts an expertise item's glyph may represent — a controlled vocabulary, the same
+ * The seven concepts an expertise item's glyph may represent — a controlled vocabulary, the same
  * shape `ContentRouteKey` gives a call to action's destination. An editor picks a *meaning*, never
  * a Lucide component name, and `null` (no selection, or a value from a schema newer than this file)
  * falls back to a neutral glyph rather than breaking the row.
  *
  * Widened from the original four (`product` | `application` | `formulation` | `supply`) once the
  * `_v2` About Us sheet's expertise list grew to six areas: `blend` and `documentation` are the two
- * new concepts, covering the base-oil-and-additive and technical-documentation areas the original
- * four had no meaning for.
+ * concepts added then, covering the base-oil-and-additive and technical-documentation areas the
+ * original four had no meaning for. `processing` is the seventh, added for the owner-approved Base
+ * Oil Processing item (thin-film vacuum distillation) — narrowly scoped to that one capability, not
+ * a general "we process things" concept.
  */
 export type ExpertiseIconKey =
-  "product" | "application" | "blend" | "formulation" | "documentation" | "supply";
+  "product" | "application" | "blend" | "formulation" | "documentation" | "supply" | "processing";
 
 export type AboutUsExpertise = {
   heading: string | null;

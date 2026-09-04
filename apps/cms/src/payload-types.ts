@@ -568,7 +568,8 @@ export interface AboutUs {
           /**
            * Optional. Which concept this row's glyph should represent.
            */
-          icon?: ('product' | 'application' | 'blend' | 'formulation' | 'documentation' | 'supply') | null;
+          icon?:
+            ('product' | 'application' | 'blend' | 'formulation' | 'documentation' | 'supply' | 'processing') | null;
           id?: string | null;
         }[]
       | null;

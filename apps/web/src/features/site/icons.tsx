@@ -9,6 +9,7 @@ import {
   Download,
   Droplet,
   Factory,
+  Filter,
   FlaskConical,
   Gauge,
   Handshake,
@@ -228,6 +229,16 @@ export function FormulationIcon(props: IconProps = {}): ReactNode {
 /** Quality control. A clipboard, not a shield or a badge — neither of which we may imply. */
 export function QualityIcon(props: IconProps = {}): ReactNode {
   return <ClipboardCheck className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/**
+ * Base oil processing — thin-film vacuum distillation, as a separation/filtration mark rather
+ * than a flask (`FormulationIcon`, already a different claim) or a factory (`ManufacturerIcon`,
+ * `IndustrialIcon`, which would read as naming who operates the equipment). A funnel/filter glyph
+ * says "separates a fraction from a mixture" and nothing about who owns or runs the process.
+ */
+export function BaseOilProcessingIcon(props: IconProps = {}): ReactNode {
+  return <Filter className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
 }
 
 /** Flexible supply. */
