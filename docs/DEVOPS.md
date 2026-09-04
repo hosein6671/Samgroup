@@ -66,34 +66,56 @@ Nginx only ever proxies `sam-public`. The private bucket has no route — reachi
 
 Three phases, in strict order. Nothing is built into an image until validation passes, and nothing reaches the VPS until an image exists in the registry.
 
-**Only Phase 1 exists today**, as [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). Phases 2 and 3 describe the intended shape — there is no workflow for either yet, and nothing in this repository builds an image or contacts a server.
+**Only Phase 1 exists today**, as [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). Phases 2 and 3 describe the intended shape — there is no workflow for either yet, and nothing in this repository builds a Docker image, pushes to a registry, or contacts a server.
 
-**Phase 1 — Validate** (every pull request, and every push to `main`) — **implemented**
+**Phase 1 — Validate** (every pull request, and every push to `main`) — **implemented, and complete as of 30 August 2026**
+
+**Two jobs, run in parallel.** They need different things, and separating them keeps the cheap checks fast: a lint error and a failing test are independent facts, and a contributor should see both from one push rather than one per push.
+
+**Job `validate`** — static checks. No services, no database, and the job that fails first on the ordinary mistake.
 
 1. Install dependencies — `pnpm install --frozen-lockfile`, with the pnpm store cached between runs
 2. Lint — `pnpm lint`
 3. Type-check — `pnpm type-check`
 4. Format check — `pnpm format:check`
 
-Two further checks belong in this phase but are **deliberately not wired up yet**:
+**Job `verify`** — the two checks this section previously listed as "deliberately not wired up yet". That note gave a **condition** rather than a preference — _"add each to Phase 1 at the point the first application package defines that script"_ — and `apps/web`, `apps/api` and `apps/cms` now all define both `test` and `build`, so the condition is met. Until this job existed, roughly **3,100 tests protected nothing on a pull request**.
 
-- **Test** — `pnpm test` (see [TESTING_STRATEGY.md](./TESTING_STRATEGY.md))
-- **Build all apps** — `pnpm build`
+5. Create the CMS database — the platform has two databases and keeps them apart by credential rather than by convention ([ADR-002](./ADR/ADR-002-two-databases.md)). The service container creates `sam_platform`; `sam_cms` is created here so the CMS build has the database its URI names. Payload migrates `sam_cms` itself — nothing in `prisma/` may ever touch it
+6. Apply migrations — `prisma migrate deploy`. **Never `migrate dev` and never `db push`**: both can invent a migration, and the committed history is the thing under test
+7. Seed the locale set — `prisma/seed.ts`. Locale rows are a hard prerequisite rather than a convenience, and step 9 reads them back through the API
+8. Test — `pnpm test` (see [TESTING_STRATEGY.md](./TESTING_STRATEGY.md))
+9. Start the API from its build output, then build all apps — `pnpm build`
 
-Both resolve to `turbo run` tasks, and no package in the workspace currently defines a `test` or `build` script — `apps/web`, `apps/api`, and `apps/cms` are still empty placeholders. Adding them now would produce steps that always pass while verifying nothing, which is worse than their absence because it reads as coverage that does not exist. **Add each to Phase 1 at the point the first application package defines that script.**
+**Why `verify` needs PostgreSQL and a running API.** `pnpm build` cannot run without a live API, and that is **by design rather than an accident to work around**: `generateStaticParams` for `apps/web`'s `[locale]` segment reads `GET /locales`, the sole routing locale source, and has **no fallback** — a build that cannot establish which locales exist must fail rather than silently emit a different site ([PROJECT_HANDOFF.md](./PROJECT_HANDOFF.md) §6.9, and the note in `apps/web/.env.example`). Measured on 30 August 2026: with a clean `.next` and no API running, `next build` fails at "Collecting page data" with `LocaleSourceError … ECONNREFUSED`. So CI runs the real thing — a real PostgreSQL, the real migrations, the real seed and the real API — because anything less would verify a build that cannot happen. **This job is also the only place the repository's buildability is checked at all**; before it, that was known only on a developer's machine.
+
+**The credentials in the workflow are not secrets, and no repository secret is used.** `JWT_SECRET`, `PAYLOAD_SECRET` and the media keys are literals in the YAML: the databases are created and destroyed inside one job and are reachable from nothing else, and the values exist only to satisfy boot-time validators — `JWT_SECRET` has a 32-character minimum, and `apps/cms` validates six variables at config-build time and refuses a `DATABASE_URI` that does not name `sam_cms`. Phase 1 needs no secret and none should be added to it; secrets belong to Phases 2 and 3.
+
+**Six suites skip in CI, and the reason is more than a missing variable.** The catalog integration suites — **6 of `apps/api`'s 91 suites** — build a disposable database from a template and self-skip unless `CATALOG_APPLY_TEST_ADMIN_URL` is set. Supplying that variable is necessary and **not sufficient**; measured on 31 August 2026, each of them needs all of:
+
+1. **`--experimental-vm-modules`.** `@prisma/adapter-pg` performs a dynamic import, which Jest's default CommonJS VM cannot service — every test in these suites fails with _"A dynamic import callback was invoked without --experimental-vm-modules"_ before it reaches the database. The `test` script now sets it (see `apps/api/jest.config.js`), so this half is closed.
+2. **A PostgreSQL superuser** that may `CREATE DATABASE … TEMPLATE`, supplied as `CATALOG_APPLY_TEST_ADMIN_URL`. The application role cannot do it.
+3. **The right template.** `CATALOG_APPLY_TEST_TEMPLATE` defaults to `sam_platform`, which suits the review suites — they expect the imported catalogue. The incremental-patch suite expects the opposite: a database on which the coolant normalization patch has **not** been applied. Against the live `sam_platform` it reads `ALREADY_APPLIED` and fails, correctly — that patch shipped in `bc4e282`. It needs the retained pre-patch backup as its template.
+4. **`CATALOG_WORKBOOK`** for the importer suites, a spreadsheet that is not committed to this repository.
+
+With items 1–2 satisfied and `CATALOG_APPLY_TEST_TEMPLATE=sam_platform`, **88 of 91 suites and 1,839 tests run** locally — 116 more tests than before — and only the incremental-patch suite fails, on item 3. Wiring this into CI therefore needs a migrated template, a decision about which template each suite gets, and a home for the workbook; it is deliberately out of scope for Phase 1 as it stands, and these suites skip in CI exactly as they skip on a developer machine with no database configured.
 
 **Phase 2 — Build images** (on merge to `main`, only if Phase 1 passed) — **not yet implemented**
 
-5. Build one Docker image per deployable app: `web`, `api`, `cms`
-6. Tag each by commit SHA, and push to **GitHub Container Registry (GHCR)** — authenticated with the workflow's built-in token, so no additional registry vendor is involved
+10. Build one Docker image per deployable app: `web`, `api`, `cms`
+11. Tag each by commit SHA, and push to **GitHub Container Registry (GHCR)** — authenticated with the workflow's built-in token, so no additional registry vendor is involved
 
 **Phase 3 — Deploy to VPS** (only if Phase 2 published images) — **not yet implemented**
 
-7. Connect to the VPS over SSH using a deploy key held in GitHub Actions secrets
-8. Pull the new image tags and recreate the affected services via Docker Compose
-9. Run health checks; on failure, roll back by redeploying the previous SHA tag
+12. Connect to the VPS over SSH using a deploy key held in GitHub Actions secrets
+13. Pull the new image tags and recreate the affected services via Docker Compose
+14. Run health checks; on failure, roll back by redeploying the previous SHA tag
 
-The infrastructure half of this now exists: `docker-compose.yml`, the Postgres init script, and the Nginx templates are in place and run locally. Phases 2 and 3 still depend on the **application Dockerfiles**, which cannot be written until `apps/web`, `apps/api`, and `apps/cms` are scaffolded — `turbo prune <app>` has no package to target before then — and on registry/SSH secrets that have not been created. Both remain future work under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
+The infrastructure half of this now exists: `docker-compose.yml`, the Postgres init script, and the Nginx templates are in place and run locally.
+
+**The blocker previously recorded here is gone.** This paragraph used to say the application Dockerfiles "cannot be written until `apps/web`, `apps/api`, and `apps/cms` are scaffolded — `turbo prune <app>` has no package to target before then". All three are scaffolded, each defines a `build` script, and Phase 1 now proves all three build. **The Dockerfiles are writable today**; no repository Dockerfile exists yet, and writing them is the next step toward Phase 2.
+
+What Phases 2 and 3 still genuinely depend on: the **application Dockerfiles** (not yet written), **registry and SSH secrets** (not created), and the **VPS itself**, which does not exist — see [Deployment Target](#deployment-target). All remain future work under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
 Production deploys additionally require the manual approval gate noted under Environments.
 
@@ -138,7 +160,9 @@ Nginx is the single entry point. Everything below is served over HTTPS; port 80 
 
 Payload's admin UI gets its **own subdomain** because Payload's admin route also defaults to `/admin`, which would collide with the Admin Dashboard that `apps/web` already serves there. The split also keeps the two admin surfaces in separate cookie scopes. See [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
-**Implication for `apps/web`:** running Next.js as a container means it is served by its own Node process rather than a managed platform, so the app is built in standalone output mode and the container serves it directly. This is a build/runtime configuration detail to apply when `apps/web` is scaffolded — it does not change the application architecture. The same applies to `apps/cms`: Payload runs fully inside Next.js, so the CMS container has the same standalone runtime shape as `web`, not a separate Node server.
+**Implication for `apps/web`:** running Next.js as a container means it is served by its own Node process rather than a managed platform, so the app is built in standalone output mode and the container serves it directly. It does not change the application architecture. The same applies to `apps/cms`: Payload runs fully inside Next.js, so the CMS container has the same standalone runtime shape as `web`, not a separate Node server.
+
+**Status, 30 August 2026 — this is now an open item rather than a future one.** The sentence here previously said it was "a build/runtime configuration detail to apply when `apps/web` is scaffolded"; `apps/web` is scaffolded, and **neither `apps/web/next.config.ts` nor `apps/cms`'s config sets `output: "standalone"`** (measured). Setting it is part of writing the application Dockerfiles rather than a separate task — without it the images would have to carry the whole `node_modules` tree.
 
 **Deploys accept brief downtime.** `docker compose up -d` recreates changed containers rather than draining connections, so an updated service has a short gap. Zero-downtime would require blue/green or rolling deployment, which a single Compose host does not provide natively — accepted for Phase 1 under [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 
@@ -197,6 +221,56 @@ Runtime configuration, process-scoped and injected at deploy time like every oth
 - **No retries, no queue, and no delivery state in the database.** A failed notification is one `ERROR` log line carrying the submission id, the notification kind, `mechanism=smtp` and the error class/code — enough to find the lead in `sam_platform`, which still holds it. Alerting on that line is the recovery mechanism, and a durable retry or delivery audit would need both a queue and schema, so it is a separate architecture gate.
 - Outbound egress on the relay's port must be open from the application container. No inbound mail port is needed and none is opened.
 - **The production mailbox, relay and credential do not exist yet** and are the client's to supply. Until they do, every deployment runs with the notification skipped — a supported state, not a broken one.
+
+---
+
+## Anti-spam (Cloudflare Turnstile)
+
+The two public write endpoints — `POST /inquiries` and `POST /custom-formulation-requests` — carry an **invisible** challenge in front of the rate limit, as [SITE_STRUCTURE.md](./SITE_STRUCTURE.md) §10 requires. Verification happens in `apps/api`, not in `apps/web`: the endpoints are public and unauthenticated, so a check that ran only inside a Next.js Server Action would protect the form and leave the endpoint open to anyone posting to it directly.
+
+**This is the only third-party request any public page makes.** Web fonts are self-hosted through `next/font` precisely so no page contacts a CDN, and the Turnstile script on the two form pages is the single deliberate exception. It has a privacy consequence: the Privacy Policy must name Cloudflare as a processor before it is published.
+
+| Variable                         | App        | Meaning                                                                                     |
+| -------------------------------- | ---------- | ------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | `apps/web` | The **public** site key, rendered in the browser. `NEXT_PUBLIC_` is correct and required.   |
+| `TURNSTILE_SECRET_KEY`           | `apps/api` | The **secret** key. Never logged, never returned by an endpoint, never in an error message. |
+
+**Configure both or neither.** The two halves are independent variables and either can be missing, so the four states are worth stating:
+
+| Site key | Secret | Result                                                                  |
+| -------- | ------ | ----------------------------------------------------------------------- |
+| set      | set    | The challenge runs and is verified.                                     |
+| unset    | unset  | No challenge; rate limiting alone. The API warns once at startup.       |
+| set      | unset  | A widget nobody verifies — a false sense of protection.                 |
+| unset    | set    | No token is ever produced, so **every submission is refused with 403**. |
+
+**The widget's mode is dashboard configuration, not application configuration.** A Turnstile widget's mode belongs to the site key, so the key must be created in a mode that presents no challenge to ordinary visitors — "Managed" combined with the `interaction-only` appearance the application sets, or "Invisible". Add `samgp.com` and any preview hostname to the key's allowed domains.
+
+**Operational notes:**
+
+- A verification attempt is bounded at **5 seconds**, and unlike the mail attempt it sits **in front of** the write, so it is latency a submitter waits through.
+- **A Cloudflare outage accepts the submission rather than losing it.** An unreachable endpoint, a timeout, a non-2xx answer and Cloudflare's own `internal-error` all resolve to "accepted, logged at error level". A missing or genuinely invalid token is still refused. The trade is deliberate and narrow: an attacker cannot cause the outage state, and losing real leads to a third party's incident is the larger failure — the same rule the SMTP notification and the consent revision already follow.
+- Nothing about the submitter is sent to Cloudflare beyond the token. The remote IP is deliberately **not** forwarded, because `trust proxy` is unconfigured and `req.ip` behind nginx is the proxy's address.
+- **The production keys and the Cloudflare data processing addendum do not exist yet** and are the client's to supply. Until they do, every deployment runs with the challenge skipped — a supported state, not a broken one.
+
+---
+
+## Public site configuration (`apps/web`)
+
+Two variables govern what the public site says about itself. Both are optional and both default to the safe value, so a deployment that sets neither behaves exactly as the platform has since locale routing shipped.
+
+| Variable            | Default             | Meaning                                                                                                                                                 |
+| ------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SITE_PUBLIC_URL`   | `https://samgp.com` | The public origin every absolute URL is built from — canonical tags, `hreflang`, Open Graph URLs, JSON-LD `@id` values, `robots.txt` and `sitemap.xml`. |
+| `SITE_SEO_INDEXING` | unset (closed)      | The pre-launch indexing gate. Read by **both** the `robots` meta on every canonical page and by `/robots.txt`, so the two cannot contradict each other. |
+
+**`SITE_PUBLIC_URL` is not `NEXT_PUBLIC_`**, deliberately: every consumer is server-side, and the origin is already visible in the page's own canonical tag. It is the only origin literal left in `apps/web` — the frozen domain lives in `src/features/seo/site.ts` and nowhere else. An unset, empty, malformed or non-http(s) value falls back to the frozen domain rather than failing a build.
+
+**`SITE_SEO_INDEXING` opens the site only for the exact string `true`.** `1`, `yes` and `TRUE` all leave it closed, deliberately — the failure that matters is opening the site by accident. Unset means `noindex, nofollow` on every canonical page and `Disallow: /` in `robots.txt`.
+
+**Do not set it to `true` before the launch checklist is cleared.** At the time of writing that list includes approved Privacy Policy content, product descriptions (the 100 catalog rows carry none), and reviewed `fa`/`ar` copy — the structural pages are code-owned English in all three locales, which is why `hreflang` is withheld and why the sitemap submits the default locale only.
+
+**Payload's admin at `cms.samgp.com` is not covered by `robots.txt`.** It is a different host, so `apps/web`'s `robots.txt` does not govern it; it is kept out of the index with an `X-Robots-Tag` at the nginx layer ([SEO_ARCHITECTURE.md](./seo/SEO_ARCHITECTURE.md) §4). **That header is not yet configured in `docker/nginx/`** and is an outstanding production requirement.
 
 ---
 

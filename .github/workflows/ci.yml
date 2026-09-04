@@ -1,8 +1,18 @@
 name: CI
 
-# Phase 1 (Validate) of the three-phase pipeline in docs/DEVOPS.md.
+# Phase 1 (Validate) of the three-phase pipeline in docs/DEVOPS.md, now complete.
 # Phase 2 (build images) and Phase 3 (deploy to VPS) are deliberately not here yet —
-# this workflow builds nothing, publishes nothing, and needs no secrets.
+# this workflow publishes nothing and needs no secrets.
+#
+# Two jobs, because they need different things:
+#
+#   validate — static checks. No services, no database, fast, and the one that fails
+#              first on the ordinary mistake.
+#   verify   — the test suites and a real production build. Needs PostgreSQL and a
+#              running API, for the reason spelled out on the job itself.
+#
+# They run in parallel rather than in sequence: a lint error and a failing test are
+# independent facts and a contributor should see both in one run, not one per push.
 
 on:
   pull_request:
@@ -53,3 +63,125 @@ jobs:
 
       - name: Format check
         run: pnpm format:check
+
+  # ---------------------------------------------------------------------------
+  # The two checks docs/DEVOPS.md listed as "deliberately not wired up yet".
+  #
+  # That note gave a condition rather than a preference: "no package in the
+  # workspace currently defines a test or build script ... Add each to Phase 1 at
+  # the point the first application package defines that script." All three apps
+  # now define both, so the condition is met and this job is the step it asked for.
+  #
+  # Until it existed, roughly 3,100 tests protected nothing on a pull request.
+  # ---------------------------------------------------------------------------
+  verify:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    # `pnpm build` cannot run without a live API, and that is by design rather than
+    # an accident to work around: generateStaticParams for the [locale] segment reads
+    # GET /locales, the sole routing locale source, and has NO fallback — a build that
+    # cannot establish which locales exist must fail rather than silently emit a
+    # different site (see apps/web/.env.example, and PROJECT_HANDOFF §6.9).
+    #
+    # So CI runs the real thing: a real PostgreSQL, the real migrations, the real
+    # locale seed and the real API. Anything less would verify a build that cannot
+    # happen. This is also the only place the repository's buildability is checked at
+    # all — before this job, that was only ever known on a developer's machine.
+    services:
+      postgres:
+        # Matched to docker-compose.yml, so CI and local development agree on the
+        # engine that runs the migrations.
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          # The DATABASE_URL validator refuses any database but this one (ADR-002),
+          # so the name is not arbitrary.
+          POSTGRES_DB: sam_platform
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sam_platform?schema=public
+      API_PORT: 3001
+      API_INTERNAL_URL: http://localhost:3001
+      # Not a secret: this database is created and destroyed inside one job and is
+      # reachable from nothing else. It only has to satisfy the 32-character minimum
+      # the identity module enforces at boot.
+      JWT_SECRET: ci-only-not-a-real-secret-000000000000
+
+      # apps/cms is the third app `pnpm build` builds, and its Payload config validates
+      # all six of these at config-build time — an empty one throws before Next starts.
+      # None needs to be reachable: the database URI and the media endpoint are checked
+      # as strings, and the S3 client is only constructed when an upload happens.
+      #
+      # DATABASE_URI must name sam_cms and nothing else: apps/cms refuses to open
+      # sam_platform at all (ADR-002), and CI is not the place to discover that rule is
+      # working — apps/cms/src/env.spec.ts already asserts it.
+      DATABASE_URI: postgresql://postgres:postgres@localhost:5432/sam_cms
+      PAYLOAD_SECRET: ci-only-not-a-real-secret-111111111111
+      CMS_MEDIA_BUCKET: sam-public
+      CMS_MEDIA_ENDPOINT: http://localhost:9000
+      CMS_MEDIA_ACCESS_KEY_ID: ci-only
+      CMS_MEDIA_SECRET_ACCESS_KEY: ci-only
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Applies the committed migration history exactly as a deployment would.
+      # NEVER `migrate dev` and never `db push`: both can invent a migration, and the
+      # history is the thing under test.
+      # Two databases, because the platform has two and keeps them apart by credential
+      # rather than by convention (ADR-002). The service container creates sam_platform;
+      # sam_cms is created here so the CMS build has the database its URI names.
+      # Payload migrates sam_cms itself — nothing in prisma/ may ever touch it.
+      - name: Create the CMS database
+        run: psql "$DATABASE_URL" -c 'CREATE DATABASE sam_cms'
+
+      - name: Apply migrations
+        run: pnpm exec prisma migrate deploy
+
+      # Locale rows are a hard prerequisite rather than a convenience — prisma/seed.ts
+      # says so, and the build below reads them through the API.
+      - name: Seed the locale set
+        run: pnpm exec tsx prisma/seed.ts
+
+      # Every suite. The catalog integration suites self-skip unless
+      # CATALOG_APPLY_TEST_ADMIN_URL is set; see the note in the job header above.
+      - name: Test
+        run: pnpm test
+
+      - name: Start the API
+        run: |
+          pnpm --filter @sam-group/api build
+          node apps/api/dist/main.js &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:3001/api/v1/health; then
+              echo "API is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not become healthy in 60s"
+          exit 1
+
+      - name: Build all apps
+        run: pnpm build

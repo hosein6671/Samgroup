@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "build": "tsc -p tsconfig.build.json",
     "start": "node --enable-source-maps dist/main.js",
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
