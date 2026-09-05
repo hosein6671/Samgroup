@@ -37,8 +37,24 @@
   overflow: hidden;
 }
 
+/*
+ * Image-led: media and identity share the hero as two columns, media the wider of the two, so
+ * the photograph (or its branded fallback) stays visually dominant without pushing the identity
+ * block — and, on the products this gate demonstrates, the grade selector and technical data
+ * that follow — far down the page. `minmax(0, …)` on both tracks is required, not decorative:
+ * without it a long, unbroken product name can force the grid wider than the viewport.
+ *
+ * One DOM order at every width — media first, identity second — rather than a visual reorder
+ * that would leave keyboard Tab order and CSS `order` disagreeing (WCAG 2.2 SC 1.3.2/2.4.3):
+ * "image-led" is true at every breakpoint this way, including the ones where a narrower column
+ * makes the identity block render first in the viewport's scroll order regardless.
+ */
 .pd-hero-inner {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: start;
 }
 
 /* ------------------------------------------------------------- breadcrumb */
@@ -609,36 +625,271 @@
 }
 
 /* ============================================================================
-   GALLERY
+   GALLERY — the hero's image side
    ============================================================================ */
 
-.pd-gallery-grid {
-  list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
+.pd-hero-media {
+  position: sticky;
+  top: clamp(88px, 10vh, 120px);
 }
 
-.pd-gallery-grid li {
-  border: 1px solid var(--color-border-hairline);
-  border-radius: 12px;
+/*
+ * `aspect-ratio` holds the box before any image loads — CLAUDE.md/DESIGN_SYSTEM.md's "zero
+ * layout shift when the real asset arrives" — so the identity column beside it, and everything
+ * beneath the hero, never jumps once a real photograph is uploaded.
+ */
+.pd-gallery-stage {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
   overflow: hidden;
+  border: 1px solid var(--color-border-hairline);
   background: var(--color-surface-canvas);
 }
 
 /*
- * `aspect-ratio` rather than a fixed height, and `object-fit: contain` rather than `cover`: these
- * are product images of unknown dimensions, and cropping one to fill a tile can cut a label off a
- * container. Nothing about the image is known at render — width and height are not on the wire —
- * so the box is the constant and the image fits inside it.
+ * Selection is CSS `:target`, not JavaScript — see `gallery.tsx`'s own doc comment. Every slide
+ * after the first is hidden until its id matches the URL fragment; `:has()` then hides even the
+ * first once ANY slide is targeted, so exactly one is ever visible.
  */
-.pd-gallery-grid img {
+.pd-gallery-slide {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pd-gallery-slide:first-child {
+  display: block;
+}
+
+.pd-gallery-stage:has(.pd-gallery-slide:target) .pd-gallery-slide {
+  display: none;
+}
+
+.pd-gallery-slide:target {
+  display: block;
+}
+
+.pd-gallery-thumbs {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.pd-gallery-thumb {
+  display: block;
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-hairline);
+  transition:
+    border-color 0.2s ease,
+    outline-color 0.2s ease;
+}
+
+.pd-gallery-thumb:hover,
+.pd-gallery-thumb:focus-visible {
+  border-color: var(--color-border-accent);
+}
+
+.pd-gallery-thumb img {
   display: block;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * The branded fallback — a product with no approved photograph yet. Deliberately plain: a
+ * hairline frame, the family glyph, the product's own name as real text. Nothing here is styled
+ * to resemble a photograph (no gradient meant to read as studio lighting, no drop shadow meant to
+ * read as a product on a surface) — the whole point is that this is visibly NOT a photograph.
+ */
+.pd-gallery-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
   aspect-ratio: 4 / 3;
-  object-fit: contain;
+  border-radius: 16px;
+  border: 1px dashed var(--color-border-hairline);
+  background: var(--color-surface-canvas);
+  padding: 24px;
+  text-align: center;
+}
+
+.pd-gallery-fallback svg {
+  inline-size: 48px;
+  block-size: 48px;
+  color: var(--color-text-tertiary);
+}
+
+.pd-gallery-fallback p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.pd-gallery-fallback span {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* ============================================================================
+   OVERVIEW
+   ============================================================================ */
+
+.pd-overview-body {
+  max-width: 68ch;
+  margin: 0;
+}
+
+/* ============================================================================
+   STANDARDS AND CLASSIFICATIONS
+   ============================================================================ */
+
+.pd-standards-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, max-content));
+  gap: clamp(20px, 2.6vw, 40px);
+  margin: 0;
+}
+
+.pd-standards-list dt {
+  margin: 0 0 8px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.pd-standards-list dd {
+  margin: 0;
+  font-size: var(--fs-text-body-sm);
+  color: var(--color-text-primary);
+}
+
+/* ============================================================================
+   GRADE / VARIANT SELECTOR
+   ============================================================================ */
+
+.pd-grade-selector-wrap {
+  padding-block: clamp(28px, 3.4vw, 40px) 0;
+}
+
+.pd-grade-selector-label {
+  margin: 0 0 10px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.pd-grade-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * A real link, styled as a chip. 44px min-block-size — the owner's "preferably 44px enhanced"
+ * pointer target, not merely the 24px AA floor — because this is the primary navigation control
+ * for the technical data that follows it.
+ */
+.pd-grade-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 44px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-hairline);
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.pd-grade-chip:hover,
+.pd-grade-chip:focus-visible {
+  border-color: var(--color-border-accent);
+  color: var(--color-text-primary);
+}
+
+.pd-grade-chip[data-active="true"] {
+  border-color: var(--color-border-accent);
+  background: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+}
+
+.pd-grade-pending {
+  font-size: var(--fs-text-caption);
+  color: var(--color-text-tertiary);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* ============================================================================
+   PACKAGING
+   ============================================================================ */
+
+.pd-packaging-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(24px, 3vw, 44px);
+}
+
+.pd-packaging-heading {
+  margin: 0 0 12px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.pd-packaging-grid ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pd-packaging-grid li {
+  padding-block: 6px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  font-size: var(--fs-text-body-sm);
+  color: var(--color-text-primary);
+}
+
+.pd-packaging-grid li:last-child {
+  border-bottom: 0;
 }
 
 /* ============================================================================
@@ -707,8 +958,19 @@
     display: flex;
   }
 
-  .pd-gallery-grid {
+  /* One column — media above identity, in the same DOM order the wide layout already uses (see
+     `.pd-hero-inner`'s own comment on why this stays one order rather than a CSS-reordered one). */
+  .pd-hero-inner {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pd-hero-media {
+    position: static;
+  }
+
+  .pd-gallery-thumb {
+    inline-size: 52px;
+    block-size: 52px;
   }
 
   .pd-selection-media,

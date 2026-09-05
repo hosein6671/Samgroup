@@ -27,6 +27,7 @@ export type {
 export type {
   CategoryResponse,
   ProductDetailResponse,
+  ProductGradeSummaryResponse,
   ProductImageResponse,
   ProductListItemResponse,
   ProductSegmentResponse,

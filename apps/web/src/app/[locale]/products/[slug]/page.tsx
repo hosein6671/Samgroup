@@ -267,8 +267,12 @@ export async function generateMetadata({
  * - **repeated** (`?segment=a&segment=b`) → no filter. ADR-008 explicitly defers multi-value
  *   taxonomy filtering, so there is no defined meaning to honour; picking one of the two would be
  *   inventing that meaning, and it stays visible because no chip renders as active.
+ *
+ * The same rule serves `?grade=` on the Product branch below: absent/blank/repeated all mean "no
+ * request", and a single value is passed through unvalidated — `resolveActiveGrade` (this
+ * product's own grades) is the equivalent authority there that the API is for `?segment=`.
  */
-function readSegmentParam(raw: string | string[] | undefined): string | null {
+function readStringParam(raw: string | string[] | undefined): string | null {
   if (typeof raw !== "string") return null;
 
   const trimmed = raw.trim();
@@ -320,7 +324,7 @@ export default async function ProductFamilyPage({
   const content = getCategoryContent(slug);
 
   if (content) {
-    const activeSegment = readSegmentParam(query.segment);
+    const activeSegment = readStringParam(query.segment);
 
     /*
      * The product list is started here and deliberately NOT awaited. Data access stays at the route
@@ -396,7 +400,9 @@ export default async function ProductFamilyPage({
    *
    * The only branch that asks the network whether a page exists, and therefore the only one where
    * ADR-010 §7 has teeth. `?segment=` is not read here: it is a Product Family filter, and a
-   * Product Detail page has no list for it to narrow.
+   * Product Detail page has no list for it to narrow. `?grade=` IS read here — the Grade/variant
+   * selector's own state, resolved against this product's `grades` rather than the API, exactly
+   * as `readStringParam`'s own doc comment states.
    *
    * There is no `Suspense` boundary around this. A boundary streams a *part* of a page while the
    * rest renders — but here the fetch decides whether the page exists at all, so there is nothing
@@ -470,6 +476,7 @@ export default async function ProductFamilyPage({
           product={product}
           locale={locale}
           localeFallback={result.localeFallback}
+          activeGradeParam={readStringParam(query.grade)}
         />
       </>
     );

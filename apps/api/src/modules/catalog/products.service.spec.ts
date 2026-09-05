@@ -63,6 +63,13 @@ const DETAIL_ROW = {
   productType: PRODUCT_TYPE,
   // Prisma returns the join rows already ordered; the mock hands back what that read would.
   segments: [{ segment: INDUSTRIAL }, { segment: MARINE }],
+  // The Product's own Grades, independent of Specification approval — `grade-2` has zero
+  // Specifications below, proving a grade with nothing approved yet is still named rather than
+  // silently absent (`toGradeSummaryResponse`'s `hasApprovedData: false`).
+  grades: [
+    { id: "grade-1", label: "SAE 15W-40", gradeSystem: "SAE" },
+    { id: "grade-2", label: "SAE 20W-50", gradeSystem: "SAE" },
+  ],
   // The raw shape `PUBLIC_SPECIFICATION_SELECT` reads off `Specification` — what Prisma would
   // actually return, not the wire shape `toSpecificationResponse` produces from it. spec-1 is a
   // legacy row (every ADR-014 column at its default); spec-2 is a Grade-level POINT fact with a
@@ -84,6 +91,7 @@ const DETAIL_ROW = {
       pairFirst: null,
       pairSecond: null,
       productGrade: null,
+      productGradeId: null,
     },
     {
       id: "spec-2",
@@ -100,6 +108,7 @@ const DETAIL_ROW = {
       pairFirst: null,
       pairSecond: null,
       productGrade: { label: "SAE 15W-40", gradeSystem: "SAE" },
+      productGradeId: "grade-1",
     },
     {
       id: "spec-3",
@@ -116,9 +125,20 @@ const DETAIL_ROW = {
       pairFirst: null,
       pairSecond: null,
       productGrade: null,
+      productGradeId: null,
     },
   ],
 };
+
+/**
+ * What `toGradeSummaryResponse` turns `DETAIL_ROW.grades` into. `grade-1` has an approved
+ * Specification (`spec-2`) and `grade-2` has none — the one fact this type adds beyond a
+ * Specification's own `grade` facet.
+ */
+const EXPECTED_GRADES = [
+  { id: "grade-1", label: "SAE 15W-40", gradeSystem: "sae", hasApprovedData: true },
+  { id: "grade-2", label: "SAE 20W-50", gradeSystem: "sae", hasApprovedData: false },
+];
 
 /**
  * What `toSpecificationResponse` turns `DETAIL_ROW.specifications` into — the wire shape both
@@ -1248,6 +1268,7 @@ describe("ProductsService.findBySlug — taxonomy", () => {
         { name: "Marine", slug: "marine" },
       ],
       productType: { name: "Base Oil", slug: "base-oil" },
+      grades: EXPECTED_GRADES,
       specifications: EXPECTED_SPECIFICATIONS,
       images: [{ id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" }],
       seo: SEO,
@@ -1416,6 +1437,7 @@ describe("ProductsService.findSpecificationsBySlug", () => {
         pairFirst: true,
         pairSecond: true,
         productGrade: { select: { label: true, gradeSystem: true } },
+        productGradeId: true,
       },
     });
     expect(result).toEqual(EXPECTED_SPECIFICATIONS);

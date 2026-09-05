@@ -81,6 +81,7 @@ const PRODUCT: ProductDetailResponse = {
   },
   segments: [],
   productType: null,
+  grades: [],
   specifications: [],
   images: [],
   seo: SEO,
@@ -129,7 +130,9 @@ function surfaces(locale: string): Record<string, string> {
     ].join(""),
 
     "product detail": [
-      renderHtml(<ProductHero product={PRODUCT} locale={locale} localeFallback={false} />),
+      renderHtml(
+        <ProductHero product={PRODUCT} locale={locale} localeFallback={false} activeGrade={null} />,
+      ),
       renderHtml(<ClosingCta locale={locale} productSlug={PRODUCT.slug} />),
     ].join(""),
   };

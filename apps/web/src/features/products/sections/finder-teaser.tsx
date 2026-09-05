@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
+import { SearchIcon } from "@/features/site/icons";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { FINDER_FACETS } from "../products-data";
@@ -87,17 +88,7 @@ export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode
 
           <div className="pr-matrix-row pr-matrix-row--direct">
             <span className="pr-matrix-index">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path d="M20 20l-4.3-4.3" />
-              </svg>
+              <SearchIcon size="sm" />
             </span>
             <span className="pr-matrix-name">Direct</span>
             <span className="pr-matrix-vals">

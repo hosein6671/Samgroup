@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getProductDetailEditorial } from "./product-detail-content";
 
 const FAMILY_SLUGS = [
+  "base-oils",
   "lubricant-additives",
   "engine-oils-automotive-lubricants",
   "industrial-oils-lubricants",

@@ -1,66 +1,125 @@
 import type { ReactNode } from "react";
 
+import { FAMILY_ICON_BY_SLUG } from "@/features/site/icons";
+
 import type { ProductImageResponse } from "@sam-group/types";
 
 /**
- * The product's public imagery.
+ * Narrows a `Category.slug` string to `ProductFamilyKey` — the same "resolve against the
+ * canonical table, drop what does not resolve" rule `ProductFamilyKey`'s own doc comment states
+ * for content elsewhere in this codebase, applied here instead of an unchecked cast. Every real
+ * Category row is one of these six today (the frozen six-family architecture), so this only
+ * ever actually returns `undefined` for a slug that should not exist yet.
+ */
+function familyIconFor(slug: string): ((props: { size: "xl" }) => ReactNode) | undefined {
+  return Object.prototype.hasOwnProperty.call(FAMILY_ICON_BY_SLUG, slug)
+    ? FAMILY_ICON_BY_SLUG[slug as keyof typeof FAMILY_ICON_BY_SLUG]
+    : undefined;
+}
+
+/**
+ * The image-led hero's media side — a large primary image with accessible thumbnail
+ * navigation when the product has two or more approved images, or a restrained SAM-branded
+ * fallback when it has none.
  *
- * ── Absent, never substituted ───────────────────────────────────────────────
+ * ── No image today, and that stays true for every product this gate can demonstrate ─────────
  *
- * The caller renders this only for a non-empty array. Every product in the database has zero images
- * today, so this section does not appear on any page that currently exists — and that is the
- * required behaviour rather than a gap: there is no stock photograph, no silhouette, no branded
- * placeholder and no "image coming soon" frame anywhere in this file. Inventing product imagery is
- * inventing product content, and a drum photographed under someone else's label would be a claim
- * about packaging that no approved document supports.
- *
- * The page reads correctly without it. The hero carries the name, the description and the
- * classification, and a product with no imagery simply goes from hero to specifications.
+ * Every catalog product — including the two new Base Oil records — has zero approved images: no
+ * `Media` row exists yet, and this gate does not upload one (`Do not upload media or modify
+ * Payload/object storage during this gate`). So the fallback below is what every real Product
+ * Detail page shows today; the multi-image path is proven by `gallery.spec.tsx`'s rendered-HTML
+ * assertions rather than by a live browser screenshot of a real product, honestly, because there
+ * is no real product to screenshot it on yet.
  *
  * ── Why `<img>` and not `next/image` ────────────────────────────────────────
  *
- * `next/image` optimises through the Next server, which requires every permitted remote host to be
- * declared in `next.config.ts` under `images.remotePatterns`. The URLs here come from `media.url`
- * in `sam_platform`, pointing at S3-compatible object storage whose production host is explicitly
- * undecided (CLAUDE.md §2, Object store). Declaring a pattern now would be choosing that host in a
- * frontend config file, and leaving it undeclared would make `next/image` throw at render on the
- * first real image.
+ * Unchanged from the previous gate's own reasoning: `media.url` points at S3-compatible object
+ * storage whose production host CLAUDE.md still records as undecided, and `next/image` requires
+ * that host declared in `next.config.ts` today. A plain `<img>` has neither problem.
  *
- * A plain `<img>` has neither problem and costs nothing today, since no image exists. `width` and
- * `height` are not on the wire, so the aspect ratio is held by CSS instead; `loading="lazy"` and
- * `decoding="async"` keep the gallery off the critical path. Revisit with the gate that picks the
- * object store and adds the first real image.
+ * ── Selection is CSS, not JavaScript ─────────────────────────────────────────
  *
- * `altText` is the API's, verbatim. A null one becomes `alt=""` — an image with no author-supplied
- * description is decorative as far as this page can honestly say, and inventing a description from
- * the product's name would put words in a screen reader's mouth that no editor wrote.
+ * Each thumbnail is a plain link to `#pd-gallery-{image.id}`; each full image carries that id.
+ * `:target` shows the linked image and `:has()` (`product-detail.css`'s own SPECIFICATIONS-
+ * adjacent rule) hides every other one once any target is active, falling back to the first
+ * image by document order otherwise. A link is natively keyboard-focusable and activatable with
+ * Enter — no ARIA tab pattern, no keydown handler and no client component are needed for
+ * "keyboard-operable thumbnails", because nothing here does anything a browser does not already
+ * do for a plain anchor.
  *
- * A Server Component. No lightbox, no carousel, no JavaScript.
+ * A Server Component. No lightbox — none of this codebase's established components is a
+ * lightbox, and the owner's own instruction is to add one only where an established pattern
+ * already exists.
  */
 export function ProductGallery({
   images,
   productName,
+  familySlug,
 }: {
   readonly images: readonly ProductImageResponse[];
-  /** Used only for the section's accessible label, never printed into an `alt`. */
+  /** Used only for accessible labelling — never printed into an `alt`. */
   readonly productName: string;
+  readonly familySlug: string;
 }): ReactNode {
-  return (
-    <section className="fs-sec pd-gallery" id="images" data-surface="light">
-      <div className="fs-wrap">
-        <header className="pd-section-head reveal-fade-rise">
-          <p className="fs-eyebrow">Imagery</p>
-          <h2 className="fs-d2">Product images</h2>
-        </header>
+  if (images.length === 0)
+    return <FamilyFallback productName={productName} familySlug={familySlug} />;
 
-        <ul className="pd-gallery-grid reveal-stagger" aria-label={`Images of ${productName}`}>
-          {images.map((image) => (
+  return (
+    <div className="pd-gallery-media">
+      <div className="pd-gallery-stage" role="group" aria-label={`Images of ${productName}`}>
+        {images.map((image, index) => (
+          <img
+            key={image.id}
+            id={`pd-gallery-${image.id}`}
+            className="pd-gallery-slide"
+            src={image.url}
+            alt={image.altText ?? ""}
+            loading={index === 0 ? "eager" : "lazy"}
+            decoding="async"
+          />
+        ))}
+      </div>
+
+      {images.length > 1 && (
+        <ul className="pd-gallery-thumbs">
+          {images.map((image, index) => (
             <li key={image.id}>
-              <img src={image.url} alt={image.altText ?? ""} loading="lazy" decoding="async" />
+              <a
+                className="pd-gallery-thumb"
+                href={`#pd-gallery-${image.id}`}
+                aria-label={`Show image ${String(index + 1)} of ${String(images.length)}`}
+              >
+                <img src={image.url} alt="" loading="lazy" decoding="async" />
+              </a>
             </li>
           ))}
         </ul>
-      </div>
-    </section>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The branded fallback for a product with no approved photograph — the family's own glyph on a
+ * quiet Flagship surface, clearly a placeholder rather than an attempt at a product photograph.
+ * No stock imagery, no invented pack shot, no fabricated label, factory, machine, laboratory,
+ * certificate or application scene: exactly the family icon already used in navigation, and the
+ * product's own name, printed as text rather than drawn into anything resembling a photograph.
+ */
+function FamilyFallback({
+  productName,
+  familySlug,
+}: {
+  readonly productName: string;
+  readonly familySlug: string;
+}): ReactNode {
+  const FamilyIcon = familyIconFor(familySlug);
+
+  return (
+    <div className="pd-gallery-fallback">
+      {FamilyIcon && <FamilyIcon size="xl" />}
+      <p>{productName}</p>
+      <span>Product image pending</span>
+    </div>
   );
 }

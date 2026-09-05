@@ -17,6 +17,7 @@ import {
   Layers,
   Microscope,
   Route,
+  Search,
   Ship,
   SlidersHorizontal,
   Snowflake,
@@ -25,6 +26,8 @@ import {
 } from "lucide-react";
 
 import type { ReactNode } from "react";
+
+import type { ProductFamilyKey } from "@sam-group/types";
 
 /**
  * The public site's icon set — one family, one stroke, one size scale.
@@ -189,11 +192,35 @@ export function CoolantsIcon(props: IconProps = {}): ReactNode {
   return <Snowflake className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
 }
 
+/**
+ * The six family icons, keyed by `ProductFamilyKey` — the one place this mapping is written.
+ *
+ * Previously duplicated privately inside `site-nav.tsx`; factored out here so a second caller
+ * (the Product Detail image fallback, which needs "this product's family, as a glyph" for a
+ * product with no approved photograph) reads the same map rather than a second copy that could
+ * drift from the nav's. `site-nav.tsx` now imports this instead of declaring its own.
+ */
+export const FAMILY_ICON_BY_SLUG: Record<ProductFamilyKey, (props: IconProps) => ReactNode> = {
+  "base-oils": BaseOilsIcon,
+  "lubricant-additives": AdditivesIcon,
+  "engine-oils-automotive-lubricants": AutomotiveIcon,
+  "industrial-oils-lubricants": IndustrialIcon,
+  "marine-oils-lubricants": MarineIcon,
+  "antifreeze-coolants": CoolantsIcon,
+};
+
 /* --------------------------------------------------- the menu's two utility rows */
 
 /** Product Finder — a filtered view, so the filter control's own glyph. */
 export function FinderIcon(props: IconProps = {}): ReactNode {
   return <SlidersHorizontal className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/** Direct search by name, grade or specification value — the Finder teaser's "Direct" row,
+ * previously a hand-drawn magnifying-glass `<svg>` at `strokeWidth="2"`, off this set's own
+ * `STROKE = 1.75`. Replaces it so every glyph on the Products Overview page reads as one set. */
+export function SearchIcon(props: IconProps = {}): ReactNode {
+  return <Search className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
 }
 
 /** Download Catalogue. */

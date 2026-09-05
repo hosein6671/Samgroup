@@ -15,6 +15,7 @@ import { DEFAULT_LIMIT, DEFAULT_PAGE, DEFAULT_SORT } from "./dto/product-list.qu
 import type { ProductListQuery, ProductSort } from "./dto/product-list.query";
 import type {
   ProductDetailResponse,
+  ProductGradeSummaryResponse,
   ProductListItemResponse,
   ProductSpecificationResponse,
 } from "./dto/product.response";
@@ -143,6 +144,12 @@ const PUBLIC_SPECIFICATION_SELECT = {
   pairFirst: true,
   pairSecond: true,
   productGrade: { select: { label: true, gradeSystem: true } },
+  // Selected for the service's own internal use only — correlating an approved Specification
+  // back to which of the Product's `grades` it belongs to (`toGradeSummaryResponse`'s
+  // `hasApprovedData`). Never read onto the wire: `toSpecificationResponse` below does not
+  // carry it into `ProductSpecificationResponse`, and `productGrade.{label,gradeSystem}` above
+  // already serves the public "which grade is this row for" need.
+  productGradeId: true,
 } as const satisfies Prisma.SpecificationSelect;
 
 /** The raw shape `PUBLIC_SPECIFICATION_SELECT` produces, before `toSpecificationResponse`. */
@@ -207,6 +214,28 @@ function toSpecificationResponse(row: PublicSpecificationRow): ProductSpecificat
   };
 }
 
+/**
+ * A Product's own Grade, independent of Specification approval — `hasApprovedData` is the only
+ * fact this adds beyond what `Specification.grade` already serves, and it exists so a grade
+ * with zero approved facts is still nameable rather than silently absent. `approvedGradeIds` is
+ * derived from the SAME approved-only `specifications` array the response already carries — no
+ * second, wider query is issued to answer it.
+ */
+function toGradeSummaryResponse(
+  grade: { id: string; label: string; gradeSystem: string | null },
+  approvedGradeIds: ReadonlySet<string>,
+): ProductGradeSummaryResponse {
+  return {
+    id: grade.id,
+    label: grade.label,
+    gradeSystem:
+      grade.gradeSystem === null
+        ? null
+        : (grade.gradeSystem.toLowerCase() as ProductGradeSummaryResponse["gradeSystem"]),
+    hasApprovedData: approvedGradeIds.has(grade.id),
+  };
+}
+
 const PRODUCT_DETAIL_SELECT = {
   id: true,
   name: true,
@@ -224,6 +253,15 @@ const PRODUCT_DETAIL_SELECT = {
     // constraint, so two Segments may legitimately share one.
     orderBy: [{ segment: { sortOrder: "asc" } }, { segment: { id: "asc" } }],
     select: { segment: { select: { id: true, name: true, slug: true } } },
+  },
+  // Every ProductGrade this Product has, independent of whether any Specification attached to
+  // it has been approved yet. Without this, a grade with zero approved facts is invisible on
+  // the wire — a real gap the structured-data-foundation gate found and reported, not silently
+  // fixed there: a grade selector cannot "expose all public grades clearly" or "mark a grade
+  // whose data is under review" if the API never names a grade that has nothing published yet.
+  grades: {
+    orderBy: { sortOrder: "asc" },
+    select: { id: true, label: true, gradeSystem: true },
   },
   specifications: {
     // Approved and live only. A product whose technical data has been imported but not yet
@@ -392,7 +430,7 @@ export class ProductsService {
     // `segments` and `productType` are pulled out of the rest spread deliberately: what follows
     // hands `product` to localize as a Product row, and a nested relation riding along in it
     // would be a shape the translation overlay never asked for.
-    const { category, specifications, segments, productType, ...product } = row;
+    const { category, specifications, segments, productType, grades, ...product } = row;
 
     const [localizedProduct, localizedCategory, localizedSegments, localizedProductType, images] =
       await Promise.all([
@@ -472,6 +510,16 @@ export class ProductsService {
         segments: localizedSegments.rows.map(toTaxonomyRef),
         productType:
           localizedProductType.row === null ? null : toTaxonomyRef(localizedProductType.row),
+        grades: grades.map((grade) =>
+          toGradeSummaryResponse(
+            grade,
+            new Set(
+              specifications
+                .map((specification) => specification.productGradeId)
+                .filter((id): id is string => id !== null),
+            ),
+          ),
+        ),
         specifications: specifications.map(toSpecificationResponse),
         images,
         seo,

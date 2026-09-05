@@ -129,6 +129,27 @@ export type ProductTypeResponse = {
   slug: string;
 };
 
+/**
+ * One `ProductGrade` of a Product, independent of whether any Specification attached to it has
+ * been approved yet.
+ *
+ * `id` is on the wire here — unlike `ProductSegmentResponse`/`ProductTypeResponse`, which omit
+ * it because neither is addressed individually — because a grade selector needs a stable value
+ * to select by and `ProductSpecificationResponse.grade` carries no id to correlate back to one
+ * of these. `label` is verbatim, exactly as `ProductSpecificationGradeResponse.label` already is.
+ *
+ * `hasApprovedData` is the one fact this type adds beyond what a Specification's own `grade`
+ * facet already states: whether AT LEAST ONE approved Specification exists for this grade. A
+ * grade can exist here with `hasApprovedData: false` — that is the grade a selector must still
+ * show, marked as under review, never silently omitted.
+ */
+export type ProductGradeSummaryResponse = {
+  id: string;
+  label: string;
+  gradeSystem: "sae" | "iso_vg" | "nlgi" | null;
+  hasApprovedData: boolean;
+};
+
 export type ProductDetailResponse = {
   id: string;
   name: string;
@@ -141,6 +162,10 @@ export type ProductDetailResponse = {
   segments: ProductSegmentResponse[];
   /** Null when the product has no primary Product Type — the Phase 1 state of every row. */
   productType: ProductTypeResponse | null;
+  /** Ordered by `ProductGrade.sortOrder`. Empty for a leaf product whose one distinguishing
+   * grade is already in its own name rather than a separate `ProductGrade` row — this catalog
+   * uses both conventions, and an empty array here means the second one, not a data gap. */
+  grades: ProductGradeSummaryResponse[];
   specifications: ProductSpecificationResponse[];
   images: ProductImageResponse[];
   /** The requested locale's SEO record, with `hreflang` alternates — SEO_ARCHITECTURE.md §0. */

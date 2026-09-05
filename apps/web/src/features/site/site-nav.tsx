@@ -5,15 +5,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import {
-  AdditivesIcon,
-  AutomotiveIcon,
-  BaseOilsIcon,
   CatalogueDownloadIcon,
-  CoolantsIcon,
   DisclosureCaretIcon,
+  FAMILY_ICON_BY_SLUG,
   FinderIcon,
-  IndustrialIcon,
-  MarineIcon,
 } from "./icons";
 import { Arrow, LogoMark } from "./logo-mark";
 import {
@@ -32,27 +27,19 @@ import {
   structuralPathOf,
 } from "./site-routes";
 
-import type { LocaleResponse, ProductFamilyKey } from "@sam-group/types";
+import type { LocaleResponse } from "@sam-group/types";
 
 /**
- * A glyph for each of the six families, keyed by the family key rather than by its label.
- *
- * `Record<ProductFamilyKey, …>` is the point: a seventh family added to `PRODUCT_CATEGORIES`
- * without a glyph here is a **compile error**, not a menu row with a hole in it. Keying on the
- * label instead would have made a copy edit silently drop an icon.
+ * A glyph for each of the six families, keyed by the family key rather than by its label —
+ * `icons.tsx`'s own `FAMILY_ICON_BY_SLUG`, the one place this mapping is written. `Record<
+ * ProductFamilyKey, …>` there is the point: a seventh family added to `PRODUCT_CATEGORIES`
+ * without a glyph is a **compile error**, not a menu row with a hole in it.
  *
  * Every one is decorative. The family name is right beside it and says the same thing, which is
  * why they are `aria-hidden` — a screen reader announcing "droplet, Base Oils" is worse than
  * "Base Oils".
  */
-const FAMILY_GLYPHS: Record<ProductFamilyKey, (props: { readonly size: "md" }) => ReactNode> = {
-  "base-oils": BaseOilsIcon,
-  "lubricant-additives": AdditivesIcon,
-  "engine-oils-automotive-lubricants": AutomotiveIcon,
-  "industrial-oils-lubricants": IndustrialIcon,
-  "marine-oils-lubricants": MarineIcon,
-  "antifreeze-coolants": CoolantsIcon,
-};
+const FAMILY_GLYPHS = FAMILY_ICON_BY_SLUG;
 
 /**
  * The flagship header.

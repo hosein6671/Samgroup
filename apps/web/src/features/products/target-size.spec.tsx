@@ -171,6 +171,7 @@ const PRODUCT: ProductDetailResponse = {
   },
   segments: [],
   productType: null,
+  grades: [],
   specifications: [],
   images: [],
   seo: SEO,
@@ -195,7 +196,9 @@ function correctedSurfaces(locale: string): string {
     renderHtml(<CategoryDocumentation {...props} />),
     renderHtml(<CategoryFaq {...props} />),
     renderHtml(<CategoryRelated {...props} />),
-    renderHtml(<ProductHero product={PRODUCT} locale={locale} localeFallback={false} />),
+    renderHtml(
+      <ProductHero product={PRODUCT} locale={locale} localeFallback={false} activeGrade={null} />,
+    ),
   ].join("");
 }
 

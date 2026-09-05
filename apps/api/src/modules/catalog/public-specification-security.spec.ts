@@ -449,6 +449,26 @@ suite("public Specification exposure", () => {
   );
 
   it(
+    "names the probe's own Grade in `product.grades`, with hasApprovedData true",
+    async () => {
+      // The Product-detail-foundation gate added `grades` specifically so a grade with zero
+      // approved Specifications is still nameable — this probe's one grade DOES have an
+      // approved fact (`probe_public_grade`), so this proves the positive case against a real
+      // database round trip; the negative case (`hasApprovedData: false`) is proven at the
+      // mock-Prisma level in `products.service.spec.ts`, where a second grade has no spec at all.
+      const detail = await products.findBySlug(PROBE_SLUG, EN);
+      expect(detail.product.grades).toHaveLength(1);
+      expect(detail.product.grades[0]).toEqual({
+        id: expect.any(String),
+        label: "PROBE GRADE",
+        gradeSystem: null,
+        hasApprovedData: true,
+      });
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
     "serves the normalized RANGE probe's qualifier, valueType and numeric bounds as decimal strings",
     async () => {
       const detail = await products.findBySlug(PROBE_SLUG, EN);

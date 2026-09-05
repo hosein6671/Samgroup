@@ -147,6 +147,22 @@ export type ProductImageResponse = {
 };
 
 /**
+ * One `ProductGrade` of a Product, independent of whether any Specification attached to it has
+ * been approved yet. `id` is on the wire — unlike `ProductSegmentResponse`/`ProductTypeResponse`
+ * — because a grade selector needs a stable value to select by, and a Specification's own
+ * `grade` facet carries no id to correlate back to one of these. `hasApprovedData` is the one
+ * fact this type adds: whether at least one approved Specification exists for this grade. A
+ * grade may appear here with `hasApprovedData: false` — the grade a selector must still show,
+ * marked as under review, never silently omitted.
+ */
+export type ProductGradeSummaryResponse = {
+  id: string;
+  label: string;
+  gradeSystem: "sae" | "iso_vg" | "nlgi" | null;
+  hasApprovedData: boolean;
+};
+
+/**
  * One product, as `GET /products/:slug` serves it — API_CONTRACT_FINAL.md §2.3, transcribed from
  * `apps/api`'s own `ProductDetailResponse` field for field.
  *
@@ -179,6 +195,10 @@ export type ProductDetailResponse = {
   segments: ProductSegmentResponse[];
   /** Null when the product has no primary Product Type — the state of every row in Phase 1. */
   productType: ProductTypeResponse | null;
+  /** Ordered by the grade's publishing order. Empty for a leaf product whose one distinguishing
+   * grade is already in its own name rather than a separate `ProductGrade` row — this catalog
+   * uses both conventions, and an empty array here means the second one, not a data gap. */
+  grades: ProductGradeSummaryResponse[];
   specifications: ProductSpecificationResponse[];
   images: ProductImageResponse[];
   seo: SeoFields;

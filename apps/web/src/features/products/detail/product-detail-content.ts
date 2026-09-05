@@ -9,6 +9,46 @@ export type ProductDetailEditorial = {
 };
 
 const EDITORIAL_BY_FAMILY: Readonly<Record<string, ProductDetailEditorial>> = {
+  "base-oils": {
+    // Sourced from the Base Oils Family page's own already-approved copy
+    // (`features/products/category/data/base-oils.ts`'s `overview`/`range` blocks), not invented
+    // here — this registry previously had no `base-oils` entry because no Base Oil catalog
+    // product existed to render it; falling through to `industrial-oils-lubricants`'s guidance
+    // would have been actively wrong (that copy names vehicles, machines and duty cycles a base
+    // oil selection brief does not turn on).
+    image: {
+      src: "/images/base-oils-lab-samples.webp",
+      alt: "Unlabelled laboratory bottles containing base-oil samples in pale gold and amber tones",
+      caption:
+        "Base-oil samples — visual comparison before technical review, not product packaging.",
+    },
+    selection: {
+      eyebrow: "Base oil selection brief",
+      heading: "Start with classification. Confirm with the data sheet.",
+      introduction:
+        "A base-oil group is a classification, not a complete purchasing specification. It helps narrow the field; the required viscosity, property profile, application and approved technical document determine the grade that belongs in the enquiry.",
+      criteria: [
+        {
+          title: "Base-stock group",
+          detail: "Identify Group I, II, III, naphthenic, bright stock or a synthetic fluid.",
+        },
+        {
+          title: "Viscosity grade",
+          detail: "Use the SN, cSt or equivalent designation the formulation requires.",
+        },
+        {
+          title: "Property profile",
+          detail:
+            "Confirm viscosity index, pour point, flash point and related limits against the reviewed TDS.",
+        },
+        {
+          title: "Supply route",
+          detail:
+            "Confirm virgin or re-refined basis, quantity, packaging and destination together.",
+        },
+      ],
+    },
+  },
   "lubricant-additives": {
     image: {
       src: "/images/lubricant-additives-lab-samples.webp",
