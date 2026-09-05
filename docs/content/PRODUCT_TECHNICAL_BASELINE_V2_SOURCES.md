@@ -15,13 +15,46 @@ because V2 supplies no URL for that family.
 
 This is Phase 1 of the Products / structured technical-data workstream: a source and TDS inventory.
 It records what each V2-referenced site actually publishes, maps that content to SAM's existing
-100-product catalog grade vocabulary (as recorded in
+100-record catalog product/grade vocabulary (as recorded in
 [`PRODUCT_DATA_REVIEW_TRIAGE.md`](./PRODUCT_DATA_REVIEW_TRIAGE.md) and
 [`PRODUCT_RESEARCH_REGISTER.json`](./PRODUCT_RESEARCH_REGISTER.json)), and states plainly where no
 public technical data exists. It creates no `Specification`, `ProductClaim`, `SourceDocument` or
 `SourceFact` row, runs no import, and changes no public page. Every value below is internal
 provenance until it passes the existing technical-review workflow ([ADR-014](../ADR/ADR-014-catalog-technical-data-and-provenance.md)
 through [ADR-018](../ADR/ADR-018-bounded-incremental-catalog-patches.md)).
+
+## Terminology — corrected 5 September 2026 (owner information-architecture correction)
+
+An earlier version of this document used "SAM product" and "SAM grade" loosely enough to read as
+if each of the 18 exact technical matches in §12 were itself one of SAM's top-level product
+offerings. It is not. The repository's schema and the live `sam_platform` catalog (checked
+directly against the database for this correction, not inferred) fix four distinct levels, and
+every section below now uses each name consistently:
+
+1. **Product Family** (6, fixed) — the `Category` table, one row per family, matching the V2
+   workbook exactly: Base Oils, Lubricant Additives & Components, Engine Oils & Automotive
+   Lubricants, Industrial Oils & Lubricants, Marine Oils & Lubricants, Antifreeze & Coolants. This
+   is SAM's public Products Overview structure and is unchanged by this document or by anything in
+   it.
+2. **Catalog product record** (100, from the completed import) — the `Product` table. Each row
+   belongs to exactly one Product Family (`categoryId`) and is what the Product Detail route
+   (`/{locale}/products/{product-slug}`) resolves. A catalog product record is typically a
+   PRODUCT TYPE or product line within its family — e.g. "CJ4 Grade", "Turbine oil", "Compressor
+   oil -VB" — not a top-level SAM offering in its own right, and not always a single finished
+   grade either.
+3. **Grade / variant** (134 rows, `ProductGrade`, present under 44 of the 100 catalog product
+   records) — the specific SAE/ISO VG/NLGI variant within a catalog product record, e.g. "ISO VG
+   46" under "Turbine oil", or "CJ4 15W40" under "CJ4 Grade". The remaining 56 catalog product
+   records carry their one distinguishing grade in the record's own name instead (e.g. "CF-4
+   15W-40" is a single catalog product record with no further `ProductGrade` children below it) —
+   the catalog is not uniform on this point, and this document does not attempt to normalize it.
+4. **Specification** — one normalized technical fact, attached to a catalog product record
+   directly or to one of its Grades, reviewed and — once approved — served publicly with a `grade`
+   facet naming which Grade it belongs to (`null` for a Product-level fact).
+
+§12 below is corrected accordingly: "18 SAM grades" becomes **18 grade-level technical
+baselines**, and the reassessment now states, for each one, whether a catalog product or grade
+record actually exists to attach it to. Four of the eighteen do not — see §12's opening note.
 
 ## Public / internal boundary (restated from the owner's instruction)
 
@@ -308,8 +341,8 @@ rejected).
 - Direct document: `https://cglapps.chevron.com/sdspds/PDSDetailPage.aspx?docDataId=686854&docFormat=PDF`
 - Manufacturer/product identity: Chevron — "GST Oil 32, 46, 68, 100," GST-OIL/MEA/PDSv1_01/03/2022
 - Retrieved 5 September 2026; SHA-256: `60d8325095250bf4feff7a26db12a48737a845c4e454e4f44cdd07d9d7e61af3`
-- SAM candidates: **Turbine oil** and **Circulating oil** (one product family legitimately serves both — the document's own stated applications are "non-geared gas, steam and hydroelectric turbine bearing lubrication... reduction gear lubrication in marine operations... air compression where R&O type oils are recommended")
-- Match basis: **Exact for both** — DIN 51515-1 TD / 51515-2 TG (the German turbine-oil standard) and ISO 8068 L-TSA/TGA/TGB/TGSB (turbine and circulating classifications) are both listed directly against this one product family.
+- SAM candidates: **Turbine oil** and **Circulating oil** (one document legitimately serves both catalog product records — the document's own stated applications are "non-geared gas, steam and hydroelectric turbine bearing lubrication... reduction gear lubrication in marine operations... air compression where R&O type oils are recommended")
+- Match basis: **Exact for both** — DIN 51515-1 TD / 51515-2 TG (the German turbine-oil standard) and ISO 8068 L-TSA/TGA/TGB/TGSB (turbine and circulating classifications) are both listed directly against this one document.
 - Typical values (by ISO grade 32/46/68/100): Flash point COC 222/224/245/262°C (D92); TOST life 10,000+ hr to all four (D943); RPVOT 1700/1400/1400/1400 min (D2272); pour point −36/−36/−33/−30°C (D97); KV40 32/43.7/64.6/95.0 mm²/s; KV100 5.2/6.6/8.5/11.0 mm²/s (D445); VI 102/102/102/100 (D2270).
 - Match confidence: **Exact**
 - Remaining ambiguity: none.
@@ -332,7 +365,7 @@ rejected).
 - Direct documents: `https://www.orlen.pl/en/for-business/products/oils/base-oils/base-oil-sn-150` (PDS BASE OIL SN 150, PDF); `https://www.orlen.pl/en/for-business/products/oils/base-oils/base-oil-sn-500` (PDS BASE OIL SN 500, PDF); cross-checked against the official Safety Data Sheet `BASE OILS SN-100, SN-150, SN-500, SN-650`, made 14.01.2019, `orlen.pl`
 - Manufacturer/product identity: ORLEN — "Base Oil SN 150," "Base Oil SN 500," "Base Oils SN-100/150/500/650" (Distillates (petroleum), hydrotreated heavy paraffinic; CAS 64742-54-7)
 - SAM candidates: **Group I SN 150, SN 500, SN 650** (SN 350 is not an ORLEN grade — see gap list below)
-- Match basis: **Exact** — same grade names (SN 150 / SN 500 / SN 650), same product family (Group I paraffinic solvent-neutral base oils), from an actual refiner rather than a trader.
+- Match basis: **Exact** — same grade names (SN 150 / SN 500 / SN 650), same base-oil grade class (Group I paraffinic solvent-neutral), from an actual refiner rather than a trader.
 - Typical values:
   - SN 150: KV40 28.8–33.5 mm²/s, KV100 5.0–5.5 mm²/s, VI ≥95, pour point ≤−12°C, flash point (open) ≥210°C, Noack ≤18.5%, Conradson carbon ≤0.03%, ash ≤0.005%, BN ≤0.05 mg KOH/g, sulfur 0.55%, colour ≤1.
   - SN 500: KV40 ≥95 mm²/s, KV100 10.5–12 mm²/s, VI ≥90, pour point ≤−9°C, flash point ≥220°C, Conradson carbon ≤0.08%, ash ≤0.01%, BN ≤0.05 mg KOH/g, sulfur 0.84%, colour ≤2.5.
@@ -410,28 +443,99 @@ rejected).
 8. **Polyalkylene Glycol (PAG).** Dow and BASF were confirmed as official PAG base-fluid producers, and Dow's UCON product line was identified as a plausible corroboration point, but no numeric typical-properties table was retrieved before this pass's time budget closed (the product page did not carry inline data; the dedicated TDS PDF link was not resolved).
 9. **Naphthenic base oils.** No SAM catalogue record uses this name — `PRODUCT_RESEARCH_REGISTER.json` contains no naphthenic-family product. No research was performed, correctly, per the instruction to research only grades actually represented in the SAM catalogue.
 
-## 12. Reassessment — how many SAM grades now have a complete, exact external baseline
+## 12. Reassessment — how many grade-level technical baselines now have a complete, exact external match
 
 Counting only rows marked **Exact** in §2–§4 (Phase 1) and §9 (Phase 2) above, with a full or
-near-full property table and an unambiguous product/grade identity match:
+near-full property table and an unambiguous catalog product/grade identity match. Terminology
+corrected 5 September 2026 (see the Terminology section near the top of this document): these are
+**18 grade-level technical baselines**, not "18 SAM products" and not, uniformly, "18 SAM grades" —
+fourteen name a real, existing catalog product record; four name a grade that has **no catalog
+record of any kind yet**, because the `base-oils` Product Family currently holds zero `Product`
+rows in `sam_platform`. That distinction did not exist in the version of this section written
+during Phase 2 and is the specific correction this pass makes.
 
-**Exact, usable as numeric-baseline candidates (pending the existing technical-review workflow):**
+**Exact, usable as numeric-baseline candidates (pending the existing technical-review workflow) —
+14 name an existing catalog product record:**
 CI4 Grade, CD Grade, CJ4 Grade, the motorcycle-range SG Grade, GL-4 Grade, GL-5 Grade, ATF Grade,
-Compressor oil -VB, Heat Transfer oil, Turbine Oil, Circulating Oil, Quenching oil, Base Oil Group I
-SN 150, SN 500, SN 650, Bright Stock BS 150, Trunk Oil, TWO-Stroke Engine Oil — **18 SAM grades**.
+Compressor oil -VB, Heat Transfer oil, Turbine oil, Circulating oil, Quenching oil, trunk oil,
+TWO-Stroke Engine Oil — each of these fourteen is the verbatim `Product.name` of a real row in
+`sam_platform`'s `engine-oils-automotive-lubricants`, `industrial-oils-lubricants` or
+`marine-oils-lubricants` family today (verified directly against the database for this
+correction). Several already carry their own `ProductGrade` children (e.g. Turbine oil: 7 grades;
+Compressor oil -VB: 6 grades) that a candidate value would need to be matched to a specific one of,
+or recorded as Product-level, during technical review — this document does not make that
+assignment.
 
-**Classification-only or partial (corroborates vocabulary/method, not yet an exact numeric candidate):**
-CH-4 Grade (via the CI-4/SL document), hydraulic HL Grade, the motorcycle-range SL-adjacent record,
-Polyalphaolefin (PAO, grade unconfirmed) — **4 grades**.
+**Exact, but with NO catalog record to attach them to — 4 of the 18:**
+Base Oil Group I SN 150, SN 500, SN 650, and Bright Stock BS 150. `base-oils` is a real Product
+Family (its `Category` row exists, and its public family page is already reachable) — it simply has
+no `Product` row for any grade yet. These four remain genuinely exact, usable external baselines,
+but they describe grades SAM's catalog does not yet contain as a record, so no technical review can
+attach a Specification to them until a catalog product record exists for at least one Base Oil
+grade. This is a catalog-identity gap, not a review-status gap, and it is materially different from
+every other item in this section — resolving it is a Products/catalog decision, outside a Products
+technical-data research pass, and is not something this document proposes or performs.
 
-**Still genuinely open, no external baseline:** CH-4 (as its own dedicated grade), plain API SN,
-Locomotive Oil, GL-3, GL-I is resolved as terminology but still has no numeric baseline of its own
-distinct from GL-4/GL-5, hydraulic HH, Grease Based on Calcium (hydrated), Special Trunk Oil, Super
-Trunk Oil, LENJ oil, Lubricant Additives (all grades), Polyalkylene Glycol (PAG), SN 350 — **12+
-grades**.
+**Classification-only or partial (corroborates vocabulary/method, not yet an exact numeric
+candidate) — 4 grades, all under existing catalog product records:**
+CH-4 Grade (via the CI-4/SL document), hydraulic oil- HL Grade, the motorcycle-range SL-adjacent
+record, Polyalphaolefin (PAO, grade unconfirmed).
 
-This is a real improvement over Phase 1, but the majority of SAM's 100-product catalogue still has no
-external corroboration of any kind from this workstream — that was never this workstream's purpose.
+**Still genuinely open, no external baseline — 12 grades, all under existing catalog product
+records except where noted:** CH-4 (as its own dedicated grade), plain API SN, locomotive Oil
+(filed under Engine Oils & Automotive Lubricants, not its own family), GL-3, GL-I is resolved as
+terminology but still has no numeric baseline of its own distinct from GL-4/GL-5, hydraulic Oil- HH
+Grade, Grease Based on Calcium (hydrated), special trunk oil, super trunk oil, LENJ oil, Lubricant
+Additives (all fifteen catalog product records in that family), Polyalkylene Glycol (PAG). SN 350
+is removed from this list: like the other three Base Oil Group I grades above, it has no catalog
+record to be "open" against — it belongs in the preceding paragraph's four, not here, and its
+omission from that paragraph in an earlier draft of this section was itself part of the error this
+correction fixes.
+
+This is a real improvement over Phase 1, but the majority of SAM's 100 catalog product records still
+have no external corroboration of any kind from this workstream — that was never this workstream's
+purpose.
+
+## 13. Corrected family/catalog mapping (owner information-architecture correction, 5 September 2026)
+
+Verified directly against `sam_platform` for this correction. Counts are catalog product records
+(`Product` rows) and Grade/variant rows (`ProductGrade`), not technical-data coverage — see §12 for
+which of the 18 grade-level baselines fall under which family.
+
+| Product Family (`Category`)         | slug                                | Catalog product records | Grade/variant rows | Note                                                                                                                                                                                                          |
+| ----------------------------------- | ----------------------------------- | ----------------------: | -----------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base Oils                           | `base-oils`                         |                   **0** |                  0 | Family exists and its public page is reachable; no catalog product record has been created for any Base Oil grade yet. The four Base Oil Group I / Bright Stock baselines in §12 have no record to attach to. |
+| Lubricant Additives & Components    | `lubricant-additives`               |                      15 |                  0 | No catalog product record in this family currently has a `ProductGrade` child — see §11 item 7 on treat rates.                                                                                                |
+| Engine Oils & Automotive Lubricants | `engine-oils-automotive-lubricants` |                      45 |                 30 | Includes `locomotive Oil` (§12's "Locomotive Oil" gap sits here, not in its own family).                                                                                                                      |
+| Industrial Oils & Lubricants        | `industrial-oils-lubricants`        |                      26 |                 79 | Includes Turbine oil, Circulating oil, Compressor oil -VB, Grease Based on Calcium, both Hydraulic Oil grades.                                                                                                |
+| Marine Oils & Lubricants            | `marine-oils-lubricants`            |                      12 |                 25 | Also holds the GL-3/GL-4/GL-5/GL-I gear-oil grades and ATF — filed here per SAM's own catalog structure, not because the grade chemistry is marine-specific (§2's note).                                      |
+| Antifreeze & Coolants               | `antifreeze-coolants`               |                       2 |                  0 | Unrelated to this workbook pass — retains the existing BASF GLYSANTIN-based record per the owner's earlier instruction.                                                                                       |
+| **Total**                           |                                     |                 **100** |            **134** | 44 of the 100 catalog product records have 1+ Grade rows; the remaining 56 carry their one distinguishing grade in the record's own name (e.g. "CF-4 15W-40") with no `ProductGrade` children.                |
+
+**How the existing Product Detail routes already fit beneath these six families**, unchanged by
+this document: the public Products Overview links to each Product Family's page at
+`/{locale}/products/{family-slug}`; that page's existing "Published products" section already
+calls `GET /products?category={family-slug}` and renders one card per real catalog product record,
+each linking to that record's own canonical `/{locale}/products/{product-slug}` — the same flat
+Product Detail route this workstream's structured-data foundation already serves. A family with
+zero catalog product records (Base Oils, today) does not fail or 404; that one section is silently
+omitted while the rest of the family page — hero, taxonomy, quality, FAQ — renders exactly as it
+does for every other family, because this behaviour already existed before this document and was
+not built for this correction. Within one Product Detail page, a Grade-bearing catalog product
+record's Specification rows already carry a `grade` facet (added by the structured-data-foundation
+gate) distinguishing which Grade each row belongs to — so, for example, Turbine oil's page can show
+ISO VG 32/46/68/100 as separate rows in one Specifications table today.
+
+**What this correction found that is not yet built, reported as a Finding rather than implemented
+here** (no code, staging, commit, migration, import or publication is authorized by this pass):
+the public API has no field enumerating a catalog product record's `ProductGrade` rows independent
+of whether each has an approved Specification — a Grade with zero approved facts is invisible
+today, not shown with an under-review marker, because nothing on the wire names it. Satisfying the
+owner's requirement to "show `Technical data is under review.` only for the specific grade whose
+dataset is incomplete" for a product that has SOME but not all grades approved would need a new
+public field or endpoint exposing Grade identity (label, `gradeSystem`) independently of
+Specification approval status. That is a real, scoped gap — distinct from the Base Oils
+catalog-identity gap above — and is reported here for the owner's decision, not acted on.
 External sources corroborate generic classification and typical-value ranges; they do not, and
 cannot, establish what SAM's own products actually measure. SAM's own TDS/COA evidence, run through
 the existing `SourceDocument` → `SourceFact` → `Specification` → `TechnicalReview` pipeline, remains
