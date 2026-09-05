@@ -30,7 +30,9 @@ export type {
   ProductImageResponse,
   ProductListItemResponse,
   ProductSegmentResponse,
+  ProductSpecificationGradeResponse,
   ProductSpecificationResponse,
+  ProductSpecificationValueType,
   ProductTypeResponse,
 } from "./catalog";
 export type {

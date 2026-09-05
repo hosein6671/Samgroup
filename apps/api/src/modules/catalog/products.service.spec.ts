@@ -63,11 +63,116 @@ const DETAIL_ROW = {
   productType: PRODUCT_TYPE,
   // Prisma returns the join rows already ordered; the mock hands back what that read would.
   segments: [{ segment: INDUSTRIAL }, { segment: MARINE }],
+  // The raw shape `PUBLIC_SPECIFICATION_SELECT` reads off `Specification` — what Prisma would
+  // actually return, not the wire shape `toSpecificationResponse` produces from it. spec-1 is a
+  // legacy row (every ADR-014 column at its default); spec-2 is a Grade-level POINT fact with a
+  // method; spec-3 is a RANGE fact carrying a qualifier (test condition) and both numeric bounds
+  // — every additive column exercised by at least one row.
   specifications: [
-    { id: "spec-1", key: "Viscosity Index", value: "95", unit: null },
-    { id: "spec-2", key: "Flash Point", value: "230", unit: "°C" },
+    {
+      id: "spec-1",
+      key: "Viscosity Index",
+      value: "95",
+      displayValue: null,
+      unit: null,
+      method: null,
+      qualifier: null,
+      resultBasis: "UNSPECIFIED",
+      valueType: null,
+      numericMin: null,
+      numericMax: null,
+      pairFirst: null,
+      pairSecond: null,
+      productGrade: null,
+    },
+    {
+      id: "spec-2",
+      key: "Flash Point",
+      value: "230",
+      displayValue: "230 (typical)",
+      unit: "°C",
+      method: "ASTM D92",
+      qualifier: null,
+      resultBasis: "TYPICAL",
+      valueType: "POINT",
+      numericMin: "230",
+      numericMax: null,
+      pairFirst: null,
+      pairSecond: null,
+      productGrade: { label: "SAE 15W-40", gradeSystem: "SAE" },
+    },
+    {
+      id: "spec-3",
+      key: "Kinematic viscosity",
+      value: "legacy-230",
+      displayValue: "28.8 – 33.5 mm²/s",
+      unit: "mm²/s",
+      method: "ASTM D445",
+      qualifier: "After shear, 30 cycles (ASTM D6278)",
+      resultBasis: "SPECIFICATION_LIMIT",
+      valueType: "RANGE",
+      numericMin: "28.8",
+      numericMax: "33.5",
+      pairFirst: null,
+      pairSecond: null,
+      productGrade: null,
+    },
   ],
 };
+
+/**
+ * What `toSpecificationResponse` turns `DETAIL_ROW.specifications` into — the wire shape both
+ * `findBySlug` and `findSpecificationsBySlug` are asserted against. `spec-1`'s `value` is
+ * unchanged (no `displayValue` to prefer); `spec-2` and `spec-3`'s are the normalized string, not
+ * the legacy one; every enum is lowercased and every decimal is a string, never a JS number.
+ */
+const EXPECTED_SPECIFICATIONS = [
+  {
+    id: "spec-1",
+    key: "Viscosity Index",
+    value: "95",
+    unit: null,
+    method: null,
+    qualifier: null,
+    resultBasis: "unspecified",
+    valueType: null,
+    numericMin: null,
+    numericMax: null,
+    pairFirst: null,
+    pairSecond: null,
+    grade: null,
+  },
+  {
+    id: "spec-2",
+    key: "Flash Point",
+    value: "230 (typical)",
+    unit: "°C",
+    method: "ASTM D92",
+    qualifier: null,
+    resultBasis: "typical",
+    valueType: "point",
+    numericMin: "230",
+    numericMax: null,
+    pairFirst: null,
+    pairSecond: null,
+    grade: { label: "SAE 15W-40", gradeSystem: "sae" },
+  },
+  {
+    id: "spec-3",
+    key: "Kinematic viscosity",
+    value: "28.8 – 33.5 mm²/s",
+    unit: "mm²/s",
+    method: "ASTM D445",
+    qualifier: "After shear, 30 cycles (ASTM D6278)",
+    resultBasis: "specification_limit",
+    valueType: "range",
+    numericMin: "28.8",
+    numericMax: "33.5",
+    pairFirst: null,
+    pairSecond: null,
+    grade: null,
+  },
+];
 
 /** Whatever SeoService returns is opaque here — its own spec covers how it is composed. */
 const SEO: SeoFields = {
@@ -858,7 +963,7 @@ describe("ProductsService.findBySlug", () => {
     const result = await service.findBySlug("sn-500", EN);
 
     expect(result.product.category).toEqual(CATEGORY);
-    expect(result.product.specifications).toEqual(DETAIL_ROW.specifications);
+    expect(result.product.specifications).toEqual(EXPECTED_SPECIFICATIONS);
     expect(result.product.images).toEqual([
       { id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" },
     ]);
@@ -1143,7 +1248,7 @@ describe("ProductsService.findBySlug — taxonomy", () => {
         { name: "Marine", slug: "marine" },
       ],
       productType: { name: "Base Oil", slug: "base-oil" },
-      specifications: DETAIL_ROW.specifications,
+      specifications: EXPECTED_SPECIFICATIONS,
       images: [{ id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" }],
       seo: SEO,
     });
@@ -1296,9 +1401,24 @@ describe("ProductsService.findSpecificationsBySlug", () => {
       // exists to prevent.
       where: { productId: PRODUCT_ROW.id, reviewStatus: "APPROVED", deletedAt: null },
       orderBy: [{ key: "asc" }, { value: "asc" }],
-      select: { id: true, key: true, value: true, unit: true },
+      select: {
+        id: true,
+        key: true,
+        value: true,
+        displayValue: true,
+        unit: true,
+        method: true,
+        qualifier: true,
+        resultBasis: true,
+        valueType: true,
+        numericMin: true,
+        numericMax: true,
+        pairFirst: true,
+        pairSecond: true,
+        productGrade: { select: { label: true, gradeSystem: true } },
+      },
     });
-    expect(result).toEqual(DETAIL_ROW.specifications);
+    expect(result).toEqual(EXPECTED_SPECIFICATIONS);
   });
 
   it("resolves a locale-specific slug the same way the detail endpoint does", async () => {

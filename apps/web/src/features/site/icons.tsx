@@ -9,6 +9,7 @@ import {
   Download,
   Droplet,
   Factory,
+  FileSearch,
   Filter,
   FlaskConical,
   Gauge,
@@ -268,4 +269,19 @@ export function PartnershipIcon(props: IconProps = {}): ReactNode {
  */
 export function DisclosureCaretIcon(props: IconProps = {}): ReactNode {
   return <ChevronDown className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/* --------------------------------------------------- product detail, technical data */
+
+/**
+ * A product whose technical dataset has not been published yet — Product Detail's
+ * specifications section, in place of the table when `specifications` is empty.
+ *
+ * A document under examination, not a warning: the state means "not published yet", not "this
+ * product is broken" or "the API failed", so it draws from the same neutral, non-alarming
+ * register as `QualityIcon`'s clipboard rather than `TriangleAlert`/`ShieldAlert` (the forms'
+ * failure glyphs, a different feature and a different meaning) or `CircleAlert`.
+ */
+export function TechnicalDataPendingIcon(props: IconProps = {}): ReactNode {
+  return <FileSearch className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
 }

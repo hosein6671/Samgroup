@@ -33,12 +33,12 @@ import type { ProductDetailResponse } from "@sam-group/types";
  * or packaging claim. This lets every Product page answer the buyer's next question without
  * disguising unpublished technical data as fact.
  *
- * ── Both optional sections are gated on real content ────────────────────────
+ * ── Specifications always renders; the gallery is gated on real content ─────
  *
- * `specifications.length > 0` and `images.length > 0`, checked here rather than inside each
- * section, so the decision to render a section and the decision about what a section says are not
- * split across two files. Neither section has an empty state, because neither should ever be asked
- * to draw one.
+ * `ProductSpecifications` is unconditional: an empty `specifications` array is itself a real,
+ * distinct state — "no technical dataset published yet" — and the component draws that state
+ * itself (see its own doc comment). The gallery has no equivalent claim to make about an empty
+ * `images` array, so it keeps the `images.length > 0` gate and no empty state.
  *
  * ── The closing CTA is shared, and appropriate here ─────────────────────────
  *
@@ -86,9 +86,7 @@ export function ProductDetailTemplate({
 
         <ProductSelectionGuide editorial={editorial} />
 
-        {product.specifications.length > 0 && (
-          <ProductSpecifications specifications={product.specifications} />
-        )}
+        <ProductSpecifications specifications={product.specifications} />
 
         {product.images.length > 0 && (
           <ProductGallery images={product.images} productName={product.name} />

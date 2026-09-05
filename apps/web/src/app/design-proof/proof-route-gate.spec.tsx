@@ -75,6 +75,7 @@ import IndustrialOilsProofPage from "./products/industrial-oils-lubricants/page"
 import LubricantAdditivesProofPage from "./products/lubricant-additives/page";
 import MarineOilsProofPage from "./products/marine-oils-lubricants/page";
 import ProductsProofPage from "./products/page";
+import TechnicalDataPreviewPage from "./products/technical-data-preview/page";
 import QualityCertificationsProofPage from "./quality-certifications/page";
 
 /** The five gated routes: the page, and the canonical URL production must send it to. */
@@ -153,6 +154,32 @@ describe("the CMS proof route", () => {
 
     await expect(CmsProofPage({ params: params() })).resolves.toBeDefined();
     expect(getActiveLocales).toHaveBeenCalled();
+  });
+});
+
+describe("the technical-data-preview route", () => {
+  /*
+   * No canonical target exists for this route — it is not a duplicate of any real page, unlike
+   * every route above. So it is 404-gated like `cms-proof`, not redirect-gated like the five
+   * `PROOF_CANONICAL_TARGETS` routes, and its gate is `isProductionRuntime()` called by hand in
+   * the page itself rather than a shared `gateProofRouteForProduction` entry (see the page's own
+   * header comment for why widening that shared table was rejected).
+   */
+  it("answers 404 in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    expect(() => TechnicalDataPreviewPage()).toThrow(NotFoundSignal);
+    expect(() => TechnicalDataPreviewPage()).not.toThrow(RedirectSignal);
+  });
+
+  it.each(["development", "test"])("still renders in %s, reaching no API", (nodeEnv) => {
+    vi.stubEnv("NODE_ENV", nodeEnv);
+
+    expect(() => TechnicalDataPreviewPage()).not.toThrow();
+    // The page's own fixtures are the point — it calls neither of the two upstream reads every
+    // other proof route above depends on.
+    expect(getActiveLocales).not.toHaveBeenCalled();
+    expect(contentFetch).not.toHaveBeenCalled();
   });
 });
 

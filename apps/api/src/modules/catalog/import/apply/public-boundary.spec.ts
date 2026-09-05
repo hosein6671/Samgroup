@@ -46,6 +46,14 @@ const EN: ResolvedLocale = { code: "en", defaultCode: "en", isDefault: true };
 /**
  * Every word that would mean the technical catalogue had leaked. Checked as SUBSTRINGS of the
  * serialized response, so a nested object, a spread or a renamed wrapper cannot hide one.
+ *
+ * `resultBasis`/`result_basis` is deliberately NOT in this list. It read that way when this file
+ * was written, because PRODUCT-DATA-2C-B2A exposed nothing beyond the original four fields — but
+ * `v_specification_public`'s own column list (migration `20260822120000_add_catalog_technical_data`)
+ * has always named `result_basis` as part of the ADR-014 public allow-list, alongside `method`
+ * and `qualifier`, which this file's list correctly never forbade. A later gate reads the rest of
+ * that allow-list; this comment records that the removal is a correction to a stale entry, not a
+ * boundary this gate is loosening.
  */
 const FORBIDDEN_KEYS: readonly string[] = [
   "sourceRef",
@@ -71,8 +79,6 @@ const FORBIDDEN_KEYS: readonly string[] = [
   "raw_value",
   "extractionMethod",
   "extraction_method",
-  "resultBasis",
-  "result_basis",
   "confidence",
   "propertyKey",
   "property_key",
@@ -171,11 +177,25 @@ suite("the public Product endpoints over the imported catalogue", () => {
   );
 
   it(
-    "returns the specification shape the contract already ships and nothing wider",
+    "returns the specification shape at the ADR-014 allow-list and nothing wider",
     async () => {
       const detail = await products.findBySlug(sampleSlug, EN);
       for (const specification of detail.product.specifications) {
-        expect(Object.keys(specification).sort()).toEqual(["id", "key", "unit", "value"]);
+        expect(Object.keys(specification).sort()).toEqual([
+          "grade",
+          "id",
+          "key",
+          "method",
+          "numericMax",
+          "numericMin",
+          "pairFirst",
+          "pairSecond",
+          "qualifier",
+          "resultBasis",
+          "unit",
+          "value",
+          "valueType",
+        ]);
       }
     },
     TIMEOUT_MS,

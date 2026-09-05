@@ -391,8 +391,24 @@
    ============================================================================ */
 
 /*
+ * Contrast correction, local to this component only.
+ *
+ * `--color-text-tertiary` resolves to `#6b7689` on this surface (flagship-conformance.spec.ts
+ * pins it), which measures 4.40:1 against this section's `--fs-paper` background at the 12px
+ * technical size every rule below renders at — under the 4.5:1 AA floor for normal text
+ * (AI_RULES.md's accessibility gate; ADR-022 §4.3). `--color-text-secondary` resolves to
+ * `#5a667c`, measures 5.55:1 on the same background, and is already this file's own token for
+ * `.pd-table tbody td` two rules below — so every technical-register label in this component
+ * now reads from the same token that data cell already used, rather than from a second one that
+ * happened to fail here. No token DEFINITION changes — `flagship.css` is untouched — only which
+ * of the two existing text tokens this component's own rules reference.
+ */
+
+/*
  * The wrapper scrolls, not the page. A specification table can carry long property names, and a
  * page that scrolls sideways as a whole is broken on a phone in a way a scrolling table is not.
+ * Below 900px this table is not rendered at all — see NARROW — so this remains an escape hatch
+ * for a pathologically long value on desktop, not the mechanism a phone depends on.
  */
 .pd-table-wrap {
   overflow-x: auto;
@@ -416,13 +432,13 @@
   line-height: var(--fs-text-technical--line-height);
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border-hairline);
 }
 
 .pd-table th,
 .pd-table td {
-  padding: 13px 18px;
+  padding: 13px 16px;
   text-align: start;
   vertical-align: top;
   border-bottom: 1px solid var(--color-border-hairline);
@@ -440,7 +456,8 @@
   font-weight: 500;
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 .pd-table tbody th {
@@ -452,16 +469,143 @@
   color: var(--color-text-secondary);
 }
 
-/* The unit rides beside the value rather than in a column of its own — a column would be empty
- * for every unitless property, which is the same "blank that means nothing" the category page's
- * property groups exist to avoid. */
+/* Grade/Basis/Method/Condition are real, independent columns (see the <thead> in
+ * specifications.tsx) — Value and Unit are the one pairing this page combines visually, because
+ * their semantic relationship (a number and what it is measured in) stays explicit as one
+ * reading. */
 .pd-unit {
   margin-inline-start: 6px;
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   letter-spacing: var(--fs-text-technical--letter-spacing);
   line-height: var(--fs-text-technical--line-height);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
+}
+
+/* A value's shape — Range/Minimum/Maximum/Paired reading — read off `valueType`, never off the
+ * printed string. Absent for a plain single reading, which needs no badge. */
+.pd-value-shape {
+  display: inline-block;
+  margin-inline-end: 8px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-hairline);
+}
+
+/*
+ * A field this row has nothing to say for — Grade on a Product-level fact, Method or Condition
+ * the source never recorded. Mirrors the Product Family property grid's own `[data-pending]`
+ * convention (category.css) rather than inventing a second one: a decorative hairline rule
+ * (exempt from text-contrast rules — WCAG 1.4.11 only reaches content required for
+ * understanding, and the real content here is the `VisuallyHidden` text a screen reader
+ * announces instead of meeting a silent empty cell) plus real, focusable-free accessible text.
+ * "Not applicable" rather than "Not published": nothing here is pending future data, the field
+ * simply does not apply to this row.
+ */
+.pd-table td[data-empty="true"]::before,
+.pd-spec-card dd[data-empty="true"]::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 1px;
+  margin-block-start: 6px;
+  background: var(--color-text-secondary);
+  opacity: 0.45;
+}
+
+/*
+ * The empty state — a product exists, its dataset does not, yet. One quiet line, not a table with
+ * nothing in it: no border, no card chrome, nothing that could read as a data region waiting to
+ * fill in. `TechnicalDataPendingIcon` is `aria-hidden` (see icons.tsx's shared `HIDDEN` spread), so
+ * the accessible name of this paragraph is exactly its text.
+ */
+.pd-specs-pending {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  line-height: var(--fs-text-technical--line-height);
+  text-transform: uppercase;
+}
+
+/* ============================================================================
+   SPECIFICATIONS — NARROW, ACCESSIBLE CARD RECORDS
+   ============================================================================
+
+   Below 900px `.pd-table-wrap` is not rendered (see NARROW) and this list is, from the same
+   `specifications` array. Two separate markups from one prop, never one table reflowed by CSS:
+   changing a table's `display` away from table/row/cell is what breaks its row/column
+   associations for assistive technology in most browsers, so the desktop table keeps real table
+   semantics and the phone reader gets a genuinely different, genuinely labelled structure
+   instead of the same table squeezed sideways. `display: none` removes whichever one is not the
+   current breakpoint from the accessibility tree, so nothing is ever announced twice.
+*/
+
+.pd-spec-cards {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pd-spec-card {
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.pd-spec-card dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.pd-spec-row + .pd-spec-row {
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--color-border-hairline);
+}
+
+.pd-spec-row dt {
+  flex: 0 0 auto;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.pd-spec-row dd {
+  margin: 0;
+  text-align: end;
+  color: var(--color-text-secondary);
+}
+
+/* The Property row leads every card and carries the row's identity — set apart the way
+ * `<th scope="row">` sets a table row's header apart from its data cells. */
+.pd-spec-row--property dd {
+  font-family: var(--font-display);
+  font-size: var(--fs-text-body-sm);
+  color: var(--color-text-primary);
+  text-align: end;
 }
 
 /* ============================================================================
@@ -553,9 +697,14 @@
     max-width: none;
   }
 
-  .pd-table th,
-  .pd-table td {
-    padding: 12px 14px;
+  /* The card records replace the table outright below this width — see the comment at
+     `.pd-spec-cards`'s definition for why this is two markups, not one reflowed. */
+  .pd-table-wrap {
+    display: none;
+  }
+
+  .pd-spec-cards {
+    display: flex;
   }
 
   .pd-gallery-grid {

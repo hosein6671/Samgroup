@@ -85,16 +85,52 @@ export type ProductTypeResponse = {
 };
 
 /**
+ * A Specification's grade facet, when the fact belongs to one grade of the product rather than
+ * to the product as a whole. `label` is the source's exact wording, verbatim. `gradeSystem` is
+ * null when the label has not been safely classified against `sae`/`iso_vg`/`nlgi` yet.
+ */
+export type ProductSpecificationGradeResponse = {
+  label: string;
+  gradeSystem: "sae" | "iso_vg" | "nlgi" | null;
+};
+
+/** The shape of a normalized value — never what the property is. Null on every legacy row. */
+export type ProductSpecificationValueType =
+  "point" | "range" | "minimum" | "maximum" | "text" | "report_only" | "code" | "pair";
+
+/**
  * One `Specification` row, returned verbatim.
  *
  * `Specification` is not one of the entity types `content_translations` covers, so there is no
- * translated form — these three values read the same in every locale.
+ * translated form — these values read the same in every locale.
+ *
+ * `value` is always the correct printed text (the `specifications_normalized_complete` CHECK
+ * guarantees a non-empty `displayValue` on every typed row) — a caller never reconstructs one
+ * from the numeric fields below. Those exist so a caller can distinguish WHAT KIND of value a
+ * row is — a single reading, a floor, a ceiling, a range, or a coupled pair — never to re-derive
+ * its text. `numericMin`/`numericMax`/`pairFirst`/`pairSecond` are decimal strings, never
+ * JavaScript numbers: `numeric(20,6)` does not fit in a double.
+ *
+ * `method`, `qualifier` and `resultBasis` mirror the API's own `v_specification_public`
+ * allow-list. `qualifier` is the test CONDITION a numeric column cannot express — distinct from
+ * `method`, and never merged into it. `resultBasis` is never null — the column defaults to
+ * `unspecified` rather than imply a claim the source never made. `grade` is null for a
+ * Product-level fact.
  */
 export type ProductSpecificationResponse = {
   id: string;
   key: string;
   value: string;
   unit: string | null;
+  method: string | null;
+  qualifier: string | null;
+  resultBasis: "average" | "typical" | "specification_limit" | "measured" | "unspecified";
+  valueType: ProductSpecificationValueType | null;
+  numericMin: string | null;
+  numericMax: string | null;
+  pairFirst: string | null;
+  pairSecond: string | null;
+  grade: ProductSpecificationGradeResponse | null;
 };
 
 /**

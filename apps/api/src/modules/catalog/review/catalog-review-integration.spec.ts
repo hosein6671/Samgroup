@@ -1331,14 +1331,30 @@ suite("the catalog review service over the imported catalogue", () => {
       TIMEOUT_MS,
     );
 
-    /** The curated legacy DTO, unchanged by this gate: four fields and no internal one. */
+    /** The curated public DTO — the ADR-014 allow-list `v_specification_public` already covers,
+     * grade/method/qualifier/resultBasis/valueType/numericMin/numericMax/pairFirst/pairSecond
+     * added alongside the original four — and no internal one. */
     it(
       "leaks no internal field through the public response",
       async () => {
         const { product } = await products.findBySlug(productSlug, EN);
         const specification = product.specifications[0];
 
-        expect(Object.keys(specification ?? {}).sort()).toEqual(["id", "key", "unit", "value"]);
+        expect(Object.keys(specification ?? {}).sort()).toEqual([
+          "grade",
+          "id",
+          "key",
+          "method",
+          "numericMax",
+          "numericMin",
+          "pairFirst",
+          "pairSecond",
+          "qualifier",
+          "resultBasis",
+          "unit",
+          "value",
+          "valueType",
+        ]);
 
         const serialized = JSON.stringify(product);
         for (const forbidden of FORBIDDEN_PUBLIC_KEYS) {

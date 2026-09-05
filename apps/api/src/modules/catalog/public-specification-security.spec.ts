@@ -37,6 +37,7 @@ import {
   readDatabaseConfig,
   withDisposableClient,
 } from "./import/apply/__tests__/disposable-database";
+import { databaseNameOf } from "./import/apply/disposable-harness";
 import { ProductsService } from "./products.service";
 
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
@@ -69,11 +70,57 @@ interface ProbeSpec {
   readonly grade: boolean;
   /** Whether a public response is allowed to contain it. */
   readonly public: boolean;
+  /**
+   * Set only on `probe_typed_range`. A normalized RANGE fact with a qualifier (test condition),
+   * proving the additive ADR-014 columns — `qualifier`/`valueType`/`numericMin`/`numericMax` —
+   * reach the public response and not just the four columns this suite already covered.
+   */
+  readonly typed?: {
+    readonly displayValue: string;
+    readonly qualifier: string;
+    readonly numericMin: string;
+    readonly numericMax: string;
+  };
+  /**
+   * Set only on `probe_verbatim_casing`. A `method` the fixture writes in mixed case with
+   * embedded punctuation — the shape a real test-method citation actually has — to prove the
+   * public response prints it exactly, rather than folding it through the same `.toLowerCase()`
+   * the response applies to `resultBasis`/`valueType`/`grade.gradeSystem`. Those three are
+   * database enum values with a fixed, closed vocabulary; `method` is free text a reviewer
+   * transcribed, and lowercasing it would silently corrupt a real citation like "ASTM D445".
+   */
+  readonly method?: string;
+  /** Also set only on `probe_verbatim_casing` — a non-default `ResultBasis`, to prove the enum
+   * comes back lowercased rather than merely happening to already be lowercase (the column's own
+   * `UNSPECIFIED` default every other probe relies on is lowercase either way). */
+  readonly resultBasis?: string;
 }
 
 const PROBE_SPECS: readonly ProbeSpec[] = [
   { key: "probe_public_product", status: "approved", deleted: false, grade: false, public: true },
   { key: "probe_public_grade", status: "approved", deleted: false, grade: true, public: true },
+  {
+    key: "probe_typed_range",
+    status: "approved",
+    deleted: false,
+    grade: false,
+    public: true,
+    typed: {
+      displayValue: "28.8 – 33.5 mm²/s",
+      qualifier: "After shear, 30 cycles (ASTM D6278)",
+      numericMin: "28.8",
+      numericMax: "33.5",
+    },
+  },
+  {
+    key: "probe_verbatim_casing",
+    status: "approved",
+    deleted: false,
+    grade: false,
+    public: true,
+    method: "ASTM D445 (Method B, Annex C)",
+    resultBasis: "AVERAGE",
+  },
   {
     key: "probe_source_recorded",
     status: "source_recorded",
@@ -118,6 +165,7 @@ suite("public Specification exposure", () => {
     await withDisposableClient(url, async (client) => {
       const productId = randomUUID();
       const gradeId = randomUUID();
+      const categoryId = randomUUID();
       // Ids are generated here rather than by the database, because the approval
       // path below has to name each subject in its TechnicalReview.
       const specIdByKey = new Map<string, string>();
@@ -127,11 +175,26 @@ suite("public Specification exposure", () => {
       );
       productsBeforeProbe = Number(baseline[0]?.n ?? 0);
 
+      // The probe's own Category, rather than `ORDER BY slug LIMIT 1` against whatever the
+      // template happens to hold. A demo-seeded or imported template always has one; a
+      // genuinely clean database built from nothing but this repository's migrations has zero
+      // Category rows, and a `LIMIT 1` against an empty table silently inserts NO product at
+      // all rather than failing loudly — every assertion below would then fail on a foreign-key
+      // violation with no connection back to "the template has no categories". Owning this row
+      // makes the fixture self-sufficient on any database that has at least run the migrations.
       await client.$executeRawUnsafe(
-        `INSERT INTO products (id, name, slug, category_id)
-         SELECT $1::uuid, 'ZZ Public Spec Probe', $2, id FROM categories ORDER BY slug LIMIT 1`,
+        `INSERT INTO categories (id, name, slug) VALUES ($1::uuid, $2, $3)`,
+        categoryId,
+        "Public Specification Probe (test fixture)",
+        `zz-public-spec-probe-category-${databaseNameOf(url)}`,
+      );
+
+      await client.$executeRawUnsafe(
+        `INSERT INTO products (id, name, slug, category_id) VALUES ($1::uuid, $2, $3, $4::uuid)`,
         productId,
+        "ZZ Public Spec Probe",
         PROBE_SLUG,
+        categoryId,
       );
       await client.$executeRawUnsafe(
         `INSERT INTO product_grades (id, product_id, label, sort_order)
@@ -171,17 +234,29 @@ suite("public Specification exposure", () => {
         const specId = randomUUID();
         specIdByKey.set(spec.key, specId);
 
-        // The legacy triple is what the public DTO serves, so that is what is asserted on.
+        // The legacy triple is what most probes exercise; `probe_typed_range` additionally sets
+        // the normalized columns, so this suite proves the additive fields end to end and not
+        // just the four columns it already covered.
         await client.$executeRawUnsafe(
           `INSERT INTO specifications
-             (id, product_id, product_grade_id, property_key, key, value, unit)
-           VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, 'cSt')`,
+             (id, product_id, product_grade_id, property_key, key, value, unit,
+              display_value, qualifier, value_type, numeric_min, numeric_max, method, result_basis)
+           VALUES ($1::uuid, $2::uuid, $3::uuid, $4, $5, $6, 'cSt',
+                   $7, $8, $9::spec_value_type, $10, $11, $12,
+                   COALESCE($13::result_basis, 'unspecified'::result_basis))`,
           specId,
           productId,
           spec.grade ? gradeId : null,
           spec.key,
           spec.key,
           `value-of-${spec.key}`,
+          spec.typed?.displayValue ?? null,
+          spec.typed?.qualifier ?? null,
+          spec.typed === undefined ? null : "range",
+          spec.typed?.numericMin ?? null,
+          spec.typed?.numericMax ?? null,
+          spec.method ?? null,
+          spec.resultBasis?.toLowerCase() ?? null,
         );
       }
 
@@ -260,7 +335,7 @@ suite("public Specification exposure", () => {
   }, TIMEOUT_MS);
 
   it(
-    "wrote all seven probe rows, so an empty response would mean the filter and not the fixture",
+    "wrote every probe row, so an empty response would mean the filter and not the fixture",
     async () => {
       const found = await withDisposableClient(url, (client) =>
         client.$queryRawUnsafe<{ n: bigint }[]>(
@@ -334,12 +409,105 @@ suite("public Specification exposure", () => {
   );
 
   it(
-    "keeps the DTO shape exactly as it shipped",
+    "keeps the DTO shape at the ADR-014 allow-list — nothing more, nothing less",
     async () => {
       const detail = await products.findBySlug(PROBE_SLUG, EN);
       for (const specification of detail.product.specifications) {
-        expect(Object.keys(specification).sort()).toEqual(["id", "key", "unit", "value"]);
+        expect(Object.keys(specification).sort()).toEqual([
+          "grade",
+          "id",
+          "key",
+          "method",
+          "numericMax",
+          "numericMin",
+          "pairFirst",
+          "pairSecond",
+          "qualifier",
+          "resultBasis",
+          "unit",
+          "value",
+          "valueType",
+        ]);
       }
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
+    "flattens the Grade-level probe's productGrade relation into `grade`, and leaves the Product-level probe's null",
+    async () => {
+      const detail = await products.findBySlug(PROBE_SLUG, EN);
+      const byKey = new Map(detail.product.specifications.map((row) => [row.key, row]));
+
+      expect(byKey.get("probe_public_grade")?.grade).toEqual({
+        label: "PROBE GRADE",
+        gradeSystem: null,
+      });
+      expect(byKey.get("probe_public_product")?.grade).toBeNull();
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
+    "serves the normalized RANGE probe's qualifier, valueType and numeric bounds as decimal strings",
+    async () => {
+      const detail = await products.findBySlug(PROBE_SLUG, EN);
+      const byKey = new Map(detail.product.specifications.map((row) => [row.key, row]));
+      const row = byKey.get("probe_typed_range");
+
+      // The normalized `displayValue` wins over the legacy `value` column, exactly as the
+      // Point-level probe already proves for `probe_public_grade`'s sibling in
+      // `products.service.spec.ts` — asserted again here against a REAL database round trip.
+      expect(row?.value).toBe("28.8 – 33.5 mm²/s");
+      expect(row?.qualifier).toBe("After shear, 30 cycles (ASTM D6278)");
+      expect(row?.valueType).toBe("range");
+      expect(row?.numericMin).toBe("28.8");
+      expect(row?.numericMax).toBe("33.5");
+      expect(row?.pairFirst).toBeNull();
+      expect(row?.pairSecond).toBeNull();
+      // A `Decimal` served as a JS number would round-trip through JSON as a number type, not a
+      // string — asserted directly, not merely implied by `toBe` above passing.
+      expect(typeof row?.numericMin).toBe("string");
+      expect(typeof row?.numericMax).toBe("string");
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
+    "prints method verbatim — mixed case and punctuation intact — while resultBasis stays lowercase",
+    async () => {
+      const detail = await products.findBySlug(PROBE_SLUG, EN);
+      const row = detail.product.specifications.find(
+        (specification) => specification.key === "probe_verbatim_casing",
+      );
+
+      // The fixture's own key, unit and value are written lowercase-safe strings, so a method
+      // this suite writes with real mixed case and punctuation is the one field that would
+      // actually catch an accidental `.toLowerCase()` reaching a free-text column.
+      expect(row?.method).toBe("ASTM D445 (Method B, Annex C)");
+      // `resultBasis` is a closed, four-value database enum — the one kind of field the public
+      // API's lowercase convention is meant to reach. The fixture writes it as the uppercase
+      // `TechnicalReviewStatus`/`ResultBasis` label the database itself uses; the response must
+      // still come back lowercased, never verbatim.
+      expect(row?.resultBasis).toBe("average");
+      expect(row?.resultBasis).toBe(row?.resultBasis?.toLowerCase());
+    },
+    TIMEOUT_MS,
+  );
+
+  it(
+    "returns identical specification shapes from the detail endpoint and the partial-refresh endpoint",
+    async () => {
+      // Not merely the same KEYS (already asserted above) — the same VALUES, field for field,
+      // for every one of the ADR-014 allow-list's thirteen fields, on the same live rows.
+      const detail = await products.findBySlug(PROBE_SLUG, EN);
+      const partial = await products.findSpecificationsBySlug(PROBE_SLUG, EN);
+
+      const sortById = <T extends { id: string }>(rows: readonly T[]): T[] =>
+        [...rows].sort((a, b) => a.id.localeCompare(b.id));
+
+      expect(sortById(partial)).toEqual(sortById(detail.product.specifications));
+      expect(partial.length).toBeGreaterThan(0);
     },
     TIMEOUT_MS,
   );

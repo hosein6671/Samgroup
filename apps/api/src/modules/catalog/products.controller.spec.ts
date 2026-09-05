@@ -21,7 +21,23 @@ const LIST_ITEM: ProductListItemResponse = {
   createdAt: "2026-01-15T09:30:00.000Z",
 };
 
-const SPECIFICATIONS = [{ id: "spec-1", key: "Viscosity Index", value: "95", unit: null }];
+const SPECIFICATIONS = [
+  {
+    id: "spec-1",
+    key: "Viscosity Index",
+    value: "95",
+    unit: null,
+    method: null,
+    qualifier: null,
+    resultBasis: "unspecified" as const,
+    valueType: null,
+    numericMin: null,
+    numericMax: null,
+    pairFirst: null,
+    pairSecond: null,
+    grade: null,
+  },
+];
 
 /** Opaque here — SeoService's own spec covers how a record is composed. */
 const SEO: SeoFields = {

@@ -108,6 +108,105 @@ const PUBLIC_SPECIFICATION_WHERE = {
   deletedAt: null,
 } as const satisfies Prisma.SpecificationWhereInput;
 
+/**
+ * Every column `GET /products/:slug` and the partial-refresh route are allowed to read off an
+ * approved `Specification` row — the same allow-list `v_specification_public` (ADR-014 §8)
+ * already enforces at the database, read here through the base table under
+ * `PUBLIC_SPECIFICATION_WHERE` rather than through the view itself, because Prisma has no model
+ * for a view and the `where` predicate above is the one the view encodes. Every field below is
+ * named in that view's own column list — nothing here widens the allow-list; this file is
+ * simply the first caller to read the rest of it.
+ *
+ * `displayValue`, `qualifier`, `valueType`, `numericMin`, `numericMax`, `pairFirst`, `pairSecond`
+ * and `productGrade` are the additions beyond what shipped originally (`id`/`key`/`value`/
+ * `unit`/`method`/`resultBasis`/grade). None is a new column — all have existed on
+ * `Specification` since ADR-014 — this is the first read path to select the rest of them.
+ * `propertyKey` and every provenance column (`reviewStatus`, timestamps, evidence, source) are
+ * deliberately absent, exactly as they are absent from the view: `SpecProperty.canonicalMeaning`
+ * is documented as "not a public label", so the internal dictionary key stays off the wire and
+ * `key` remains the only property label served, unchanged from what already ships. `sortOrder`
+ * is in the view but not selected here — this route already has a stable order from `orderBy`,
+ * and exposing a second, unused ordering hint would be a field with no caller.
+ */
+const PUBLIC_SPECIFICATION_SELECT = {
+  id: true,
+  key: true,
+  value: true,
+  displayValue: true,
+  unit: true,
+  method: true,
+  qualifier: true,
+  resultBasis: true,
+  valueType: true,
+  numericMin: true,
+  numericMax: true,
+  pairFirst: true,
+  pairSecond: true,
+  productGrade: { select: { label: true, gradeSystem: true } },
+} as const satisfies Prisma.SpecificationSelect;
+
+/** The raw shape `PUBLIC_SPECIFICATION_SELECT` produces, before `toSpecificationResponse`. */
+type PublicSpecificationRow = Prisma.SpecificationGetPayload<{
+  select: typeof PUBLIC_SPECIFICATION_SELECT;
+}>;
+
+/**
+ * A `Decimal` as text, never as a JavaScript number — `numeric(20,6)` does not fit in a double,
+ * and a specification limit that changes when it is round-tripped is not a limit. The same
+ * reasoning and the same shape as `catalog-review.service.ts`'s private `decimalString`; kept as
+ * its own copy here rather than imported, because that file is the Admin review surface and this
+ * one is the public catalog read path — two independent projections of the same column, which is
+ * also why each already shapes its own response type rather than sharing one.
+ */
+function decimalString(value: unknown): string | null {
+  return value === null || value === undefined ? null : String(value);
+}
+
+/**
+ * Resolves one raw `Specification` row into the wire shape — the one place `displayValue` is
+ * preferred over the legacy `value`, `productGrade` is flattened into `grade`, and every enum
+ * column is lowercased to match the wire convention `catalog-review.service.ts` already
+ * established for the same columns.
+ *
+ * `displayValue` is only ever set on a row a reviewer approved through the normalized path
+ * (ADR-014 §3); every legacy row has it `null`, so the fallback is not a special case, it is the
+ * only case that ever runs for data imported before this gate. The same CHECK
+ * (`specifications_normalized_complete`) that requires `displayValue` on a typed row is why
+ * `value` is never reconstructed from `numericMin`/`numericMax`/`pairFirst`/`pairSecond` here —
+ * `displayValue` is already guaranteed correct wherever those columns are non-null.
+ */
+function toSpecificationResponse(row: PublicSpecificationRow): ProductSpecificationResponse {
+  return {
+    id: row.id,
+    key: row.key,
+    value: row.displayValue ?? row.value,
+    unit: row.unit,
+    method: row.method,
+    qualifier: row.qualifier,
+    resultBasis: row.resultBasis.toLowerCase() as ProductSpecificationResponse["resultBasis"],
+    valueType:
+      row.valueType === null
+        ? null
+        : (row.valueType.toLowerCase() as ProductSpecificationResponse["valueType"]),
+    numericMin: decimalString(row.numericMin),
+    numericMax: decimalString(row.numericMax),
+    pairFirst: decimalString(row.pairFirst),
+    pairSecond: decimalString(row.pairSecond),
+    grade:
+      row.productGrade === null
+        ? null
+        : {
+            label: row.productGrade.label,
+            gradeSystem:
+              row.productGrade.gradeSystem === null
+                ? null
+                : (row.productGrade.gradeSystem.toLowerCase() as NonNullable<
+                    ProductSpecificationResponse["grade"]
+                  >["gradeSystem"]),
+          },
+  };
+}
+
 const PRODUCT_DETAIL_SELECT = {
   id: true,
   name: true,
@@ -135,7 +234,7 @@ const PRODUCT_DETAIL_SELECT = {
     // may legitimately repeat a key, one row per grade. Ordering by key then value is what
     // makes the response stable across requests rather than left to insertion order.
     orderBy: [{ key: "asc" }, { value: "asc" }],
-    select: { id: true, key: true, value: true, unit: true },
+    select: PUBLIC_SPECIFICATION_SELECT,
   },
 } as const satisfies Prisma.ProductSelect;
 
@@ -373,7 +472,7 @@ export class ProductsService {
         segments: localizedSegments.rows.map(toTaxonomyRef),
         productType:
           localizedProductType.row === null ? null : toTaxonomyRef(localizedProductType.row),
-        specifications,
+        specifications: specifications.map(toSpecificationResponse),
         images,
         seo,
       },
@@ -403,14 +502,16 @@ export class ProductsService {
       throw new ApiException(HttpStatus.NOT_FOUND, ErrorCode.NotFound, NOT_FOUND_MESSAGE);
     }
 
-    return this.prisma.specification.findMany({
+    const rows = await this.prisma.specification.findMany({
       // The same public predicate as the detail select. Stated here too rather than assumed:
       // this is a SECOND route to the same rows, and a partial-refresh endpoint that returned
       // what the full response withholds would be the leak the filter exists to prevent.
       where: { productId, ...PUBLIC_SPECIFICATION_WHERE },
       orderBy: [{ key: "asc" }, { value: "asc" }],
-      select: { id: true, key: true, value: true, unit: true },
+      select: PUBLIC_SPECIFICATION_SELECT,
     });
+
+    return rows.map(toSpecificationResponse);
   }
 
   /**
