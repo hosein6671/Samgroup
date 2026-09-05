@@ -18,6 +18,7 @@ import "./products.css";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
+import { CatalogueStructure } from "./sections/catalogue-structure";
 import { ClosingCta } from "./sections/closing-cta";
 import { Documentation } from "./sections/documentation";
 import { FinderTeaser } from "./sections/finder-teaser";
@@ -27,8 +28,12 @@ import { ProductRegister } from "./sections/register";
 /**
  * The Products landing page.
  *
- * Five sections in the order SITE_STRUCTURE §3 specifies: hero, the six families, the Product
- * Finder teaser, the documentation block, and the shared closing CTA.
+ * Six sections: hero, the six families (image-led), a factual schematic of how the catalogue is
+ * structured (Family → Product → Grade → Technical Data), the Product Finder teaser, the
+ * documentation block, and the shared closing CTA. The first five and the last are SITE_STRUCTURE
+ * §3's own order; the schematic is new, added for the owner-approved visual redesign that made the
+ * register image-led and needed one place to state the taxonomy the six photographs and the Family
+ * pages beneath them both assume.
  *
  * ── What this page is, and is not ───────────────────────────────────────────
  *
@@ -60,6 +65,7 @@ export function ProductsExperience({ locale, locales }: SiteNavProps): ReactNode
       <main id="main-content">
         <ProductsHero locale={locale} />
         <ProductRegister locale={locale} />
+        <CatalogueStructure />
         <FinderTeaser locale={locale} />
         <Documentation locale={locale} />
         <ClosingCta locale={locale} />

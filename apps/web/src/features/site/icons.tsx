@@ -21,6 +21,7 @@ import {
   Ship,
   SlidersHorizontal,
   Snowflake,
+  Table2,
   TestTube,
   Truck,
 } from "lucide-react";
@@ -209,6 +210,22 @@ export const FAMILY_ICON_BY_SLUG: Record<ProductFamilyKey, (props: IconProps) =>
   "antifreeze-coolants": CoolantsIcon,
 };
 
+/**
+ * Narrows an arbitrary string — typically a `Category.slug` — to `ProductFamilyKey`, resolving
+ * against `FAMILY_ICON_BY_SLUG` rather than an unchecked cast. Every real Category row is one of
+ * the six today (the frozen six-family architecture); a slug that is not one returns `undefined`
+ * rather than throwing.
+ *
+ * The one place this check is written. `product-detail/sections/gallery.tsx`'s image fallback and
+ * the Products Overview family grid both need "this family's glyph, or nothing" and previously
+ * carried their own copy of the same four lines.
+ */
+export function familyIconFor(slug: string): ((props: IconProps) => ReactNode) | undefined {
+  return Object.prototype.hasOwnProperty.call(FAMILY_ICON_BY_SLUG, slug)
+    ? FAMILY_ICON_BY_SLUG[slug as keyof typeof FAMILY_ICON_BY_SLUG]
+    : undefined;
+}
+
 /* --------------------------------------------------- the menu's two utility rows */
 
 /** Product Finder — a filtered view, so the filter control's own glyph. */
@@ -299,6 +316,16 @@ export function DisclosureCaretIcon(props: IconProps = {}): ReactNode {
 }
 
 /* --------------------------------------------------- product detail, technical data */
+
+/**
+ * Technical data as a concept — the fourth stage of the Products Overview's
+ * Family → Product → Grade → Technical Data schematic. A structured-values mark (a small data
+ * table), distinct from `TechnicalDataPendingIcon` below: that one means "not published yet for
+ * THIS grade"; this one names the general idea of reviewed, structured properties as a category.
+ */
+export function TechnicalDataIcon(props: IconProps = {}): ReactNode {
+  return <Table2 className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
 
 /**
  * A product whose technical dataset has not been published yet — Product Detail's

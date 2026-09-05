@@ -6,20 +6,27 @@ import { localeHref, ROUTES } from "@/features/site/site-routes";
 import { DOCUMENT_TIERS } from "../products-data";
 
 /**
- * 4 · Documentation and catalogue access.
+ * 5 · Technical-data trust, and catalogue access.
+ *
+ * ── What changed, and why ────────────────────────────────────────────────────
+ *
+ * This section used to promise TDS/SDS/COA as open PDF downloads — a claim transcribed from
+ * SITE_STRUCTURE §3 that no part of the platform has ever implemented. The Products and structured
+ * technical-data workstream built the real mechanism: approved Specification rows render as
+ * structured values directly on a Product's own page, and there is deliberately no public PDF
+ * route. `DOCUMENT_TIERS`' own doc comment in `products-data.ts` records the correction in full,
+ * including a second one made after the first shipped: a bare paragraph left the open tier
+ * visibly thinner than the gated panel beside it, so it now renders `fields` — the real six-column
+ * structure of the table it is describing — through the same `.pr-doclist` construction the gated
+ * tier's own document list already uses, rather than a second list style for a second kind of list.
  *
  * ── The gate is narrow on purpose, and that is a decision, not an omission ───
  *
- * SITE_STRUCTURE §3 summarises this block as "TDS/SDS/COA download, gated behind a short
- * qualifying form". The approved data-model decision is narrower and states the opposite for two
- * of those three: gating covers the Company Catalogue and Product Catalogue **only**, and "TDS
- * and SDS are explicitly not gated" — a form in front of a viscosity table costs more than the
- * lead is worth (DATA_MODEL.md §DOWNLOAD_REQUEST; DATA_MODEL_GAP_REVIEW.md §5). CLAUDE.md §1
- * ranks the data model above SITE_STRUCTURE, so this block splits into two tiers accordingly.
- * The conflict is reported, not resolved in passing.
- *
- * Catalogue access still has no dedicated DownloadRequest endpoint. The page therefore sends the
- * buyer to the working enquiry route instead of presenting a disabled or silently inert form.
+ * The gated Catalogue tier is unrelated to per-grade technical data and is unaffected by the
+ * correction above: gating covers the Company Catalogue and Product Catalogue **only**
+ * (DATA_MODEL.md §DOWNLOAD_REQUEST; DATA_MODEL_GAP_REVIEW.md §5), and catalogue access still has
+ * no dedicated DownloadRequest endpoint — the page sends the buyer to the working enquiry route
+ * instead of presenting a disabled or silently inert form.
  */
 export function Documentation({ locale }: { readonly locale: string }): ReactNode {
   return (
@@ -37,10 +44,7 @@ export function Documentation({ locale }: { readonly locale: string }): ReactNod
 
           The open tier has no container at all — it sits directly on the section, because that is
           what "no gate" looks like when you draw it. The gated tier is the only thing on the page
-          inside a panel, and the panel is the gate. That also settles a composition problem the
-          equal-card version had: the open tier holds three documents and the gated tier holds two
-          plus a form, so boxing both left one box short and floating. An open list has no edge to
-          look short against, and the columns are sized to the content rather than split evenly.
+          inside a panel, and the panel is the gate.
         */}
         <div className="pr-tiers">
           {DOCUMENT_TIERS.map((tier) => (
@@ -50,7 +54,7 @@ export function Documentation({ locale }: { readonly locale: string }): ReactNod
               <p className="pr-tier-note">{tier.note}</p>
 
               <ul className="pr-doclist">
-                {tier.items.map((item) => (
+                {(tier.kind === "gated" ? tier.items : tier.fields).map((item) => (
                   <li key={item.label}>
                     {item.label}
                     <span>{item.meta}</span>

@@ -227,33 +227,58 @@ export const FINDER_FACETS: readonly Facet[] = [
 /* ----------------------------------------------------------- documentation */
 
 /**
- * The Documentation block's two tiers.
+ * The Documentation block's two tiers — and why the "open" tier's shape changed.
  *
- * **The split is a frozen decision, and it contradicts a lower-priority document.**
- * SITE_STRUCTURE §3 summarises this block as "TDS/SDS/COA download, gated behind a short
- * qualifying form". The approved data-model decision is narrower and explicit: gating covers the
- * Company Catalogue and Product Catalogue **only**, and "TDS and SDS are explicitly not gated"
- * (DATA_MODEL.md §`DOWNLOAD_REQUEST`, DATA_MODEL_GAP_REVIEW.md items 5 and 4 of the summary).
- * CLAUDE.md §1 ranks that above SITE_STRUCTURE, so the narrow scope is what this page implements
- * — technical documents open, catalogue gated. Flagged in the report rather than resolved
- * silently.
+ * **Superseded content, corrected here rather than left stale.** This block previously promised
+ * "Technical Data Sheet / Safety Data Sheet / Certificate of Analysis" as open, ungated PDF
+ * downloads, transcribed from SITE_STRUCTURE §3 and DATA_MODEL.md's `DOWNLOAD_REQUEST` design. No
+ * such download exists anywhere on the platform today, for any product: the Products and
+ * structured technical-data workstream built the real mechanism instead, and it is a different
+ * one — approved Specification rows render as structured values directly on a Product's own page,
+ * and there is deliberately no public PDF/TDS route at all (no catalog writer ever exposes a
+ * source document to the public API). Repeating the old PDF claim here would be exactly what
+ * CLAUDE.md §6 forbids: presenting an assumption as a verified fact. The "open" tier's copy now
+ * states the mechanism that actually ships.
+ *
+ * **The gated tier is unaffected and left as it was.** The Company/Product Catalogue is a
+ * different, still-approved document type (DATA_MODEL.md §`DOWNLOAD_REQUEST`), unrelated to
+ * per-grade technical data, and this correction does not touch it.
+ *
+ * **`fields` replaces the removed `items` list — not decoration, the real table.** A first pass at
+ * this correction left the open tier as a heading and one paragraph beside the gated tier's boxed
+ * panel (a heading, a note, two documents and a request button) — accurate, but visibly thinner
+ * than its neighbour, measured live as a large empty gap under three lines of text next to a much
+ * taller panel. `fields` is the actual six-column structure
+ * `detail/sections/specifications.tsx` renders — Property, Grade, Value, Basis, Method,
+ * Condition, verbatim from its own `<th scope="col">` set — so the correction gains real content
+ * instead of padding, and the claim "structured data" becomes concrete rather than asserted.
  */
-export type DocumentTier = {
-  readonly kind: "open" | "gated";
-  readonly heading: string;
-  readonly note: string;
-  readonly items: readonly { readonly label: string; readonly meta: string }[];
-};
+export type DocumentTier =
+  | {
+      readonly kind: "open";
+      readonly heading: string;
+      readonly note: string;
+      readonly fields: readonly { readonly label: string; readonly meta: string }[];
+    }
+  | {
+      readonly kind: "gated";
+      readonly heading: string;
+      readonly note: string;
+      readonly items: readonly { readonly label: string; readonly meta: string }[];
+    };
 
 export const DOCUMENT_TIERS: readonly DocumentTier[] = [
   {
     kind: "open",
-    heading: "Technical documents",
-    note: "No form, no gate. A specification you cannot read before enquiring is not a specification.",
-    items: [
-      { label: "Technical Data Sheet", meta: "TDS · per grade" },
-      { label: "Safety Data Sheet", meta: "SDS · per grade" },
-      { label: "Certificate of Analysis", meta: "COA · per batch" },
+    heading: "Technical data lives on the product page",
+    note: "Every approved property is reviewed and published as structured data directly on its grade's product page — the same six fields every time, no separate public PDF workflow.",
+    fields: [
+      { label: "Property", meta: "The named characteristic" },
+      { label: "Grade", meta: "Where grade-specific" },
+      { label: "Value", meta: "With its unit" },
+      { label: "Basis", meta: "Typical, average, or limit" },
+      { label: "Method", meta: "Test method cited" },
+      { label: "Condition", meta: "Where stated" },
     ],
   },
   {

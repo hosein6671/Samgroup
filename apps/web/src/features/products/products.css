@@ -300,7 +300,7 @@
 }
 
 /* ============================================================================
-   2 · REGISTER — the six families
+   2 · REGISTER — the six families, image-led
    ============================================================================ */
 
 .pr-reg {
@@ -316,274 +316,310 @@
   margin-bottom: clamp(48px, 6vw, 88px);
 }
 
-.pr-reg-layout {
+/*
+ * Six cards, three per row at rest. `minmax(0, 1fr)` rather than a fixed width, so the grid still
+ * divides evenly when it drops to two columns and then one — see §6 RESPONSIVE.
+ */
+.pr-family-grid {
   display: grid;
-  grid-template-columns: 148px minmax(0, 1fr);
-  gap: clamp(32px, 4vw, 72px);
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 2.6vw, 32px);
 }
 
 /*
- * The index rail. Sticky rather than fixed, so it belongs to the section instead of the viewport
- * and cannot outlive it. `align-self: start` is what makes sticky work inside a grid item.
+ * One card. `isolation: isolate` gives the stretched title link its own stacking context, so the
+ * hover tint below cannot sit above it; `overflow: hidden` is what makes the photograph's square
+ * top corners read as the card's own rounded ones without the image needing its own radius.
  */
-.pr-rail {
-  position: sticky;
-  top: 108px;
-  align-self: start;
+.pr-family-card {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  border-left: 1px solid var(--color-border-hairline);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  overflow: hidden;
+  transition: border-color var(--t-mid) var(--e-micro);
 }
 
-.pr-rail a {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 9px 0 9px 16px;
-  margin-left: -1px;
-  border-left: 1px solid transparent;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: var(--color-text-tertiary);
-  transition:
-    color var(--t-micro) var(--e-micro),
-    border-color var(--t-micro) var(--e-micro);
+.pr-family-card:hover,
+.pr-family-card:focus-within {
+  border-color: var(--color-border-accent);
 }
 
-.pr-rail a:hover,
-.pr-rail a:focus-visible {
-  color: var(--color-text-primary);
-  border-left-color: var(--color-accent-default);
-}
-
-.pr-entries {
-  border-top: 1px solid var(--color-border-hairline);
-}
-
-/*
- * One entry. A full-width ledger row, not a card: the hairline above it is the only edge it has,
- * and it runs the whole measure. Hover lifts the ground rather than the box.
- */
-.pr-entry {
-  /*
-   * The family name's size lives here rather than on the title, because two things need it: the
-   * title itself, and the arrow, which is centred on the title's first line rather than on the
-   * row. Declaring it once means the two cannot drift apart when the scale is retuned.
-   *
-   * These are ALIASES of the `subheading` role, not a second scale — the same construction
-   * `--fs-wrap-max` uses for `--fs-maxw`. `.pr-entry-title` is a family name, one rung under the
-   * page's own `.fs-d2` section headings, and `.pr-entry-go`'s optical centring needs the size
-   * and the leading as separate values it can multiply.
-   */
-  --pr-title-size: var(--fs-text-subheading);
-  --pr-title-leading: var(--fs-text-subheading--line-height);
-
+.pr-family-media {
   position: relative;
-  display: grid;
-  grid-template-columns: 76px minmax(0, 1fr) 44px;
-  gap: clamp(16px, 2.2vw, 34px);
-  padding: clamp(30px, 3.4vw, 48px) 0;
-  border-bottom: 1px solid var(--color-border-hairline);
-  isolation: isolate;
 }
 
-/* The tint sits behind the content and bleeds past the measure, so the row reads as a band. */
-.pr-entry::before {
-  content: "";
+/* Overrides `.fs-story-photo`'s own border/radius: the card already draws both. */
+.pr-family-photo {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+/* The restrained fallback for a family with no approved photograph — see `register.tsx`'s note. */
+.pr-family-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  background: var(--color-surface-sunken);
+  color: var(--color-text-tertiary);
+}
+
+.pr-family-fallback svg {
+  inline-size: 40px;
+  block-size: 40px;
+}
+
+.pr-family-index {
   position: absolute;
-  inset-block: 0;
-  inset-inline: calc(var(--fs-gutter) * -0.5);
-  z-index: -1;
-  border-radius: var(--radius-panel);
-  background: var(--color-glass-fill);
-  opacity: 0;
-  transition: opacity var(--t-mid) var(--e-micro);
-}
-
-.pr-entry:hover::before,
-.pr-entry:focus-within::before {
-  opacity: 1;
-}
-
-/* The gold rule that draws across the top edge on approach. */
-.pr-entry::after {
-  content: "";
-  position: absolute;
-  inset-block-start: -1px;
-  inset-inline: 0;
-  height: 1px;
-  background: var(--color-accent-default);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform var(--t-mid) var(--e-micro);
-}
-
-[dir="rtl"] .pr-entry::after {
-  transform-origin: right center;
-}
-
-.pr-entry:hover::after,
-.pr-entry:focus-within::after {
-  transform: scaleX(1);
-}
-
-.pr-entry-index {
+  inset-block-start: 14px;
+  inset-inline-start: 14px;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(3, 11, 31, 0.76);
+  backdrop-filter: blur(12px);
+  color: #fff;
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   line-height: var(--fs-text-technical--line-height);
   letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: var(--color-text-accent);
-  padding-top: 0.55em;
 }
 
-.pr-entry-index span {
-  display: block;
-  color: var(--color-text-tertiary);
-  margin-top: 6px;
+.pr-family-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: clamp(20px, 2.2vw, 26px);
 }
 
-/*
- * The family name is the register's primary scannable element, so it owns its own step rather
- * than borrowing `.fs-d4`.
- *
- * `.fs-d4` bottoms out at 19px, which put the six names at the same size as the lead paragraph
- * above them — the one thing a reader scans for was competing with running copy. This sits
- * between `.fs-d4` and `.fs-d3`: clearly the loudest voice inside an entry, and still clearly
- * quieter than the section head at `.fs-d2`, so the register does not read as six sections.
- * Weight stays at 400; at this size the display face gets heavy fast.
- */
-.pr-entry-title {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 14px;
+.pr-family-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: var(--pr-title-size);
-  line-height: var(--pr-title-leading);
-  letter-spacing: var(--fs-text-subheading--letter-spacing);
-  margin: 0;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.pr-family-title svg {
+  flex: none;
+  color: var(--color-text-accent);
 }
 
 /*
- * The whole row is the target, and the title's link carries the accessible name.
- *
- * The overlay is on the anchor rather than the heading: an `<h3>` is not a control, so stretching
- * it would produce a clickable band with nothing focusable behind it. Stretched from the anchor,
- * the row has exactly one target, one name and one tab stop.
+ * The whole card is the target, and the title's link carries the accessible name — the same
+ * stretched-anchor construction the previous ledger row used, moved from the row to the card.
  */
-.pr-entry-title a {
+.pr-family-title a {
   color: inherit;
 }
 
-.pr-entry-title a::before {
+.pr-family-title a::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
 }
 
-.pr-entry-title a:hover {
+.pr-family-card:hover .pr-family-title a,
+.pr-family-card:focus-within .pr-family-title a {
   color: var(--color-text-accent);
 }
 
-.pr-entry-desc {
-  margin: clamp(12px, 1.3vw, 18px) 0 0;
-  max-width: 62ch;
-  color: var(--color-text-secondary);
+/*
+ * Two lines, always. Six descriptors differ in length, and clamping is what keeps the six cards
+ * finishing at the same height instead of the shortest description leaving its card visibly
+ * shorter than its neighbours.
+ */
+.pr-family-desc {
+  margin: 10px 0 0;
   font-weight: 300;
   font-size: var(--fs-text-body-sm);
   line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /*
- * Range markers — a columned spec run, deliberately not chips and not a bullet list.
- *
- * ── Why this is a grid and not wrapping flex ────────────────────────────────
- *
- * Every inline-separator approach fails on wrap, and it fails in both directions. Trailing
- * separators leave a divider at the end of each line with nothing after it; leading separators
- * move the same artifact to the start of each line, which at 390px — where nearly every item
- * wraps — put a stray rule in front of most rows and read as a broken bullet.
- *
- * The fault is that a wrapped flex line has no selector: CSS cannot address "first item on this
- * line", so no `nth-child` rule can be right for every width. A grid with an explicit column
- * count removes the guesswork — position in the row is now `nth-child` arithmetic, so the rule
- * before columns two and three is always correct and column one never carries one. The column
- * count is restated at each breakpoint below, and at 390px it drops to one, where the run becomes
- * a plain stacked list with no separators at all and nothing left to dangle.
+ * A fixed-length preview, not the full range list — the six full taxonomies are what the Family
+ * page's own register still prints; scanning that here would put the same list twice on the site
+ * one click apart. Always the same row count, for the same reason `.pr-family-desc` clamps: six
+ * cards whose only difference is 6 vs. 11 ranges must not resolve to six different card heights.
  */
-.pr-ranges {
+.pr-family-ranges {
   list-style: none;
-  margin: clamp(18px, 2vw, 26px) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.pr-ranges li {
+.pr-family-ranges li {
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   line-height: var(--fs-text-technical--line-height);
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-tertiary);
-  padding: 6px 16px 6px 0;
 }
 
-.pr-ranges li:not(:nth-child(3n + 1)) {
-  padding-inline-start: 16px;
-  border-inline-start: 1px solid var(--color-border-hairline);
+.pr-family-ranges .pr-family-more {
+  color: var(--color-text-accent);
 }
 
-/* The one named block the source document supplies, called out rather than buried in the run. */
-.pr-named {
+/* Pinned to the card's own bottom edge via the body's flex column, regardless of how much text
+   sits above it — the one place every card agrees, whatever its content above resolved to. */
+.pr-family-go {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  margin-top: 20px;
-  padding: 7px 14px;
-  border: 1px solid var(--color-border-accent);
-  border-radius: 999px;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 18px;
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   line-height: var(--fs-text-technical--line-height);
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
-  color: var(--color-text-accent);
-}
-
-/*
- * The arrow is centred on the title's first line, not on the row.
- *
- * Centred on the row it drifted with the row's height — and rows vary a lot, because one family
- * lists six ranges and another lists eleven. At 390px that put the arrow level with a range
- * marker three lines down, where it read as pointing at that one marker instead of at the family.
- *
- * The offset is derived, not guessed: the title's first line box is `size × leading`, and the
- * glyph is 18px, so half the difference lands the arrow's centre on the title's centre at every
- * width the clamp resolves to.
- */
-.pr-entry-go {
-  align-self: start;
-  justify-self: end;
-  padding-top: calc((var(--pr-title-size) * var(--pr-title-leading) - 18px) / 2);
   color: var(--color-text-tertiary);
   transition:
     color var(--t-micro) var(--e-micro),
     translate var(--t-mid) var(--e-micro);
 }
 
-.pr-entry:hover .pr-entry-go {
+.pr-family-card:hover .pr-family-go,
+.pr-family-card:focus-within .pr-family-go {
   color: var(--color-accent-default);
-  translate: 5px 0;
+  translate: 4px 0;
 }
 
-[dir="rtl"] .pr-entry:hover .pr-entry-go {
-  translate: -5px 0;
+[dir="rtl"] .pr-family-card:hover .pr-family-go,
+[dir="rtl"] .pr-family-card:focus-within .pr-family-go {
+  translate: -4px 0;
+}
+
+/* ============================================================================
+   2.5 · CATALOGUE STRUCTURE — the factual schematic
+   ============================================================================ */
+
+.pr-struct {
+  position: relative;
+  overflow: hidden;
+}
+
+.pr-struct-head {
+  position: relative;
+  z-index: 1;
+  max-width: 60ch;
+}
+
+.pr-struct-head h2 {
+  margin-top: 14px;
+}
+
+/*
+ * A framed panel, reusing `.pr-arch`'s device rather than inventing a second one — but not its
+ * exact fill. `.pr-arch`'s near-transparent glass fill (4% white) and hairline border (14% white)
+ * read clearly against the hero, which sits on a radial gradient with visible tonal variation
+ * behind it; against this section's flat `--fs-ink` ground, the same values measured live as
+ * almost no visible edge at all. `--color-surface-raised` is a genuinely lighter navy rather than
+ * a translucency over the same one, so the box is unmistakable without changing the palette —
+ * still navy, still gold, just a real box.
+ */
+.pr-struct-panel {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(32px, 4vw, 56px);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  box-shadow: 0 20px 60px rgba(0, 5, 20, 0.4);
+  padding: clamp(28px, 3vw, 40px) clamp(24px, 3.2vw, 44px);
+}
+
+/*
+ * A flex row at the width all four stages actually fit on one line — below that, §6 RESPONSIVE
+ * switches this to a plain 2-column grid and hides the connectors entirely, rather than let flex
+ * wrap decide the split on its own.
+ *
+ * Free-wrapping flex was the first cut, and it produced exactly the failure `.pr-ranges`'s own
+ * comment already named for a different list on this same page: three stages fit the line, the
+ * fourth (with the arrow that was pointing at it) fell to a second line alone, flush left under
+ * the first stage with the other three columns' width sitting empty beside it — measured live at
+ * 1024px, and the thing the owner flagged as "messy". A row has no selector for "the last item
+ * that fit", so no wrap-based fix is reliable; an explicit grid at an explicit breakpoint is.
+ */
+.pr-struct-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: clamp(16px, 2.4vw, 28px);
+}
+
+.pr-struct-stage {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.pr-struct-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--color-border-accent);
+  border-radius: 999px;
+  background: var(--color-accent-muted);
+  color: var(--color-text-accent);
+  margin-bottom: 16px;
+}
+
+.pr-struct-label {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.pr-struct-note {
+  margin: 8px 0 0;
+  max-width: 28ch;
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+/* Centred on the mark's own circle, so the arrow reads as pointing from one glyph to the next
+   rather than drifting toward whichever stage's note happens to wrap the fewest lines. */
+.pr-struct-connector {
+  flex: none;
+  align-self: flex-start;
+  margin-top: 18px;
+  color: var(--color-text-tertiary);
+}
+
+[dir="rtl"] .pr-struct-connector {
+  transform: scaleX(-1);
 }
 
 /* ============================================================================
@@ -1129,15 +1165,6 @@
     margin-top: 22px;
   }
 
-  /* The rail costs more width than it returns once the entries drop below ~640px of measure. */
-  .pr-reg-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .pr-rail {
-    display: none;
-  }
-
   .pr-finder-grid,
   .pr-close-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1149,19 +1176,24 @@
     gap: 20px;
   }
 
-  /* Two columns of ranges. The rule moves to every even child, and column one stays clean. */
-  .pr-ranges {
+  /* Three cards a row cost more width than they return once each card drops below ~340px. */
+  .pr-family-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .pr-ranges li:not(:nth-child(3n + 1)) {
-    padding-inline-start: 0;
-    border-inline-start: 0;
+  /*
+   * Four stages stop fitting one flex line here — see `.pr-struct-row`'s own comment. A 2×2 grid
+   * with the connectors hidden replaces it outright rather than letting three stages wrap onto
+   * one line and strand the fourth (and its arrow) alone on a second.
+   */
+  .pr-struct-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(28px, 4vw, 40px) clamp(20px, 3vw, 32px);
   }
 
-  .pr-ranges li:not(:nth-child(2n + 1)) {
-    padding-inline-start: 16px;
-    border-inline-start: 1px solid var(--color-border-hairline);
+  .pr-struct-connector {
+    display: none;
   }
 }
 
@@ -1198,12 +1230,8 @@
     justify-self: start;
   }
 
-  /*
-   * One column, and therefore no separators at all — there is no "between" left to mark. This
-   * is the width where the old inline separators failed, and the failure is now impossible
-   * rather than mitigated.
-   */
-  .pr-ranges {
+  /* One column: two across 300px leaves each stage's note wrapping onto four or five lines. */
+  .pr-struct-row {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -1221,29 +1249,9 @@
     --pr-step: 16px;
   }
 
-  .pr-ranges li:not(:nth-child(3n + 1)),
-  .pr-ranges li:not(:nth-child(2n + 1)) {
-    padding-inline-start: 0;
-    border-inline-start: 0;
-  }
-
-  /* The index moves above the title; a 76px column beside 40ch of text is mostly gutter. */
-  .pr-entry {
-    grid-template-columns: minmax(0, 1fr) 32px;
-    gap: 12px;
-  }
-
-  .pr-entry-index {
-    grid-column: 1 / -1;
-    padding-top: 0;
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .pr-entry-index span {
-    margin-top: 0;
+  /* One card a row below 480px-ish — two cards at that width leave each too narrow to scan. */
+  .pr-family-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .pr-gate {

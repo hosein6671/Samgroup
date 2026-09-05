@@ -86,13 +86,20 @@ describe("the taxonomy fixture stays locale-less", () => {
   });
 });
 
-describe("the register's jump rail is still a set of fragments", () => {
+describe("the hero's family index is still a set of fragments landing on the grid", () => {
+  /*
+   * The register's own sticky jump rail (a second, identical index beside the six-family ledger)
+   * was removed when the ledger became an image-led grid short enough to scan without one — the
+   * hero's `ProductArchitecture` panel already lists the same six families and is the one place
+   * that index now lives. Its six `#family-*` links still have to land on a real id, and the
+   * family grid still has to carry one per card for them to land on.
+   */
   it("leaves #family-* unprefixed and lands each one on a rendered id", () => {
     const body = landingBody("ar");
     const fragments = hrefsIn(body).filter((href) => href.startsWith("#"));
     const ids = new Set(idsIn(body));
 
-    expect(fragments).toHaveLength(FAMILIES.length * 2);
+    expect(fragments).toHaveLength(FAMILIES.length);
 
     for (const family of FAMILIES) {
       expect(fragments).toContain(`#family-${family.id}`);
