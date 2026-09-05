@@ -30,6 +30,25 @@
  * skips, and that is deliberate: a review suite that quietly passed against an empty catalogue
  * would prove nothing while looking green.
  *
+ * ── "Ratified" versus "the whole catalogue" ─────────────────────────────────
+ *
+ * `sam_platform` is not frozen at the 100/1,402/148 rows the full import produced: an ADR-018
+ * incremental patch (`base-oil-onboarding-v1`) has since added 2 Products and their 21
+ * Specifications, entirely NEEDS_REVIEW, and any later patch will do the same again. A test that
+ * asserts an EXACT total over "every Specification in the database" breaks on every such approved
+ * addition — not because the addition is wrong, but because the assertion was never scoped to what
+ * it actually meant to describe.
+ *
+ * So the counts this file treats as fixed ("the ratified rows") are scoped to Products with a
+ * non-null `sourceRef` — the workbook-identity column only a full import ever populates
+ * (`apply-integration.spec.ts` proves every one of the 100 carries one; `desiredProductShape` in
+ * `base-oil-executor.ts`, like every incremental patch, deliberately leaves it null, having no
+ * workbook row to cite). That is a property of the DATA, not a count anyone maintains by hand: it
+ * stays correct after this patch, after the next one, and after any number of future ones, with no
+ * literal in this file needing to change. `APPROVED_PLAN_EXPECTATIONS` (the full importer's own
+ * ratified plan shape) and the `base-oil-patch` fixture's own `PRODUCTS`/`READINGS` arrays are the
+ * two sources of truth every count below is built from — never a re-typed number.
+ *
  *     NODE_OPTIONS=--experimental-vm-modules \
  *     CATALOG_APPLY_TEST_ADMIN_URL=postgresql://<superuser>:<pw>@localhost:5432/postgres \
  *     pnpm --filter @sam-group/api exec jest src/modules/catalog/review
@@ -44,13 +63,18 @@ import { MediaService } from "../../media/media.service";
 import { SeoService } from "../../seo/seo.service";
 import { ProductsService } from "../products.service";
 
-import { resolveProperty } from "../import/spec-property-dictionary";
+import { APPROVED_PLAN_EXPECTATIONS } from "../import/apply/apply-engine";
 import {
   createDisposableDatabase,
   dropDisposableDatabase,
   readDatabaseConfig,
   withDisposableClient,
 } from "../import/apply/__tests__/disposable-database";
+import {
+  PRODUCTS as BASE_OIL_PRODUCTS,
+  READINGS as BASE_OIL_READINGS,
+} from "../import/incremental/base-oil-patch";
+import { resolveProperty } from "../import/spec-property-dictionary";
 import { CatalogReviewService } from "./catalog-review.service";
 import { specificationEvidenceSetHash } from "./evidence-set-hash";
 import {
@@ -115,6 +139,71 @@ const FORBIDDEN_PUBLIC_KEYS: readonly string[] = [
   "needs_review",
   "source_recorded",
 ];
+
+/**
+ * The workbook-identity column only a full import ever populates — see the file header's
+ * "Ratified versus the whole catalogue" note. Interpolated into raw SQL as a literal fragment,
+ * never a parameter, so every query below reads identically whether it is the whole `WHERE` clause
+ * or joined onto one with `AND`.
+ */
+const RATIFIED_PRODUCT = `p."source_ref" IS NOT NULL`;
+
+/**
+ * Fields that must never carry a value in a review-detail response, checked as the literal
+ * `"key":` substring of the serialized JSON — never the bare word, which also appears inside
+ * ordinary explanatory prose (an approval-blocker message legitimately says "the source bytes it
+ * was transcribed from are captured"). Matching the quoted key with its trailing colon catches an
+ * actual field named this way while leaving that sentence untouched.
+ */
+const FORBIDDEN_DETAIL_KEYS: readonly string[] = [
+  "passwordHash",
+  "password_hash",
+  "downloadUrl",
+  "download_url",
+  "signedUrl",
+  "signed_url",
+  "assetBytes",
+  "asset_bytes",
+  "fileBytes",
+  "file_bytes",
+  "contentBytes",
+  "content_bytes",
+  "bytes",
+];
+
+/**
+ * A `ReviewQueueItemResponse` for a Specification belonging to a RATIFIED Product — one the full
+ * import identified against a workbook row, carries a real `sourceRef`, and (having gone through
+ * `resolveProperty`'s raw-label pipeline) has at least one `SpecPropertyMapping` recorded for it.
+ *
+ * Several assertions below need exactly that shape and previously took it on faith from
+ * `review.queue({ subjectType: "specification", limit: 1 })`'s first row — which was safe only
+ * because every Specification in the database used to be ratified. `base-oil-onboarding-v1` writes
+ * its Specifications directly against an already-resolved `property_key` (see
+ * `base-oil-executor.ts`'s own header comment on why) rather than through that pipeline, so it
+ * creates no mapping row at all; once such a row can sort first, "the first specification" is no
+ * longer a stand-in for "a ratified specification" and the two must be told apart explicitly.
+ */
+async function ratifiedSpecificationSample(
+  url: string,
+  review: CatalogReviewService,
+): Promise<ReviewQueueItemResponse> {
+  const slug = await withDisposableClient(url, async (client) => {
+    const rows = await client.$queryRawUnsafe<{ slug: string }[]>(
+      `SELECT p."slug" AS slug FROM "products" p
+         JOIN "specifications" s ON s."product_id" = p."id"
+        WHERE ${RATIFIED_PRODUCT}
+        ORDER BY p."id" LIMIT 1`,
+    );
+    return rows[0]?.slug;
+  });
+  expect(slug).toBeDefined();
+
+  const sample = (await review.queue({ subjectType: "specification", productSlug: slug, limit: 1 }))
+    .items[0] as ReviewQueueItemResponse | undefined;
+  expect(sample).toBeDefined();
+  return sample as ReviewQueueItemResponse;
+}
 
 /**
  * Candidate rows for the two new fail-closed rules — a PRE-FILTER, never the rule itself.
@@ -269,15 +358,38 @@ suite("the catalog review service over the imported catalogue", () => {
    * The fixture is the imported catalogue, and every assertion below depends on that. Checked
    * first and loudly: a clone of an EMPTY database would make most of this file pass by having
    * nothing to test.
+   *
+   * The ratified counts come from `APPROVED_PLAN_EXPECTATIONS` — the full importer's own approved
+   * plan shape — rather than a number re-typed here; the surplus over that baseline is asserted
+   * against `base-oil-onboarding-v1`'s own fixture (`PRODUCTS`/`READINGS`), the only thing that
+   * surplus can legitimately be while this suite's template is `sam_platform` as it stands today.
+   * Neither figure is a guess: both are read from the source that actually defines it.
    */
   it(
     "starts from the imported catalogue with nothing approved",
     async () => {
       const before = await counts(url);
 
-      expect(await prisma.product.count()).toBe(100);
-      expect(await prisma.specification.count()).toBe(1402);
-      expect(await prisma.productClaim.count()).toBe(148);
+      expect(await prisma.product.count({ where: { sourceRef: { not: null } } })).toBe(
+        APPROVED_PLAN_EXPECTATIONS.products,
+      );
+      expect(
+        await prisma.specification.count({ where: { product: { sourceRef: { not: null } } } }),
+      ).toBe(APPROVED_PLAN_EXPECTATIONS.specifications);
+      expect(
+        await prisma.productClaim.count({ where: { product: { sourceRef: { not: null } } } }),
+      ).toBe(APPROVED_PLAN_EXPECTATIONS.productClaims);
+
+      // The approved Local DEV Base Oil onboarding — the only unratified surplus this suite's
+      // template holds today — and nothing else.
+      expect(await prisma.product.count({ where: { sourceRef: null } })).toBe(
+        BASE_OIL_PRODUCTS.length,
+      );
+      expect(await prisma.specification.count({ where: { product: { sourceRef: null } } })).toBe(
+        BASE_OIL_READINGS.length,
+      );
+      expect(await prisma.productClaim.count({ where: { product: { sourceRef: null } } })).toBe(0);
+
       expect(before["technical_reviews"]).toBe(0);
       expect(before["specifications_approved"]).toBe(0);
       expect(before["claims_approved"]).toBe(0);
@@ -295,9 +407,11 @@ suite("the catalog review service over the imported catalogue", () => {
     /**
      * The two IMPORTER-written subject counts are fixed; the third is not.
      *
-     * 1,402 Specifications — 1,398 from the ratified first import plus the four the ADR-018
-     * coolant patch added — and 148 ProductClaims are the committed catalogue, and asserting them
-     * exactly is the point of this file. ProductCopy has no importer: its rows arrive from
+     * `APPROVED_PLAN_EXPECTATIONS.specifications` (1,402 — 1,398 from the ratified first import
+     * plus the four the ADR-018 coolant patch added) plus `BASE_OIL_READINGS.length` (the ADR-018
+     * `base-oil-onboarding-v1` patch's own surplus) and `APPROVED_PLAN_EXPECTATIONS.productClaims`
+     * are the committed catalogue, and asserting them exactly — against their own source, not a
+     * retyped number — is the point of this file. ProductCopy has no importer: its rows arrive from
      * `load-product-copy-drafts.ts`, an explicitly armed editorial script that may or may not have
      * been run against the template this suite clones.
      *
@@ -313,7 +427,12 @@ suite("the catalog review service over the imported catalogue", () => {
         const first = await review.queue({ limit: 10, sort: "createdAt" });
         const second = await review.queue({ limit: 10, page: 2, sort: "createdAt" });
 
-        expect(first.total).toBe(1402 + 148 + copy.total);
+        expect(first.total).toBe(
+          APPROVED_PLAN_EXPECTATIONS.specifications +
+            BASE_OIL_READINGS.length +
+            APPROVED_PLAN_EXPECTATIONS.productClaims +
+            copy.total,
+        );
         expect(first.items).toHaveLength(10);
         expect(second.items).toHaveLength(10);
 
@@ -330,8 +449,10 @@ suite("the catalog review service over the imported catalogue", () => {
         const specs = await review.queue({ subjectType: "specification", limit: 5 });
         const claims = await review.queue({ subjectType: "product_claim", limit: 5 });
 
-        expect(specs.total).toBe(1402);
-        expect(claims.total).toBe(148);
+        expect(specs.total).toBe(
+          APPROVED_PLAN_EXPECTATIONS.specifications + BASE_OIL_READINGS.length,
+        );
+        expect(claims.total).toBe(APPROVED_PLAN_EXPECTATIONS.productClaims);
         expect(specs.items.every((item) => item.subjectType === "specification")).toBe(true);
         expect(claims.items.every((item) => item.subjectType === "product_claim")).toBe(true);
       },
@@ -345,13 +466,13 @@ suite("the catalog review service over the imported catalogue", () => {
         const sourceRecorded = await review.queue({ reviewStatus: "source_recorded", limit: 1 });
 
         /*
-         * The importer's own verdicts, exactly. Loaded product copy lands at `source_recorded` and
-         * never at `needs_review`, so only the second total is offset by it — read rather than
-         * assumed, for the reason the pagination test states.
+         * The importer's own verdicts, exactly, plus `base-oil-onboarding-v1`'s own surplus: every
+         * one of its Specifications is born NEEDS_REVIEW (ADR-018 §4), never SOURCE_RECORDED, so
+         * only the first total gains a term for it.
          */
         const copy = await review.queue({ subjectType: "product_copy", limit: 1 });
 
-        expect(needsReview.total).toBe(67 + 67);
+        expect(needsReview.total).toBe(67 + 67 + BASE_OIL_READINGS.length);
         expect(sourceRecorded.total).toBe(1335 + 81 + copy.total);
       },
       TIMEOUT_MS,
@@ -360,9 +481,10 @@ suite("the catalog review service over the imported catalogue", () => {
     it(
       "filters by Product, sourceRef, Family and ProductType",
       async () => {
-        const sample = (await review.queue({ subjectType: "specification", limit: 1 })).items[0];
-        expect(sample).toBeDefined();
-        const item = sample as ReviewQueueItemResponse;
+        // A RATIFIED sample, deliberately: an unratified (incrementally patched) Product has no
+        // sourceRef by construction, and this test's whole point is to prove that filter works.
+        const item = await ratifiedSpecificationSample(url, review);
+        expect(item.product.sourceRef).not.toBeNull();
 
         const bySlug = await review.queue({ productSlug: item.product.slug, limit: 1 });
         expect(bySlug.total).toBeGreaterThan(0);
@@ -480,8 +602,9 @@ suite("the catalog review service over the imported catalogue", () => {
     it(
       "carries the evidence, the document and the mapping a reviewer needs",
       async () => {
-        const item = (await review.queue({ subjectType: "specification", limit: 1 }))
-          .items[0] as ReviewQueueItemResponse;
+        // A RATIFIED sample: only a Specification that went through `resolveProperty`'s raw-label
+        // pipeline has a `SpecPropertyMapping` to carry — see `ratifiedSpecificationSample`'s note.
+        const item = await ratifiedSpecificationSample(url, review);
         const detail = await review.detail("specification", item.id);
 
         expect(detail.subjectType).toBe("specification");
@@ -505,19 +628,16 @@ suite("the catalog review service over the imported catalogue", () => {
     it(
       "serves the document's identity and never its content",
       async () => {
-        const item = (await review.queue({ subjectType: "specification", limit: 1 }))
-          .items[0] as ReviewQueueItemResponse;
+        const item = await ratifiedSpecificationSample(url, review);
         const detail = await review.detail("specification", item.id);
         const serialized = JSON.stringify(detail);
 
-        for (const forbidden of [
-          "passwordHash",
-          "password_hash",
-          "bytes",
-          "downloadUrl",
-          "signedUrl",
-        ]) {
-          expect(serialized).not.toContain(forbidden);
+        // Checked as the quoted JSON KEY, not the bare word — an approval-blocker message
+        // legitimately contains the English sentence "the source bytes it was transcribed from
+        // are captured", and that prose must not trip a check meant to catch an actual field
+        // carrying file content. See `FORBIDDEN_DETAIL_KEYS`'s own doc comment.
+        for (const forbidden of FORBIDDEN_DETAIL_KEYS) {
+          expect(serialized).not.toContain(`"${forbidden}":`);
         }
         expect(Object.keys(detail.evidence[0]?.document ?? {}).sort()).toEqual(
           [
@@ -675,8 +795,14 @@ suite("the catalog review service over the imported catalogue", () => {
     );
 
     /**
-     * All 69 imported source documents record neither a date nor a revision label, so every subject
-     * carries both warnings — and NONE of them is made ineligible by that.
+     * All 69 imported source documents record no revision label, so every subject carries that
+     * warning regardless of which rows happen to sort into the sampled page — and NONE of them is
+     * made ineligible by it.
+     *
+     * The date half is no longer universal: `base-oil-onboarding-v1` captured one real document
+     * date (the ORLEN SDS), so a Specification backed only by dated documents correctly does NOT
+     * carry `DOCUMENT_DATE_UNKNOWN`. Which branch applies is read from the detail response's own
+     * evidence rather than assumed, so this keeps holding for any future patch's own documents too.
      *
      * This is the assertion that proves the warning channel does what it was separated out to do.
      */
@@ -691,10 +817,18 @@ suite("the catalog review service over the imported catalogue", () => {
           const warningCodes = detail.warnings.map((entry) => entry.code);
           const blockerCodes = detail.approvalBlockers.map((entry) => entry.code);
 
-          expect(warningCodes).toContain("DOCUMENT_DATE_UNKNOWN");
           expect(warningCodes).toContain("DOCUMENT_REVISION_UNKNOWN");
-          expect(blockerCodes).not.toContain("DOCUMENT_DATE_UNKNOWN");
           expect(blockerCodes).not.toContain("DOCUMENT_REVISION_UNKNOWN");
+          expect(blockerCodes).not.toContain("DOCUMENT_DATE_UNKNOWN");
+
+          const everyDocumentDateless = detail.evidence.every(
+            (entry) => entry.document.documentDate === null,
+          );
+          if (everyDocumentDateless) {
+            expect(warningCodes).toContain("DOCUMENT_DATE_UNKNOWN");
+          } else {
+            expect(warningCodes).not.toContain("DOCUMENT_DATE_UNKNOWN");
+          }
 
           if (detail.eligibleForApproval) eligibleSeen += 1;
         }
@@ -734,19 +868,23 @@ suite("the catalog review service over the imported catalogue", () => {
      * The ratified figures, recomputed from the PRODUCTION SQL and the PRODUCTION builders.
      *
      * `eligibilityCensus` runs `SPECIFICATION_ELIGIBILITY_SQL` and `PRODUCT_CLAIM_ELIGIBILITY_SQL`
-     * — the exact strings the service runs inside the decision transaction — over every subject,
-     * and feeds each row to `specificationApprovalBlockers` / `productClaimApprovalBlockers`. It is
-     * therefore not a second implementation that could agree with the numbers while the service
-     * disagrees.
+     * — the exact strings the service runs inside the decision transaction — over every RATIFIED
+     * subject, and feeds each row to `specificationApprovalBlockers` / `productClaimApprovalBlockers`.
+     * It is therefore not a second implementation that could agree with the numbers while the
+     * service disagrees.
      *
      * Counting rather than sampling is the whole point: a rule that fired on 500 rows instead of 5
-     * would look identical on any single row.
+     * would look identical on any single row. Scoped to `RATIFIED_PRODUCT` (see the file header):
+     * these exact figures describe the full import as ratified, and stay true regardless of what a
+     * later, separately-reviewed incremental patch adds — `base-oil-onboarding-v1`'s own surplus is
+     * checked immediately below, against its own fixture, not folded into these literals.
      */
     it(
       "blocks exactly the ratified rows on the required-method and capture rules",
       async () => {
-        expect(await eligibilityCensus()).toEqual({
-          specifications: 1402,
+        const ratified = await eligibilityCensus("ratified");
+        expect(ratified).toEqual({
+          specifications: APPROVED_PLAN_EXPECTATIONS.specifications,
           specificationsEligible: 1342,
           specificationsRequiredMethodAbsent: 5,
           specificationsMethodNotEvidenced: 0,
@@ -754,11 +892,19 @@ suite("the catalog review service over the imported catalogue", () => {
           specificationsMethodOrSourceUnion: 60,
           specificationsMappingUnresolved: 0,
           specificationsMethodAbsentAndUncaptured: 5,
-          productClaims: 148,
+          productClaims: APPROVED_PLAN_EXPECTATIONS.productClaims,
           productClaimsEligible: 102,
           productClaimsSourceAssetAbsent: 46,
           productClaimsNeverApprovable: 5,
         });
+
+        // The onboarding's own surplus: present, entirely additional (no claims), and — matching
+        // "keep unreviewed values private; do not automatically publish incomplete grades" — none
+        // of it eligible for approval yet.
+        const whole = await eligibilityCensus("all");
+        expect(whole.specifications - ratified.specifications).toBe(BASE_OIL_READINGS.length);
+        expect(whole.specificationsEligible).toBe(ratified.specificationsEligible);
+        expect(whole.productClaims).toBe(ratified.productClaims);
       },
       TIMEOUT_MS,
     );
@@ -2501,14 +2647,40 @@ suite("the catalog review service over the imported catalogue", () => {
    *
    * One statement per subject, run in bounded batches so 1,546 probes do not open 1,546
    * connections. Slow by design, and inside a 180 s timeout.
+   *
+   * `scope: "ratified"` restricts both id lists to `RATIFIED_PRODUCT` — the full import as
+   * ratified, unaffected by any later incremental patch; `"all"` counts the whole catalogue this
+   * suite's template currently holds, ratified and onboarding surplus alike.
    */
-  async function eligibilityCensus(): Promise<Record<string, number>> {
+  interface EligibilityCensus {
+    readonly specifications: number;
+    readonly specificationsEligible: number;
+    readonly specificationsRequiredMethodAbsent: number;
+    readonly specificationsMethodNotEvidenced: number;
+    readonly specificationsSourceAssetAbsent: number;
+    readonly specificationsMethodOrSourceUnion: number;
+    readonly specificationsMappingUnresolved: number;
+    readonly specificationsMethodAbsentAndUncaptured: number;
+    readonly productClaims: number;
+    readonly productClaimsEligible: number;
+    readonly productClaimsSourceAssetAbsent: number;
+    readonly productClaimsNeverApprovable: number;
+  }
+
+  async function eligibilityCensus(scope: "ratified" | "all"): Promise<EligibilityCensus> {
     return withDisposableClient(url, async (client) => {
+      const productScope = scope === "ratified" ? `WHERE ${RATIFIED_PRODUCT}` : "";
       const specificationIds = (
-        await client.$queryRawUnsafe<{ id: string }[]>(`SELECT "id" FROM "specifications"`)
+        await client.$queryRawUnsafe<{ id: string }[]>(
+          `SELECT s."id" FROM "specifications" s
+             JOIN "products" p ON p."id" = s."product_id" ${productScope}`,
+        )
       ).map(({ id }) => id);
       const claimIds = (
-        await client.$queryRawUnsafe<{ id: string }[]>(`SELECT "id" FROM "product_claims"`)
+        await client.$queryRawUnsafe<{ id: string }[]>(
+          `SELECT c."id" FROM "product_claims" c
+             JOIN "products" p ON p."id" = c."product_id" ${productScope}`,
+        )
       ).map(({ id }) => id);
 
       const census = {
