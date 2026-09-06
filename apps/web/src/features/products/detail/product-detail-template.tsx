@@ -137,7 +137,7 @@ export function ProductDetailTemplate({
 
         <ProductPackaging />
 
-        <ProductTechnicalDocuments />
+        <ProductTechnicalDocuments locale={locale} productSlug={product.slug} />
 
         <ClosingCta locale={locale} productSlug={product.slug} />
       </main>

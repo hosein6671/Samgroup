@@ -1,21 +1,8 @@
 import type { ReactNode } from "react";
 
-import { FAMILY_ICON_BY_SLUG } from "@/features/site/icons";
+import { familyIconFor } from "@/features/site/icons";
 
 import type { ProductImageResponse } from "@sam-group/types";
-
-/**
- * Narrows a `Category.slug` string to `ProductFamilyKey` — the same "resolve against the
- * canonical table, drop what does not resolve" rule `ProductFamilyKey`'s own doc comment states
- * for content elsewhere in this codebase, applied here instead of an unchecked cast. Every real
- * Category row is one of these six today (the frozen six-family architecture), so this only
- * ever actually returns `undefined` for a slug that should not exist yet.
- */
-function familyIconFor(slug: string): ((props: { size: "xl" }) => ReactNode) | undefined {
-  return Object.prototype.hasOwnProperty.call(FAMILY_ICON_BY_SLUG, slug)
-    ? FAMILY_ICON_BY_SLUG[slug as keyof typeof FAMILY_ICON_BY_SLUG]
-    : undefined;
-}
 
 /**
  * The image-led hero's media side — a large primary image with accessible thumbnail

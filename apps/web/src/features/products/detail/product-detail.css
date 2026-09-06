@@ -390,6 +390,12 @@
   margin-top: 54px;
 }
 
+/* The request CTA — secondary by construction (`.fs-btn--glass`, never gold), so it reads as one
+   more way to reach a person rather than as this section's main action. */
+.pd-docs-cta {
+  margin: clamp(28px, 3.5vw, 40px) 0 0;
+}
+
 /* ============================================================================
    SHARED SECTION HEADER
    ============================================================================ */

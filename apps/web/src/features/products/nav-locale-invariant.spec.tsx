@@ -17,6 +17,7 @@ import { CategoryQuality } from "./category/sections/quality";
 import { CategoryRelated } from "./category/sections/related";
 import { CategorySupply } from "./category/sections/supply";
 import { ProductHero } from "./detail/sections/hero";
+import { ProductTechnicalDocuments } from "./detail/sections/technical-documents";
 import { FAMILIES } from "./products-data";
 import { ClosingCta } from "./sections/closing-cta";
 import { Documentation } from "./sections/documentation";
@@ -133,6 +134,7 @@ function surfaces(locale: string): Record<string, string> {
       renderHtml(
         <ProductHero product={PRODUCT} locale={locale} localeFallback={false} activeGrade={null} />,
       ),
+      renderHtml(<ProductTechnicalDocuments locale={locale} productSlug={PRODUCT.slug} />),
       renderHtml(<ClosingCta locale={locale} productSlug={PRODUCT.slug} />),
     ].join(""),
   };
