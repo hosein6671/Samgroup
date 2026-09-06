@@ -10,6 +10,7 @@ import { hrefsIn, idsIn, renderHtml } from "@test/rendered-links";
 import { FAMILIES } from "../products-data";
 
 import { getCategoryContent, publishedCategorySlugs } from "./data";
+import { CategoryApplications } from "./sections/applications";
 import { CategoryProperties } from "./sections/properties";
 import { CategoryCatalogV2 } from "./sections/v2/catalog-v2";
 import { Guidance } from "./sections/v2/guidance";
@@ -85,12 +86,15 @@ const TWO_PRODUCTS: ProductListResult = {
   ],
 };
 
-describe("only Base Oils opts into the v2 layout", () => {
-  it("marks base-oils v2 and leaves the other five families untouched", () => {
-    expect(getCategoryContent("base-oils")?.layout).toBe("v2");
+const V2_SLUGS = ["base-oils", "engine-oils-automotive-lubricants"];
 
+describe("which families opt into the v2 layout", () => {
+  it("marks base-oils and engine-oils v2, and leaves the other four untouched", () => {
+    for (const slug of V2_SLUGS) {
+      expect(getCategoryContent(slug)?.layout).toBe("v2");
+    }
     for (const slug of publishedCategorySlugs()) {
-      if (slug === "base-oils") continue;
+      if (V2_SLUGS.includes(slug)) continue;
       expect(getCategoryContent(slug)?.layout).toBeUndefined();
     }
   });
@@ -226,6 +230,120 @@ describe("CatalogRail — the sticky companion", () => {
   });
 });
 
+describe("Engine Oils on v2 — adapts to a family with no classification and 45 products", () => {
+  const eo = (locale = "en"): SectionProps => propsFor(locale, "engine-oils-automotive-lubricants");
+  const content = getCategoryContent("engine-oils-automotive-lubricants")!;
+
+  it("Guidance renders the segment-list variant, not the classification table", () => {
+    const html = renderHtml(<Guidance {...eo()} />);
+    expect(html).not.toContain("<table");
+    expect(html).not.toContain("pcv2-cls-table");
+    expect(html).toContain("pcv2-seg-list");
+    // every segment and its full summary are shown, each row anchored
+    const ids = idsIn(html);
+    expect(ids).toContain("overview");
+    expect(ids).toContain("classification");
+    const text = textOf(html);
+    for (const subRange of content.range.subRanges) {
+      expect(ids).toContain(`range-${subRange.id}`);
+      expect(text).toContain(subRange.designation);
+      expect(text).toContain(textOf(subRange.summary));
+    }
+  });
+
+  it("Guidance uses a family-neutral framing line for the list variant", () => {
+    const html = renderHtml(<Guidance {...eo()} />);
+    expect(html).not.toContain("Classification, not availability");
+    expect(html).toContain("This is how the range is organised");
+  });
+
+  it("the rail jump list points at #quality (no Applications block) and labels the range plainly", () => {
+    const own = hrefsIn(renderHtml(<CatalogRail {...eo()} />));
+    expect(own).toContain("#products");
+    expect(own).toContain("#classification");
+    expect(own).toContain("#specifications");
+    expect(own).toContain("#quality");
+    expect(own).not.toContain("#applications");
+    expect(renderHtml(<CatalogRail {...eo()} />)).not.toContain("Classification");
+    expect(renderHtml(<CatalogRail {...eo()} />)).toContain("The range");
+  });
+
+  it("Base Oils' rail is unchanged — still 'Classification' and '#applications'", () => {
+    const html = renderHtml(<CatalogRail {...propsFor("en")} />);
+    expect(html).toContain("Classification");
+    expect(hrefsIn(html)).toContain("#applications");
+  });
+
+  it("has no Applications block, so CategoryApplications self-suppresses and #applications is absent", () => {
+    expect(content.applications).toBeUndefined();
+    // The shared section returns null when the fixture has no `applications` — no empty band,
+    // and no `id="applications"` for the rail to have linked to.
+    expect(renderHtml(<CategoryApplications {...eo()} />)).toBe("");
+  });
+
+  it("supplies no processImage, so the template's photo slot falls back to the labelled placeholder", () => {
+    // ProcessMedia renders unconditionally (composition verified in the browser gate); with no
+    // `processImage` it shows the deliberate 'Image placeholder' plate, same as Base Oils.
+    expect(content.processImage).toBeUndefined();
+    expect(getCategoryContent("base-oils")!.processImage).toBeUndefined();
+  });
+});
+
+describe("CatalogMoreLink — the path to a multi-page catalogue", () => {
+  async function render(
+    result: ProductListResult,
+    activeSegment: string | null = null,
+  ): Promise<string> {
+    const { CatalogMoreLink } = await import("./sections/v2/catalog-more-link");
+    const element = await CatalogMoreLink({
+      products: Promise.resolve(result),
+      familySlug: "engine-oils-automotive-lubricants",
+      locale: "en",
+      activeSegment,
+    });
+    return element === null ? "" : renderHtml(element as ReactElement);
+  }
+
+  /** A page of `count` list items out of `total`, as the API would return for page 1. */
+  function page(total: number, count = 20): ProductListResult {
+    return {
+      ok: true,
+      total,
+      page: 1,
+      limit: 20,
+      products: Array.from({ length: count }, (_, i) => product({ id: `p${i}`, slug: `p${i}` })),
+    };
+  }
+
+  it("links to the Product Finder scoped to this family when more than one page exists", async () => {
+    const html = await render(page(45));
+    expect(html).toContain("See all 45 products in the Product Finder");
+    expect(hrefsIn(html)).toContain(
+      "/en/products/finder?category=engine-oils-automotive-lubricants",
+    );
+  });
+
+  it("carries the active segment into the Finder URL, so the count and the destination filter alike", async () => {
+    // 32 products matched this family+segment; the first page shows 20, so the link must appear
+    // AND it must keep the segment — a link that dropped it would send the visitor to a
+    // 45-product view while the "See all 32" beside it counted the filtered set.
+    const html = await render(page(32), "passenger-cars");
+    expect(html).toContain("See all 32 products in the Product Finder");
+    expect(hrefsIn(html)).toContain(
+      "/en/products/finder?category=engine-oils-automotive-lubricants&segment=passenger-cars",
+    );
+  });
+
+  it("renders nothing when the whole (filtered) catalogue fits on one page", async () => {
+    expect(await render(page(2, 2))).toBe("");
+    expect(await render(page(15, 15), "passenger-cars")).toBe("");
+  });
+
+  it("renders nothing on an API failure", async () => {
+    expect(await render({ ok: false, reason: "unreachable" })).toBe("");
+  });
+});
+
 describe("CategoryProperties is reused unchanged — the conditional table survives", () => {
   it("keeps id=specifications and renders the pending state when no values are published", () => {
     const html = renderHtml(<CategoryProperties {...propsFor("en")} />);
@@ -260,12 +378,16 @@ describe("CategoryProperties is reused unchanged — the conditional table survi
   });
 });
 
-describe("CategoryCatalogV2 — products first, Base-Oils-only filter/reset", () => {
-  async function render(result: ProductListResult, activeSegment: string | null): Promise<string> {
+describe("CategoryCatalogV2 — products first, no chip row, reset kept for a bookmarked ?segment=", () => {
+  async function render(
+    result: ProductListResult,
+    activeSegment: string | null,
+    familySlug = "base-oils",
+  ): Promise<string> {
     const element = await CategoryCatalogV2({
       products: Promise.resolve(result),
       locale: "en",
-      familySlug: "base-oils",
+      familySlug,
       activeSegment,
     });
     return renderHtml(element as ReactElement);
@@ -277,8 +399,26 @@ describe("CategoryCatalogV2 — products first, Base-Oils-only filter/reset", ()
     expect(html).toContain("Base Oil Group I");
     expect(html).toContain("Bright Stock");
     expect(hrefsIn(html)).toContain("/en/products/base-oil-group-i");
-    expect(html).toContain("Showing all published base-oil products.");
+    expect(html).toContain("Showing every published product in this family.");
     expect(html).not.toContain("pl-filter"); // the shared 8-chip filter is not rendered
+    expect(html).not.toMatch(/base[- ]oil products/i); // no family-specific wording
+  });
+
+  it("drops the 'showing every product' line when the list is only the API's first page", async () => {
+    const html = await render(
+      {
+        ok: true,
+        total: 45,
+        page: 1,
+        limit: 20,
+        products: Array.from({ length: 20 }, (_, i) => product({ id: `p${i}`, slug: `p${i}` })),
+      },
+      null,
+      "engine-oils-automotive-lubricants",
+    );
+    expect(html).not.toContain("Showing every published product");
+    expect(html).toContain("first page only"); // the honest count still says so
+    expect(html).not.toContain("pl-filter");
   });
 
   it("shows an active-filter notice and a reset for a bookmarked ?segment= URL", async () => {
@@ -288,10 +428,14 @@ describe("CategoryCatalogV2 — products first, Base-Oils-only filter/reset", ()
     expect(hrefsIn(html)).toContain("/en/products/base-oils");
   });
 
-  it("keeps the reset when a segment matches nothing", async () => {
-    const html = await render({ ok: true, total: 0, page: 1, limit: 20, products: [] }, "marine");
+  it("keeps the reset when a segment matches nothing — including on Engine Oils", async () => {
+    const html = await render(
+      { ok: true, total: 0, page: 1, limit: 20, products: [] },
+      "passenger-cars",
+      "engine-oils-automotive-lubricants",
+    );
     expect(html).toContain("No products match this segment");
-    expect(hrefsIn(html)).toContain("/en/products/base-oils");
+    expect(hrefsIn(html)).toContain("/en/products/engine-oils-automotive-lubricants");
   });
 
   it("renders a restrained notice, not a 404, when the API is unreachable", async () => {

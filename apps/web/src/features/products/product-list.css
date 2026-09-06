@@ -195,6 +195,28 @@
   transition: border-color 0.2s ease;
 }
 
+/*
+ * The reserved image area. `product-card.tsx` explains what it holds and does not hold: today a
+ * single decorative glyph, later an `<img>` swapped in at this element. It is drawn as an image
+ * slot now so the card's proportions do not shift when that happens — a distinct quiet surface,
+ * a fixed 4:3 box, a centred family (or neutral catalogue) glyph in the tertiary ink.
+ */
+.pl-card-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-hairline);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-tertiary);
+}
+
+.pl-card-media .fs-icon {
+  inline-size: 30px;
+  block-size: 30px;
+}
+
 .pl-card-name {
   margin: 0;
   font-family: var(--font-display);
@@ -276,6 +298,14 @@
   height: 10px;
   border-radius: 4px;
   background: var(--color-border-hairline);
+}
+
+/* Holds the same 4:3 proportion `.pl-card-media` will, so the fallback and the real card are
+   the same height and nothing jumps when the list streams in. */
+.pl-skeleton--media {
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
 }
 
 .pl-skeleton--name {

@@ -1,40 +1,52 @@
 import { VisuallyHidden } from "@sam-group/ui";
 import type { ReactNode } from "react";
 
+import { hasClassificationDetail } from "../../category-contract";
 import type { SectionProps } from "../../category-section";
 
 /**
- * v2 · Block 3 (part 1) — compact selection guidance: Overview + Classification.
+ * v2 · Block 3 (part 1) — compact selection guidance: Overview + the range.
  *
  * Sits in the rail shell, beside the sticky rail. The specification axis and its conditional
  * typical-properties table follow immediately below the shell, rendered by the unchanged
  * `CategoryProperties` section so its populated-table behaviour and its `id="specifications"`
  * are preserved exactly.
  *
+ * ── Two shapes, chosen by the family's own content ────────────────────────
+ *
+ * `hasClassificationDetail` decides:
+ *
+ * - **Table** — the family names a formal classification, or a place in one, or individual
+ *   grades. Base Oils: API groups, SN / BS designations, PAO / Ester / PAG. One row per group
+ *   (`Group · Classification · Published grades`), and the prose descriptions in a native
+ *   `<details>` list beneath it so seven of them do not push the table down the page. On a phone
+ *   the table becomes a card per group (`category-v2.css`).
+ * - **List** — the family's range is a set of segments with a sentence each and nothing to
+ *   tabulate. Engine Oils: six vehicle segments, no grades, no classification. Each is a card
+ *   with its heading and summary shown; there is no second or third column to leave empty.
+ *
  * ── Content is preserved, not trimmed ─────────────────────────────────────
  *
- *  - Overview heading + every paragraph — shown, verbatim, under `id="overview"`.
- *  - Range heading + intro + classification axes — shown, verbatim.
- *  - Every sub-range: designation, its place in the classification (`qualifier`) and its grade
- *    designations — shown in a scannable table, one row per group, each row carrying
- *    `id="range-<sub-range id>"` so links and bookmarks that predate the redesign still land.
- *  - Each sub-range's prose summary — the longest supporting material — sits in a native
- *    `<details>`/`<summary>` in the list beneath the table, open to a keyboard and to in-page
- *    find, so the seven descriptions do not push the scannable table down the page.
+ *  - Overview heading + every paragraph — verbatim, under `id="overview"`.
+ *  - Range heading + intro + classification axes (where the family names them) — verbatim.
+ *  - Every sub-range: designation, its `qualifier` and grades where present, and its full prose
+ *    summary. Each carries `id="range-<sub-range id>"` so links and bookmarks that predate the
+ *    redesign still land.
  *
  * The family quick-facts (`overview.markers`) are NOT rendered here — the sticky rail owns them,
- * so the same four are not printed twice.
+ * so the same set is not printed twice.
  *
- * ── One new framing line ──────────────────────────────────────────────────
+ * ── The framing line ─────────────────────────────────────────────────────
  *
- * "Classification, not availability" — states that the table below is the classification system,
- * not the catalogue (which is the block directly above). It makes no product claim. Flagged in
- * the gate report as new copy.
+ * New copy on this component: it states that the block below is how the range is organised, not
+ * the catalogue (which is the block directly above). It makes no product claim. The table
+ * variant keeps Base Oils' committed wording; the list variant uses a family-neutral line.
  *
  * A Server Component. No `reveal-*` class — legible at rest.
  */
 export function Guidance({ content }: SectionProps): ReactNode {
   const { overview, range } = content;
+  const asTable = hasClassificationDetail(content);
 
   return (
     <section className="fs-sec pcv2-guide" data-surface="light">
@@ -55,8 +67,9 @@ export function Guidance({ content }: SectionProps): ReactNode {
           <h2 className="fs-d3">{range.heading}</h2>
           <p className="fs-lead pcv2-guide-para">{range.intro}</p>
           <p className="pcv2-guide-frame">
-            Classification, not availability — the groups below are the classification system; the
-            products currently in the catalogue are listed above.
+            {asTable
+              ? "Classification, not availability — the groups below are the classification system; the products currently in the catalogue are listed above."
+              : "This is how the range is organised. The products currently held in the catalogue are listed above."}
           </p>
 
           {range.classificationAxes && range.classificationAxes.length > 0 && (
@@ -70,48 +83,64 @@ export function Guidance({ content }: SectionProps): ReactNode {
             </p>
           )}
 
-          <div className="pcv2-cls-frame">
-            <table className="pcv2-cls-table">
-              <caption>
-                <VisuallyHidden>
-                  Base-oil classification groups, their place in the API base-stock classification,
-                  and the grade designations published for each.
-                </VisuallyHidden>
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Group</th>
-                  <th scope="col">Classification</th>
-                  <th scope="col">Published grades</th>
-                </tr>
-              </thead>
-              <tbody>
-                {range.subRanges.map((subRange) => (
-                  <tr id={`range-${subRange.id}`} key={subRange.id}>
-                    <th scope="row">{subRange.designation}</th>
-                    {/* `data-label` drives the ::before caption when the table becomes a card
-                        stack on narrow screens (category-v2.css). */}
-                    <td data-label="Classification">{subRange.qualifier ?? "—"}</td>
-                    <td data-label="Published grades">
-                      {subRange.grades.length > 0
-                        ? subRange.grades.map((grade) => grade.designation).join(" · ")
-                        : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {asTable ? (
+            <>
+              <div className="pcv2-cls-frame">
+                <table className="pcv2-cls-table">
+                  <caption>
+                    <VisuallyHidden>
+                      Base-oil classification groups, their place in the API base-stock
+                      classification, and the grade designations published for each.
+                    </VisuallyHidden>
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Group</th>
+                      <th scope="col">Classification</th>
+                      <th scope="col">Published grades</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {range.subRanges.map((subRange) => (
+                      <tr id={`range-${subRange.id}`} key={subRange.id}>
+                        <th scope="row">{subRange.designation}</th>
+                        {/* `data-label` drives the ::before caption when the table becomes a card
+                            stack on narrow screens (category-v2.css). */}
+                        <td data-label="Classification">{subRange.qualifier ?? "—"}</td>
+                        <td data-label="Published grades">
+                          {subRange.grades.length > 0
+                            ? subRange.grades.map((grade) => grade.designation).join(" · ")
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-          <div className="pcv2-cls-desc">
-            <p className="pcv2-cls-desc-label">Group descriptions</p>
-            {range.subRanges.map((subRange) => (
-              <details className="pcv2-cls-desc-item" key={subRange.id}>
-                <summary>{subRange.designation}</summary>
-                <p>{subRange.summary}</p>
-              </details>
-            ))}
-          </div>
+              <div className="pcv2-cls-desc">
+                <p className="pcv2-cls-desc-label">Group descriptions</p>
+                {range.subRanges.map((subRange) => (
+                  <details className="pcv2-cls-desc-item" key={subRange.id}>
+                    <summary>{subRange.designation}</summary>
+                    <p>{subRange.summary}</p>
+                  </details>
+                ))}
+              </div>
+            </>
+          ) : (
+            <ol className="pcv2-seg-list">
+              {range.subRanges.map((subRange, index) => (
+                <li className="pcv2-seg-item" id={`range-${subRange.id}`} key={subRange.id}>
+                  <p className="pcv2-seg-idx">{String(index + 1).padStart(2, "0")}</p>
+                  <div>
+                    <h3 className="pcv2-seg-name">{subRange.designation}</h3>
+                    <p className="pcv2-seg-summary">{subRange.summary}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       </div>
     </section>

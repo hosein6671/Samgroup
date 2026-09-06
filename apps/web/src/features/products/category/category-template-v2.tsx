@@ -32,13 +32,14 @@ import { CategoryFaq } from "./sections/faq";
 import { CategoryProperties } from "./sections/properties";
 import { CategoryQuality } from "./sections/quality";
 import { CategorySupply } from "./sections/supply";
+import { CatalogMoreLink } from "./sections/v2/catalog-more-link";
 import { CategoryCatalogV2, CategoryCatalogV2Skeleton } from "./sections/v2/catalog-v2";
 import { Guidance } from "./sections/v2/guidance";
 import { HeroV2 } from "./sections/v2/hero-v2";
 import { CatalogRail } from "./sections/v2/rail";
 
 /**
- * The v2 Product Category template — the "Catalog Rail" composition, currently Base Oils only.
+ * The v2 Product Category template — the "Catalog Rail" composition. Base Oils and Engine Oils.
  *
  * ── Structure ─────────────────────────────────────────────────────────────
  *
@@ -46,30 +47,37 @@ import { CatalogRail } from "./sections/v2/rail";
  *
  *  Rail shell (two columns)   → the browse-and-select zone:
  *    · left column            → `CategoryCatalogV2` inside a Suspense boundary (the API-backed
- *                               product list, immediately after the hero, with the
- *                               Base-Oils-only filter/reset behaviour) then `Guidance`
- *                               (Overview + Classification, the classification as a scannable
- *                               table with the group descriptions in native `<details>`).
+ *                               product list, immediately after the hero), then `CatalogMoreLink`
+ *                               — the link into the Product Finder that renders only when the
+ *                               family holds more than one page (Engine Oils: 45), then `Guidance`
+ *                               (Overview + the range). `CategoryCatalogV2` renders no Segment
+ *                               chip row: the two v2 families so far each have products that carry
+ *                               no Segment membership, so every chip would return nothing. A
+ *                               bookmarked `?segment=` still resolves to an active-filter notice
+ *                               with a reset, and the loading / empty / unknown-filter /
+ *                               unavailable states are all distinct.
  *    · sticky rail            → `CatalogRail` — the family quick-facts, the two enquiry actions,
- *                               and an in-page jump list. Sticky on desktop; on mobile it
- *                               collapses to the facts strip and flows above the products.
+ *                               and an in-page jump list derived from what actually renders.
  *
  *  Full width, below the shell → the reference material, reused unchanged:
  *    · `CategoryProperties`   → the specification axis and the conditional typical-properties
  *                               table (keeps `id="specifications"` and its populated-table
  *                               behaviour).
- *    · applications/process   → `ProcessMedia` (a labelled photography slot) then
- *                               `CategoryApplications` and `CategoryQuality`.
+ *    · applications/process   → `ProcessMedia` (a labelled photography slot — a real photograph
+ *                               where the fixture supplies one, a deliberate placeholder plate
+ *                               otherwise) then `CategoryApplications`, which self-suppresses on a
+ *                               family whose fixture has no `applications` (Engine Oils), then
+ *                               `CategoryQuality`.
  *    · `CategorySupply`
  *    · `CategoryDocumentation`, `CategoryFaq` — drawn restrained by `category-v2.css`, before
  *                               the final CTA.
  *    · `ClosingCta`           → the shared closing CTA, unchanged.
  *
- * ── Removed on this page ──────────────────────────────────────────────────
+ * ── Removed on the v2 page ───────────────────────────────────────────────
  *
  * The hero's stratigraphic range index (it duplicated the range register) and the
  * related-families strip (the mega menu and footer already list the six). No content string is
- * dropped — see the gate report.
+ * dropped.
  *
  * ── Motion ────────────────────────────────────────────────────────────────
  *
@@ -113,6 +121,7 @@ export function ProductCategoryTemplateV2({
           <div className="pcv2-col">
             <Suspense fallback={<CategoryCatalogV2Skeleton />}>
               <CategoryCatalogV2 {...catalog} products={products} />
+              <CatalogMoreLink {...catalog} products={products} />
             </Suspense>
             <Guidance {...props} />
           </div>
@@ -151,8 +160,9 @@ export function ProductCategoryTemplateV2({
  * placeholder: a restrained neutral plate (`media-slot-empty`, the shared photography-slot
  * treatment from `packages/ui/src/styles/surfaces.css`) at the intended 16:9 composition, a
  * short "Image placeholder" label, and nothing else — no broken-image icon, no fabricated
- * photograph, no claim about a SAM facility. Swapping the placeholder for an image later is a
- * one-line fixture change with no layout change.
+ * photograph, no claim about a SAM facility. Neither v2 family supplies an asset yet, so both
+ * show the placeholder; swapping it for an image later is a one-line fixture change with no
+ * layout change.
  */
 function ProcessMedia({ content }: { readonly content: ProductCategoryContent }): ReactNode {
   const { processImage } = content;

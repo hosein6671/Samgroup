@@ -668,6 +668,28 @@ export type SubRangeGroup = {
   readonly offset: number;
 };
 
+/**
+ * Whether this family's range carries a classification to present as a table.
+ *
+ * True when it names a formal classification system (`classificationAxes`) or when any sub-range
+ * carries a place in one (`qualifier`) or names individual grades. Base Oils is true — API groups,
+ * SN and BS designations, PAO/Ester/PAG. Engine Oils is false — its range is six vehicle segments
+ * with a sentence each and nothing to tabulate, so the v2 guidance block renders them as a plain
+ * list rather than a three-column grid whose second and third columns would be empty.
+ *
+ * Read by `sections/v2/guidance.tsx` (table vs list) and `sections/v2/rail.tsx` (the jump label).
+ */
+export function hasClassificationDetail(content: ProductCategoryContent): boolean {
+  const { range } = content;
+
+  return (
+    (range.classificationAxes?.length ?? 0) > 0 ||
+    range.subRanges.some(
+      (subRange) => subRange.qualifier !== undefined || subRange.grades.length > 0,
+    )
+  );
+}
+
 export function groupSubRanges(range: CategoryRange): readonly SubRangeGroup[] {
   const groups: SubRangeGroup[] = [];
 

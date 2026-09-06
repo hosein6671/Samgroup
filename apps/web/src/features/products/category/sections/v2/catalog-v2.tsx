@@ -10,12 +10,18 @@ import type { ProductListResult } from "@/lib/products";
  *
  * ── Why this is a v2-local component, not the shared `CategoryCatalog` ─────
  *
- * The shared section renders the full eight-chip Segment filter on every family. Base Oils'
- * products carry no Segment classification, so every chip returns nothing — the filter is noise
- * on this family. The Base-Oils treatment (agreed for the pilot) is: **no chip row in the default
- * view**, replaced by one plain line; and for a link or bookmark that still carries `?segment=`,
- * an active-filter notice with a reset back to the unfiltered family URL. Nothing in
- * `segments-data.ts` or the shared `catalog.tsx` is changed to do this.
+ * The shared section renders the full eight-chip Segment filter on every family. The v2 families
+ * so far — Base Oils, and Engine Oils & Automotive Lubricants — each have catalog rows that carry
+ * no Segment membership, so every chip returns nothing and the chip row is noise. This block's
+ * treatment: **no chip row in the default view**, replaced by one plain line; and for a link or
+ * bookmark that still carries `?segment=`, an active-filter notice with a reset back to the
+ * unfiltered family URL. Nothing in `segments-data.ts` or the shared `catalog.tsx` is changed to
+ * do this, and neither is the Segment vocabulary or any database assignment — the chips are only
+ * hidden here, not removed anywhere.
+ *
+ * Access to the whole catalogue is not lost with the chips: a family that runs past the API's
+ * first page gets `CatalogMoreLink` beneath this block, into the Product Finder, which keeps its
+ * own Segment filter.
  *
  * `CatalogNotice` and the console reporting in `catalog.tsx` are module-private there, so this
  * file carries its own small versions rather than claiming an import it cannot have.
@@ -25,8 +31,8 @@ import type { ProductListResult } from "@/lib/products";
  * Same contract as the shared section: no branch throws, none calls `notFound()`, none
  * substitutes a fixture. An unreachable or erroring catalog service renders one restrained
  * "unavailable" block; the other blocks on the page are unaffected. An empty *unfiltered*
- * catalogue returns nothing rather than an empty heading (Base Oils holds two products, so this
- * is a guard, not a state anyone sees today).
+ * catalogue returns nothing rather than an empty heading (both v2 families publish products, so
+ * this is a guard, not a state anyone sees today).
  *
  * A Server Component. `async` only because it awaits a promise the route created — it issues no
  * request of its own. No `reveal-*` class; legible at rest.
@@ -125,13 +131,18 @@ export async function CategoryCatalogV2({
               {result.total > listed && <small>of {result.total} — first page only</small>}
             </p>
 
-            {activeSegment === null && (
-              <p className="pcv2-browse-all">Showing all published base-oil products.</p>
+            {activeSegment === null && result.total <= listed && (
+              <p className="pcv2-browse-all">Showing every published product in this family.</p>
             )}
 
             <div className="pl-grid">
               {result.products.map((product) => (
-                <ProductCard key={product.id} product={product} locale={locale} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  locale={locale}
+                  familySlug={familySlug}
+                />
               ))}
             </div>
           </>
@@ -172,7 +183,7 @@ export async function CategoryCatalogV2({
  * The Suspense fallback while the list is in flight.
  *
  * Deliberately no product names, counts or fabricated rows — three neutral placeholder rows and
- * the section frame. No Segment filter (Base Oils does not render one), so this is a plainer
+ * the section frame. No Segment filter (this block does not render one), so it is a plainer
  * skeleton than the shared `CategoryCatalogSkeleton`.
  */
 export function CategoryCatalogV2Skeleton(): ReactNode {
@@ -189,6 +200,7 @@ export function CategoryCatalogV2Skeleton(): ReactNode {
         <div className="pl-grid" aria-hidden="true">
           {[0, 1, 2].map((index) => (
             <div className="pl-card pl-card--pending" key={index}>
+              <span className="pl-skeleton pl-skeleton--media" />
               <span className="pl-skeleton pl-skeleton--name" />
               <span className="pl-skeleton pl-skeleton--line" />
               <span className="pl-skeleton pl-skeleton--line pl-skeleton--short" />

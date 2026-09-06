@@ -314,8 +314,19 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
                * composing the same flat canonical URL — `/{locale}/products/{product-slug}`
                * (ADR-007 §4, ADR-010 §2). The card builds that path itself from the locale it is
                * given, which is what makes a nested or cross-locale link impossible here.
+               *
+               * `familySlug` is the active `category` filter when there is one — the finder's
+               * results are all that family then, so the card can show its glyph — and `undefined`
+               * on an unfiltered or mixed result, where the card falls back to the neutral
+               * catalogue glyph. It is the URL's own value, never a database id, and costs no
+               * request.
                */
-              <ProductCard key={product.id} product={product} locale={locale} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                locale={locale}
+                familySlug={query.category ?? undefined}
+              />
             ))}
           </div>
 
@@ -434,6 +445,7 @@ export function FinderResultsSkeleton(): ReactNode {
       <div className="pl-grid" aria-hidden="true">
         {[0, 1, 2].map((index) => (
           <div className="pl-card pl-card--pending" key={index}>
+            <span className="pl-skeleton pl-skeleton--media" />
             <span className="pl-skeleton pl-skeleton--name" />
             <span className="pl-skeleton pl-skeleton--line" />
             <span className="pl-skeleton pl-skeleton--line pl-skeleton--short" />

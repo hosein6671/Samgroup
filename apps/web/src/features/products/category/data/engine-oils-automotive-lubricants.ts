@@ -103,6 +103,15 @@ const NO_DESIGNATIONS = "No individual designations are published for it.";
 
 export const ENGINE_OILS_AUTOMOTIVE_LUBRICANTS: ProductCategoryContent = {
   familyId: "engine-oils-automotive-lubricants",
+  /*
+   * The second family on the redesigned composition (`category-template-v2.tsx`). It reuses the
+   * v2 components as-is: `CategoryCatalogV2` (no Segment chip row — this family's catalog rows
+   * carry no Segment membership, so every chip would return nothing; the chips stay reachable on
+   * the Product Finder), a `CatalogMoreLink` because the catalogue runs past the API's first
+   * page, and the guidance block's list variant because the range is six vehicle segments with a
+   * sentence each and no classification or grades to tabulate. No page content below changes.
+   */
+  layout: "v2",
   meta: {
     title: "Engine Oils & Automotive Lubricants | SAM Group",
     /*

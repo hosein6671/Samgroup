@@ -223,7 +223,12 @@ export async function CategoryCatalog({
 
             <div className="pl-grid reveal-stagger">
               {result.products.map((product) => (
-                <ProductCard key={product.id} product={product} locale={locale} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  locale={locale}
+                  familySlug={familySlug}
+                />
               ))}
             </div>
           </>
@@ -300,6 +305,7 @@ export function CategoryCatalogSkeleton({
         <div className="pl-grid" aria-hidden="true">
           {[0, 1, 2].map((index) => (
             <div className="pl-card pl-card--pending" key={index}>
+              <span className="pl-skeleton pl-skeleton--media" />
               <span className="pl-skeleton pl-skeleton--name" />
               <span className="pl-skeleton pl-skeleton--line" />
               <span className="pl-skeleton pl-skeleton--line pl-skeleton--short" />

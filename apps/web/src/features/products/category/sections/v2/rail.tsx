@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 
-import { actionHref } from "../../category-contract";
+import {
+  actionHref,
+  hasClassificationDetail,
+  type ProductCategoryContent,
+} from "../../category-contract";
 import type { SectionProps } from "../../category-section";
 
 /**
@@ -24,20 +28,29 @@ import type { SectionProps } from "../../category-section";
  *
  * ── The jump list ────────────────────────────────────────────────────────
  *
- * Plain in-page anchors, no scroll-spy — every target id is rendered on this page (the products
- * and classification sections here, the reused sections below the shell). No client JavaScript.
+ * Plain in-page anchors, no scroll-spy — every target id is rendered on this page. It is derived
+ * from the family's own content so it never links to a section that does not render: the range
+ * label follows `hasClassificationDetail`, and a family with no Applications block (Engine Oils)
+ * points the fourth entry at `#quality` instead of `#applications`. No client JavaScript.
  *
  * A Server Component. No `reveal-*` class.
  */
 
-const JUMP_TARGETS = [
-  { href: "#products", label: "Published products" },
-  { href: "#classification", label: "Classification" },
-  { href: "#specifications", label: "Key specifications" },
-  { href: "#applications", label: "Applications & process" },
-  { href: "#supply", label: "Packaging & supply" },
-  { href: "#documentation", label: "Documentation" },
-] as const;
+function jumpTargets(content: ProductCategoryContent): { href: string; label: string }[] {
+  return [
+    { href: "#products", label: "Published products" },
+    {
+      href: "#classification",
+      label: hasClassificationDetail(content) ? "Classification" : "The range",
+    },
+    { href: "#specifications", label: "Key specifications" },
+    content.applications
+      ? { href: "#applications", label: "Applications & process" }
+      : { href: "#quality", label: "Quality" },
+    { href: "#supply", label: "Packaging & supply" },
+    { href: "#documentation", label: "Documentation" },
+  ];
+}
 
 export function CatalogRail({ content, locale }: SectionProps): ReactNode {
   const { overview, hero } = content;
@@ -69,7 +82,7 @@ export function CatalogRail({ content, locale }: SectionProps): ReactNode {
         <nav className="pcv2-rail-jump" aria-label="On this page">
           <p className="pcv2-rail-jump-label">On this page</p>
           <ul>
-            {JUMP_TARGETS.map((target) => (
+            {jumpTargets(content).map((target) => (
               <li key={target.href}>
                 <a href={target.href}>{target.label}</a>
               </li>

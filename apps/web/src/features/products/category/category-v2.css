@@ -406,6 +406,30 @@
   margin-top: clamp(10px, 1.2vw, 14px);
 }
 
+/* The path to the rest of a multi-page catalogue (`CatalogMoreLink`). */
+[data-layout="v2"] .pcv2-more {
+  margin: clamp(16px, 2vw, 24px) 0 0;
+}
+
+[data-layout="v2"] .pcv2-more a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 24px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  text-decoration: none;
+}
+
+[data-layout="v2"] .pcv2-more a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* ============================================================================
    4 · SELECTION GUIDANCE — overview + classification table
    ============================================================================ */
@@ -569,6 +593,57 @@
   margin: 0 0 14px;
   padding-inline-start: 22px;
   max-width: 64ch;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+
+/* ----------------------------------------------------------------------------
+ * The guidance list variant — a segment per row, heading and summary shown.
+ *
+ * Used where the range is a set of segments with a sentence each and nothing to tabulate
+ * (Engine Oils' six vehicle segments). Numbered hairline rows, the same construction the range
+ * register uses one level up, so the two pages in the family read alike.
+ * -------------------------------------------------------------------------- */
+[data-layout="v2"] .pcv2-seg-list {
+  list-style: none;
+  margin: clamp(18px, 2.2vw, 28px) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+[data-layout="v2"] .pcv2-seg-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: clamp(14px, 2vw, 26px);
+  padding-block: clamp(16px, 2vw, 22px);
+  border-bottom: 1px solid var(--color-border-hairline);
+  scroll-margin-block-start: clamp(88px, 12vh, 116px);
+}
+
+[data-layout="v2"] .pcv2-seg-idx {
+  margin: 0;
+  padding-top: 4px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  color: var(--color-text-tertiary);
+}
+
+[data-layout="v2"] .pcv2-seg-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  font-weight: 400;
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
+  color: var(--color-text-primary);
+}
+
+[data-layout="v2"] .pcv2-seg-summary {
+  margin: 8px 0 0;
+  max-width: 62ch;
   font-size: var(--fs-text-body-sm);
   line-height: var(--fs-text-body-sm--line-height);
   color: var(--color-text-secondary);
@@ -749,6 +824,16 @@
   [data-layout="v2"] .pcv2-filterbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  /* The segment list drops its index column — the same move `.pl-filter` makes. */
+  [data-layout="v2"] .pcv2-seg-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  [data-layout="v2"] .pcv2-seg-idx {
+    padding-top: 0;
   }
 }
 

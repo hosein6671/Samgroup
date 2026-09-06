@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 import type { ProductListItemResponse } from "@sam-group/types";
 
+import { CatalogueIcon, familyIconFor } from "@/features/site/icons";
+
 /**
  * One product, as `GET /products` serves it.
  *
@@ -13,6 +15,20 @@ import type { ProductListItemResponse } from "@sam-group/types";
  *
  * `name` and `description`. Nothing else is on the wire: `ProductListItemResponse` is `id`, `name`,
  * `slug`, `description`, `categoryId`, `createdAt`, and the last two are join key and timestamp.
+ *
+ * ── The media area is reserved, not filled ─────────────────────────────────
+ *
+ * Every card opens with a fixed, image-shaped area. Today it holds **only a decorative Flagship
+ * glyph** on a quiet surface — the family's own icon where the caller knows which family it is
+ * listing (every Family page does), the neutral catalogue glyph where it does not (the Product
+ * Finder's cross-family results). It is `aria-hidden`, it is never captioned, and it makes no
+ * claim to be a photograph: it is a placeholder holding the space a real product image will take.
+ *
+ * `GET /products` carries **no image field** — `ProductImageResponse[]` is a `GET /products/:slug`
+ * field and `PRODUCT_SELECT` keeps the list without it (a page of rows would be a join per row).
+ * A real image on this card therefore waits on a backend change that has not been made. When it
+ * lands, the `<img>` replaces the glyph inside `.pl-card-media` alone — no other element here, and
+ * no caller, changes.
  *
  * There is deliberately **no grade, no viscosity, no standard, no approval, no packaging, no
  * product code and no performance claim** anywhere in this component. Not blank — absent. Every one
@@ -56,13 +72,34 @@ import type { ProductListItemResponse } from "@sam-group/types";
 export function ProductCard({
   product,
   locale,
+  familySlug,
 }: {
   readonly product: ProductListItemResponse;
   /** The active locale segment. Half of the canonical URL; the product's slug is the other half. */
   readonly locale: string;
+  /**
+   * The owning Product Family's canonical `Category.slug`, when the caller knows it — every Family
+   * page does, and the Product Finder does whenever its results are filtered to one family. It
+   * selects the decorative placeholder glyph only (the family's icon, or the neutral catalogue
+   * icon when this is `undefined` or not one of the six). It is never rendered as text and never
+   * reaches the wire; it is not a product image.
+   */
+  readonly familySlug?: string;
 }): ReactNode {
+  const PlaceholderIcon =
+    (familySlug !== undefined ? familyIconFor(familySlug) : undefined) ?? CatalogueIcon;
+
   return (
     <article className="pl-card">
+      {/*
+       * Decorative. `aria-hidden` so assistive tech does not announce a glyph as an image of the
+       * product, and no `alt`/`figcaption` for the same reason. Replaced by an `<img>` here, and
+       * only here, once `GET /products` carries an image — see this file's header.
+       */}
+      <span className="pl-card-media" aria-hidden="true">
+        <PlaceholderIcon size="xl" />
+      </span>
+
       <h3 className="pl-card-name">
         {/*
          * The whole card is not the link — the heading is. A card-sized anchor wrapping a
