@@ -47,6 +47,7 @@ import { ClosingCta } from "../sections/closing-cta";
 import type { ProductFamily } from "../products-data";
 
 import type { ProductCategoryContent } from "./category-contract";
+import { ProductCategoryTemplateV2 } from "./category-template-v2";
 import { CategoryApplications } from "./sections/applications";
 import { CategoryCatalog, CategoryCatalogSkeleton } from "./sections/catalog";
 import { CategoryDocumentation } from "./sections/documentation";
@@ -157,6 +158,25 @@ export function ProductCategoryTemplate({
   /** The normalized `?segment=` value, or `null` for the unfiltered view. */
   readonly activeSegment: string | null;
 }): ReactNode {
+  /*
+   * v2 opt-in. A single category (`base-oils`) sets `content.layout = "v2"` and renders through
+   * the redesigned five-block composition; every other family falls straight through to the
+   * original template below, unchanged. The delegation lives here rather than in the route so the
+   * route keeps one Family branch and one call site.
+   */
+  if (content.layout === "v2") {
+    return (
+      <ProductCategoryTemplateV2
+        content={content}
+        family={family}
+        locale={locale}
+        locales={locales}
+        products={products}
+        activeSegment={activeSegment}
+      />
+    );
+  }
+
   const props = { content, family, locale } as const;
   /*
    * The catalog section takes the family's canonical identifier rather than the fixture's or the

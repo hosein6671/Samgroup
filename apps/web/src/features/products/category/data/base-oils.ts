@@ -6,7 +6,9 @@
  * The taxonomy is transcribed from `docs/SITE_STRUCTURE.md` §4, Base Oils row: "Group I (SN
  * 150/350/500/650), Group II, Group III, Naphthenic, Bright Stock (BS 150), Synthetics
  * (PAO/Ester/PAG), Virgin & Re-refined grades; Thin Film Polishing named block". Seven
- * sub-ranges, five named grades, one named process — and nothing else is a product.
+ * sub-ranges, five named grades, one named process — and nothing else is a product. (That
+ * document's "thin film polishing" is a mis-name; the process is Thin Film Evaporation — see the
+ * `namedProcess` note below.)
  *
  * The quality stages are §7's "Incoming/In-Process/Outgoing testing stages". The supply formats
  * are §6's list. The Incoterms are §6's four. The FAQ answers each cite their source inline.
@@ -47,6 +49,14 @@ import {
 
 export const BASE_OILS: ProductCategoryContent = {
   familyId: "base-oils",
+  /*
+   * Base Oils is the pilot for the redesigned Family-page composition — image-led intro, the
+   * API-backed product list directly beneath it, a compact selection-guidance block, an
+   * applications/process block with a photography slot, then supply, documentation and FAQ. The
+   * other five families keep the original template until a rollout is approved. See
+   * `category-template-v2.tsx` and `ProductCategoryContent.layout`.
+   */
+  layout: "v2",
   meta: {
     title: "Base Oils | API Groups, SN Grades & Bright Stock | SAM Group",
     description:
@@ -56,12 +66,24 @@ export const BASE_OILS: ProductCategoryContent = {
   /* ------------------------------------------------------------------ 1 hero */
 
   hero: {
-    headline: "Base oils, organised for a precise enquiry.",
-    lead: "Compare mineral and synthetic base-fluid families, locate the published grade designation, then define the property, volume, packaging and destination your supply brief requires.",
+    /*
+     * Short, plain, and claim-free. "By group and grade" states how the range is organised; the
+     * lead names what the family is for. Neither asserts an origin, a capacity or a production
+     * claim — the in-house vs. partner-refinery question is an open launch blocker (see the note
+     * at the top of this file), so the hero makes no production claim about any group.
+     */
+    headline: "Base oils, by group and grade.",
+    lead: "The base-fluid families that go into finished lubricants.",
     image: {
       src: "/images/base-oils-lab-samples.webp",
       alt: "Unlabelled laboratory bottles containing base-oil samples in pale gold and amber tones",
-      caption: "Base-oil samples · visual comparison before technical review",
+      /*
+       * The image is representative, not SAM facility or product photography
+       * (`docs/PROJECT_HANDOFF.md` records it as a generated, claim-safe laboratory scene). The
+       * caption says so on screen, and the v2 hero renders it without the official SAM mark
+       * overlay so the brand is not fused to a representative image.
+       */
+      caption: "Representative image — shown for illustration",
     },
     primary: { label: "Request a Quote", route: "quote" },
     secondary: { label: "Request a Sample", route: "sample" },
@@ -255,14 +277,19 @@ export const BASE_OILS: ProductCategoryContent = {
     intro:
       "The selected grade is reviewed against its technical property set. Incoming, in-process and outgoing checks keep the material, process and released batch connected to the documentation used for the enquiry.",
     /*
-     * The Base-Oil-only named block (SITE_STRUCTURE §4 item 5; §2 lists it under Our Expertise as
-     * "Base Oil Processing / thin film polishing"). Both documents name the process and neither
-     * describes it, so this states the name and nothing more — a process description written here
-     * would be a process description invented here.
+     * The Base-Oil-only named block (SITE_STRUCTURE §4 item 5).
+     *
+     * The demoted structure recorded this as "thin film polishing", which is not a recognised
+     * process name: "polishing" is a *finishing* step (hydrofinishing or clay/adsorptive
+     * treatment), not a separation step. The owner confirmed the process is **Thin Film
+     * Evaporation** — a short-residence-time vacuum step in which the feed is processed as a thin
+     * evaporating film (the industry also calls it wiped-film evaporation). No project document
+     * describes SAM's own configuration, so the note states what the process is and defers its
+     * scope for a given grade to technical review; anything more would be invented here.
      */
     namedProcess: {
-      name: "Thin Film Polishing",
-      note: "A named finishing route in the Base Oils portfolio. Its applicability and processing scope are confirmed for the selected grade during technical review.",
+      name: "Thin Film Evaporation",
+      note: "A short-residence-time vacuum step in which base stock is processed as a thin evaporating film. Its role for the selected grade is confirmed during technical review.",
     },
     /* §7's three stages, shared — see `defaults.ts` for why they are not restated per category. */
     stages: QUALITY_STAGES,

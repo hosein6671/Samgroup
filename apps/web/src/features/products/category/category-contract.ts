@@ -561,6 +561,21 @@ export type ProductCategoryContent = {
    */
   readonly familyId: string;
   /**
+   * Which page composition this category renders through.
+   *
+   * Absent — every category today except Base Oils — is the original shared template
+   * (`category-template.tsx`), unchanged. `"v2"` opts a single category into the redesigned
+   * five-block composition (`category-template-v2.tsx`): image-led intro, the API-backed product
+   * list directly beneath it, a compact selection-guidance block, an applications/process block
+   * with a photography slot, then supply, documentation, FAQ and the shared closing CTA.
+   *
+   * It is a per-category opt-in on purpose. The redesign is a pilot; the other five families must
+   * be provably untouched, and an opt-in flag read by `ProductCategoryTemplate` is what makes
+   * that a compile-time fact rather than a review promise. Adding a family to the new layout is a
+   * one-line fixture change once the pilot is approved for rollout.
+   */
+  readonly layout?: "v2";
+  /**
    * The page's own `<title>` and description. Read by `generateMetadata` straight from this
    * registry — no fetch, no resolver, so a category's metadata cannot depend on the network.
    */
@@ -570,6 +585,19 @@ export type ProductCategoryContent = {
   readonly range: CategoryRange;
   readonly properties: PropertyMatrix;
   readonly quality: QualityBlock;
+  /**
+   * Optional editorial photography for the v2 applications/process block.
+   *
+   * The `"v2"` layout renders a deliberate, labelled image placeholder in this position when the
+   * field is absent — an intentional gap, not a broken image and not a fabricated photograph.
+   * Supplying a real (or separately approved representative) asset here swaps the placeholder for
+   * the image with no change to the block's composition. Ignored entirely by the original layout.
+   */
+  readonly processImage?: {
+    readonly src: string;
+    readonly alt: string;
+    readonly caption: string;
+  };
   /**
    * Optional, and the third category built is the reason.
    *

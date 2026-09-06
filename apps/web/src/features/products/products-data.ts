@@ -50,8 +50,9 @@ export type ProductFamily = {
   readonly ranges: readonly string[];
   /**
    * A single named block that is unique to this category, where the source document names one.
-   * Only Base Oils has one today ("Thin Film Polishing"); the rest are intentionally undefined
-   * rather than padded with invented equivalents.
+   * Only Base Oils has one today ("Thin Film Evaporation" — the demoted structure's "thin film
+   * polishing" was a mis-name, corrected with the owner; see `category/data/base-oils.ts`); the
+   * rest are intentionally undefined rather than padded with invented equivalents.
    */
   readonly namedBlock?: string;
 };
@@ -84,7 +85,7 @@ export const FAMILIES: readonly ProductFamily[] = [
       "Synthetics · PAO / Ester / PAG",
       "Virgin & re-refined grades",
     ],
-    namedBlock: "Thin Film Polishing",
+    namedBlock: "Thin Film Evaporation",
   },
   {
     id: "lubricant-additives",

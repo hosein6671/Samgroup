@@ -1,0 +1,827 @@
+/*
+ * SAM GROUP — PRODUCT CATEGORY TEMPLATE, v2 · "Catalog Rail" (Base Oils pilot)
+ *
+ * ============================================================================
+ * WHAT THIS FILE IS ALLOWED TO DO
+ * ============================================================================
+ *
+ * It adds the constructions the v2 composition needs, and — scoped entirely under
+ * `[data-layout="v2"]` — it compacts and de-animates the reused sections for this layout. It
+ * declares no colour, no type size, no radius and no easing of its own: every such value below
+ * resolves to a token already declared by `flagship.css` inside `[data-brand="flagship"]`.
+ * Spacing is written as `clamp()` literals, matching `category.css`'s own convention.
+ *
+ * Every selector begins with `[data-layout="v2"]` or targets a `.pcv2-*` class that exists only
+ * inside it. Nothing here can reach the other five Family pages: they render the original
+ * template, which sets no `data-layout` attribute, and this stylesheet is imported only by
+ * `category-template-v2.tsx`.
+ *
+ * ============================================================================
+ * MOTION — LEGIBLE AT REST, NO SHARED CHANGE
+ * ============================================================================
+ *
+ * v2-authored sections carry no `reveal-*` class. The reused sections do. Under
+ * `[data-layout="v2"]` those animations are cancelled outright — `animation: none` removes the
+ * `opacity: 0` start state that `motion.css` sets with `animation-fill-mode: both`, so the
+ * content renders at its resting styles with no dependence on a scroll timeline. `motion.css` is
+ * not touched, and the other five families keep their reveals.
+ */
+
+[data-layout="v2"] .reveal-fade-rise,
+[data-layout="v2"] .reveal-mask-wipe,
+[data-layout="v2"] .reveal-hairline-draw,
+[data-layout="v2"] .reveal-stagger > * {
+  animation: none;
+}
+
+/* Reused full-height sections run at the compact rhythm inside this layout. */
+[data-layout="v2"] .fs-sec {
+  padding-block: var(--fs-sec-compact);
+}
+
+/* ============================================================================
+   1 · HERO — compact, image-led
+   ============================================================================ */
+
+[data-layout="v2"] .pcv2-hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(100px, 12vh, 148px) clamp(36px, 4.5vw, 60px);
+  background:
+    radial-gradient(ellipse 100% 70% at 8% 0%, rgba(18, 41, 110, 0.45), transparent 60%),
+    var(--color-surface-canvas);
+}
+
+[data-layout="v2"] .pcv2-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: clamp(260px, 30vw, 340px) minmax(0, 1fr);
+  gap: clamp(24px, 3.5vw, 52px);
+  align-items: center;
+}
+
+[data-layout="v2"] .pcv2-hero-media {
+  position: relative;
+  margin: 0;
+  align-self: stretch;
+  min-height: clamp(220px, 24vw, 300px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-sunken);
+  box-shadow: 0 24px 60px rgba(0, 5, 20, 0.32);
+  overflow: hidden;
+}
+
+[data-layout="v2"] .pcv2-hero-media :where(img) {
+  object-fit: cover;
+  object-position: 58% center;
+}
+
+[data-layout="v2"] .pcv2-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(2, 12, 35, 0.78) 100%);
+  pointer-events: none;
+}
+
+[data-layout="v2"] .pcv2-hero-media figcaption {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 1;
+  padding: 16px 14px 10px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-caption);
+  line-height: var(--fs-text-caption--line-height);
+  letter-spacing: var(--fs-text-caption--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-trail {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* SC 2.5.8 — a standalone breadcrumb link takes the full 24px box, not the line-height. */
+[data-layout="v2"] .pcv2-trail a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--t-micro) var(--e-micro);
+}
+
+[data-layout="v2"] .pcv2-trail a:hover {
+  color: var(--color-text-accent);
+}
+
+[data-layout="v2"] .pcv2-trail [aria-current="page"] {
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-hero h1 {
+  margin-top: clamp(12px, 1.6vw, 20px);
+  max-width: 18ch;
+}
+
+[data-layout="v2"] .pcv2-hero-lead {
+  margin-top: clamp(12px, 1.6vw, 18px);
+  max-width: 46ch;
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: clamp(18px, 2.4vw, 28px);
+}
+
+[data-layout="v2"] .pcv2-hero-jump {
+  margin: clamp(14px, 1.8vw, 20px) 0 0;
+}
+
+[data-layout="v2"] .pcv2-hero-jump a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 24px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  text-decoration: none;
+}
+
+[data-layout="v2"] .pcv2-hero-jump a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ============================================================================
+   2 · RAIL SHELL — the browse-and-select zone
+   ============================================================================ */
+
+[data-layout="v2"] .pcv2-shell {
+  max-width: var(--fs-maxw);
+  margin-inline: auto;
+  padding-inline: var(--fs-gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(272px, 26vw, 324px);
+  gap: clamp(24px, 3vw, 56px);
+}
+
+/* Column sections fill the column: the shell owns the page gutter and the max width. */
+[data-layout="v2"] .pcv2-col > .fs-sec {
+  padding-block: clamp(30px, 3.6vw, 52px);
+}
+
+[data-layout="v2"] .pcv2-col .fs-wrap {
+  max-width: none;
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
+/* A hairline seam between the two column sections rather than a surface change. */
+[data-layout="v2"] .pcv2-col > .pcv2-guide {
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+/* The rail item stretches to the column's height so its inner panel can stick within it. */
+[data-layout="v2"] .pcv2-rail {
+  grid-column: 2;
+}
+
+[data-layout="v2"] .pcv2-rail-in {
+  position: sticky;
+  top: clamp(88px, 11vh, 108px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(16px, 1.8vw, 22px);
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-raised);
+}
+
+[data-layout="v2"] .pcv2-rail-facts {
+  margin: 0;
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+[data-layout="v2"] .pcv2-rail-fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 10px;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+[data-layout="v2"] .pcv2-rail-fact dt {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+[data-layout="v2"] .pcv2-rail-fact dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  text-align: end;
+}
+
+[data-layout="v2"] .pcv2-rail-acts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+[data-layout="v2"] .pcv2-rail-acts .fs-btn {
+  justify-content: center;
+}
+
+[data-layout="v2"] .pcv2-rail-jump {
+  border-top: 1px solid var(--color-border-hairline);
+  padding-top: clamp(12px, 1.4vw, 16px);
+}
+
+[data-layout="v2"] .pcv2-rail-jump-label {
+  margin: 0 0 8px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+[data-layout="v2"] .pcv2-rail-jump ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+[data-layout="v2"] .pcv2-rail-jump a {
+  display: flex;
+  align-items: center;
+  min-block-size: 30px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border-hairline);
+  transition:
+    color var(--t-micro) var(--e-micro),
+    padding-inline-start var(--t-micro) var(--e-micro);
+}
+
+[data-layout="v2"] .pcv2-rail-jump li:last-child a {
+  border-bottom: 0;
+}
+
+[data-layout="v2"] .pcv2-rail-jump a:hover {
+  color: var(--color-text-accent);
+  padding-inline-start: 6px;
+}
+
+/* ============================================================================
+   3 · BROWSE PRODUCTS — rich cards
+   ============================================================================ */
+
+[data-layout="v2"] .pcv2-browse-head {
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+
+[data-layout="v2"] .pcv2-browse-head h2 {
+  margin-top: 12px;
+}
+
+[data-layout="v2"] .pcv2-browse-all {
+  margin: 0 0 clamp(16px, 2vw, 22px);
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-tertiary);
+}
+
+[data-layout="v2"] .pcv2-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin: 0 0 clamp(16px, 2vw, 22px);
+  padding: 12px 16px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-raised);
+}
+
+[data-layout="v2"] .pcv2-filterbar p {
+  margin: 0;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-filterbar b {
+  font-family: var(--font-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  color: var(--color-text-accent);
+}
+
+[data-layout="v2"] .pcv2-filter-reset {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  text-decoration: none;
+}
+
+[data-layout="v2"] .pcv2-filter-reset:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* The card grid — two up in the column, lifted off the canvas, with a hover state. */
+[data-layout="v2"] .pcv2-browse .pl-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(12px, 1.4vw, 16px);
+}
+
+[data-layout="v2"] .pcv2-browse .pl-card {
+  padding: clamp(18px, 2vw, 26px);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-raised);
+  transition:
+    border-color var(--t-micro) var(--e-micro),
+    transform var(--t-micro) var(--e-micro),
+    box-shadow var(--t-micro) var(--e-micro);
+}
+
+[data-layout="v2"] .pcv2-browse .pl-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-border-accent);
+  box-shadow: 0 16px 38px rgba(0, 5, 20, 0.14);
+}
+
+[data-layout="v2"] .pcv2-browse .pl-card-summary {
+  color: var(--color-text-secondary);
+}
+
+/* A "view product" affordance under the description, without a second link name. */
+[data-layout="v2"] .pcv2-browse .pl-card::after {
+  content: "View product \2192";
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+  margin-top: clamp(10px, 1.2vw, 14px);
+}
+
+/* ============================================================================
+   4 · SELECTION GUIDANCE — overview + classification table
+   ============================================================================ */
+
+[data-layout="v2"] .pcv2-guide-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(30px, 3.6vw, 52px);
+}
+
+[data-layout="v2"] .pcv2-guide-inner > * {
+  min-width: 0;
+}
+
+[data-layout="v2"] .pcv2-guide-overview h2,
+[data-layout="v2"] .pcv2-guide-range h2 {
+  margin-top: 12px;
+  max-width: 24ch;
+}
+
+[data-layout="v2"] .pcv2-guide-para {
+  margin-top: clamp(12px, 1.6vw, 20px);
+  max-width: 62ch;
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-guide-frame {
+  margin: clamp(12px, 1.6vw, 18px) 0 0;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--color-border-accent);
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+  max-width: 60ch;
+}
+
+[data-layout="v2"] .pcv2-axes {
+  margin: clamp(14px, 1.8vw, 22px) 0 0;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-axes-label {
+  display: inline-block;
+  margin-inline-end: 10px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+[data-layout="v2"] .pcv2-axes-note {
+  color: var(--color-text-tertiary);
+}
+
+/* The classification table — scannable, one row per group. */
+[data-layout="v2"] .pcv2-cls-frame {
+  margin-top: clamp(18px, 2.2vw, 28px);
+  /* Safety net only — the table wraps to fit; this catches the narrowest viewports. */
+  overflow-x: auto;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+}
+
+[data-layout="v2"] .pcv2-cls-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+}
+
+[data-layout="v2"] .pcv2-cls-table th,
+[data-layout="v2"] .pcv2-cls-table td {
+  text-align: start;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-hairline);
+  vertical-align: baseline;
+  scroll-margin-block-start: clamp(88px, 12vh, 116px);
+}
+
+[data-layout="v2"] .pcv2-cls-table thead th {
+  background: var(--color-surface-sunken);
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+[data-layout="v2"] .pcv2-cls-table tbody th {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  color: var(--color-text-primary);
+}
+
+[data-layout="v2"] .pcv2-cls-table tbody td {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  color: var(--color-text-secondary);
+}
+
+[data-layout="v2"] .pcv2-cls-table tbody td:nth-child(2) {
+  color: var(--color-text-accent);
+}
+
+[data-layout="v2"] .pcv2-cls-table tbody tr:last-child th,
+[data-layout="v2"] .pcv2-cls-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* The seven group descriptions — native disclosure beneath the table. */
+[data-layout="v2"] .pcv2-cls-desc {
+  margin-top: clamp(16px, 2vw, 24px);
+  border-top: 1px solid var(--color-border-hairline);
+}
+
+[data-layout="v2"] .pcv2-cls-desc-label {
+  margin: clamp(12px, 1.4vw, 16px) 0 4px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+[data-layout="v2"] .pcv2-cls-desc-item {
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+[data-layout="v2"] .pcv2-cls-desc-item summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 40px;
+  font-family: var(--font-display);
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+[data-layout="v2"] .pcv2-cls-desc-item summary::before {
+  content: "+";
+  font-family: var(--font-technical);
+  color: var(--color-text-accent);
+  flex: none;
+}
+
+[data-layout="v2"] .pcv2-cls-desc-item[open] summary::before {
+  content: "\2013";
+}
+
+[data-layout="v2"] .pcv2-cls-desc-item p {
+  margin: 0 0 14px;
+  padding-inline-start: 22px;
+  max-width: 64ch;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+
+/* Reused CategoryProperties, compacted for this layout — its own conditional table markup and
+   its `id="specifications"` are unchanged; only its outer rhythm and blueprint are tuned here. */
+[data-layout="v2"] .pc-props {
+  overflow: visible;
+}
+
+[data-layout="v2"] .pc-props .fs-blueprint {
+  display: none;
+}
+
+/* ============================================================================
+   5 · APPLICATIONS & PROCESS — the photography slot
+   ============================================================================ */
+
+[data-layout="v2"] .pcv2-appsproc {
+  position: relative;
+}
+
+/*
+ * Applications and Quality read as one block here. The reused sections each carry a full
+ * `.fs-sec` band; between two that touch on the same surface that doubles into a large void, so
+ * the block runs at a tighter rhythm and the second section drops the top padding the first has
+ * already supplied.
+ */
+[data-layout="v2"] .pcv2-appsproc > .fs-sec {
+  padding-block: clamp(28px, 3.4vw, 48px);
+}
+
+[data-layout="v2"] .pcv2-appsproc > .fs-sec + .fs-sec {
+  padding-block-start: 0;
+}
+
+[data-layout="v2"] .pcv2-proc-wrap {
+  padding-block: clamp(22px, 2.8vw, 38px) 0;
+}
+
+[data-layout="v2"] .pcv2-proc-media {
+  margin: 0;
+}
+
+[data-layout="v2"] .pcv2-proc-frame {
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+[data-layout="v2"] .pcv2-proc-frame :where(img) {
+  object-fit: cover;
+}
+
+[data-layout="v2"] .pcv2-proc-media figcaption {
+  margin-top: 10px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* The placeholder plate. `media-slot-empty` (packages/ui) gives the neutral inset treatment;
+   this adds a centred mark so it reads as a deliberate slot, not a failure. It is a restrained
+   wide band, not a full-height void — the `16/9` frame above is for a real photograph once one
+   is supplied. */
+[data-layout="v2"] .pcv2-proc-frame.media-slot-empty {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 4;
+  min-block-size: 140px;
+  max-block-size: 280px;
+}
+
+[data-layout="v2"] .pcv2-proc-frame.media-slot-empty::after {
+  content: "";
+  width: clamp(28px, 4vw, 44px);
+  height: 1px;
+  background: var(--color-border-accent);
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   RESTRAINED REFERENCE — Documentation, FAQ (before the final CTA)
+   ============================================================================ */
+
+[data-layout="v2"] .pcv2-reference .fs-sec {
+  padding-block: clamp(36px, 4vw, 60px);
+}
+
+[data-layout="v2"] .pcv2-reference .pc-docs .fs-blueprint,
+[data-layout="v2"] .pcv2-reference .pc-faq .fs-blueprint {
+  display: none;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 1000px) {
+  /* Single column: rail collapses to the facts strip, above the products. */
+  [data-layout="v2"] .pcv2-shell {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(20px, 4vw, 30px);
+  }
+
+  [data-layout="v2"] .pcv2-rail {
+    grid-column: 1;
+    order: -1;
+  }
+
+  [data-layout="v2"] .pcv2-rail-in {
+    position: static;
+    padding: clamp(14px, 3vw, 18px);
+  }
+
+  [data-layout="v2"] .pcv2-rail-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    border-top: 0;
+  }
+
+  [data-layout="v2"] .pcv2-rail-fact {
+    border-bottom: 0;
+    padding-block: 0;
+    gap: 8px;
+  }
+
+  [data-layout="v2"] .pcv2-rail-fact dd {
+    text-align: start;
+  }
+
+  /* The actions are in the hero, and the jump list is redundant on one scroll. */
+  [data-layout="v2"] .pcv2-rail-acts,
+  [data-layout="v2"] .pcv2-rail-jump {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Compose image → name → lead → actions in the first screen. */
+  [data-layout="v2"] .pcv2-hero {
+    padding-block: clamp(84px, 15vh, 112px) clamp(28px, 7vw, 44px);
+  }
+
+  [data-layout="v2"] .pcv2-hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(14px, 4vw, 20px);
+  }
+
+  [data-layout="v2"] .pcv2-hero-media {
+    order: -1;
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  [data-layout="v2"] .pcv2-hero h1 {
+    max-width: none;
+  }
+
+  [data-layout="v2"] .pcv2-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  [data-layout="v2"] .pcv2-hero-actions .fs-btn {
+    justify-content: center;
+  }
+
+  [data-layout="v2"] .pcv2-filterbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  /*
+   * The classification table becomes a card per group on a phone: three short fields in a
+   * scrolling row do not fit, and the horizontal scroll it needs at that width reads as broken.
+   * The `<table>` markup is unchanged — only its display — and each `<td>` prints its column
+   * name from `data-label`, so the value is still self-describing without the header row.
+   */
+  [data-layout="v2"] .pcv2-cls-frame {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  [data-layout="v2"] .pcv2-cls-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  [data-layout="v2"] .pcv2-cls-table,
+  [data-layout="v2"] .pcv2-cls-table tbody,
+  [data-layout="v2"] .pcv2-cls-table tr,
+  [data-layout="v2"] .pcv2-cls-table th,
+  [data-layout="v2"] .pcv2-cls-table td {
+    display: block;
+  }
+
+  [data-layout="v2"] .pcv2-cls-table tr {
+    padding: 16px;
+    border: 1px solid var(--color-border-hairline);
+    border-radius: var(--radius-panel);
+    background: var(--color-surface-raised);
+  }
+
+  [data-layout="v2"] .pcv2-cls-table tr + tr {
+    margin-top: 10px;
+  }
+
+  [data-layout="v2"] .pcv2-cls-table th,
+  [data-layout="v2"] .pcv2-cls-table td {
+    padding: 0;
+    border: 0;
+  }
+
+  [data-layout="v2"] .pcv2-cls-table tbody th[scope="row"] {
+    margin-bottom: 12px;
+    font-size: var(--fs-text-subheading);
+    line-height: var(--fs-text-subheading--line-height);
+  }
+
+  [data-layout="v2"] .pcv2-cls-table td {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border-hairline);
+  }
+
+  [data-layout="v2"] .pcv2-cls-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    font-family: var(--font-technical);
+    font-size: var(--fs-text-technical);
+    line-height: var(--fs-text-technical--line-height);
+    letter-spacing: var(--fs-text-technical--letter-spacing);
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+  }
+}
