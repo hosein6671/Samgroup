@@ -65,6 +65,7 @@ const INHIBITOR = "Inhibitor technology";
 const SUPPLY_FORM = "Supply form";
 
 export const ANTIFREEZE_COOLANTS: ProductCategoryContent = {
+  layout: "v2",
   familyId: "antifreeze-coolants",
   meta: {
     title: "Antifreeze & Coolants | SAM Group",

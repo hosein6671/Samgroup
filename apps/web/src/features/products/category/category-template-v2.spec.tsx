@@ -91,10 +91,13 @@ const V2_SLUGS = [
   "engine-oils-automotive-lubricants",
   "industrial-oils-lubricants",
   "lubricant-additives",
+  "marine-oils-lubricants",
+  "antifreeze-coolants",
 ];
 
 describe("which families opt into the v2 layout", () => {
-  it("marks the four migrated families v2, and leaves the other two untouched", () => {
+  it("marks all six published families v2", () => {
+    expect([...publishedCategorySlugs()].sort()).toEqual([...V2_SLUGS].sort());
     for (const slug of V2_SLUGS) {
       expect(getCategoryContent(slug)?.layout).toBe("v2");
     }
@@ -435,6 +438,87 @@ describe("Lubricant Additives on v2 — a grouped list plus the downstream manif
 
   it("supplies no processImage, so the template's photo slot falls back to the placeholder", () => {
     expect(content.processImage).toBeUndefined();
+  });
+});
+
+describe("Marine Oils on v2 — a fixture-only opt-in, grouped Fluids / Greases", () => {
+  const mo = (locale = "en"): SectionProps => propsFor(locale, "marine-oils-lubricants");
+  const content = getCategoryContent("marine-oils-lubricants")!;
+
+  it("takes the list variant grouped by specification family, not a table", () => {
+    const html = renderHtml(<Guidance {...mo()} />);
+    expect(html).not.toContain("<table");
+    expect(html).not.toContain("pcv2-cls-table");
+    expect(html).toContain("pcv2-seg-list");
+    expect(html).toContain("pcv2-seg-axis");
+    expect(html).toContain("This is how the range is organised");
+    expect(html).not.toContain("Classification, not availability");
+    const text = textOf(html);
+    expect(text).toContain("Fluids");
+    expect(text).toContain("Greases");
+    // no invented marine claims
+    expect(text).not.toMatch(/vessel|OEM|classification society|two-stroke|four-stroke/i);
+  });
+
+  it("numbers all six sub-ranges continuously, each anchored, Greases starting at 06", () => {
+    const html = renderHtml(<Guidance {...mo()} />);
+    const ids = idsIn(html);
+    for (const subRange of content.range.subRanges) {
+      expect(ids).toContain(`range-${subRange.id}`);
+    }
+    expect(html).toContain('start="1"'); // Fluids group
+    expect(html).toContain('start="6"'); // Greases group continues the count
+    // legacy and v2 block anchors, once each
+    expect(html.match(/id="range"/g)).toHaveLength(1);
+    expect(html.match(/id="classification"/g)).toHaveLength(1);
+  });
+
+  it("has no Applications block — self-suppresses, and the rail jump points at #quality", () => {
+    expect(content.applications).toBeUndefined();
+    expect(renderHtml(<CategoryApplications {...mo()} />)).toBe("");
+    const rail = renderHtml(<CatalogRail {...mo()} />);
+    const own = hrefsIn(rail);
+    expect(own).toContain("#quality");
+    expect(own).not.toContain("#applications");
+    expect(rail).toContain("The range");
+    expect(rail).not.toContain("Classification");
+  });
+
+  it("keeps its two published property groups (Fluids and Greases) intact", () => {
+    const html = renderHtml(<CategoryProperties {...mo()} />);
+    expect(idsIn(html)).toContain("specifications");
+    const text = textOf(html);
+    expect(text).toContain("Fluids");
+    expect(text).toContain("Greases");
+  });
+
+  it("supplies no processImage, so the template's photo slot falls back to the placeholder", () => {
+    expect(content.processImage).toBeUndefined();
+  });
+});
+
+describe("Antifreeze on v2 — independent selection dimensions", () => {
+  const coolant = (): SectionProps => propsFor("en", "antifreeze-coolants");
+
+  it("keeps all three dimensions separate with continuous numbering and range links", () => {
+    const html = renderHtml(<Guidance {...coolant()} />);
+    expect(html).not.toContain("<table");
+    for (const label of ["Base fluid", "Inhibitor technology", "Supply form"]) {
+      expect(textOf(html)).toContain(label);
+    }
+    for (const start of [1, 3, 8]) expect(html).toContain(`start="${start}"`);
+    for (const range of coolant().content.range.subRanges) {
+      expect(idsIn(html)).toContain(`range-${range.id}`);
+    }
+  });
+
+  it("preserves the selection path and points the rail at its rendered applications", () => {
+    const html = renderHtml(<CategoryApplications {...coolant()} />);
+    expect(idsIn(html)).toContain("applications");
+    for (const range of coolant().content.range.subRanges) {
+      expect(hrefsIn(html)).toContain(`#range-${range.id}`);
+    }
+    expect(hrefsIn(renderHtml(<CatalogRail {...coolant()} />))).toContain("#applications");
   });
 });
 

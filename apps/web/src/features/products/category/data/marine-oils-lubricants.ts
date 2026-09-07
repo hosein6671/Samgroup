@@ -75,6 +75,27 @@ const GREASES = "Greases";
 
 export const MARINE_OILS_LUBRICANTS: ProductCategoryContent = {
   familyId: "marine-oils-lubricants",
+  /*
+   * The fifth family on the redesigned composition (`category-template-v2.tsx`), and a fixture-only
+   * opt-in: the module note above already records that this category needed nothing new from any
+   * component, and the same holds for the v2 layout. It reuses the v2 pieces exactly as the
+   * families before it do:
+   *
+   * - `CategoryCatalogV2` — no Segment chip row. The catalog holds 12 products; `?segment=marine`
+   *   returns all 12 and the other seven segment slugs return none, so no chip narrows the list to
+   *   a useful subset. The chips stay reachable on the Product Finder, and a bookmarked `?segment=`
+   *   still resolves to an active-filter notice with a reset. No assignment or vocabulary changed.
+   * - No `CatalogMoreLink` — the 12 products fit the API's first page (20).
+   * - The guidance block's **list variant**, grouped by specification family. `hasClassificationDetail`
+   *   is false (no `classificationAxes`, no `qualifier`, no grades); the six sub-ranges split
+   *   Fluids (5) / Greases (1) on this fixture's own `axis` — the taxonomy's own sixth entry set
+   *   apart, the same split the range register and the property groups already carry.
+   * - No `CategoryApplications` — this fixture sets no `applications` (terminal category), so the
+   *   section self-suppresses, `#applications` is absent, and the rail jump points at `#quality`.
+   *
+   * No page content below changes; only this flag is added.
+   */
+  layout: "v2",
   meta: {
     title: "Marine Oils & Lubricants | SAM Group",
     description:
