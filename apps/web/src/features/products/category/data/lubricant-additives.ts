@@ -79,6 +79,27 @@ const COMPONENTS = "Components";
 
 export const LUBRICANT_ADDITIVES: ProductCategoryContent = {
   familyId: "lubricant-additives",
+  /*
+   * The fourth family on the redesigned composition (`category-template-v2.tsx`), reusing the v2
+   * components as-is:
+   *
+   * - `CategoryCatalogV2` — no Segment chip row. The catalog holds 15 products and every one of
+   *   the eight segment slugs returns none, so the chip row would be eight filters that all empty
+   *   the list. The chips stay reachable on the Product Finder, and a bookmarked `?segment=` still
+   *   resolves to an active-filter notice with a reset. No membership is invented, no data changed.
+   * - No `CatalogMoreLink` — the 15 products fit the API's first page (20), so the whole
+   *   catalogue is on the page and nothing links away.
+   * - The guidance block's **list variant**, grouped by product group. `hasClassificationDetail`
+   *   is false (no `classificationAxes`, no `qualifier`, no grades); the eleven sub-ranges split
+   *   "Additive packages" (8) and "Components" (3) on the fixture's own `axis` — the split the
+   *   source row's own "+" makes, and the same one the range register and property groups carry.
+   *   Not a base-oil classification, not vehicle segments, not the industrial Fluids / Greases.
+   * - `CategoryApplications` renders (this fixture sets `applications`, `mode: "downstream"`) —
+   *   the same manifold Base Oils' v2 page already shows, between the photo slot and Quality.
+   *
+   * No page content below changes; only this flag is added.
+   */
+  layout: "v2",
   meta: {
     title: "Lubricant Additives & Components | SAM Group",
     description:

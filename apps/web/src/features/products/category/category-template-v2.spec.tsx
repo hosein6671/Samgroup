@@ -86,10 +86,15 @@ const TWO_PRODUCTS: ProductListResult = {
   ],
 };
 
-const V2_SLUGS = ["base-oils", "engine-oils-automotive-lubricants", "industrial-oils-lubricants"];
+const V2_SLUGS = [
+  "base-oils",
+  "engine-oils-automotive-lubricants",
+  "industrial-oils-lubricants",
+  "lubricant-additives",
+];
 
 describe("which families opt into the v2 layout", () => {
-  it("marks the three migrated families v2, and leaves the other three untouched", () => {
+  it("marks the four migrated families v2, and leaves the other two untouched", () => {
     for (const slug of V2_SLUGS) {
       expect(getCategoryContent(slug)?.layout).toBe("v2");
     }
@@ -366,6 +371,70 @@ describe("Industrial Oils on v2 — a list range grouped by specification family
     const text = textOf(html);
     expect(text).toContain("Fluids");
     expect(text).toContain("Greases");
+  });
+});
+
+describe("Lubricant Additives on v2 — a grouped list plus the downstream manifold", () => {
+  const la = (locale = "en"): SectionProps => propsFor(locale, "lubricant-additives");
+  const content = getCategoryContent("lubricant-additives")!;
+
+  it("takes the list variant grouped 'Additive packages' / 'Components', not a table", () => {
+    const html = renderHtml(<Guidance {...la()} />);
+    expect(html).not.toContain("<table");
+    expect(html).not.toContain("pcv2-cls-table");
+    expect(html).toContain("pcv2-seg-list");
+    expect(html).toContain("pcv2-seg-axis");
+    const text = textOf(html);
+    expect(text).toContain("Additive packages");
+    expect(text).toContain("Components");
+    // this family's own group labels — never the other families' vocabulary
+    expect(text).not.toContain("vehicle segment");
+    expect(text).not.toContain("base-stock classification");
+    expect(text).not.toMatch(/\bFluids\b|\bGreases\b/);
+  });
+
+  it("numbers all eleven sub-ranges continuously, each anchored, Components starting at 09", () => {
+    const html = renderHtml(<Guidance {...la()} />);
+    const ids = idsIn(html);
+    for (const subRange of content.range.subRanges) {
+      expect(ids).toContain(`range-${subRange.id}`);
+    }
+    expect(html).toContain('start="1"'); // Additive packages group
+    expect(html).toContain('start="9"'); // Components group continues the count
+    // both legacy and v2 block anchors, once each
+    expect(html.match(/id="range"/g)).toHaveLength(1);
+    expect(html.match(/id="classification"/g)).toHaveLength(1);
+  });
+
+  it("renders the downstream Applications manifold (this fixture sets `applications`)", () => {
+    const html = renderHtml(<CategoryApplications {...la()} />);
+    expect(html).not.toBe("");
+    expect(idsIn(html)).toContain("applications");
+    // the three published destinations, by their real family names
+    expect(html).toContain("Engine Oils &amp; Automotive Lubricants");
+    expect(html).toContain("Industrial Oils &amp; Lubricants");
+    expect(html).toContain("Antifreeze &amp; Coolants");
+  });
+
+  it("the rail jump list points at #applications (not #quality) and labels the range 'The range'", () => {
+    const rail = renderHtml(<CatalogRail {...la()} />);
+    const own = hrefsIn(rail);
+    expect(own).toContain("#applications");
+    expect(own).not.toContain("#quality");
+    expect(rail).toContain("The range");
+    expect(rail).not.toContain("Classification");
+  });
+
+  it("keeps its two published property groups (Additive packages and Components) intact", () => {
+    const html = renderHtml(<CategoryProperties {...la()} />);
+    expect(idsIn(html)).toContain("specifications");
+    const text = textOf(html);
+    expect(text).toContain("Additive packages");
+    expect(text).toContain("Components");
+  });
+
+  it("supplies no processImage, so the template's photo slot falls back to the placeholder", () => {
+    expect(content.processImage).toBeUndefined();
   });
 });
 
