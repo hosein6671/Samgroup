@@ -73,6 +73,25 @@ const GREASES = "Greases";
 
 export const INDUSTRIAL_OILS_LUBRICANTS: ProductCategoryContent = {
   familyId: "industrial-oils-lubricants",
+  /*
+   * The third family on the redesigned composition (`category-template-v2.tsx`), reusing the v2
+   * components as-is:
+   *
+   * - `CategoryCatalogV2` — no Segment chip row. The catalog holds 26 products; `?segment=industry`
+   *   returns all 26 and the other seven segment slugs return none, so no chip narrows the list to
+   *   a useful subset — the row would be one filter that changes nothing beside seven that empty
+   *   it. The chips stay reachable on the Product Finder, and a bookmarked `?segment=` still
+   *   resolves to an active-filter notice with a reset. No membership is invented and no data
+   *   changed — the chips are only hidden on this page.
+   * - `CatalogMoreLink` — the catalogue (26) runs past the API's first page (20).
+   * - The guidance block's **list variant**, grouped by specification family. `hasClassificationDetail`
+   *   is false (no `classificationAxes`, no `qualifier`, no grades), and the nine sub-ranges split
+   *   Fluids / Greases on their own `axis` — the same split the range register and property groups
+   *   already carry. Not a classification table, and not "vehicle segments".
+   *
+   * No page content below changes; only this flag is added.
+   */
+  layout: "v2",
   meta: {
     title: "Industrial Oils & Lubricants | SAM Group",
     description:

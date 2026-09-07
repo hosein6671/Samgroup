@@ -599,17 +599,62 @@
 }
 
 /* ----------------------------------------------------------------------------
- * The guidance list variant — a segment per row, heading and summary shown.
+ * The guidance list variant — a duty per row, heading and summary shown.
  *
- * Used where the range is a set of segments with a sentence each and nothing to tabulate
- * (Engine Oils' six vehicle segments). Numbered hairline rows, the same construction the range
- * register uses one level up, so the two pages in the family read alike.
+ * Used where the range is a set of duties with a sentence each and nothing to tabulate: Engine
+ * Oils' six vehicle segments (one unlabelled group), Industrial Oils' nine plant-system duties
+ * (grouped Fluids / Greases on the fixture's own `axis`). Numbered hairline rows, the same
+ * construction the range register uses one level up, so the two pages in the family read alike.
  * -------------------------------------------------------------------------- */
+[data-layout="v2"] .pcv2-seg-groups {
+  margin-top: clamp(18px, 2.2vw, 28px);
+}
+
+[data-layout="v2"] .pcv2-seg-group + .pcv2-seg-group {
+  margin-top: clamp(24px, 3vw, 40px);
+}
+
+/* The specification-family label, borrowed from the range register's `.pc-sub-axis`: the family
+   name in the accent ink, its count trailing in the tertiary, a hairline filling the measure. */
+[data-layout="v2"] .pcv2-seg-axis {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-accent);
+}
+
+[data-layout="v2"] .pcv2-seg-axis::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  block-size: 1px;
+  background: var(--color-border-accent);
+  opacity: 0.4;
+}
+
+[data-layout="v2"] .pcv2-seg-axis span:last-child {
+  order: 2;
+  color: var(--color-text-tertiary);
+}
+
 [data-layout="v2"] .pcv2-seg-list {
   list-style: none;
-  margin: clamp(18px, 2.2vw, 28px) 0 0;
+  margin: 0;
   padding: 0;
   border-top: 1px solid var(--color-border-hairline);
+}
+
+/* A group with a label already carries a rule above its first row — drop the list's own so the
+   two do not stack. The unlabelled case (Engine Oils) keeps the top rule it had. */
+[data-layout="v2"] .pcv2-seg-axis + .pcv2-seg-list {
+  border-top: 0;
+  margin-top: 4px;
 }
 
 [data-layout="v2"] .pcv2-seg-item {

@@ -1,7 +1,7 @@
 import { VisuallyHidden } from "@sam-group/ui";
 import type { ReactNode } from "react";
 
-import { hasClassificationDetail } from "../../category-contract";
+import { groupSubRanges, hasClassificationDetail } from "../../category-contract";
 import type { SectionProps } from "../../category-section";
 
 /**
@@ -21,9 +21,13 @@ import type { SectionProps } from "../../category-section";
  *   (`Group · Classification · Published grades`), and the prose descriptions in a native
  *   `<details>` list beneath it so seven of them do not push the table down the page. On a phone
  *   the table becomes a card per group (`category-v2.css`).
- * - **List** — the family's range is a set of segments with a sentence each and nothing to
- *   tabulate. Engine Oils: six vehicle segments, no grades, no classification. Each is a card
- *   with its heading and summary shown; there is no second or third column to leave empty.
+ * - **List** — the family's range is a set of duties with a sentence each and nothing to
+ *   tabulate. Engine Oils: six vehicle segments, no grades, no classification. Industrial Oils:
+ *   nine plant-system duties, split Fluids / Greases on their own `axis`. Each entry is a row
+ *   with its heading and summary; where the fixture sets an `axis` the rows group under it
+ *   (`groupSubRanges`), with the ordinal running continuously across the groups so it and the
+ *   `#range-<id>` anchors match the range register one level up. There is no second or third
+ *   column to leave empty.
  *
  * ── Content is preserved, not trimmed ─────────────────────────────────────
  *
@@ -32,6 +36,9 @@ import type { SectionProps } from "../../category-section";
  *  - Every sub-range: designation, its `qualifier` and grades where present, and its full prose
  *    summary. Each carries `id="range-<sub-range id>"` so links and bookmarks that predate the
  *    redesign still land.
+ *  - The range block answers to **both** `#classification` (the v2 id, and the rail's target) and
+ *    the legacy `#range` (the v1 range section's id) — the second via an empty anchor span, no
+ *    duplicate id.
  *
  * The family quick-facts (`overview.markers`) are NOT rendered here — the sticky rail owns them,
  * so the same set is not printed twice.
@@ -63,6 +70,15 @@ export function Guidance({ content }: SectionProps): ReactNode {
         </div>
 
         <div className="pcv2-guide-range" id="classification">
+          {/*
+           * The v1 range section carried `id="range"`; this v2 block is `id="classification"`.
+           * Links and bookmarks that predate the redesign use `#range`, so it must land here too.
+           * An empty, non-focusable span holds the legacy id at the very top of this block — same
+           * position as `id="classification"` on the wrapper, so both fragments scroll to exactly
+           * the same place. No duplicate id, no second visible element, no box, no layout change.
+           * `.pcv2-guide-range` is plain block flow, so an empty inline child contributes nothing.
+           */}
+          <span id="range" aria-hidden="true" />
           <p className="fs-eyebrow">How the range is organised</p>
           <h2 className="fs-d3">{range.heading}</h2>
           <p className="fs-lead pcv2-guide-para">{range.intro}</p>
@@ -129,17 +145,32 @@ export function Guidance({ content }: SectionProps): ReactNode {
               </div>
             </>
           ) : (
-            <ol className="pcv2-seg-list">
-              {range.subRanges.map((subRange, index) => (
-                <li className="pcv2-seg-item" id={`range-${subRange.id}`} key={subRange.id}>
-                  <p className="pcv2-seg-idx">{String(index + 1).padStart(2, "0")}</p>
-                  <div>
-                    <h3 className="pcv2-seg-name">{subRange.designation}</h3>
-                    <p className="pcv2-seg-summary">{subRange.summary}</p>
-                  </div>
-                </li>
+            <div className="pcv2-seg-groups">
+              {groupSubRanges(range).map((group) => (
+                <div className="pcv2-seg-group" key={group.axis ?? "ungrouped"}>
+                  {group.axis && (
+                    <p className="pcv2-seg-axis">
+                      <span>{group.axis}</span>
+                      <span>{String(group.subRanges.length).padStart(2, "0")}</span>
+                    </p>
+                  )}
+
+                  <ol className="pcv2-seg-list" start={group.offset + 1}>
+                    {group.subRanges.map((subRange, i) => (
+                      <li className="pcv2-seg-item" id={`range-${subRange.id}`} key={subRange.id}>
+                        <p className="pcv2-seg-idx">
+                          {String(group.offset + i + 1).padStart(2, "0")}
+                        </p>
+                        <div>
+                          <h3 className="pcv2-seg-name">{subRange.designation}</h3>
+                          <p className="pcv2-seg-summary">{subRange.summary}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               ))}
-            </ol>
+            </div>
           )}
         </div>
       </div>

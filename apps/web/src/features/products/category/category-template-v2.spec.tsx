@@ -86,10 +86,10 @@ const TWO_PRODUCTS: ProductListResult = {
   ],
 };
 
-const V2_SLUGS = ["base-oils", "engine-oils-automotive-lubricants"];
+const V2_SLUGS = ["base-oils", "engine-oils-automotive-lubricants", "industrial-oils-lubricants"];
 
 describe("which families opt into the v2 layout", () => {
-  it("marks base-oils and engine-oils v2, and leaves the other four untouched", () => {
+  it("marks the three migrated families v2, and leaves the other three untouched", () => {
     for (const slug of V2_SLUGS) {
       expect(getCategoryContent(slug)?.layout).toBe("v2");
     }
@@ -152,6 +152,26 @@ describe("Guidance — compact selection guidance, content preserved", () => {
     expect(ids).toContain("classification");
     for (const subRange of content.range.subRanges) {
       expect(ids).toContain(`range-${subRange.id}`);
+    }
+  });
+
+  it("answers to both the v2 #classification and the legacy v1 #range, once each, on every v2 family", () => {
+    for (const slug of V2_SLUGS) {
+      const familyHtml = renderHtml(<Guidance {...propsFor("en", slug)} />);
+      const ids = idsIn(familyHtml);
+      expect(ids, `${slug}: #classification`).toContain("classification");
+      expect(ids, `${slug}: legacy #range`).toContain("range");
+      // no duplicate ids — each destination appears exactly once
+      expect(familyHtml.match(/id="classification"/g), `${slug}: one #classification`).toHaveLength(
+        1,
+      );
+      expect(familyHtml.match(/id="range"/g), `${slug}: one #range`).toHaveLength(1);
+      // the legacy anchor carries no visible text and is hidden from assistive tech
+      expect(familyHtml).toContain('<span id="range" aria-hidden="true"></span>');
+      // every per-item anchor is still present and distinct from the block anchor
+      for (const subRange of getCategoryContent(slug)!.range.subRanges) {
+        expect(ids, `${slug}: #range-${subRange.id}`).toContain(`range-${subRange.id}`);
+      }
     }
   });
 
@@ -286,6 +306,66 @@ describe("Engine Oils on v2 — adapts to a family with no classification and 45
     // `processImage` it shows the deliberate 'Image placeholder' plate, same as Base Oils.
     expect(content.processImage).toBeUndefined();
     expect(getCategoryContent("base-oils")!.processImage).toBeUndefined();
+  });
+});
+
+describe("Industrial Oils on v2 — a list range grouped by specification family", () => {
+  const io = (locale = "en"): SectionProps => propsFor(locale, "industrial-oils-lubricants");
+  const content = getCategoryContent("industrial-oils-lubricants")!;
+
+  it("takes the list variant, not the classification table (no axes, no qualifier, no grades)", () => {
+    const html = renderHtml(<Guidance {...io()} />);
+    expect(html).not.toContain("<table");
+    expect(html).not.toContain("pcv2-cls-table");
+    expect(html).toContain("pcv2-seg-list");
+    expect(html).toContain("This is how the range is organised");
+    expect(html).not.toContain("Classification, not availability");
+  });
+
+  it("groups the nine sub-ranges under their Fluids / Greases axis with a continuous ordinal", () => {
+    const html = renderHtml(<Guidance {...io()} />);
+    const text = textOf(html);
+    // both specification families are labelled, from the fixture's own axis values
+    expect(html).toContain("pcv2-seg-axis");
+    expect(text).toContain("Fluids");
+    expect(text).toContain("Greases");
+    // every sub-range shown, anchored, in order — and the grease row keeps ordinal 09
+    for (const subRange of content.range.subRanges) {
+      expect(idsIn(html)).toContain(`range-${subRange.id}`);
+      expect(text).toContain(subRange.designation);
+    }
+    expect(html).toContain('start="9"'); // the Greases group's <ol> continues the count
+    expect(html).not.toContain("vehicle segment");
+    expect(html).not.toContain("base-stock");
+  });
+
+  it("Engine Oils stays a single flat list — no axis label, ordinal starts at 1", () => {
+    const html = renderHtml(<Guidance {...propsFor("en", "engine-oils-automotive-lubricants")} />);
+    expect(html).not.toContain("pcv2-seg-axis");
+    expect(html).toContain('start="1"');
+  });
+
+  it("the rail jump list points at #quality and labels the range 'The range'", () => {
+    const rail = renderHtml(<CatalogRail {...io()} />);
+    const own = hrefsIn(rail);
+    expect(own).toContain("#quality");
+    expect(own).not.toContain("#applications");
+    expect(rail).toContain("The range");
+    expect(rail).not.toContain("Classification");
+  });
+
+  it("has no Applications block and no processImage", () => {
+    expect(content.applications).toBeUndefined();
+    expect(content.processImage).toBeUndefined();
+    expect(renderHtml(<CategoryApplications {...io()} />)).toBe("");
+  });
+
+  it("keeps its two published property groups (Fluids and Greases) intact", () => {
+    const html = renderHtml(<CategoryProperties {...io()} />);
+    expect(idsIn(html)).toContain("specifications");
+    const text = textOf(html);
+    expect(text).toContain("Fluids");
+    expect(text).toContain("Greases");
   });
 });
 
