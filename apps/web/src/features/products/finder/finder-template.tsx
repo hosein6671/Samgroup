@@ -14,11 +14,14 @@ import type { ReactNode } from "react";
 import "../../home/flagship.css";
 import "../product-list.css";
 import "./finder.css";
+import "../products-refinement.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
-import { FinderFilters } from "./sections/filters";
+import { FilterDisclosure } from "./sections/filter-disclosure";
+import { ActiveFilters } from "./sections/active-filters";
+import { FinderFilters, FinderSearch } from "./sections/filters";
 import { FinderHero } from "./sections/hero";
 import { FinderResults, FinderResultsSkeleton } from "./sections/results";
 
@@ -53,13 +56,8 @@ import type { ProductListResult } from "@/lib/products";
  * Data access stays at the route (FRONTEND_ARCHITECTURE §7): this template awaits nothing and
  * fetches nothing.
  *
- * ── Entirely server-rendered ────────────────────────────────────────────────
- *
- * Not one component in this tree carries `"use client"`. Every filter is a link, the results are a
- * grid of Server Components, and the reveals are the design system's scroll-driven CSS. The only
- * client JavaScript on the page is the header's, inherited from the shared chrome — the same budget
- * every other page on the platform holds to. Filter state lives in the URL, so refresh, Back,
- * bookmarking and link-sharing work by construction rather than by being implemented.
+ * Filters and results remain server-rendered. The small disclosure wrapper adapts its open
+ * state to the viewport; search, pagination and filter state continue to live in the URL.
  */
 export function ProductFinderTemplate({
   locale,
@@ -80,7 +78,9 @@ export function ProductFinderTemplate({
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        <FinderHero locale={locale} />
+        <FinderHero locale={locale}>
+          <FinderSearch locale={locale} query={query} />
+        </FinderHero>
 
         {/*
          * One section rather than two. The filter bar and the list it produces are a single
@@ -88,12 +88,17 @@ export function ProductFinderTemplate({
          * would put the page's own vertical rhythm between a control and its result.
          */}
         <section className="fs-sec pf-sec" data-surface="light">
-          <div className="fs-wrap">
-            <FinderFilters locale={locale} query={query} />
+          <div className="fs-wrap pf-workspace">
+            <FilterDisclosure>
+              <FinderFilters locale={locale} query={query} includeSearch={false} />
+            </FilterDisclosure>
+            <div className="pf-result-column">
+              <ActiveFilters locale={locale} query={query} />
 
-            <Suspense fallback={<FinderResultsSkeleton />}>
-              <FinderResults products={products} locale={locale} query={query} />
-            </Suspense>
+              <Suspense fallback={<FinderResultsSkeleton />}>
+                <FinderResults products={products} locale={locale} query={query} />
+              </Suspense>
+            </div>
           </div>
         </section>
       </main>

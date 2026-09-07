@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
  */
 import "../home/flagship.css";
 import "./products.css";
+import "./products-refinement.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";

@@ -31,7 +31,13 @@ import { ROUTES } from "@/features/site/site-routes";
  *
  * A Server Component. No state, no JavaScript.
  */
-export function FinderHero({ locale }: { readonly locale: string }): ReactNode {
+export function FinderHero({
+  locale,
+  children,
+}: {
+  readonly locale: string;
+  readonly children?: ReactNode;
+}): ReactNode {
   return (
     <section className="fs-sec pf-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -54,6 +60,7 @@ export function FinderHero({ locale }: { readonly locale: string }): ReactNode {
           range by product family, buyer segment, or product type. Every selection stays in the
           address, ready to share, bookmark, or reopen.
         </p>
+        {children}
       </div>
     </section>
   );

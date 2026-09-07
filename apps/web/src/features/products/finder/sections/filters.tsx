@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { FAMILIES } from "../../products-data";
@@ -12,9 +13,9 @@ import type { FinderQuery } from "../finder-query";
  *
  * ── Every control is a link ─────────────────────────────────────────────────
  *
- * Not a `<select>`, not a checkbox, not a form. A chip is an `<a>` to this same route with a
- * different query string, so the section ships no JavaScript, needs no hydration, works before and
- * without it, and puts the filter state where a URL can carry it. `product-list.css`'s `.pl-filter`
+ * Each option is a Next.js Link to the same route with a different query string.
+ * Client navigation preserves the document and scroll position; ordinary links remain usable
+ * without JavaScript. The family options sit inside a native, keyboard-operable disclosure. `product-list.css`'s `.pl-filter`
  * and `.pl-chip` already draw exactly this construction for the Product Family pages' Segment row —
  * it is reused rather than restated, so the two surfaces cannot drift into looking like different
  * kinds of control for the same job.
@@ -98,7 +99,9 @@ function FilterRow({
 
       <ul className="pl-filter-list">
         <li>
-          <a
+          <Link
+            scroll={false}
+            prefetch={false}
             className="pl-chip"
             href={hrefFor(null)}
             /*
@@ -110,19 +113,21 @@ function FilterRow({
             aria-current={activeSlug === null ? "true" : undefined}
           >
             All
-          </a>
+          </Link>
         </li>
 
         {options.map((option) => (
           <li key={option.slug}>
-            <a
+            <Link
+              scroll={false}
+              prefetch={false}
               className="pl-chip"
               href={hrefFor(option.slug)}
               data-active={activeSlug === option.slug ? "true" : undefined}
               aria-current={activeSlug === option.slug ? "true" : undefined}
             >
               {option.name}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
@@ -133,58 +138,42 @@ function FilterRow({
 export function FinderFilters({
   locale,
   query,
+  includeSearch = true,
 }: {
   /** The active locale segment. Half of every link this section emits. */
   readonly locale: string;
   /** The normalized filter state, exactly as the route read it off the URL. */
   readonly query: FinderQuery;
+  readonly includeSearch?: boolean;
 }): ReactNode {
   return (
     <div className="pf-filters">
-      <form className="pf-search" action={finderPath(locale)} method="get" role="search">
-        {/*
-         * One hidden input per ACTIVE axis, and none for an inactive one. A `GET` form navigates to
-         * `action` carrying only its own controls, so without these a search would silently clear
-         * every chip the visitor had selected — and an axis with a hidden input carrying `""` would
-         * be worse than a missing one, because `?productType=` would then appear in every shared
-         * URL as a filter that is not being applied.
-         *
-         * **There is deliberately no hidden `page`.** The same mechanism that makes these three
-         * necessary is what resets the page for free: a `GET` form submits its own controls and
-         * nothing else, so a search from page 3 navigates to page 1 of the new result. Adding a
-         * hidden `page` here would carry a position across a change of what is being positioned in.
-         */}
-        {query.category !== null && <input type="hidden" name="category" value={query.category} />}
-        {query.segment !== null && <input type="hidden" name="segment" value={query.segment} />}
-        {query.productType !== null && (
-          <input type="hidden" name="productType" value={query.productType} />
-        )}
-        <label htmlFor="product-search">Search the published catalogue</label>
-        <div className="pf-search-control">
-          <input
-            id="product-search"
-            name="q"
-            type="search"
-            defaultValue={query.q ?? ""}
-            placeholder="Product name, grade, or specification"
-            autoComplete="off"
+      {includeSearch && <FinderSearch locale={locale} query={query} />}
+      <div className="pf-family-select">
+        <p className="pl-filter-label" id="pf-family-label">
+          Product family
+        </p>
+        <details className="pf-family-dropdown" key={query.category ?? "all"}>
+          <summary aria-labelledby="pf-family-label pf-family-value">
+            <span id="pf-family-value">
+              {FAMILIES.find((family) => family.id === query.category)?.name ??
+                query.category ??
+                "All families"}
+            </span>
+          </summary>
+          <FilterRow
+            label="Family"
+            legend="Filter products by product family"
+            /*
+             * `id` is the family's canonical default-locale `Category.slug` — the value that goes on
+             * the wire as `?category=`. Taken from the registry, never derived from `name`.
+             */
+            options={FAMILIES.map((family) => ({ slug: family.id, name: family.name }))}
+            activeSlug={query.category}
+            hrefFor={(slug) => filterHref(locale, query, { category: slug })}
           />
-          <button type="submit">Search</button>
-        </div>
-      </form>
-
-      <FilterRow
-        label="Family"
-        legend="Filter products by product family"
-        /*
-         * `id` is the family's canonical default-locale `Category.slug` — the value that goes on
-         * the wire as `?category=`. Taken from the registry, never derived from `name`.
-         */
-        options={FAMILIES.map((family) => ({ slug: family.id, name: family.name }))}
-        activeSlug={query.category}
-        hrefFor={(slug) => filterHref(locale, query, { category: slug })}
-      />
-
+        </details>
+      </div>
       <FilterRow
         label="Segment"
         legend="Filter products by segment"
@@ -192,7 +181,6 @@ export function FinderFilters({
         activeSlug={query.segment}
         hrefFor={(slug) => filterHref(locale, query, { segment: slug })}
       />
-
       {/*
        * The only axis every published product carries. Segment above it reaches 41 of the 100,
        * because five of the eight approved Segment keys have no rule to derive them from; this one
@@ -207,7 +195,6 @@ export function FinderFilters({
         activeSlug={query.productType}
         hrefFor={(slug) => filterHref(locale, query, { productType: slug })}
       />
-
       {/*
        * Offered only when there is something to clear. A permanently visible "Clear all" that does
        * nothing on an unfiltered page is a control that lies about the page's state — and every
@@ -219,9 +206,53 @@ export function FinderFilters({
        */}
       {hasFilters(query) && (
         <p className="pf-reset">
-          <a href={finderHref(locale, NO_FILTERS)}>Clear search and filters</a>
+          <Link scroll={false} prefetch={false} href={finderHref(locale, NO_FILTERS)}>
+            Clear search and filters
+          </Link>
         </p>
       )}
     </div>
+  );
+}
+
+export function FinderSearch({
+  locale,
+  query,
+}: {
+  readonly locale: string;
+  readonly query: FinderQuery;
+}): ReactNode {
+  return (
+    <form className="pf-search" action={finderPath(locale)} method="get" role="search">
+      {/*
+       * One hidden input per ACTIVE axis, and none for an inactive one. A `GET` form navigates to
+       * `action` carrying only its own controls, so without these a search would silently clear
+       * every chip the visitor had selected — and an axis with a hidden input carrying `""` would
+       * be worse than a missing one, because `?productType=` would then appear in every shared
+       * URL as a filter that is not being applied.
+       *
+       * **There is deliberately no hidden `page`.** The same mechanism that makes these three
+       * necessary is what resets the page for free: a `GET` form submits its own controls and
+       * nothing else, so a search from page 3 navigates to page 1 of the new result. Adding a
+       * hidden `page` here would carry a position across a change of what is being positioned in.
+       */}
+      {query.category !== null && <input type="hidden" name="category" value={query.category} />}
+      {query.segment !== null && <input type="hidden" name="segment" value={query.segment} />}
+      {query.productType !== null && (
+        <input type="hidden" name="productType" value={query.productType} />
+      )}
+      <label htmlFor="product-search">Search the published catalogue</label>
+      <div className="pf-search-control">
+        <input
+          id="product-search"
+          name="q"
+          type="search"
+          defaultValue={query.q ?? ""}
+          placeholder="Product name, grade, or specification"
+          autoComplete="off"
+        />
+        <button type="submit">Search</button>
+      </div>
+    </form>
   );
 }
