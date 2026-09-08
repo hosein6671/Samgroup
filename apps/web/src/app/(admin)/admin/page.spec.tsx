@@ -129,9 +129,7 @@ describe("authenticated admin", () => {
 
     const { text } = await renderAdmin();
 
-    expect(text).toContain(
-      "the catalog technical-review queue are the operational modules built so far",
-    );
+    expect(text).toContain("Access is checked separately by each module.");
   });
 
   /**

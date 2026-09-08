@@ -44,7 +44,7 @@ describe("AdminShell — one implementation, two consumers", () => {
     for (const page of [review, leads]) {
       const main = findTags(page, "main")[0];
       expect(main?.props.id).toBe("main-content");
-      expect(main?.props.className).toBe("ad-shell ad-shell--wide");
+      expect(main?.props.className).toBe("ad-shell ad-shell--wide ad-dashboard ad-workspace");
       expect(findTags(page, "h1")).toHaveLength(1);
       // The identity bar, the sign-out form and the module navigation, in every area.
       expect(visibleTextOf(page)).toContain("SAM Group Admin");

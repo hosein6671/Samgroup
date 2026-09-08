@@ -68,10 +68,19 @@ export function AdminShell({
   readonly children: ReactNode;
 }): ReactNode {
   return (
-    <main className={wide ? "ad-shell ad-shell--wide" : "ad-shell"} id="main-content">
+    <main
+      className={
+        wide
+          ? "ad-shell ad-shell--wide ad-dashboard ad-workspace"
+          : "ad-shell ad-dashboard ad-workspace"
+      }
+      id="main-content"
+    >
       <div className="ad-bar">
         <div>
-          <p className="ad-mark">SAM Group Admin</p>
+          <p className="ad-mark">
+            SAM Group Admin<span className="ad-brand-caption">Administration</span>
+          </p>
           {user === null ? null : (
             <p className="ad-identity">
               {user.email} · <span className="ad-role">{user.role}</span>
@@ -85,11 +94,17 @@ export function AdminShell({
         </form>
       </div>
 
-      {user === null ? null : <AdminNav role={user.role} current={current} />}
-
-      <h1 className="ad-heading">{title}</h1>
-
-      {children}
+      <div
+        className={
+          user === null ? "ad-workspace-grid ad-workspace-grid--single" : "ad-workspace-grid"
+        }
+      >
+        {user === null ? null : <AdminNav role={user.role} current={current} />}
+        <div className="ad-workspace-content">
+          <h1 className="ad-heading">{title}</h1>
+          {children}
+        </div>
+      </div>
     </main>
   );
 }

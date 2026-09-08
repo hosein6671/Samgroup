@@ -145,10 +145,12 @@ export default async function AdminPage(): Promise<ReactNode> {
   }
 
   return (
-    <main className="ad-shell" id="main-content">
+    <main className="ad-shell ad-dashboard" id="main-content">
       <div className="ad-bar">
         <div>
-          <p className="ad-mark">SAM Group Admin</p>
+          <p className="ad-mark">
+            SAM Group Admin <span className="ad-brand-caption">Administration</span>
+          </p>
           <p className="ad-identity">
             {access.user.email} · <span className="ad-role">{access.user.role}</span>
           </p>
@@ -172,34 +174,74 @@ export default async function AdminPage(): Promise<ReactNode> {
        */}
       <h1 className="ad-heading">Admin Dashboard</h1>
 
-      {/*
-       * The navigation, and the smallest thing that reaches each built module. Three links, no
-       * sidebar, no section headings, no counts — an operator needs a way in, and everything beyond
-       * that is a navigation architecture this gate has no basis to design.
-       *
-       * Leads and Technical Review are siblings, not a hierarchy: they are separate areas with
-       * separate role lists, and neither is reached through the other.
-       *
-       * Visibility here is an affordance, never the boundary: this page is Admin-only, so an Admin
-       * is the only role that reaches it, and every link's destination re-checks entry for itself.
-       */}
-      <nav className="ad-nav" aria-label="Admin modules">
-        <Link className="ad-nav-link" href={INQUIRIES_PATH}>
-          Inquiries
-        </Link>
-        <Link className="ad-nav-link" href={CUSTOM_FORMULATION_REQUESTS_PATH}>
-          Custom formulation requests
-        </Link>
-        <Link className="ad-nav-link" href={CATALOG_REVIEW_PATH}>
-          Technical review
-        </Link>
-      </nav>
-
-      <p className="ad-note">
-        Your session is active. The lead inbox and the catalog technical-review queue are the
-        operational modules built so far — catalog editing, blog, users, locales and translations
-        are not available yet.
+      <p className="ad-dashboard-lead">
+        Your workspace for customer requests and reviewed product information.
       </p>
+      <div className="ad-dashboard-grid">
+        <nav className="ad-dashboard-sidebar" aria-label="Admin modules">
+          <p className="ad-sidebar-label">Workspace</p>
+          <a href="#main-content" aria-current="page">
+            Overview
+          </a>
+          <Link href={INQUIRIES_PATH}>Inquiries</Link>
+          <Link href={CUSTOM_FORMULATION_REQUESTS_PATH}>Custom formulation requests</Link>
+          <Link href={CATALOG_REVIEW_PATH}>Technical review</Link>
+        </nav>
+        <div>
+          <section aria-labelledby="ad-work-title">
+            <div className="ad-section-heading">
+              <h2 id="ad-work-title">Manage your work</h2>
+              <span>Available now</span>
+            </div>
+            <div className="ad-module-grid">
+              <Link className="ad-module-card" href={INQUIRIES_PATH}>
+                <span className="ad-module-kicker">Customers</span>
+                <h3>Inquiries</h3>
+                <p>Read customer enquiries, assign ownership and follow their progress.</p>
+                <span className="ad-module-action">Open inbox →</span>
+              </Link>
+              <Link className="ad-module-card" href={CUSTOM_FORMULATION_REQUESTS_PATH}>
+                <span className="ad-module-kicker">Solutions</span>
+                <h3>Custom formulation requests</h3>
+                <p>Review formulation briefs and manage the request workflow.</p>
+                <span className="ad-module-action">Open requests →</span>
+              </Link>
+              <Link className="ad-module-card" href={CATALOG_REVIEW_PATH}>
+                <span className="ad-module-kicker">Product information</span>
+                <h3>Technical review</h3>
+                <p>Review product copy, specifications and claims before approval.</p>
+                <span className="ad-module-action">Open review queue →</span>
+              </Link>
+            </div>
+          </section>
+          <section className="ad-planned" aria-labelledby="ad-planned-title">
+            <div className="ad-section-heading">
+              <h2 id="ad-planned-title">Next capabilities</h2>
+              <span>Not available yet</span>
+            </div>
+            <ul>
+              <li>
+                <strong>Products & images</strong>
+                <span>
+                  Editorial content and product image management.{" "}
+                  <Link href="/admin/catalog/products/preview">Open design preview →</Link>
+                </span>
+              </li>
+              <li>
+                <strong>SEO workspace</strong>
+                <span>One place for page metadata and redirects.</span>
+              </li>
+              <li>
+                <strong>Content publishing</strong>
+                <span>Articles, previews and publication workflows.</span>
+              </li>
+            </ul>
+          </section>
+          <p className="ad-note">
+            Your session is active. Access is checked separately by each module.
+          </p>
+        </div>
+      </div>
     </main>
   );
 }

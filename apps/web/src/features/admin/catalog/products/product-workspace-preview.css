@@ -1,0 +1,307 @@
+.ap-preview {
+  color: var(--color-text-primary);
+}
+.ap-category-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  margin-bottom: 20px;
+  border: 1px solid var(--color-platinum-300);
+  border-inline-start: 3px solid var(--ad-brass);
+  border-radius: 12px;
+  background: var(--color-surface-raised);
+}
+@media (max-width: 600px) {
+  .ap-category-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+.ap-gallery-item {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 8px;
+  margin-block: 20px;
+}
+.ap-gallery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ap-gallery-actions button[aria-pressed="true"] {
+  background: var(--ad-brass);
+  color: var(--ad-navy);
+}
+.ap-repeater {
+  margin-block: 28px;
+}
+.ap-repeater fieldset {
+  min-width: 0;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 8px;
+}
+.ap-repeater legend {
+  padding-inline: 8px;
+  font-size: 13px;
+}
+.ap-preview-note {
+  padding: 14px 18px;
+  border-inline-start: 3px solid var(--ad-brass);
+  background: var(--color-surface-raised);
+  font-size: var(--text-caption);
+  line-height: 1.7;
+}
+.ap-intro,
+.ap-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin: 30px 0;
+}
+.ap-preview h2 {
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.2;
+  margin: 8px 0 12px;
+}
+.ap-preview h3 {
+  font-size: 19px;
+  margin: 6px 0 16px;
+}
+.ap-preview p {
+  line-height: 1.65;
+}
+.ap-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.ap-preview button {
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 7px;
+  padding: 11px 16px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--ad-navy);
+  color: var(--color-text-inverse);
+}
+.ap-preview button:disabled {
+  cursor: not-allowed;
+  background: var(--color-surface-inset);
+  color: var(--color-text-secondary);
+}
+.ap-preview :is(button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+.ap-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 24px;
+  padding: 20px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 12px;
+}
+.ap-toolbar label {
+  flex: 1;
+}
+.ap-toolbar span {
+  padding-bottom: 12px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.ap-preview label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.ap-preview :is(input, textarea, select) {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 16px;
+}
+.ap-preview textarea {
+  resize: vertical;
+}
+.ap-products {
+  margin: 20px 0;
+}
+.ap-product {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 12px;
+}
+.ap-thumbnail {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 84px;
+  border-radius: 8px;
+  background: var(--color-surface-inset);
+  color: var(--color-text-secondary);
+  font-size: 28px;
+}
+.ap-product h3 {
+  margin: 6px 0;
+}
+.ap-muted {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.ap-tag {
+  font-size: 11px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 20px;
+  padding: 4px 9px;
+}
+.ap-back {
+  margin-top: 16px;
+}
+.ap-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid var(--color-platinum-300);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+.ap-sections button {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: transparent;
+}
+.ap-sections button[aria-current] {
+  background: var(--ad-navy);
+  color: var(--ad-brass);
+}
+.ap-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 24px;
+  align-items: start;
+}
+.ap-panel {
+  padding: 28px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 12px;
+  background: var(--color-surface-raised);
+  min-width: 0;
+}
+.ap-panel label {
+  margin: 20px 0;
+}
+.ap-status {
+  border-top: 3px solid var(--ad-brass);
+}
+.ap-status dt {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 20px;
+}
+.ap-status dd {
+  margin: 5px 0 0;
+  font-size: 14px;
+}
+.ap-status button {
+  width: 100%;
+  margin-top: 16px;
+}
+.ap-empty,
+.ap-image-placeholder {
+  padding: 36px 20px;
+  text-align: center;
+  border: 1px dashed var(--color-platinum-300);
+  border-radius: 8px;
+  background: var(--color-surface-inset);
+  margin: 20px 0;
+}
+.ap-image-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-height: 200px;
+}
+.ap-image-placeholder > span {
+  font-size: 40px;
+}
+.ap-search-preview {
+  border: 1px solid var(--color-platinum-300);
+  padding: 20px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+  margin: 24px 0;
+}
+.ap-search-preview span {
+  font-size: 12px;
+}
+.ap-search-preview h4 {
+  font-size: 20px;
+  margin: 12px 0;
+}
+.ap-preview summary {
+  cursor: pointer;
+  padding: 12px 0;
+}
+@media (max-width: 1100px) {
+  .ap-editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ap-product {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .ap-product button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+@media (max-width: 600px) {
+  .ap-intro,
+  .ap-editor-header,
+  .ap-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ap-panel {
+    padding: 20px;
+  }
+  .ap-product {
+    padding: 16px;
+    gap: 16px;
+  }
+  .ap-thumbnail {
+    width: 60px;
+  }
+  .ap-product button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .ap-tag {
+    display: inline-block;
+  }
+}
