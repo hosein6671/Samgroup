@@ -7,6 +7,9 @@ import { s3Storage } from "@payloadcms/storage-s3";
 import { buildConfig } from "payload";
 
 import { Media, mediaFileURL } from "./collections/media";
+import { EditorialEvents } from "./collections/editorial-events";
+import { companyEditor } from "./editor/company-editor";
+import { editorEvents } from "./editor/editor-events";
 import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
 import { cmsDatabaseUri, cmsMediaStorage, payloadSecret } from "./env";
@@ -45,7 +48,8 @@ export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  collections: [Users, Pages, Media],
+  collections: [Users, Pages, Media, EditorialEvents],
+  endpoints: [companyEditor, editorEvents],
   /*
    * `sam_cms`, and nothing else. `cmsDatabaseUri()` refuses a connection string naming any other
    * database, so a pasted `sam_platform` URL fails while this config is being built rather than

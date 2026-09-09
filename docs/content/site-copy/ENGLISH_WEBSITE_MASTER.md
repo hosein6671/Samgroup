@@ -31,7 +31,7 @@ Promo CTA: **Search the Product Finder**
 
 Eyebrow: **Petroleum products and lubricants**
 
-H1: **Start with the product. Build the right supply conversation.**
+H1: **Petroleum products and lubricants for your next requirement.**
 
 Lead: Explore base oils, additives, automotive and industrial lubricants, marine oils, and coolants through a catalogue designed for professional buyers.
 
@@ -43,9 +43,9 @@ Secondary CTA: **Request a quote**
 
 Eyebrow: **A clearer route through the catalogue**
 
-Heading: **From application to product family, without the guesswork.**
+Heading: **Find your product. Tell us what you need.**
 
-Body: SAM Group brings related petroleum and lubricant products into one structured portfolio. Compare families, identify relevant grades, review available documentation, and send the commercial details needed for a focused response.
+Body: Explore the SAM Group catalogue, compare published product information, and send an enquiry with your grade, quantity and destination. Whether you have an exact product name or an application to discuss, there is a clear place to start.
 
 ### Product portfolio
 
@@ -53,7 +53,7 @@ Heading: **Six product families. One place to begin.**
 
 Lead: Choose a family to review its ranges, applications, supply options, and available technical information.
 
-- **Base Oils:** Paraffinic, naphthenic, bright stock, and synthetic base-fluid ranges organised by group and grade.
+- **Base Oils:** Explore the published base-oil products and use the classification guide for selection context.
 - **Lubricant Additives & Components:** Application-led additive packages and components for finished-lubricant development.
 - **Engine Oils & Automotive Lubricants:** Lubricants organised around passenger, commercial, motorcycle, agricultural, and heavy-duty applications.
 - **Industrial Oils & Lubricants:** Hydraulic, gear, compressor, metalworking, heat-transfer, slideway, and related plant lubricants.
@@ -66,7 +66,7 @@ CTA: **Explore all products**
 
 Heading: **Built around the information a B2B buyer needs.**
 
-- **Structured product discovery:** Browse by family, application, industry, packaging, or grade name.
+- **Structured product discovery:** Browse by product family or use the Product Finder to search the catalogue.
 - **Technical context:** Review product descriptions, typical-property fields, and available documentation in one place.
 - **Requirement-led enquiries:** Send the grade, quantity, destination, and packaging details behind the request.
 - **Sample pathway:** Request a sample when evaluation must come before a purchasing decision.
@@ -111,9 +111,9 @@ Secondary CTA: **Talk to technical sales**
 
 Eyebrow: **About SAM Group**
 
-H1: **A product-led platform for professional petroleum and lubricant buyers.**
+H1: **Petroleum products and lubricant solutions, from the producer.**
 
-Lead: SAM Group connects a broad product portfolio with the technical information and enquiry routes buyers need to evaluate their options.
+Lead: SAM Group produces and supplies base oils, engine oils, lubricant additives and coolants, developing products to the specification and supply terms each customer needs.
 
 Primary CTA: **Explore products**
 
@@ -121,7 +121,7 @@ Secondary CTA: **Contact us**
 
 ### Who we are
 
-Heading: **Focused on products, requirements, and long-term B2B work.**
+Heading: **Your requirement is the starting point.**
 
 Body: We work across petroleum products, lubricant components, finished lubricants, marine products, and coolants. Our website is organised around the questions that shape a real purchase: What is the application? Which grade is relevant? What documentation is available? How should the product be packed and supplied? The aim is simple—to turn an initial search into a precise, productive conversation.
 
@@ -138,11 +138,11 @@ Heading: **Expertise across the product decision.**
 
 ### Quality and standards
 
-Heading: **Evidence belongs beside the claim.**
+Heading: **Product information you can review.**
 
-Lead: Product suitability should be assessed against the relevant specification, technical data, and batch documentation—not broad marketing language.
+Lead: Check the relevant specification and available product documents before choosing a grade for your application.
 
-Body: Product pages distinguish descriptive information from typical technical values. Where a document or technical detail is available, it should be presented in context. Where confirmation is still required, the site should say so rather than imply certainty.
+Body: Start with the information published on the product page. If a technical detail or document is missing, include it in your enquiry along with the product name and intended application.
 
 CTA: **Review our quality approach**
 
@@ -166,7 +166,7 @@ Eyebrow: **Product portfolio**
 
 H1: **Find the right starting point for your requirement.**
 
-Lead: Browse six product families, search by grade name, or narrow the catalogue by industry, application, and packaging.
+Lead: Explore six product families or search the Product Finder by product name and grade.
 
 Primary CTA: **Use the Product Finder**
 
@@ -174,7 +174,7 @@ Secondary CTA: **Request a quote**
 
 ### Finder
 
-Heading: **Search less. Specify more.**
+Heading: **Already have a product or grade in mind?**
 
 Body: Use the Product Finder when you know the application or grade but not the right catalogue path.
 
@@ -184,7 +184,7 @@ CTA: **Open Product Finder**
 
 Heading: **Review the documents behind the product.**
 
-Body: Technical Data Sheets and Safety Data Sheets are available without a lead form where published. Certificates of Analysis are batch-specific. Company and product catalogues may require a short qualifying request.
+Body: Open the documents published on the product page, or send a document enquiry with the product name and grade. For batch-specific information, include the batch reference if you have it.
 
 Open documents CTA: **View technical documents**
 
@@ -289,7 +289,7 @@ Related products heading: **Related products**
 
 Eyebrow: **Customized solutions**
 
-H1: **Turn a specific requirement into a structured technical brief.**
+H1: **Tell us what your application requires.**
 
 Lead: Tell us about the application, required specifications, quantity, packaging, and destination. We will have the context needed to assess the request and define the next step.
 
@@ -299,11 +299,11 @@ Secondary CTA: **Browse standard products**
 
 ### Introduction
 
-Heading: **Use this route when the catalogue is only part of the answer.**
+Heading: **For requirements that need a closer look.**
 
 Body: A custom request may begin with a target specification, an operating problem, a reference product, or a packaging requirement. The form is designed to capture what is known without forcing assumptions about what is not.
 
-### What can be customized
+### What to include in your request
 
 - Product specification and property targets
 - Application-led product selection
@@ -350,7 +350,7 @@ Secondary CTA: **View packaging options**
 
 ### From requirement to delivery
 
-Heading: **A clear path from enquiry to shipment.**
+Heading: **Details to agree before an order moves forward.**
 
 1. Product and grade identification
 2. Technical-document review
@@ -387,9 +387,9 @@ CTA: **Request export terms**
 
 Eyebrow: **Quality and documentation**
 
-H1: **Quality information should be specific, traceable, and reviewable.**
+H1: **The detail behind your product decision.**
 
-Lead: This page explains how product information, testing stages, samples, and supporting documents are presented. Certificates appear only when their scope and validity have been verified.
+Lead: Find the questions and documents to bring to a technical review. Tell us which product you are evaluating and what information your application requires.
 
 Primary CTA: **Request documentation**
 
@@ -397,25 +397,25 @@ Secondary CTA: **Explore products**
 
 ### Approach
 
-Heading: **Review quality at the points that matter.**
+Heading: **Questions for your technical review.**
 
-- **Incoming:** Confirm relevant incoming-material checks and acceptance criteria.
-- **In process:** Monitor the properties that matter during processing or blending.
-- **Outgoing:** Review the finished batch against its release criteria before supply.
+- **Materials:** Which material requirements and acceptance criteria apply?
+- **Evaluation:** Which properties and test methods does your application require?
+- **Batch documents:** Which records are needed for your order?
 
 ### Laboratory capability
 
-Heading: **Test capability, stated by method and scope.**
+Heading: **Need a particular test or report?**
 
-Body: The published capability list must distinguish verified in-house tests from tests performed by qualified external laboratories. Test names, methods, instruments, and reporting scope should be approved before publication.
+Body: Include the test method, required property and reporting scope in your enquiry. Ask for confirmation of test availability and how the result will be documented.
 
 ### Certifications
 
-Heading: **Verified certificates only.**
+Heading: **Certification enquiries**
 
-Body: No certification should appear here until its issuing body, certificate number, scope, issue date, expiry date, and public document have been checked.
+Body: If your purchasing process requires a specific certificate, include its name and required scope in your enquiry.
 
-Empty state: Certificate records are being prepared for publication. Product documentation remains available through the relevant product or enquiry route.
+Empty state: No certificate is published in this section. Contact us about the documentation your enquiry requires.
 
 ### Documentation
 

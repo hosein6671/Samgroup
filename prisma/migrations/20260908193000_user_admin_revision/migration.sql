@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "admin_revision" INTEGER NOT NULL DEFAULT 0;

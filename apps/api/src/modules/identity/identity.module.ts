@@ -1,4 +1,7 @@
 import { Module } from "@nestjs/common";
+import { AuditModule } from "../audit/audit.module";
+import { UserManagementController } from "./user-management.controller";
+import { UserManagementService } from "./user-management.service";
 import { ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 
@@ -41,6 +44,7 @@ import { ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM } from "./jwt.config";
  */
 @Module({
   imports: [
+    AuditModule,
     PrismaModule,
     /*
      * The signing key is read from configuration at module initialisation and exists only in the
@@ -58,8 +62,9 @@ import { ACCESS_TOKEN_TTL_SECONDS, JWT_ALGORITHM } from "./jwt.config";
       }),
     }),
   ],
-  controllers: [AuthController, AdminUsersController],
+  controllers: [AuthController, AdminUsersController, UserManagementController],
   providers: [
+    UserManagementService,
     AuthService,
     AuthSessionsService,
     UsersService,

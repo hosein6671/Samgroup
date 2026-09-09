@@ -50,7 +50,15 @@ import type { ReactNode } from "react";
  * The two lead values are the `LeadSectionKey` vocabulary unchanged, so the leads call site passes
  * its existing `section` prop straight through.
  */
-export type AdminNavKey = "inquiries" | "custom-formulation-requests" | "catalog-review";
+export type AdminNavKey =
+  | "products"
+  | "content"
+  | "overview"
+  | "inquiries"
+  | "custom-formulation-requests"
+  | "catalog-review"
+  | "users"
+  | "audit";
 
 type Entry = {
   readonly href: string;
@@ -61,15 +69,23 @@ type Entry = {
 export function AdminNav({
   role,
   current,
+  sidebar = false,
 }: {
   readonly role: string;
   readonly current?: AdminNavKey;
+  readonly sidebar?: boolean;
 }): ReactNode {
   const entries: Entry[] = [];
+  if (roleMayEnter(role, "content"))
+    entries.push({
+      href: "/admin/catalog/products",
+      label: "Products",
+      current: current === "products",
+    });
 
   if (roleMayEnter(role, "shell")) {
     // The dashboard is never "current" from another module's page — it is the way back, not a peer.
-    entries.push({ href: ADMIN_PATH, label: "Admin", current: false });
+    entries.push({ href: ADMIN_PATH, label: "Overview", current: current === "overview" });
   }
 
   if (roleMayEnter(role, "leads")) {
@@ -91,12 +107,28 @@ export function AdminNav({
     });
   }
 
+  if (roleMayEnter(role, "shell")) {
+    entries.push({ href: "/admin/users", label: "Users", current: current === "users" });
+    entries.push({ href: "/admin/audit", label: "Security events", current: current === "audit" });
+  }
+
+  if (roleMayEnter(role, "content"))
+    entries.push({
+      href: "/admin/content",
+      label: "Website content",
+      current: current === "content",
+    });
+
   if (entries.length === 0) {
     return null;
   }
 
   return (
-    <nav className="ad-nav ad-nav--inline" aria-label="Admin modules">
+    <nav
+      className={sidebar ? "ad-dashboard-sidebar" : "ad-nav ad-nav--inline"}
+      aria-label="Admin modules"
+    >
+      {sidebar && <p className="ad-sidebar-label">Workspace</p>}
       {entries.map((entry) => (
         <Link
           className="ad-nav-link"

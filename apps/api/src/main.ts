@@ -1,6 +1,11 @@
 import "reflect-metadata";
 
-import { ValidationPipe } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
+import type { Request, Response, NextFunction } from "express";
+import { AuditService } from "./modules/audit/audit.service";
+import { securityEvent } from "./modules/audit/security-event";
+import { AUTHENTICATED_USER } from "./modules/identity/authenticated-user";
+import type { RequestWithUser } from "./modules/identity/authenticated-user";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import helmet from "helmet";
@@ -16,6 +21,27 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { cors: false });
 
   app.use(helmet());
+  const audit = app.get(AuditService);
+  const auditLogger = new Logger("SecurityAudit");
+  app.use((request: Request & RequestWithUser, response: Response, next: NextFunction) => {
+    response.once("finish", () => {
+      const event = securityEvent(request.method, request.path, response.statusCode);
+      if (event === null) return;
+      // Authentication failures deliberately do not capture the supplied account identifier.
+      void audit
+        .append({
+          event,
+          outcome: response.statusCode < 400 ? "success" : "failure",
+          actorId: request[AUTHENTICATED_USER]?.id,
+          httpStatus: response.statusCode,
+        })
+        .catch(() => {
+          // Operational signal only; never print the error, connection details or request.
+          auditLogger.error("Security event persistence failed.");
+        });
+    });
+    next();
+  });
 
   // nginx proxies /api/ with a variable upstream and no URI component, so the full
   // original path arrives here — the prefix must include /api.

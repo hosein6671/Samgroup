@@ -44,7 +44,7 @@ export const CUSTOMER_ROLE = "customer";
  * Three today. A fourth arrives with the next module, and adding one is meant to be a line here
  * plus the matching `@Roles()` in NestJS — not a change to how any page is written.
  */
-export type AdminArea = "shell" | "leads" | "review";
+export type AdminArea = "shell" | "leads" | "review" | "content";
 
 /**
  * Area → the roles permitted to open it.
@@ -67,6 +67,7 @@ export const AREA_ROLES: Readonly<Record<AdminArea, readonly string[]>> = {
   shell: [ADMIN_ROLE],
   leads: [ADMIN_ROLE, CONTENT_MANAGER_ROLE, SALES_EXPERT_ROLE],
   review: [ADMIN_ROLE],
+  content: [ADMIN_ROLE, CONTENT_MANAGER_ROLE],
 };
 
 /** Whether a role may open an area. Unknown roles are refused — the list is an allow-list. */

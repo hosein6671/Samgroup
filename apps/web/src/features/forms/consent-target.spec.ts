@@ -112,7 +112,9 @@ describe("every consent checkbox uses a shared construction", () => {
 
   it("finds no consent checkbox outside those two sites", () => {
     const sites = MARKUP.map((entry) => entry.file);
-    const found = collectCheckboxFiles(FEATURES);
+    // The authenticated content editor uses checkboxes for editorial switches, not consent.
+    const editor = join(FEATURES, "admin", "content", "content-form.tsx");
+    const found = collectCheckboxFiles(FEATURES).filter((file) => file !== editor);
 
     expect(found.filter((file) => !sites.includes(file as never))).toEqual([]);
   });

@@ -738,3 +738,9 @@ Globals; `ProductCategoryContent`, `Certifications` (with its Admin-only publish
 `JobOpenings` and `FaqEntries`. **Header, Footer, Settings and site navigation remain code-owned by
 decision**, not merely unbuilt: reading them from the CMS would put a content call in the root layout
 of every page on the site.
+
+## ADR-024 — Company-content editor transport
+
+The unified editor starts with the existing About Us, Customized Solutions, Quality & Certifications and Contact Us globals. Their schemas, localization and SEO ownership remain unchanged. Only English is editable in this rollout. Nest authorizes Admin/Content Manager and calls an internal custom CMS endpoint with the existing read-service identity plus a separate server-only editor secret. The public read credential alone cannot read drafts or write. No platform JWT, password, cookie or synchronized account reaches Payload.
+
+Editor reads return a bounded projection of editable content and a revision token. Saves require that token and use a serializable Payload transaction. Content and a bounded `editorial-events` record commit together in sam_cms. Events store actor UUID, resource, operation UUID, action and resulting revision, never request bodies or credentials. A retry of a completed operation returns its recorded outcome; clients reload after uncertain results instead of blindly overwriting. A conflict leaves the published version untouched. Draft saving does not publish or alter technical approval. Publication is a separate explicit action. Existing product technical-copy review remains authoritative; these endpoints never write ProductCopy, specifications, claims, users or private media.

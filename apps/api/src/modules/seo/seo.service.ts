@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 
 import { ContentTranslationService } from "../../common/content/content-translation.service";
 import { PrismaService } from "../../prisma/prisma.service";
+import type { Prisma } from "../../prisma/generated/client";
+import type { EditableSeo } from "./seo-editor";
 
 import type { ContentEntityType } from "../../common/content/content-entity-type";
 import type { ResolvedLocale } from "../../common/locale/resolved-locale";
@@ -115,6 +117,50 @@ export class SeoService {
     private readonly prisma: PrismaService,
     private readonly translations: ContentTranslationService,
   ) {}
+
+  async readProductEditorial(id: string): Promise<EditableSeo> {
+    const record = await this.prisma.seoMeta.findUnique({
+      where: { entityType_entityId_locale: { entityType: "Product", entityId: id, locale: "en" } },
+    });
+    return {
+      metaTitle: record?.metaTitle ?? "",
+      metaDescription: record?.metaDescription ?? "",
+      ...(record?.canonicalUrl ? { canonicalUrl: record.canonicalUrl } : {}),
+      ogTitle: record?.ogTitle ?? "",
+      ogDescription: record?.ogDescription ?? "",
+      twitterTitle: record?.twitterTitle ?? "",
+      twitterDescription: record?.twitterDescription ?? "",
+      twitterCardType: record?.twitterCardType === "summary" ? "summary" : "summary_large_image",
+      robotsIndex: record?.robotsIndex ?? true,
+      robotsFollow: record?.robotsFollow ?? true,
+      keywords: record?.keywords ?? [],
+    };
+  }
+
+  async publishProductEditorial(
+    id: string,
+    input: EditableSeo,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const data = {
+      metaTitle: input.metaTitle || null,
+      metaDescription: input.metaDescription || null,
+      canonicalUrl: input.canonicalUrl || null,
+      ogTitle: input.ogTitle || null,
+      ogDescription: input.ogDescription || null,
+      twitterTitle: input.twitterTitle || null,
+      twitterDescription: input.twitterDescription || null,
+      twitterCardType: input.twitterCardType ?? "summary_large_image",
+      robotsIndex: input.robotsIndex,
+      robotsFollow: input.robotsFollow,
+      keywords: input.keywords,
+    };
+    await tx.seoMeta.upsert({
+      where: { entityType_entityId_locale: { entityType: "Product", entityId: id, locale: "en" } },
+      create: { entityType: "Product", entityId: id, locale: "en", ...data },
+      update: data,
+    });
+  }
 
   /**
    * The requested locale's SEO record, normalized and with its alternates attached.

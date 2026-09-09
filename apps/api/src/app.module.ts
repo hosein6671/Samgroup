@@ -1,4 +1,6 @@
 import { Module } from "@nestjs/common";
+import { AuditAdminModule } from "./modules/audit/audit-admin.module";
+import { AuditModule } from "./modules/audit/audit.module";
 import { ConfigModule } from "@nestjs/config";
 import { APP_FILTER, APP_INTERCEPTOR } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
@@ -45,6 +47,8 @@ import { PrismaModule } from "./prisma/prisma.module";
     // AppModule queries anything. PrismaModule is not @Global: each future module that
     // needs the database imports it for itself.
     PrismaModule,
+    AuditModule,
+    AuditAdminModule,
     LocalizationModule,
     /*
      * Identity & Access. It registers NO global guard — see the note in identity.module.ts. Every

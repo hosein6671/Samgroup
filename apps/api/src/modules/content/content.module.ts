@@ -1,3 +1,4 @@
+import { CompanyEditorModule } from "./company-editor.module";
 import { Module } from "@nestjs/common";
 
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
@@ -23,7 +24,7 @@ import { QualityCertificationsService } from "./quality-certifications.service";
  * cross-module access goes through the other module's service interface.
  */
 @Module({
-  imports: [LocaleResolutionModule],
+  imports: [LocaleResolutionModule, CompanyEditorModule],
   controllers: [ContentGlobalsController, ContentPagesController],
   providers: [
     AboutUsService,

@@ -1,5 +1,9 @@
 # Data Model
 
+## ADR-024 ordinary product editorial drafts
+
+`ProductEditorialDraft` belongs to Catalog in sam_platform: productId unique UUID foreign key, revision nonnegative integer, content JSON containing the explicitly validated English name/description/SEO fields, and updatedAt. It is separate from technically reviewed ProductCopy and never changes its status or evidence. No rows are seeded. Reads fall back to the current Product and SeoMeta when no draft exists. Saves use a serializable transaction and expected revision; publication writes Product name/description and the existing SeoMeta through SeoService in that same transaction, increments the draft revision and appends a product editorial audit event atomically. Slugs, classification, grades, specifications, claims, technical copy and media are outside this first write slice and are never accepted as input. The draft does not change public output until explicit publication. Existing products keep their current public URLs.
+
 Field-level detail and relationships for the entities listed in [DATABASE.md](./DATABASE.md). Exact Prisma schema is defined at implementation time — this is the reference shape, not the final migration.
 
 Payload-managed entities (Pages, Menus, Footer, Settings) live in the separate `sam_cms` database and are intentionally omitted here — see [ARCHITECTURE.md](./ARCHITECTURE.md#cms-integration).
@@ -484,3 +488,9 @@ Following acceptance of [ADR-007](./ADR/ADR-007-product-taxonomy-v2.md) and the 
 - **Deliberately not added**: `productCode` (whether it exists, and whether it is unique, is a product-owner decision), a Grade / Variant entity (blocked on real catalog data), `createdAt`/`updatedAt` on the new entities (matching `CATEGORY`, which has none), and `Product ↔ ProductType` many-to-many (deferred until real data proves dual-type Products exist).
 - **Settled since, by [ADR-008](./ADR/ADR-008-b2-filter-contract-and-segment-vocabulary.md)**: the Segment slugs, and whether `Other` is a real Segment or an administrative fallback — eight slugs approved, `Other` not persisted. Both were open here when this pass was written; neither is now.
 - **Still deliberately not settled here**: the nine per-Segment Product Type lists, and whether the existing family sub-ranges map onto `PRODUCT_TYPE`. Both remain open in ADR-007, along with every other deferred item ADR-008 does not close, and none may be closed by an implementation choice.
+
+## ADR-024 audit foundation
+
+`AdminAuditEvent` (`admin_audit_events`, Prisma-owned) stores UUID id, server timestamp, nullable actor/subject UUID, allow-listed event name, success/failure outcome and optional HTTP status. No credentials, request bodies, IP addresses or content snapshots are stored. No user FK: audit identity survives account retirement. Time/id and actor/time indexes support ordered reads. Application exposes no update/delete operations. This is not database-administrator tamper protection.
+
+ADR-024 adds `User.adminRevision` (integer, default 0), incremented by the user-management update endpoint for optimistic concurrency. Ordinary administration may not change its own account. The active-Admin predicate is checked within a serializable transaction; a serialization conflict requires operator reload. Initial-account password minimum is 12 characters, maximum 1024; login policy remains unchanged for existing accounts.

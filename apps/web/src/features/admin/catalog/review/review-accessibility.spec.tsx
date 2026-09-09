@@ -556,10 +556,14 @@ describe("AdminNav — Leads is unchanged and Technical Review is its sibling", 
     const hrefs = findLinks(<AdminNav role="admin" />).map((link) => String(link.props.href));
 
     expect(hrefs).toEqual([
+      "/admin/catalog/products",
       "/admin",
       "/admin/leads/inquiries",
       "/admin/leads/custom-formulation-requests",
       "/admin/catalog/review",
+      "/admin/users",
+      "/admin/audit",
+      "/admin/content",
     ]);
   });
 
@@ -572,7 +576,12 @@ describe("AdminNav — Leads is unchanged and Technical Review is its sibling", 
       String(link.props.href),
     );
 
-    expect(hrefs).toEqual(["/admin/leads/inquiries", "/admin/leads/custom-formulation-requests"]);
+    expect(hrefs).toEqual([
+      "/admin/catalog/products",
+      "/admin/leads/inquiries",
+      "/admin/leads/custom-formulation-requests",
+      "/admin/content",
+    ]);
   });
 
   it("still renders nothing at all for a role no area admits", () => {

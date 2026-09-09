@@ -1,4 +1,7 @@
 import { Module } from "@nestjs/common";
+import { AuditModule } from "../audit/audit.module";
+import { ProductEditorController } from "./product-editor.controller";
+import { ProductEditorService } from "./product-editor.service";
 
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
@@ -55,16 +58,18 @@ import { CatalogReviewService } from "./review/catalog-review.service";
      * which is what keeps this import from becoming cross-module data access.
      */
     IdentityModule,
+    AuditModule,
   ],
   controllers: [
     CategoriesController,
     ProductsController,
+    ProductEditorController,
     CatalogReviewQueueController,
     SpecificationReviewController,
     ProductClaimReviewController,
     ProductCopyReviewController,
   ],
-  providers: [CategoriesService, ProductsService, CatalogReviewService],
+  providers: [CategoriesService, ProductsService, CatalogReviewService, ProductEditorService],
   exports: [CategoriesService, ProductsService],
 })
 export class CatalogModule {}

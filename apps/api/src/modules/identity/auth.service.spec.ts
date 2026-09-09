@@ -250,6 +250,7 @@ describe("AuthService.login", () => {
    */
   it("enforces account status against the exact User model that exists", () => {
     expect(Object.keys(Prisma.UserScalarFieldEnum).sort()).toEqual([
+      "adminRevision",
       "createdAt",
       "credentialsRevokedAt",
       "email",

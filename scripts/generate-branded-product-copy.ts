@@ -77,7 +77,10 @@ function indefiniteArticle(value: string): "a" | "an" {
 }
 
 function lowerInitial(value: string): string {
-  return value ? `${value[0]!.toLowerCase()}${value.slice(1)}` : value;
+  return value.replace(
+    /\b(FULL|SYNTHETIC|DIESEL|ENGINE|OIL|OILS|MINERAL|HYDRAULIC|GEAR|MARINE|INDUSTRIAL|LUBRICANT|COOLANT|CONCENTRATE)\b/g,
+    (word) => word.toLowerCase(),
+  );
 }
 
 function gradeSentence(grades: string[]): string | null {
@@ -93,11 +96,11 @@ function summary(product: ResearchProduct): string {
     product.official?.feature ?? product.contentCandidate.descriptor,
   );
   const family = FAMILY[product.familyKey ?? ""]?.context ?? "product portfolio";
-  const first = `${product.currentName} is listed as ${indefiniteArticle(type)} ${type} within the ${family}.`;
+  const first = `${product.currentName} is ${indefiniteArticle(type)} ${type} in the SAM Group ${family}.`;
   const sourcedDescription = descriptor
     ? /\b(?:is|are|formulated|contains|provides)\b/i.test(descriptor)
-      ? ` The recorded product description states: ${descriptor.replace(/[.\s]+$/g, "")}.`
-      : ` The recorded product description identifies it as ${lowerInitial(descriptor)}.`
+      ? ` ${descriptor.replace(/[.\s]+$/g, "")}.`
+      : ` Product description: ${lowerInitial(descriptor)}.`
     : "";
   const grade = gradeSentence(product.gradeLabels);
   return [first, sourcedDescription, grade ? ` ${grade}` : ""].join("").trim();
@@ -105,7 +108,7 @@ function summary(product: ResearchProduct): string {
 
 function metaDescription(product: ResearchProduct): string {
   const type = TYPE[product.productTypeKey ?? ""] ?? "lubricant product";
-  const description = `Review ${product.currentName}, ${indefiniteArticle(type)} ${type} in the SAM Group range. See recorded grades, available technical data, and enquiry options.`;
+  const description = `Review ${product.currentName}, ${indefiniteArticle(type)} ${type} in the SAM Group range. Explore product information and enquire about your grade, quantity and destination.`;
   if (description.length <= 160) return description;
   const shortened = `Review ${product.currentName} in the SAM Group range. See recorded grades, technical data, and enquiry options.`;
   if (shortened.length <= 160) return shortened;
@@ -128,9 +131,9 @@ async function main(): Promise<void> {
     productTypeKey: product.productTypeKey,
     locale: "en",
     cardSummary: summary(product),
-    pageIntroduction: `${summary(product)} Use the technical table and available product documents to compare the recorded information with the intended application and operating requirement.`,
+    pageIntroduction: `${summary(product)} For a quotation or product enquiry, include your required grade, quantity and destination. Add any application requirements that need to be checked.`,
     selectionNote:
-      "Confirm the required grade, specification, test method, and equipment recommendation before purchase. Typical values support initial evaluation and are not contractual limits unless the applicable document states otherwise.",
+      "Check the grade and required specification against your equipment guidance. Ask for confirmation of any property or document not published on this page.",
     documentPrompt:
       "Name the product and grade when requesting a TDS, SDS, or other available technical document.",
     primaryCta: "Request a quote",

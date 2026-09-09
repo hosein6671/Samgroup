@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     pages: Page;
     media: Media;
+    'editorial-events': EditorialEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'editorial-events': EditorialEventsSelect<false> | EditorialEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -288,6 +290,21 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "editorial-events".
+ */
+export interface EditorialEvent {
+  id: number;
+  operationId: string;
+  actorId: string;
+  resource: string;
+  action: 'save-draft' | 'publish';
+  requestHash: string;
+  revision: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -321,6 +338,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'editorial-events';
+        value: number | EditorialEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -440,6 +461,20 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "editorial-events_select".
+ */
+export interface EditorialEventsSelect<T extends boolean = true> {
+  operationId?: T;
+  actorId?: T;
+  resource?: T;
+  action?: T;
+  requestHash?: T;
+  revision?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

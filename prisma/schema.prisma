@@ -408,7 +408,22 @@ enum MappingConfidence {
 
 // --- Identity & Access -------------------------------------------------------
 
+/// ADR-024: bounded event metadata, never credentials or request bodies.
+model AdminAuditEvent {
+  id String @id @default(uuid()) @db.Uuid
+  occurredAt DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  actorId String? @map("actor_id") @db.Uuid
+  subjectId String? @map("subject_id") @db.Uuid
+  event String @db.VarChar(64)
+  outcome String @db.VarChar(16)
+  httpStatus Int? @map("http_status")
+  @@index([occurredAt, id])
+  @@index([actorId, occurredAt])
+  @@map("admin_audit_events")
+}
+
 model User {
+  adminRevision Int @default(0) @map("admin_revision")
   id           String     @id @default(uuid()) @db.Uuid
   email        String     @unique
   passwordHash String     @map("password_hash")
@@ -555,6 +570,7 @@ model Product {
   grades         ProductGrade[]
   claims         ProductClaim[]
   copy           ProductCopy[]
+  editorialDraft ProductEditorialDraft?
   segments       ProductSegment[]
   inquiries      Inquiry[]        @relation("InquiryRelatedProduct")
 
@@ -564,6 +580,16 @@ model Product {
   @@index([categoryId])
   @@index([productTypeId])
   @@map("products")
+}
+
+model ProductEditorialDraft {
+  productId String @id @map("product_id") @db.Uuid
+  revision Int @default(0)
+  content Json
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_editorial_drafts")
 }
 
 /// One technical fact about a Product, or about ONE GRADE of a Product.

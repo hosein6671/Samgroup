@@ -2661,3 +2661,90 @@
     overflow-wrap: anywhere;
   }
 }
+
+.ad-user-form {
+  display: grid;
+  gap: 18px;
+  max-width: 620px;
+  margin-block: 22px;
+}
+.ad-user-form label {
+  display: grid;
+  gap: 8px;
+}
+.ad-user-form :is(input, select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  padding: 12px;
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+}
+.ad-user-form button {
+  font: inherit;
+  padding: 12px 18px;
+  border: 1px solid var(--ad-brass);
+  border-radius: 6px;
+  background: var(--ad-navy);
+  color: var(--color-text-inverse);
+}
+.ad-user-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.ad-user-form :is(input, select, button):focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+.ad-content-form {
+  display: block;
+  max-width: 960px;
+}
+.ad-content-form fieldset {
+  margin: 24px 0;
+  padding: 20px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 8px;
+  min-width: 0;
+}
+.ad-content-form legend {
+  padding: 0 8px;
+  font-weight: 600;
+}
+.ad-content-form label {
+  margin: 16px 0;
+}
+.ad-content-form textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+.ad-content-form small {
+  font-weight: 400;
+  line-height: 1.5;
+}
+.ad-content-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.ad-content-form input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  accent-color: var(--ad-brass);
+}
+.ad-content-form textarea:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}

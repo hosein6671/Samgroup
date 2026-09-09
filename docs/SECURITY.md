@@ -355,3 +355,7 @@ Entities in scope, in rough order of sensitivity:
 - Dependabot (or equivalent) enabled for dependency vulnerability alerts
 - `npm audit` / `pnpm audit` run in CI
 - Docker images built from minimal, pinned base images
+
+## ADR-024 security event collection
+
+Initial security events cover login, refresh, logout and denied access. Authentication event recording occurs after the response and is best-effort: storage failure emits a fixed operational error without request or exception content. This is not atomic activity auditing; privileged mutations must record their activity event in the mutation transaction. Login/refresh actor identification is currently absent; never infer identity from user-supplied email. Admin log reads are no-store and Admin-only. Initial retention policy is 180 days; operational retention cleanup remains unimplemented and must be enabled before production rollout. No production rollout is authorized by this implementation.

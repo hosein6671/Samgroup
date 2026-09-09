@@ -592,11 +592,16 @@ describe("what this gate did not add", () => {
   test("no Certifications collection exists — its Admin-only publish gate is owed to a later gate", () => {
     const collections = readdirSync(join(cmsSource, "collections"));
 
-    assert.deepEqual(collections.sort(), ["media.ts", "pages.ts", "users.ts"]);
+    assert.deepEqual(collections.sort(), [
+      "editorial-events.ts",
+      "media.ts",
+      "pages.ts",
+      "users.ts",
+    ]);
 
     const config = readFileSync(join(cmsSource, "payload.config.ts"), "utf8");
 
-    assert.match(config, /collections:\s*\[Users,\s*Pages,\s*Media\]/);
+    assert.match(config, /collections:\s*\[Users,\s*Pages,\s*Media,\s*EditorialEvents\]/);
   });
 
   test("Media stays image-only — no PDF, no document type, no certificate file", () => {

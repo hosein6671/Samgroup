@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AdminNav } from "@/features/admin/admin-nav";
 import { signOut } from "@/features/admin/actions";
 import { LOGIN_PATH, SESSION_END_PATH } from "@/features/admin/admin-routes";
 import { CATALOG_REVIEW_PATH } from "@/features/admin/catalog/review/review-routes";
@@ -178,15 +179,7 @@ export default async function AdminPage(): Promise<ReactNode> {
         Your workspace for customer requests and reviewed product information.
       </p>
       <div className="ad-dashboard-grid">
-        <nav className="ad-dashboard-sidebar" aria-label="Admin modules">
-          <p className="ad-sidebar-label">Workspace</p>
-          <a href="#main-content" aria-current="page">
-            Overview
-          </a>
-          <Link href={INQUIRIES_PATH}>Inquiries</Link>
-          <Link href={CUSTOM_FORMULATION_REQUESTS_PATH}>Custom formulation requests</Link>
-          <Link href={CATALOG_REVIEW_PATH}>Technical review</Link>
-        </nav>
+        <AdminNav role={access.user.role} current="overview" sidebar />
         <div>
           <section aria-labelledby="ad-work-title">
             <div className="ad-section-heading">
@@ -216,20 +209,22 @@ export default async function AdminPage(): Promise<ReactNode> {
           </section>
           <section className="ad-planned" aria-labelledby="ad-planned-title">
             <div className="ad-section-heading">
-              <h2 id="ad-planned-title">Next capabilities</h2>
-              <span>Not available yet</span>
+              <h2 id="ad-planned-title">Manage content</h2>
             </div>
             <ul>
               <li>
-                <strong>Products & images</strong>
+                <strong>Products</strong>
                 <span>
-                  Editorial content and product image management.{" "}
-                  <Link href="/admin/catalog/products/preview">Open design preview →</Link>
+                  Edit product descriptions and SEO, save drafts and publish changes.{" "}
+                  <Link href="/admin/catalog/products">Open products →</Link>
                 </span>
               </li>
               <li>
-                <strong>SEO workspace</strong>
-                <span>One place for page metadata and redirects.</span>
+                <strong>Website content</strong>
+                <span>
+                  Page content and SEO are edited together.{" "}
+                  <Link href="/admin/content">Open website content →</Link>
+                </span>
               </li>
               <li>
                 <strong>Content publishing</strong>
