@@ -27,7 +27,7 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     return { ...previous, saved: false, message: "Check the content fields." };
   }
   if (
-    (product || key.startsWith("category-")) &&
+    (product || key.startsWith("category-") || key === "faq-page") &&
     fields &&
     typeof fields === "object" &&
     "seo" in fields &&

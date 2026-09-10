@@ -37,7 +37,13 @@ import { JwtAuthGuard } from "../identity/guards/jwt-auth.guard";
 import { RolesGuard } from "../identity/guards/roles.guard";
 import type { AuthenticatedUser } from "../identity/authenticated-user";
 
-const KEYS = ["about-us", "customized-solutions", "quality-certifications", "contact-us"];
+const KEYS = [
+  "faq-page",
+  "about-us",
+  "customized-solutions",
+  "quality-certifications",
+  "contact-us",
+];
 export class ContentEditDto {
   @IsUUID() operationId!: string;
   @IsString() @MaxLength(100) revision!: string;

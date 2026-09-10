@@ -1,3 +1,4 @@
+import { FaqPageService } from "./faq-page.service";
 import { FaqController, FaqService } from "./faq.controller";
 import { CategoryContentController, CategoryContentService } from "./category-content.controller";
 import { CompanyEditorModule } from "./company-editor.module";
@@ -36,6 +37,7 @@ import { QualityCertificationsService } from "./quality-certifications.service";
   ],
   providers: [
     FaqService,
+    FaqPageService,
     CategoryContentService,
     AboutUsService,
     ContentPagesService,

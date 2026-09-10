@@ -24,6 +24,7 @@ export default async function Page(): Promise<ReactNode> {
               ["customized-solutions", "Customized solutions"],
               ["quality-certifications", "Quality & certifications"],
               ["contact-us", "Contact details"],
+              ["faq-page", "FAQ page & SEO"],
             ].map(([key, label]) => (
               <Link className="ad-module-card" key={key} href={"/admin/content/" + key}>
                 {label}

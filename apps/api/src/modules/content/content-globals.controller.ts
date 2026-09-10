@@ -1,3 +1,4 @@
+import { FaqPageService, type FaqPageContent } from "./faq-page.service";
 import { Controller, Get, HttpStatus, Param, Query } from "@nestjs/common";
 
 import { ApiException } from "../../common/http/api.exception";
@@ -30,7 +31,11 @@ type ContentGlobalReader<T> = {
 
 /** What any recognised Global can answer with. */
 type ServedGlobal = ContentGlobalResponse<
-  AboutUsContent | ContactUsContent | CustomizedSolutionsContent | QualityCertificationsContent
+  | AboutUsContent
+  | ContactUsContent
+  | CustomizedSolutionsContent
+  | QualityCertificationsContent
+  | FaqPageContent
 >;
 
 /**
@@ -65,12 +70,14 @@ export class ContentGlobalsController {
     qualityCertifications: QualityCertificationsService,
     contactUs: ContactUsService,
     private readonly localeResolution: LocaleResolutionService,
+    faqPage: FaqPageService,
   ) {
     this.readers = {
       "about-us": aboutUs,
       "customized-solutions": customizedSolutions,
       "quality-certifications": qualityCertifications,
       "contact-us": contactUs,
+      "faq-page": faqPage,
     };
   }
 

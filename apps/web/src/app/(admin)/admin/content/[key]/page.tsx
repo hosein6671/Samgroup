@@ -1,3 +1,4 @@
+import { FAQ_PAGE_DEFAULTS } from "@/features/faq/page-content";
 import { getCategoryContent } from "@/features/products/category/data";
 import { categoryEditorDefaults } from "@/features/products/category/category-editorial";
 import Link from "next/link";
@@ -52,23 +53,36 @@ export default async function Page({
           },
           ...Object.fromEntries(Object.entries(data.fields).filter(([, value]) => value !== null)),
         }
-      : key.startsWith("faq-")
+      : key === "faq-page"
         ? {
-            question: "",
-            answer: "",
-            topic: "products",
-            relatedCategoryKeys: [],
-            showOnContactPage: false,
-            sortOrder: 0,
+            ...FAQ_PAGE_DEFAULTS,
             ...Object.fromEntries(
               Object.entries(data?.fields ?? {}).filter(([, value]) => value !== null),
             ),
           }
-        : (data?.fields ?? {});
+        : key.startsWith("faq-")
+          ? {
+              question: "",
+              answer: "",
+              topic: "products",
+              relatedCategoryKeys: [],
+              showOnContactPage: false,
+              sortOrder: 0,
+              ...Object.fromEntries(
+                Object.entries(data?.fields ?? {}).filter(([, value]) => value !== null),
+              ),
+            }
+          : (data?.fields ?? {});
   return (
     <AdminShell title="Edit website content" user={access.user} current="content">
       <Link href="/admin/content">All content pages</Link>
-      <h2>{key.startsWith("faq-") ? "Edit shared answer" : key.replaceAll("-", " ")}</h2>
+      <h2>
+        {key === "faq-page"
+          ? "FAQ page & SEO"
+          : key.startsWith("faq-")
+            ? "Edit shared answer"
+            : key.replaceAll("-", " ")}
+      </h2>
       {key.startsWith("faq-") && <Link href="/admin/faqs">All shared questions</Link>}
       <p className="ad-note">
         English content. Save a draft to keep changes private, or publish when the content is ready.

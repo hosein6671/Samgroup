@@ -1,3 +1,4 @@
+import { FAQ_PAGE_DEFAULTS, getFaqPageContent, faqPageMetadata } from "@/features/faq/page-content";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Answers, FaqSchema } from "@/features/faq/answers";
@@ -6,8 +7,7 @@ import { SiteNav } from "@/features/site/site-nav";
 import { SiteFooter } from "@/features/site/site-footer";
 import { localeHref } from "@/features/site/site-routes";
 import { getActiveLocales } from "@/lib/locales";
-import { absoluteUrl } from "@/features/seo/site";
-import { isIndexingEnabled } from "@/features/seo/indexing";
+
 import "@/features/home/flagship.css";
 
 export const dynamic = "force-dynamic";
@@ -26,13 +26,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const { locale } = await params;
   const query = await searchParams;
   const entries = await publishedFaq(locale);
-  const index = isIndexingEnabled() && locale === "en" && !query.topic && !!entries?.length;
-  return {
-    title: "Frequently Asked Questions | SAM Group",
-    description: "Find answers about product selection, samples, ordering and export enquiries.",
-    alternates: { canonical: absoluteUrl(localeHref(locale, "/faq")) },
-    robots: { index, follow: isIndexingEnabled() },
-  };
+  return faqPageMetadata(locale, await getFaqPageContent(locale), !!entries?.length, !!query.topic);
 }
 export default async function FaqPage({ params, searchParams }: Props): Promise<ReactNode> {
   const [{ locale }, query, locales] = await Promise.all([
@@ -43,6 +37,7 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
   const topic = topics.find(([key]) => key === query.topic);
   const entries = await publishedFaq(locale, topic ? { category: topic[0] } : {});
   const href = localeHref(locale, "/faq");
+  const copy = { ...FAQ_PAGE_DEFAULTS, ...(await getFaqPageContent(locale))?.fields };
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -50,12 +45,9 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
         <section className="fq-hero" data-surface="midnight">
           <div className="fs-blueprint" aria-hidden="true" />
           <div className="fs-wrap">
-            <p className="fs-eyebrow">SAM Group · Questions & answers</p>
-            <h1 className="fs-d1">A clearer starting point for your enquiry.</h1>
-            <p className="fs-lead">
-              Explore product, sample and supply questions before sharing your requirements with our
-              team.
-            </p>
+            <p className="fs-eyebrow">{copy.eyebrow}</p>
+            <h1 className="fs-d1">{copy.title}</h1>
+            <p className="fs-lead">{copy.introduction}</p>
           </div>
         </section>
         <section className="fs-sec" data-surface="light">
@@ -75,7 +67,7 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
               ))}
             </nav>
             <div>
-              <h2 className="fs-d2">{topic?.[1] ?? "Frequently asked questions"}</h2>
+              <h2 className="fs-d2">{topic?.[1] ?? copy.questionsHeading}</h2>
               {entries?.length ? (
                 <>
                   <Answers entries={entries} />
@@ -89,13 +81,10 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
                 </p>
               )}
               <aside className="fq-help">
-                <h3>Have a specific requirement?</h3>
-                <p>
-                  Include the product or application, quantity and destination so your enquiry has
-                  the right context.
-                </p>
+                <h3>{copy.contactHeading}</h3>
+                <p>{copy.contactText}</p>
                 <a className="fs-btn fs-btn--gold" href={localeHref(locale, "/contact-us")}>
-                  Ask our team →
+                  {copy.contactLabel}
                 </a>
               </aside>
             </div>

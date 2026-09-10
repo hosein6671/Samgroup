@@ -585,7 +585,7 @@ describe("what this gate did not add", () => {
 
     assert.match(
       config,
-      /globals:\s*\[AboutUs,\s*CustomizedSolutions,\s*QualityCertifications,\s*ContactUs\]/,
+      /globals:\s*\[AboutUs,\s*CustomizedSolutions,\s*QualityCertifications,\s*ContactUs,\s*FaqPage\]/,
     );
   });
 

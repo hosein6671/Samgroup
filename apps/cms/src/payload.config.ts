@@ -1,3 +1,4 @@
+import { FaqPage } from "./globals/faq-page";
 import { FaqEntries } from "./collections/faq-entries";
 import { faqList } from "./editor/faq-list";
 import path from "node:path";
@@ -77,7 +78,7 @@ export default buildConfig({
    * later gate. Nothing in this Global models a certificate, so there is nothing to migrate when it
    * arrives — see `globals/quality-certifications.ts`.
    */
-  globals: [AboutUs, CustomizedSolutions, QualityCertifications, ContactUs],
+  globals: [AboutUs, CustomizedSolutions, QualityCertifications, ContactUs, FaqPage],
   /*
    * GraphQL is disabled. Payload exposes REST and GraphQL over the same data; the Content module
    * uses REST, so the GraphQL endpoint and its playground would be a second public surface on a

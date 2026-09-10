@@ -1,3 +1,4 @@
+import { FaqPageService } from "./faq-page.service";
 import { Test } from "@nestjs/testing";
 
 import { ApiException } from "../../common/http/api.exception";
@@ -116,6 +117,15 @@ async function createHarness(): Promise<Harness> {
   const moduleRef = await Test.createTestingModule({
     controllers: [ContentGlobalsController],
     providers: [
+      {
+        provide: FaqPageService,
+        useValue: {
+          find: jest.fn().mockResolvedValue({
+            response: { available: false, content: null },
+            localeFallback: false,
+          }),
+        },
+      },
       { provide: AboutUsService, useValue: { find } },
       { provide: CustomizedSolutionsService, useValue: { find: findSolutions } },
       { provide: QualityCertificationsService, useValue: { find: findQuality } },
@@ -256,7 +266,7 @@ describe("ContentGlobalsController", () => {
      * and until then each is a 404 decided here rather than an empty read against the CMS. The
      * assertions below are what fixes that four/four boundary.
      */
-    it("recognises exactly the four built names", async () => {
+    it("recognises the five built names", async () => {
       const { controller } = await createHarness();
 
       for (const built of [
@@ -264,11 +274,12 @@ describe("ContentGlobalsController", () => {
         "customized-solutions",
         "quality-certifications",
         "contact-us",
+        "faq-page",
       ]) {
         await expect(controller.findOne(built, {})).resolves.toBeDefined();
       }
 
-      for (const unbuilt of ["home", "products-landing", "export-logistics", "faq-page"]) {
+      for (const unbuilt of ["home", "products-landing", "export-logistics"]) {
         const error: unknown = await controller.findOne(unbuilt, {}).then(
           () => null,
           (rejection: unknown) => rejection,

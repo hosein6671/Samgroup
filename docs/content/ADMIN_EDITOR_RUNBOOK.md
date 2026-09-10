@@ -51,3 +51,7 @@ The Contact eligibility flag is stored for a later consumer; the Contact page an
 ### Public FAQ and Contact display
 
 Published library entries now appear at `/en/faq`, grouped using the Topic selector. Enable Available for the Contact FAQ to include an answer on Contact Us. Publishing refreshes these surfaces and the sitemap. Empty Contact results hide its FAQ section; a temporary content failure leaves the enquiry form usable. Category assignment still requires its existing category switch. Seven initial English entries were published locally from `site-copy/ENGLISH_SHARED_FAQ.json`; edit them in the same FAQ library. Public FAQ heading/metadata controls are not yet in the Admin editor.
+
+### FAQ page text and SEO
+
+Website content → FAQ page & SEO (`/admin/content/faq-page`) now controls the eyebrow, heading, introduction, questions heading, closing contact text/button label and search/social SEO fields together. Save draft keeps these private; Publish applies the page text and metadata and refreshes the sitemap. Blank canonical clears the override. Noindex or another canonical destination removes the FAQ sitemap entry. The global launch indexing switch always takes precedence. Use All shared questions to edit answers; no answers are duplicated here.
