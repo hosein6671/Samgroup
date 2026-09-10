@@ -53,6 +53,7 @@ export class CompanyEditorService {
     edit?: ContentEditDto,
   ): Promise<Record<string, unknown>> {
     if (
+      !/^faq-[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key) &&
       !KEYS.includes(key) &&
       !(key.startsWith("category-") && CATEGORY_CONTENT_KEYS.includes(key.slice(9)))
     )
@@ -64,6 +65,12 @@ export class CompanyEditorService {
     if (typeof result.revision !== "string")
       throw new ServiceUnavailableException("Invalid content response.");
     return result;
+  }
+  async faqs(page: number): Promise<ReturnType<typeof withMeta>> {
+    const result = await this.send(`/api/editor/faqs?page=${page}`);
+    if (!Array.isArray(result.items) || typeof result.total !== "number")
+      throw new ServiceUnavailableException("Invalid FAQ list.");
+    return withMeta(result.items, { total: result.total, page, limit: 20 });
   }
   async events(query: ContentEventsQuery): Promise<ReturnType<typeof withMeta>> {
     if (query.from && query.to && Date.parse(query.from) > Date.parse(query.to))
@@ -129,6 +136,20 @@ export class ContentEventsQuery {
   @IsOptional() @IsDateString({ strict: true }) from?: string;
   @IsOptional() @IsDateString({ strict: true }) to?: string;
 }
+export class FaqListQuery {
+  @Type(() => Number) @IsInt() @Min(1) @Max(100000) page = 1;
+}
+@Controller("admin/faqs")
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.ADMIN, UserRole.CONTENT_MANAGER)
+export class FaqAdminController {
+  constructor(private readonly editor: CompanyEditorService) {}
+  @Get()
+  @Header("Cache-Control", "no-store")
+  list(@Query() query: FaqListQuery): Promise<ReturnType<typeof withMeta>> {
+    return this.editor.faqs(query.page);
+  }
+}
 @Controller("admin/content-events")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
@@ -165,7 +186,7 @@ export class CompanyEditorController {
 }
 @Module({
   imports: [IdentityModule],
-  controllers: [CompanyEditorController, ContentEventsController],
+  controllers: [CompanyEditorController, ContentEventsController, FaqAdminController],
   providers: [CompanyEditorService],
 })
 export class CompanyEditorModule {}

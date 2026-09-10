@@ -30,6 +30,9 @@ export default async function Page(): Promise<ReactNode> {
               </Link>
             ))}
           </div>
+          <Link className="ad-module-card" href="/admin/faqs">
+            Shared FAQ library
+          </Link>
           <h2>Product category content</h2>
           <div className="ad-module-grid">
             {FAMILIES.map((family) => (

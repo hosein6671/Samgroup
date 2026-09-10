@@ -84,6 +84,27 @@ export class PayloadClient {
     return { docs: body.docs.filter(isRecord) };
   }
 
+  async findPage(
+    collection: string,
+    query: Readonly<Record<string, string>>,
+  ): Promise<PayloadFindResult & { total: number }> {
+    const body = await this.request(
+      `/api/${encodeURIComponent(collection)}`,
+      query,
+      `collection "${collection}"`,
+    );
+    if (
+      !isRecord(body) ||
+      !Array.isArray(body.docs) ||
+      !body.docs.every(isRecord) ||
+      typeof body.totalDocs !== "number" ||
+      !Number.isInteger(body.totalDocs) ||
+      body.totalDocs < 0
+    )
+      throw this.unavailable();
+    return { docs: body.docs, total: body.totalDocs };
+  }
+
   /**
    * One read of a Payload Global.
    *

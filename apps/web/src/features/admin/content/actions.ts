@@ -68,13 +68,15 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
       message: "Save was not confirmed. Reload to check the page.",
     };
   revalidatePath(product ? `/admin/catalog/products/${key}` : `/admin/content/${key}`);
+  if (key.startsWith("faq-")) revalidatePath("/admin/faqs");
   if (action === "publish") {
+    if (key.startsWith("faq-")) revalidatePath("/en/products", "layout");
     if (key.startsWith("category-")) revalidatePath("/sitemap.xml");
     if (product && result.data.slug) {
       revalidatePath(`/en/products/${result.data.slug}`);
       revalidatePath("/en/products", "layout");
       revalidatePath("/admin/catalog/products");
-    } else if (!product)
+    } else if (!product && !key.startsWith("faq-"))
       revalidatePath(key.startsWith("category-") ? `/en/products/${key.slice(9)}` : `/en/${key}`);
   }
   return {

@@ -1,3 +1,5 @@
+import { FaqEntries } from "./collections/faq-entries";
+import { faqList } from "./editor/faq-list";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -49,8 +51,8 @@ export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  collections: [Users, Pages, Media, EditorialEvents, ProductCategoryContent],
-  endpoints: [companyEditor, editorEvents],
+  collections: [Users, Pages, Media, EditorialEvents, ProductCategoryContent, FaqEntries],
+  endpoints: [companyEditor, editorEvents, faqList],
   /*
    * `sam_cms`, and nothing else. `cmsDatabaseUri()` refuses a connection string naming any other
    * database, so a pasted `sam_platform` URL fails while this config is being built rather than

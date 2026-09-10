@@ -27,6 +27,8 @@ const FIELDS = [
   "documentationHeading",
   "documentationIntro",
   "documentationNote",
+  "applicationsHeading",
+  "applicationsIntro",
 ];
 
 @Injectable()
@@ -35,7 +37,7 @@ export class CategoryContentService {
   async read(
     key: string,
     locale: string,
-  ): Promise<{ available: boolean; fields: Record<string, string>; seo?: SeoFields }> {
+  ): Promise<{ available: boolean; fields: Record<string, unknown>; seo?: SeoFields }> {
     if (!CATEGORY_CONTENT_KEYS.includes(key)) throw new BadRequestException("Unknown category.");
     if (locale !== "en") return { available: false, fields: {} };
     const result = await this.payload.find("product-category-content", {
@@ -49,11 +51,24 @@ export class CategoryContentService {
     const doc = result.docs[0];
     if (!doc || doc._status !== "published" || doc.categoryKey !== key)
       return { available: false, fields: {} };
-    const fields: Record<string, string> = {};
+    const fields: Record<string, unknown> = {};
     for (const field of FIELDS) {
       const value = doc[field];
       if (typeof value === "string" && value.trim()) fields[field] = value;
     }
+    for (const flag of ["useSharedFaq", "useEditorialApplications"])
+      if (typeof doc[flag] === "boolean") fields[flag] = doc[flag];
+    if (doc.useEditorialApplications === true)
+      fields.applicationNotes = Array.isArray(doc.applicationNotes)
+        ? doc.applicationNotes.flatMap((row) =>
+            row &&
+            typeof row === "object" &&
+            typeof row.title === "string" &&
+            typeof row.description === "string"
+              ? [{ title: row.title, description: row.description }]
+              : [],
+          )
+        : [];
     return {
       available: true,
       fields,

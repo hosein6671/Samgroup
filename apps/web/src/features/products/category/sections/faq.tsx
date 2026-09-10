@@ -42,8 +42,7 @@ export function CategoryFaq({ content, locale }: SectionProps): ReactNode {
           <p className="fs-eyebrow">Questions</p>
           <h2 className="fs-d2">Asked before an enquiry.</h2>
           <p className="fs-small pc-faq-note">
-            Answers here restate what is already documented elsewhere on the platform, and link to
-            wherever that is.
+            Find answers to common questions before discussing your requirements with our team.
           </p>
         </header>
 
@@ -56,7 +55,9 @@ export function CategoryFaq({ content, locale }: SectionProps): ReactNode {
               </summary>
 
               <div className="pc-faq-answer">
-                <p>{entry.answer}</p>
+                {entry.answer.split(/\n\s*\n/).map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
 
                 {entry.link && (
                   <p className="pc-faq-link">

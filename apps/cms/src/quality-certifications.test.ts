@@ -594,6 +594,7 @@ describe("what this gate did not add", () => {
 
     assert.deepEqual(collections.sort(), [
       "editorial-events.ts",
+      "faq-entries.ts",
       "media.ts",
       "pages.ts",
       "product-category-content.ts",
@@ -604,7 +605,7 @@ describe("what this gate did not add", () => {
 
     assert.match(
       config,
-      /collections:\s*\[Users,\s*Pages,\s*Media,\s*EditorialEvents,\s*ProductCategoryContent\]/,
+      /collections:\s*\[Users,\s*Pages,\s*Media,\s*EditorialEvents,\s*ProductCategoryContent,\s*FaqEntries\]/,
     );
   });
 

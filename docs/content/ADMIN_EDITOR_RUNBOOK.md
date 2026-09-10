@@ -39,3 +39,11 @@ This is a first narrative slice. Classification, methods, process claims, produc
 The same category editor now contains SEO: search/social titles and descriptions, canonical HTTPS override, Twitter card, indexing/following controls and keywords. Save draft keeps SEO private; Publish applies narrative and SEO together. Blank canonical clears the override. Noindex categories and categories canonicalized elsewhere are omitted from the sitemap. The site's launch indexing switch still takes precedence over the page checkbox.
 
 Media/social images and advanced JSON-LD editing remain separate pending workflows. Category SEO is edited here only; no duplicate Prisma editor is introduced.
+
+### Shared FAQ and category applications
+
+Open Website content → Shared FAQ library (`/admin/faqs`). Create an answer, choose one or more product categories, set its display order and save a draft or publish. Answers are plain paragraphs; separate paragraphs with a blank line. In each category editor, enable Use the shared FAQ library and publish to replace the existing FAQ. An empty published match removes that section; an unavailable service preserves existing answers. The public category loader caps retrieval at 2,000 answers and falls back rather than showing partial results above that bound.
+
+Category editors also offer Use the applications below, heading, introduction and up to 20 title/description rows. Publish applies the selected replacement; publishing an empty list hides Applications. Leave both switches off to preserve the existing presentation. Existing clients omitting these fields preserve stored values.
+
+The Contact eligibility flag is stored for a later consumer; the Contact page and standalone public FAQ page are not connected in this slice. No answers or category edits were seeded. Uploads and production CMS migrations remain outstanding.

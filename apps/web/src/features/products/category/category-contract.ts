@@ -411,7 +411,15 @@ export type SelectionApplications = {
   readonly steps: readonly SelectionStep[];
 };
 
-export type ApplicationsBlock = DownstreamApplications | SelectionApplications;
+export type EditorialApplications = {
+  readonly mode: "editorial";
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly intro: string;
+  readonly notes: readonly { readonly title: string; readonly description: string }[];
+};
+export type ApplicationsBlock =
+  DownstreamApplications | SelectionApplications | EditorialApplications;
 
 /**
  * §4 item 7 — Industries Served.

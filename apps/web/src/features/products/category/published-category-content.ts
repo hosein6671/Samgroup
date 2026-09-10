@@ -1,3 +1,4 @@
+import { sharedCategoryFaq } from "./shared-faq";
 import { cache } from "react";
 import type { SeoFields } from "@sam-group/types";
 import { apiGet } from "@/lib/api-client";
@@ -36,5 +37,12 @@ export async function publishedCategoryContent(
   locale: string,
 ): Promise<ProductCategoryContent> {
   const data = await getPublishedCategoryData(content.familyId, locale);
-  return data?.available ? overlayCategoryEditorial(content, data.fields) : content;
+  if (!data?.available) return content;
+  const result = overlayCategoryEditorial(content, data.fields);
+  if (data.fields.useSharedFaq === true) {
+    const faq = await sharedCategoryFaq(content.familyId, locale);
+    if (faq !== null) return { ...result, faq };
+    console.warn(`[category-faq:${content.familyId}] FAQ unavailable; keeping existing answers`);
+  }
+  return result;
 }

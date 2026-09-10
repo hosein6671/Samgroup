@@ -25,4 +25,17 @@ describe("category narrative boundary", () => {
       overlayCategoryEditorial(content, { heroTitle: null, overviewText: [], supplyTerms: " " }),
     ).toEqual(content);
   });
+  it("requires explicit opt-in before replacing applications and permits hiding the section", () => {
+    const fields = {
+      applicationNotes: [{ title: "Blending", description: "Discuss your requirements." }],
+    };
+    expect(overlayCategoryEditorial(content, fields).applications).toBe(content.applications);
+    expect(
+      overlayCategoryEditorial(content, { ...fields, useEditorialApplications: true }).applications,
+    ).toMatchObject({ mode: "editorial", notes: fields.applicationNotes });
+    expect(
+      overlayCategoryEditorial(content, { useEditorialApplications: true, applicationNotes: [] })
+        .applications,
+    ).toBeUndefined();
+  });
 });

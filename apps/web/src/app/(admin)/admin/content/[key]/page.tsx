@@ -52,18 +52,32 @@ export default async function Page({
           },
           ...Object.fromEntries(Object.entries(data.fields).filter(([, value]) => value !== null)),
         }
-      : (data?.fields ?? {});
+      : key.startsWith("faq-")
+        ? {
+            question: "",
+            answer: "",
+            topic: "products",
+            relatedCategoryKeys: [],
+            showOnContactPage: false,
+            sortOrder: 0,
+            ...Object.fromEntries(
+              Object.entries(data?.fields ?? {}).filter(([, value]) => value !== null),
+            ),
+          }
+        : (data?.fields ?? {});
   return (
     <AdminShell title="Edit website content" user={access.user} current="content">
       <Link href="/admin/content">All content pages</Link>
-      <h2>{key.replaceAll("-", " ")}</h2>
+      <h2>{key.startsWith("faq-") ? "Edit shared answer" : key.replaceAll("-", " ")}</h2>
+      {key.startsWith("faq-") && <Link href="/admin/faqs">All shared questions</Link>}
       <p className="ad-note">
         English content. Save a draft to keep changes private, or publish when the content is ready.
       </p>
+      {category && <Link href="/admin/faqs">Manage shared FAQ answers</Link>}
       {category && (
         <p className="ad-note">
-          Edit the page narrative here. Classification, technical data, images and FAQ retain their
-          current sources.
+          Edit the page narrative and applications here. Choose the shared FAQ switch to show
+          published answers from the library.
         </p>
       )}
       {data &&

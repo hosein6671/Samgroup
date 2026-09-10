@@ -94,7 +94,16 @@ export function CategoryApplications({ content, family, locale }: SectionProps):
           <p className="fs-lead">{applications.intro}</p>
         </header>
 
-        {applications.mode === "downstream" ? (
+        {applications.mode === "editorial" ? (
+          <ul className="pc-industry-list">
+            {applications.notes.map((note, index) => (
+              <li key={index}>
+                <b>{note.title}</b>
+                <span>{note.description}</span>
+              </li>
+            ))}
+          </ul>
+        ) : applications.mode === "downstream" ? (
           <Manifold applications={applications} family={family} locale={locale} />
         ) : (
           <SelectionSequence applications={applications} content={content} />

@@ -72,6 +72,7 @@ export interface Config {
     media: Media;
     'editorial-events': EditorialEvent;
     'product-category-content': ProductCategoryContent;
+    'faq-entries': FaqEntry;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -84,6 +85,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     'editorial-events': EditorialEventsSelect<false> | EditorialEventsSelect<true>;
     'product-category-content': ProductCategoryContentSelect<false> | ProductCategoryContentSelect<true>;
+    'faq-entries': FaqEntriesSelect<false> | FaqEntriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -378,6 +380,45 @@ export interface ProductCategoryContent {
      */
     keywords?: string[] | null;
   };
+  useSharedFaq?: boolean | null;
+  useEditorialApplications?: boolean | null;
+  applicationsHeading?: string | null;
+  applicationsIntro?: string | null;
+  applicationNotes?:
+    | {
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * Edit shared answers through the website Admin.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq-entries".
+ */
+export interface FaqEntry {
+  id: number;
+  entryKey: string;
+  question: string;
+  answer: string;
+  topic: 'company' | 'products' | 'ordering' | 'export' | 'customization';
+  relatedCategoryKeys?:
+    | (
+        | 'base-oils'
+        | 'engine-oils-automotive-lubricants'
+        | 'industrial-oils-lubricants'
+        | 'lubricant-additives'
+        | 'marine-oils-lubricants'
+        | 'antifreeze-coolants'
+      )[]
+    | null;
+  showOnContactPage?: boolean | null;
+  sortOrder: number;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -425,6 +466,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'product-category-content';
         value: number | ProductCategoryContent;
+      } | null)
+    | ({
+        relationTo: 'faq-entries';
+        value: number | FaqEntry;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -592,6 +637,33 @@ export interface ProductCategoryContentSelect<T extends boolean = true> {
         robotsFollow?: T;
         keywords?: T;
       };
+  useSharedFaq?: T;
+  useEditorialApplications?: T;
+  applicationsHeading?: T;
+  applicationsIntro?: T;
+  applicationNotes?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "faq-entries_select".
+ */
+export interface FaqEntriesSelect<T extends boolean = true> {
+  entryKey?: T;
+  question?: T;
+  answer?: T;
+  topic?: T;
+  relatedCategoryKeys?: T;
+  showOnContactPage?: T;
+  sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

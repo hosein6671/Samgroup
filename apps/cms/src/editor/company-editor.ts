@@ -1,3 +1,6 @@
+import { categoryApplicationsFields, validCategoryApplications } from "./category-applications";
+import { faqFields, validFaqFields } from "../collections/faq-entries";
+import type { FaqEntry } from "../payload-types";
 import { categorySeoFields, validCategorySeo } from "./category-seo";
 import type { ProductCategoryContent as CategoryDocument } from "../payload-types";
 import { createHash } from "node:crypto";
@@ -78,10 +81,15 @@ export const companyEditor: Endpoint = {
   handler: async (req) => {
     if (!editorAuthenticated(req)) return reply({ error: "Forbidden" }, 403);
     const key = String(req.routeParams?.["key"] ?? "");
+    const faqKey = key.startsWith("faq-") && uuid.test(key.slice(4)) ? key.slice(4) : null;
     const categoryKey = key.startsWith("category-") ? key.slice(9) : null;
-    const config =
-      categoryKey && CATEGORY_KEYS.includes(categoryKey)
-        ? ({ slug: key, fields: [...categoryTextFields, ...categorySeoFields] } as GlobalConfig)
+    const config = faqKey
+      ? ({ slug: key, fields: faqFields } as GlobalConfig)
+      : categoryKey && CATEGORY_KEYS.includes(categoryKey)
+        ? ({
+            slug: key,
+            fields: [...categoryTextFields, ...categoryApplicationsFields, ...categorySeoFields],
+          } as GlobalConfig)
         : resources.find((item) => item.slug === key);
     if (!config) return reply({ error: "Unknown resource" }, 404);
     let body: Record<string, unknown>;
@@ -101,6 +109,22 @@ export const companyEditor: Endpoint = {
     const slug = config.slug as
       "about-us" | "customized-solutions" | "quality-certifications" | "contact-us";
     const read = async (transactionReq?: PayloadRequest): Promise<Record<string, unknown>> => {
+      if (faqKey) {
+        const found = await req.payload.find({
+          collection: "faq-entries",
+          where: { entryKey: { equals: faqKey } },
+          limit: 1,
+          draft: true,
+          locale: "en",
+          fallbackLocale: false,
+          depth: 0,
+          overrideAccess: true,
+          req: transactionReq,
+        });
+        return found.docs[0]
+          ? { ...found.docs[0], relatedCategoryKeys: found.docs[0].relatedCategoryKeys ?? [] }
+          : {};
+      }
       if (categoryKey) {
         const found = await req.payload.find({
           collection: "product-category-content",
@@ -173,6 +197,9 @@ export const companyEditor: Endpoint = {
       return reply({ error: "Check the content fields." }, 400);
     if (categoryKey && !validCategorySeo(fields.seo))
       return reply({ error: "Check the SEO fields." }, 400);
+    if (faqKey && !validFaqFields(fields)) return reply({ error: "Check the FAQ fields." }, 400);
+    if (categoryKey && !validCategoryApplications(fields))
+      return reply({ error: "Check applications fields." }, 400);
     const requestHash = createHash("sha256")
       .update(JSON.stringify({ resource: slug, ...body }))
       .digest("hex");
@@ -210,23 +237,39 @@ export const companyEditor: Endpoint = {
         ...fields,
         _status: body.action === "publish" ? ("published" as const) : ("draft" as const),
       };
-      const updated = categoryKey
+      const updated = faqKey
         ? typeof current.id === "number"
           ? await req.payload.update({
               ...options,
-              collection: "product-category-content",
+              collection: "faq-entries",
               id: current.id,
               data,
             })
           : await req.payload.create({
               ...options,
-              collection: "product-category-content",
-              data: { ...data, categoryKey } as Omit<
-                CategoryDocument,
+              collection: "faq-entries",
+              data: { ...data, entryKey: faqKey } as Omit<
+                FaqEntry,
                 "id" | "createdAt" | "updatedAt"
               >,
             })
-        : await req.payload.updateGlobal({ ...options, slug, data });
+        : categoryKey
+          ? typeof current.id === "number"
+            ? await req.payload.update({
+                ...options,
+                collection: "product-category-content",
+                id: current.id,
+                data,
+              })
+            : await req.payload.create({
+                ...options,
+                collection: "product-category-content",
+                data: { ...data, categoryKey } as Omit<
+                  CategoryDocument,
+                  "id" | "createdAt" | "updatedAt"
+                >,
+              })
+          : await req.payload.updateGlobal({ ...options, slug, data });
       const revision = updated.updatedAt ?? "initial";
       await req.payload.create({
         collection: "editorial-events",
