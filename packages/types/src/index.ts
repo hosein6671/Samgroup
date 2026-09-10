@@ -35,6 +35,7 @@ export type {
   ProductSpecificationResponse,
   ProductSpecificationValueType,
   ProductTypeResponse,
+  ProductEditorialSections,
 } from "./catalog";
 export type {
   ReviewBlocker,

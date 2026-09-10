@@ -2,6 +2,8 @@
 
 ## ADR-024 ordinary product editorial drafts
 
+The owner-approved continuation adds `publishedSections` nullable JSON to ProductEditorialDraft. It contains only English applications/features arrays of `{title, description}` and FAQ `{question, answer}` rows. Draft content carries the same fields separately. Only explicit publication updates the snapshot, atomically with the existing product/SEO/audit writes. Existing rows start null. Missing arrays from an older client preserve the current arrays; explicit empty arrays remove them on publication. Technical review models and evidence are unchanged.
+
 `ProductEditorialDraft` belongs to Catalog in sam_platform: productId unique UUID foreign key, revision nonnegative integer, content JSON containing the explicitly validated English name/description/SEO fields, and updatedAt. It is separate from technically reviewed ProductCopy and never changes its status or evidence. No rows are seeded. Reads fall back to the current Product and SeoMeta when no draft exists. Saves use a serializable transaction and expected revision; publication writes Product name/description and the existing SeoMeta through SeoService in that same transaction, increments the draft revision and appends a product editorial audit event atomically. Slugs, classification, grades, specifications, claims, technical copy and media are outside this first write slice and are never accepted as input. The draft does not change public output until explicit publication. Existing products keep their current public URLs.
 
 Field-level detail and relationships for the entities listed in [DATABASE.md](./DATABASE.md). Exact Prisma schema is defined at implementation time — this is the reference shape, not the final migration.

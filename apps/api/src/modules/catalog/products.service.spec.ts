@@ -916,6 +916,33 @@ describe("ProductsService.findAll — localization", () => {
 });
 
 describe("ProductsService.findBySlug", () => {
+  it("serves only the published section snapshot and only in English", async () => {
+    const { service, productFindUnique } = createService();
+    const publishedSections = {
+      applications: [{ title: "Published", description: "Published detail" }],
+      features: [],
+      faq: [],
+    };
+    productFindUnique.mockResolvedValue({
+      ...DETAIL_ROW,
+      editorialDraft: {
+        publishedSections,
+        content: { applications: [{ title: "Private draft", description: "Private" }] },
+        revision: 7,
+      },
+    });
+    const result = await service.findBySlug("sn-500", EN);
+    expect(result.product.editorial).toEqual(publishedSections);
+    expect(JSON.stringify(result)).not.toContain("Private draft");
+    expect(productFindUnique).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          editorialDraft: { select: { publishedSections: true } },
+        }),
+      }),
+    );
+    expect((await service.findBySlug("sn-500", FA)).product).not.toHaveProperty("editorial");
+  });
   it("reads the slug off the row itself for the default locale", async () => {
     const { service, productFindUnique, translationFindFirst } = createService();
 

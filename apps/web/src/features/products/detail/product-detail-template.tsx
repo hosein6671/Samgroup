@@ -24,6 +24,7 @@ import { ProductSelectionGuide } from "./sections/selection-guide";
 import { ProductSpecifications } from "./sections/specifications";
 import { ProductStandards } from "./sections/standards";
 import { ProductTechnicalDocuments } from "./sections/technical-documents";
+import { ProductEditorialFaq, ProductEditorialPoints } from "./sections/editorial-sections";
 
 import type { ProductDetailResponse } from "@sam-group/types";
 
@@ -37,13 +38,9 @@ import type { ProductDetailResponse } from "@sam-group/types";
  * 2. Product identity, family, type and selected grade — inside `ProductHero`.
  * 3. Product overview — `product.description`, the one real per-product descriptive field on
  *    the wire; omitted when null, never replaced with invented copy.
- * 4. Applications, 5. Key benefits/performance characteristics, 10. Selection or usage notes —
- *    all three collapse to the ONE piece of real, already-approved content that exists for any
- *    of them: `ProductSelectionGuide`'s family-level buyer guidance (heading, introduction, and
- *    criteria). Building three separate sections would mean inventing content for at least two
- *    of them — `docs/SITE_STRUCTURE.md` has no product-level Applications data model, and no
- *    product-level "usage notes" field exists anywhere — so this gate renders the one section
- *    that is real rather than three, two of which would not be.
+ * 4–5. Published English product applications and features, when supplied by the editor.
+ *    Empty sections are omitted. The existing family-level selection guidance remains separate;
+ *    product editorial text is not a technical approval. Published product FAQ precedes the CTA.
  * 6. Standards and classifications — `ProductStandards`, derived from `productType`/`grades`.
  * 7. Grade/variant selector — `GradeSelector`, rendered only for 2+ grades.
  * 8. Complete structured Technical Data for the selected grade — `ProductSpecifications`, given
@@ -119,6 +116,20 @@ export function ProductDetailTemplate({
           </section>
         )}
 
+        {locale === "en" && product.editorial && (
+          <>
+            <ProductEditorialPoints
+              items={product.editorial.applications}
+              id="applications"
+              title="Applications"
+            />
+            <ProductEditorialPoints
+              items={product.editorial.features}
+              id="features"
+              title="Features"
+            />
+          </>
+        )}
         <ProductSelectionGuide editorial={editorial} />
 
         <ProductStandards product={product} />
@@ -138,6 +149,9 @@ export function ProductDetailTemplate({
         <ProductPackaging />
 
         <ProductTechnicalDocuments locale={locale} productSlug={product.slug} />
+        {locale === "en" && product.editorial && (
+          <ProductEditorialFaq items={product.editorial.faq} />
+        )}
 
         <ClosingCta locale={locale} productSlug={product.slug} />
       </main>

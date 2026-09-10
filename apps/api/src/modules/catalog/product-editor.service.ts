@@ -4,6 +4,7 @@ import { AuditService } from "../audit/audit.service";
 import { SeoService } from "../seo/seo.service";
 import type { Prisma } from "../../prisma/generated/client";
 import type { ProductEditorialEdit, ProductEditorQuery } from "./product-editor.dto";
+import { productEditorialSections } from "./product-editorial-sections";
 
 const productSelect = {
   id: true,
@@ -56,11 +57,17 @@ export class ProductEditorService {
       slug: product.slug,
       category: product.category.name,
       revision: String(product.editorialDraft?.revision ?? 0),
-      fields: product.editorialDraft?.content ?? {
-        name: product.name,
-        description: product.description ?? "",
-        seo: await this.seo.readProductEditorial(id),
-      },
+      fields: product.editorialDraft?.content
+        ? {
+            ...productEditorialSections(product.editorialDraft.content),
+            ...(product.editorialDraft.content as Record<string, unknown>),
+          }
+        : {
+            ...productEditorialSections(product.editorialDraft?.publishedSections),
+            name: product.name,
+            description: product.description ?? "",
+            seo: await this.seo.readProductEditorial(id),
+          },
     };
   }
   async save(
@@ -73,17 +80,29 @@ export class ProductEditorService {
         async (tx) => {
           const product = await tx.product.findUnique({
             where: { id },
-            select: { slug: true, editorialDraft: { select: { revision: true } } },
+            select: { slug: true, editorialDraft: { select: { revision: true, content: true } } },
           });
           if (!product) throw new NotFoundException("Product not found.");
           if ((product.editorialDraft?.revision ?? 0) !== input.revision)
             throw new ConflictException("Product changed. Reload before saving.");
           const revision = input.revision + 1;
-          const content = JSON.parse(JSON.stringify(input.content)) as Prisma.InputJsonValue;
+          const sections = productEditorialSections({
+            ...productEditorialSections(product.editorialDraft?.content),
+            ...Object.fromEntries(
+              Object.entries(input.content).filter(([, value]) => value !== undefined),
+            ),
+          });
+          const content = JSON.parse(
+            JSON.stringify({ ...input.content, ...sections }),
+          ) as Prisma.InputJsonValue;
+          const published =
+            input.action === "publish"
+              ? { publishedSections: JSON.parse(JSON.stringify(sections)) as Prisma.InputJsonValue }
+              : {};
           await tx.productEditorialDraft.upsert({
             where: { productId: id },
-            create: { productId: id, revision, content },
-            update: { revision, content },
+            create: { productId: id, revision, content, ...published },
+            update: { revision, content, ...published },
           });
           if (input.action === "publish") {
             await tx.product.update({

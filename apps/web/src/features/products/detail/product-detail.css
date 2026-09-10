@@ -1024,6 +1024,34 @@
   }
 }
 
+.pd-editorial p {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.pd-editorial-faq details {
+  padding-block: 20px;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.pd-editorial-faq summary {
+  min-height: 24px;
+  cursor: pointer;
+  font-size: var(--fs-text-title);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.pd-editorial-faq summary:focus-visible {
+  outline: 2px solid var(--color-text-accent);
+  outline-offset: 4px;
+}
+
+.pd-editorial-faq p {
+  color: var(--color-text-secondary);
+  line-height: var(--fs-text-body-sm--line-height);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pd-family-photo img,
   .pd-document-grid article {

@@ -19,6 +19,9 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
   const content = {
     name: "Edited example",
     description: "Edited description",
+    applications: [{ title: "Example application", description: "Disposable test copy" }],
+    features: [{ title: "Example feature", description: "Disposable test copy" }],
+    faq: [{ question: "Example question?", answer: "Disposable test answer" }],
     seo: {
       metaTitle: "Editorial search title",
       robotsIndex: false,
@@ -64,6 +67,10 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
       "Original",
     );
     expect(await client.seoMeta.count({ where: { entityId: productId } })).toBe(0);
+    expect(
+      (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } }))
+        .publishedSections,
+    ).toBeNull();
     await service.save(productId, actorId, { revision: 1, action: "publish", content });
     expect((await client.product.findUniqueOrThrow({ where: { id: productId } })).name).toBe(
       content.name,
@@ -77,6 +84,10 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
     ).rejects.toMatchObject({ status: 409 });
     expect(await client.adminAuditEvent.count({ where: { subjectId: productId } })).toBe(2);
     expect(await client.productCopy.count({ where: { productId } })).toBe(0);
+    expect(
+      (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } }))
+        .publishedSections,
+    ).toEqual({ applications: content.applications, features: content.features, faq: content.faq });
   });
   it("rolls product, SEO and revision back if audit cannot be stored", async () => {
     const failing = new ProductEditorService(client as unknown as PrismaService, seo, {
@@ -91,6 +102,7 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
         content: {
           ...content,
           name: "Must roll back",
+          faq: [],
           seo: { ...content.seo, metaTitle: "Must roll back" },
         },
       }),
@@ -101,6 +113,10 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
     expect(
       (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } })).revision,
     ).toBe(2);
+    expect(
+      (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } }))
+        .publishedSections,
+    ).toMatchObject({ faq: content.faq });
     expect(await seo.readProductEditorial(productId)).toMatchObject({
       metaTitle: content.seo.metaTitle,
     });
@@ -119,5 +135,24 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
       (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } })).revision,
     ).toBe(3);
     expect(await client.adminAuditEvent.count({ where: { subjectId: productId } })).toBe(3);
+  });
+  it("preserves old-client omissions and removes sections only on publication", async () => {
+    const legacy = { name: content.name, description: content.description, seo: content.seo };
+    await service.save(productId, actorId, { revision: 3, action: "save-draft", content: legacy });
+    expect((await service.get(productId)).fields).toMatchObject({ faq: content.faq });
+    await service.save(productId, actorId, {
+      revision: 4,
+      action: "save-draft",
+      content: { ...legacy, faq: [] },
+    });
+    expect(
+      (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } }))
+        .publishedSections,
+    ).toMatchObject({ faq: content.faq });
+    await service.save(productId, actorId, { revision: 5, action: "publish", content: legacy });
+    expect(
+      (await client.productEditorialDraft.findUniqueOrThrow({ where: { productId } }))
+        .publishedSections,
+    ).toEqual({ applications: content.applications, features: content.features, faq: [] });
   });
 });

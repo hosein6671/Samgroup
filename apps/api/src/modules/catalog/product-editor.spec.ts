@@ -12,6 +12,32 @@ const content = {
   seo: { robotsIndex: true, robotsFollow: true, keywords: [] },
 };
 describe("product editorial boundary", () => {
+  it("validates bounded section rows and rejects unknown row fields", async () => {
+    for (const sections of [
+      { applications: null },
+      {
+        features: Array.from({ length: 21 }, () => ({
+          title: "Feature",
+          description: "Description",
+        })),
+      },
+      { applications: [[{ title: "Nested", description: "Invalid" }]] },
+      { faq: [{ question: "   ", answer: "Answer" }] },
+      { faq: [{ question: "Question", answer: "Answer", approved: true }] },
+    ])
+      expect(
+        (
+          await validate(
+            plainToInstance(ProductEditorialEdit, {
+              revision: 0,
+              action: "save-draft",
+              content: { ...content, ...sections },
+            }),
+            { whitelist: true, forbidNonWhitelisted: true },
+          )
+        ).length,
+      ).toBeGreaterThan(0);
+  });
   it("rejects technical fields, missing nested content and unsafe canonical schemes", async () => {
     for (const input of [
       { revision: 0, action: "publish" },

@@ -151,6 +151,7 @@ export type ProductGradeSummaryResponse = {
 };
 
 export type ProductDetailResponse = {
+  editorial?: import("@sam-group/types").ProductEditorialSections;
   id: string;
   name: string;
   slug: string;

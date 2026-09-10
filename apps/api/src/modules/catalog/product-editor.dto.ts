@@ -17,6 +17,7 @@ import {
   Matches,
   ValidateNested,
   IsUrl,
+  ValidateIf,
 } from "class-validator";
 
 export class ProductSeoEdit {
@@ -40,7 +41,36 @@ export class ProductSeoEdit {
   @MaxLength(100, { each: true })
   keywords!: string[];
 }
+export class ProductEditorialPoint {
+  @IsString() @MaxLength(160) @Matches(/\S/) title!: string;
+  @IsString() @MaxLength(2000) @Matches(/\S/) description!: string;
+}
+export class ProductEditorialQuestion {
+  @IsString() @MaxLength(300) @Matches(/\S/) question!: string;
+  @IsString() @MaxLength(4000) @Matches(/\S/) answer!: string;
+}
 export class ProductEditorialContent {
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => ProductEditorialPoint)
+  applications?: ProductEditorialPoint[];
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => ProductEditorialPoint)
+  features?: ProductEditorialPoint[];
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => ProductEditorialQuestion)
+  faq?: ProductEditorialQuestion[];
   @IsString() @MinLength(1) @MaxLength(200) @Matches(/\S/) name!: string;
   @IsString() @MaxLength(10000) description!: string;
   @IsDefined() @IsObject() @ValidateNested() @Type(() => ProductSeoEdit) seo!: ProductSeoEdit;

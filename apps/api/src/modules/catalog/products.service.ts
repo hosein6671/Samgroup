@@ -8,6 +8,7 @@ import { PrismaService } from "../../prisma/prisma.service";
 import { TechnicalReviewStatus } from "../../prisma/generated/enums";
 import { MediaService } from "../media/media.service";
 import { SeoService } from "../seo/seo.service";
+import { productEditorialSections } from "./product-editorial-sections";
 
 import { CATEGORY_SELECT, CATEGORY_TRANSLATED_FIELDS } from "./categories.service";
 import { DEFAULT_LIMIT, DEFAULT_PAGE, DEFAULT_SORT } from "./dto/product-list.query";
@@ -237,6 +238,7 @@ function toGradeSummaryResponse(
 }
 
 const PRODUCT_DETAIL_SELECT = {
+  editorialDraft: { select: { publishedSections: true } },
   id: true,
   name: true,
   slug: true,
@@ -499,6 +501,9 @@ export class ProductsService {
 
     return {
       product: {
+        ...(locale.code === "en" && product.editorialDraft?.publishedSections
+          ? { editorial: productEditorialSections(product.editorialDraft.publishedSections) }
+          : {}),
         id: translated.id,
         name: translated.name,
         slug: translated.slug,

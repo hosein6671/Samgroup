@@ -22,4 +22,8 @@ Reload after a conflict and retain a copy of unsaved edits. After an uncertain s
 
 ## Remaining scope
 
-Remaining public-page/category/shared content models, product applications/features/FAQ, uploads/alt text/document ownership, new products/unpublication, rich-text formatting tools and full English content publication are not delivered by this slice. Technical specifications and claims continue through the existing review queue. Authentication audit events are best-effort and login/refresh attribution and operational retention cleanup remain production prerequisites. There is no production deployment in this work.
+Remaining public-page/category/shared content models, uploads/alt text/document ownership, new products/unpublication, rich-text formatting tools and full English content publication are not delivered by this slice. Technical specifications and claims continue through the existing review queue. Authentication audit events are best-effort and login/refresh attribution and operational retention cleanup remain production prerequisites. There is no production deployment in this work.
+
+## Product sections
+
+Applications, Features and Frequently asked questions are editable repeaters in the product editor. Each allows up to 20 rows. Save draft leaves their public snapshot unchanged; Publish makes them visible on the English product page. Removing all rows and publishing removes the section. No sections are automatically populated, and no generated technical claims are seeded. Other locales stay unchanged until translated editorial content is implemented. Migration `20260910090000_product_editorial_sections` adds the nullable published snapshot; legacy draft saves that omit these fields preserve them.

@@ -4,6 +4,33 @@ export const PRODUCT_EDITOR_SCHEMA: EditorField[] = [
   { name: "name", label: "Product name", type: "text" },
   { name: "description", label: "Product description", type: "textarea" },
   {
+    name: "applications",
+    label: "Applications",
+    type: "array",
+    fields: [
+      { name: "title", label: "Application title", type: "text" },
+      { name: "description", label: "Application description", type: "textarea" },
+    ],
+  },
+  {
+    name: "features",
+    label: "Features",
+    type: "array",
+    fields: [
+      { name: "title", label: "Feature title", type: "text" },
+      { name: "description", label: "Feature description", type: "textarea" },
+    ],
+  },
+  {
+    name: "faq",
+    label: "Frequently asked questions",
+    type: "array",
+    fields: [
+      { name: "question", label: "Question", type: "text" },
+      { name: "answer", label: "Answer", type: "textarea" },
+    ],
+  },
+  {
     name: "seo",
     label: "Search and social appearance",
     type: "group",

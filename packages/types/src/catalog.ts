@@ -182,7 +182,15 @@ export type ProductGradeSummaryResponse = {
  * `description` directly. Wiring `SeoFields` through to the Metadata API is the SEO gate's work,
  * and doing it here would be that gate arriving early.
  */
+export type ProductEditorialSections = {
+  applications: { title: string; description: string }[];
+  features: { title: string; description: string }[];
+  faq: { question: string; answer: string }[];
+};
+
 export type ProductDetailResponse = {
+  /** Published English editorial content only; absent until first publication. */
+  editorial?: ProductEditorialSections;
   id: string;
   name: string;
   slug: string;
