@@ -1,3 +1,4 @@
+import { CategoryContentService } from "../content/category-content.controller";
 import { Injectable } from "@nestjs/common";
 
 // Value imports, not `import type`: emitDecoratorMetadata writes constructor parameter types
@@ -42,6 +43,7 @@ export class SitemapService {
     private readonly categories: CategoriesService,
     private readonly translations: ContentTranslationService,
     private readonly localeResolution: LocaleResolutionService,
+    private readonly categoryContent: CategoryContentService,
   ) {}
 
   /**
@@ -71,9 +73,10 @@ export class SitemapService {
 
     const entityIds = candidates.map((candidate) => candidate.id);
 
-    const [translated, excluded] = await Promise.all([
+    const [translated, excluded, policies] = await Promise.all([
       this.translations.findTranslatedSlugsForEntities(ContentEntityType.Category, entityIds),
       this.findExcludedPairs(ContentEntityType.Category, entityIds),
+      this.categoryContent.sitemapPolicies(),
     ]);
 
     const slugsByEntity = new Map<string, { locale: string; slug: string }[]>();
@@ -117,7 +120,14 @@ export class SitemapService {
 
     // Both source queries are ordered, so the result is already deterministic without a sort:
     // entities by id, and within an entity the default locale followed by the rest by code.
-    return entries.filter((entry) => !excluded.has(pairKey(entry.entityId, entry.locale)));
+    return entries.flatMap((entry) => {
+      const policy = entry.locale === "en" ? policies.get(entry.slug) : undefined;
+      if (policy)
+        return policy.robotsIndex
+          ? [{ ...entry, ...(policy.canonicalUrl ? { canonicalUrl: policy.canonicalUrl } : {}) }]
+          : [];
+      return excluded.has(pairKey(entry.entityId, entry.locale)) ? [] : [entry];
+    });
   }
 
   /**

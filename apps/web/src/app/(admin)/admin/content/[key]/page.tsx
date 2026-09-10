@@ -42,6 +42,14 @@ export default async function Page({
     category && data?.fields
       ? {
           ...categoryEditorDefaults(category),
+          seo: {
+            metaTitle: category.meta.title,
+            metaDescription: category.meta.description,
+            robotsIndex: true,
+            robotsFollow: true,
+            twitterCardType: "summary_large_image",
+            keywords: [],
+          },
           ...Object.fromEntries(Object.entries(data.fields).filter(([, value]) => value !== null)),
         }
       : (data?.fields ?? {});
@@ -54,8 +62,8 @@ export default async function Page({
       </p>
       {category && (
         <p className="ad-note">
-          Edit the page narrative here. Classification, technical data, images, FAQ and SEO retain
-          their current sources.
+          Edit the page narrative here. Classification, technical data, images and FAQ retain their
+          current sources.
         </p>
       )}
       {data &&

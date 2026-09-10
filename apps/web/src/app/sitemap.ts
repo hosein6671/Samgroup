@@ -182,9 +182,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // A locale the `Locale` table does not have would produce a route that 404s at the router.
     if (!activeCodes.has(entry.locale)) continue;
 
-    urls.push({
-      url: absoluteUrl(`${localePath(entry.locale, ROUTES.products)}/${entry.slug}`),
-    });
+    const url = absoluteUrl(`${localePath(entry.locale, ROUTES.products)}/${entry.slug}`);
+    if (entry.canonicalUrl) {
+      try {
+        if (absoluteUrl(entry.canonicalUrl) !== url) continue;
+      } catch {
+        continue;
+      }
+    }
+    urls.push({ url });
   }
 
   urls.push(...articles);

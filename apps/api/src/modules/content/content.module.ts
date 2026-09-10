@@ -26,6 +26,7 @@ import { QualityCertificationsService } from "./quality-certifications.service";
  */
 @Module({
   imports: [LocaleResolutionModule, CompanyEditorModule],
+  exports: [CategoryContentService],
   controllers: [ContentGlobalsController, ContentPagesController, CategoryContentController],
   providers: [
     CategoryContentService,

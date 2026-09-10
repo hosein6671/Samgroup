@@ -25,6 +25,7 @@ export type SitemapEntry = {
   readonly entityId: string;
   readonly locale: string;
   readonly slug: string;
+  readonly canonicalUrl?: string;
 };
 
 /** The `Category` entity type as the API spells it. Compared case-insensitively by the consumer. */
@@ -41,7 +42,8 @@ function isSitemapEntry(value: unknown): value is SitemapEntry {
     typeof record.locale === "string" &&
     record.locale !== "" &&
     typeof record.slug === "string" &&
-    record.slug !== ""
+    record.slug !== "" &&
+    (record.canonicalUrl === undefined || typeof record.canonicalUrl === "string")
   );
 }
 

@@ -1,3 +1,5 @@
+import { categoryMetadata } from "@/features/products/category/category-metadata";
+import { getPublishedCategoryData } from "@/features/products/category/published-category-content";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -114,28 +116,10 @@ function isJsonLdObject(value: unknown): value is JsonLdObject {
  */
 
 /**
- * The page's `<title>` and description, read straight from the content registry.
- *
- * ── No fetch, and that is the requirement rather than an optimisation ───────
- *
- * It calls `getCategoryContent`, **not** `resolveCategoryPage`: metadata comes from the fixture and
- * nothing else. Routing it through the resolver would issue a second `GET /categories/:slug` per
- * page — Next runs `generateMetadata` and the component as separate calls — and would make a
- * `<title>` depend on a network hop that is allowed to fail.
- *
- * `data.seo` is on the wire for this endpoint and is **not** consumed. That is a later gate
- * (`lib/catalog.ts` says so at the point the field is skipped), and P2 is not the SEO launch.
- *
- * ── No `robots`, no canonical, no `hreflang` ────────────────────────────────
- *
- * `app/[locale]/layout.tsx` declares `robots: { index: false, follow: false }` for this whole tree
- * and every page inherits it, so a route-level override would be a second answer to a settled
- * question. Canonical and `hreflang` are ADR-010 Non-Goals; §8 also records that the alternate set
- * would hold nothing but the default locale until translated slugs exist, so emitting one now would
- * publish a single-entry claim about a localization that has not happened.
- *
- * The six proof routes each carried these two strings as a literal. They now live in the fixtures,
- * character-for-character — see `CategoryPageMeta`.
+ * Category page SEO comes from the same request-cached published-content lookup as the body,
+ * with registry metadata until the first publication. The global indexing gate remains an
+ * upper bound; an unavailable content service closes indexing rather than guessing its policy.
+ * Product detail keeps its separate catalog SEO response.
  */
 export async function generateMetadata({
   params,
@@ -144,35 +128,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
 
-  /*
-   * The Family branch is unchanged: fixture only, no fetch. See the note above for why that is a
-   * requirement rather than an optimisation.
-   */
   const content = getCategoryContent(slug);
   if (content) {
-    const canonical = `/${locale}/products/${slug}`;
-    const socialImage = content.hero.image?.src ?? "/images/products-portfolio-review.webp";
-
-    return {
-      title: content.meta.title,
-      description: content.meta.description,
-      alternates: { canonical },
-      openGraph: {
-        type: "website",
-        siteName: "SAM Group",
-        title: content.meta.title,
-        description: content.meta.description,
-        url: canonical,
-        locale,
-        images: [{ url: socialImage, alt: "SAM Group petroleum and lubricant product range" }],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: content.meta.title,
-        description: content.meta.description,
-        images: [socialImage],
-      },
-    };
+    const published = await getPublishedCategoryData(slug, locale);
+    return categoryMetadata(content, locale, published?.seo, published === null);
   }
 
   /*

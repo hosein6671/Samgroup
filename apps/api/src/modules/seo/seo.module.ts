@@ -1,3 +1,4 @@
+import { ContentModule } from "../content/content.module";
 import { Module } from "@nestjs/common";
 
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
@@ -22,7 +23,13 @@ import { SitemapService } from "./sitemap.service";
  * Nothing is exported. Catalog consumes SeoMetaModule directly, and no module consumes this one.
  */
 @Module({
-  imports: [PrismaModule, ContentTranslationModule, LocaleResolutionModule, CatalogModule],
+  imports: [
+    PrismaModule,
+    ContentTranslationModule,
+    LocaleResolutionModule,
+    CatalogModule,
+    ContentModule,
+  ],
   controllers: [SeoController],
   providers: [RedirectsService, SitemapService],
 })

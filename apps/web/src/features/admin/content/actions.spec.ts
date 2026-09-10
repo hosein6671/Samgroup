@@ -63,4 +63,14 @@ describe("content editor save actions", () => {
     expect((await saveContent(previous, form())).saved).toBe(false);
     expect(mocks.patch).not.toHaveBeenCalled();
   });
+  it("preserves canonical clearing for categories and revalidates the sitemap", async () => {
+    mocks.patch.mockResolvedValue({ ok: true, data: { revision: "next" } });
+    const input = form();
+    input.set("resource", "content");
+    input.set("key", "category-base-oils");
+    expect((await saveContent(previous, input)).saved).toBe(true);
+    expect(mocks.patch.mock.calls[0]?.[1].fields.seo.canonicalUrl).toBe("");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/en/products/base-oils");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/sitemap.xml");
+  });
 });

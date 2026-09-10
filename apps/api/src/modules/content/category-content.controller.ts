@@ -1,3 +1,5 @@
+import type { SeoFields } from "@sam-group/types";
+import { normalizeSeo } from "./seo.normalizer";
 import { BadRequestException, Controller, Get, Injectable, Param, Query } from "@nestjs/common";
 import { LocaleQuery } from "../../common/locale/locale.query";
 import { LocaleResolutionService } from "../../common/locale/locale-resolution.service";
@@ -33,7 +35,7 @@ export class CategoryContentService {
   async read(
     key: string,
     locale: string,
-  ): Promise<{ available: boolean; fields: Record<string, string> }> {
+  ): Promise<{ available: boolean; fields: Record<string, string>; seo?: SeoFields }> {
     if (!CATEGORY_CONTENT_KEYS.includes(key)) throw new BadRequestException("Unknown category.");
     if (locale !== "en") return { available: false, fields: {} };
     const result = await this.payload.find("product-category-content", {
@@ -52,7 +54,31 @@ export class CategoryContentService {
       const value = doc[field];
       if (typeof value === "string" && value.trim()) fields[field] = value;
     }
-    return { available: true, fields };
+    return {
+      available: true,
+      fields,
+      ...(doc.seo ? { seo: normalizeSeo(doc.seo, "en", []) } : {}),
+    };
+  }
+  async sitemapPolicies(): Promise<Map<string, SeoFields>> {
+    const result = await this.payload.find("product-category-content", {
+      "where[_status][equals]": "published",
+      locale: "en",
+      "fallback-locale": "none",
+      depth: "0",
+      limit: "100",
+    });
+    const policies = new Map<string, SeoFields>();
+    for (const doc of result.docs) {
+      if (
+        doc._status === "published" &&
+        typeof doc.categoryKey === "string" &&
+        CATEGORY_CONTENT_KEYS.includes(doc.categoryKey) &&
+        doc.seo
+      )
+        policies.set(doc.categoryKey, normalizeSeo(doc.seo, "en", []));
+    }
+    return policies;
   }
 }
 

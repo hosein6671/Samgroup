@@ -1,3 +1,4 @@
+import { categorySeoFields } from "../editor/category-seo";
 import type { CollectionConfig, Field } from "payload";
 import { editorOnly, publishedForService } from "../access";
 
@@ -60,5 +61,6 @@ export const ProductCategoryContent: CollectionConfig = {
       index: true,
     },
     ...categoryTextFields,
+    ...categorySeoFields,
   ],
 };

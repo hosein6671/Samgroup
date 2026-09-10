@@ -332,6 +332,52 @@ export interface ProductCategoryContent {
   documentationHeading: string;
   documentationIntro: string;
   documentationNote: string;
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -531,6 +577,21 @@ export interface ProductCategoryContentSelect<T extends boolean = true> {
   documentationHeading?: T;
   documentationIntro?: T;
   documentationNote?: T;
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

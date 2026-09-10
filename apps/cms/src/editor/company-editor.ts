@@ -1,3 +1,4 @@
+import { categorySeoFields, validCategorySeo } from "./category-seo";
 import type { ProductCategoryContent as CategoryDocument } from "../payload-types";
 import { createHash } from "node:crypto";
 import type { Endpoint, Field, GlobalConfig, PayloadRequest } from "payload";
@@ -51,7 +52,11 @@ function editorFields(fields: Field[]): EditorField[] {
       typeof field.label === "string"
         ? field.label
         : field.name.replace(/([a-z])([A-Z])/g, "$1 $2");
-    const item: EditorField = { name: field.name, label, type: field.type };
+    const item: EditorField = {
+      name: field.name,
+      label,
+      type: field.type === "text" && field.hasMany ? "stringArray" : field.type,
+    };
     if ("fields" in field) item.fields = editorFields(field.fields);
     if (field.type === "select") item.hasMany = field.hasMany === true;
     if (field.type === "select")
@@ -76,7 +81,7 @@ export const companyEditor: Endpoint = {
     const categoryKey = key.startsWith("category-") ? key.slice(9) : null;
     const config =
       categoryKey && CATEGORY_KEYS.includes(categoryKey)
-        ? ({ slug: key, fields: categoryTextFields } as GlobalConfig)
+        ? ({ slug: key, fields: [...categoryTextFields, ...categorySeoFields] } as GlobalConfig)
         : resources.find((item) => item.slug === key);
     if (!config) return reply({ error: "Unknown resource" }, 404);
     let body: Record<string, unknown>;
@@ -166,6 +171,8 @@ export const companyEditor: Endpoint = {
       })
     )
       return reply({ error: "Check the content fields." }, 400);
+    if (categoryKey && !validCategorySeo(fields.seo))
+      return reply({ error: "Check the SEO fields." }, 400);
     const requestHash = createHash("sha256")
       .update(JSON.stringify({ resource: slug, ...body }))
       .digest("hex");

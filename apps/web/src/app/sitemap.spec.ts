@@ -270,3 +270,25 @@ describe("the document itself", () => {
     expect(new Set(listed).size).toBe(listed.length);
   });
 });
+
+it("omits categories whose published canonical points elsewhere", async () => {
+  getSitemapEntries.mockResolvedValue([
+    {
+      entityType: "Category",
+      entityId: "one",
+      locale: "en",
+      slug: "base-oils",
+      canonicalUrl: "https://samgp.com/en/products/base-oils",
+    },
+    {
+      entityType: "Category",
+      entityId: "two",
+      locale: "en",
+      slug: "antifreeze-coolants",
+      canonicalUrl: "https://samgp.com/en/products",
+    },
+  ]);
+  const listed = await urls();
+  expect(listed).toContain("https://samgp.com/en/products/base-oils");
+  expect(listed).not.toContain("https://samgp.com/en/products/antifreeze-coolants");
+});

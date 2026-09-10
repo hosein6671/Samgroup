@@ -33,3 +33,9 @@ Applications, Features and Frequently asked questions are editable repeaters in 
 Open Website content in the Admin navigation, then choose one of the six Product category content cards. Hero, overview paragraphs, quality introduction, packaging/supply and documentation narrative are editable in English. Initial fields use the current page text. Save draft preserves the published page; Publish replaces only these narrative fields. Reload after a conflict and retain a copy of unsaved edits. Every mutation uses the existing content activity log.
 
 This is a first narrative slice. Classification, methods, process claims, product rows, images, applications/industries, shared FAQ and category SEO retain their current sources. No technical approval is granted by narrative publication. Local CMS dev schema is updated; production migration baseline is still owed before deployment.
+
+### Category SEO
+
+The same category editor now contains SEO: search/social titles and descriptions, canonical HTTPS override, Twitter card, indexing/following controls and keywords. Save draft keeps SEO private; Publish applies narrative and SEO together. Blank canonical clears the override. Noindex categories and categories canonicalized elsewhere are omitted from the sitemap. The site's launch indexing switch still takes precedence over the page checkbox.
+
+Media/social images and advanced JSON-LD editing remain separate pending workflows. Category SEO is edited here only; no duplicate Prisma editor is introduced.

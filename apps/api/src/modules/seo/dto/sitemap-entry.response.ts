@@ -28,4 +28,6 @@ export type SitemapEntryResponse = {
   locale: string;
   /** That locale's slug: the entity's own column for the default locale, a translation row otherwise. */
   slug: string;
+  /** Published page override; Web resolves against its public origin. */
+  canonicalUrl?: string;
 };

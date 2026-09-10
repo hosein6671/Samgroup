@@ -1,3 +1,5 @@
+import type { SeoFields } from "@sam-group/types";
+import type { CategoryContentService } from "../content/category-content.controller";
 import { ContentEntityType } from "../../common/content/content-entity-type";
 import { ContentTranslationService } from "../../common/content/content-translation.service";
 import { LocaleResolutionService } from "../../common/locale/locale-resolution.service";
@@ -31,6 +33,7 @@ type Stubs = {
 };
 
 type Overrides = {
+  policies?: Map<string, SeoFields>;
   candidates?: { id: string; slug: string }[];
   translations?: { entityId: string; locale: string; value: string }[];
   noindex?: { entityId: string; locale: string }[];
@@ -63,6 +66,9 @@ function createService(overrides: Overrides = {}): Stubs {
     categories,
     new ContentTranslationService(prisma),
     localeResolution,
+    {
+      sitemapPolicies: jest.fn().mockResolvedValue(overrides.policies ?? new Map()),
+    } as unknown as CategoryContentService,
   );
 
   return { service, findSitemapCandidates, translationFindMany, seoMetaFindMany, resolve };
@@ -254,6 +260,35 @@ describe("SitemapService.findEntries", () => {
       `${BASE_OILS.id}:fa`,
       `${ANTIFREEZE.id}:en`,
       `${ANTIFREEZE.id}:fa`,
+    ]);
+  });
+});
+
+describe("published category page SEO authority", () => {
+  it("excludes a published noindex policy", async () => {
+    const { service } = createService({
+      policies: new Map([[BASE_OILS.slug, { robotsIndex: false } as SeoFields]]),
+    });
+    expect(await service.findEntries()).toEqual([]);
+  });
+  it("published page policy replaces legacy entity exclusions and carries canonical", async () => {
+    const { service } = createService({
+      noindex: [{ entityId: BASE_OILS.id, locale: "en" }],
+      policies: new Map([
+        [
+          BASE_OILS.slug,
+          {
+            robotsIndex: true,
+            canonicalUrl: "https://samgp.com/en/products/base-oils",
+          } as SeoFields,
+        ],
+      ]),
+    });
+    expect(await service.findEntries()).toEqual([
+      expect.objectContaining({
+        slug: BASE_OILS.slug,
+        canonicalUrl: "https://samgp.com/en/products/base-oils",
+      }),
     ]);
   });
 });
