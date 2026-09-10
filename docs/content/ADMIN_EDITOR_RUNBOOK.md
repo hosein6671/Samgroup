@@ -27,3 +27,9 @@ Remaining public-page/category/shared content models, uploads/alt text/document 
 ## Product sections
 
 Applications, Features and Frequently asked questions are editable repeaters in the product editor. Each allows up to 20 rows. Save draft leaves their public snapshot unchanged; Publish makes them visible on the English product page. Removing all rows and publishing removes the section. No sections are automatically populated, and no generated technical claims are seeded. Other locales stay unchanged until translated editorial content is implemented. Migration `20260910090000_product_editorial_sections` adds the nullable published snapshot; legacy draft saves that omit these fields preserve them.
+
+### Category page narrative
+
+Open Website content in the Admin navigation, then choose one of the six Product category content cards. Hero, overview paragraphs, quality introduction, packaging/supply and documentation narrative are editable in English. Initial fields use the current page text. Save draft preserves the published page; Publish replaces only these narrative fields. Reload after a conflict and retain a copy of unsaved edits. Every mutation uses the existing content activity log.
+
+This is a first narrative slice. Classification, methods, process claims, product rows, images, applications/industries, shared FAQ and category SEO retain their current sources. No technical approval is granted by narrative publication. Local CMS dev schema is updated; production migration baseline is still owed before deployment.

@@ -73,7 +73,8 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
       revalidatePath(`/en/products/${result.data.slug}`);
       revalidatePath("/en/products", "layout");
       revalidatePath("/admin/catalog/products");
-    } else if (!product) revalidatePath(`/en/${key}`);
+    } else if (!product)
+      revalidatePath(key.startsWith("category-") ? `/en/products/${key.slice(9)}` : `/en/${key}`);
   }
   return {
     message:

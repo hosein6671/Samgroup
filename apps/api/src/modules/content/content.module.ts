@@ -1,3 +1,4 @@
+import { CategoryContentController, CategoryContentService } from "./category-content.controller";
 import { CompanyEditorModule } from "./company-editor.module";
 import { Module } from "@nestjs/common";
 
@@ -25,8 +26,9 @@ import { QualityCertificationsService } from "./quality-certifications.service";
  */
 @Module({
   imports: [LocaleResolutionModule, CompanyEditorModule],
-  controllers: [ContentGlobalsController, ContentPagesController],
+  controllers: [ContentGlobalsController, ContentPagesController, CategoryContentController],
   providers: [
+    CategoryContentService,
     AboutUsService,
     ContentPagesService,
     CustomizedSolutionsService,

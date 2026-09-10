@@ -596,12 +596,16 @@ describe("what this gate did not add", () => {
       "editorial-events.ts",
       "media.ts",
       "pages.ts",
+      "product-category-content.ts",
       "users.ts",
     ]);
 
     const config = readFileSync(join(cmsSource, "payload.config.ts"), "utf8");
 
-    assert.match(config, /collections:\s*\[Users,\s*Pages,\s*Media,\s*EditorialEvents\]/);
+    assert.match(
+      config,
+      /collections:\s*\[Users,\s*Pages,\s*Media,\s*EditorialEvents,\s*ProductCategoryContent\]/,
+    );
   });
 
   test("Media stays image-only — no PDF, no document type, no certificate file", () => {

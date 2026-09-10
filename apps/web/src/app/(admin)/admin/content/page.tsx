@@ -1,3 +1,4 @@
+import { FAMILIES } from "@/features/products/products-data";
 import Link from "next/link";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { requireAdminAccess } from "@/features/admin/session/require-admin";
@@ -26,6 +27,18 @@ export default async function Page(): Promise<ReactNode> {
             ].map(([key, label]) => (
               <Link className="ad-module-card" key={key} href={"/admin/content/" + key}>
                 {label}
+              </Link>
+            ))}
+          </div>
+          <h2>Product category content</h2>
+          <div className="ad-module-grid">
+            {FAMILIES.map((family) => (
+              <Link
+                className="ad-module-card"
+                key={family.id}
+                href={"/admin/content/category-" + family.id}
+              >
+                {family.name}
               </Link>
             ))}
           </div>

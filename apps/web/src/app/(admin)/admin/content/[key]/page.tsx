@@ -1,3 +1,5 @@
+import { getCategoryContent } from "@/features/products/category/data";
+import { categoryEditorDefaults } from "@/features/products/category/category-editorial";
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { AdminShell } from "@/features/admin/admin-shell";
@@ -35,6 +37,14 @@ export default async function Page({
       }>("/admin/content/" + encodeURIComponent(key), {}, { accessToken })
     : null;
   const data = result?.ok ? result.data : null;
+  const category = key.startsWith("category-") ? getCategoryContent(key.slice(9)) : null;
+  const initial =
+    category && data?.fields
+      ? {
+          ...categoryEditorDefaults(category),
+          ...Object.fromEntries(Object.entries(data.fields).filter(([, value]) => value !== null)),
+        }
+      : (data?.fields ?? {});
   return (
     <AdminShell title="Edit website content" user={access.user} current="content">
       <Link href="/admin/content">All content pages</Link>
@@ -42,6 +52,12 @@ export default async function Page({
       <p className="ad-note">
         English content. Save a draft to keep changes private, or publish when the content is ready.
       </p>
+      {category && (
+        <p className="ad-note">
+          Edit the page narrative here. Classification, technical data, images, FAQ and SEO retain
+          their current sources.
+        </p>
+      )}
       {data &&
       typeof data.revision === "string" &&
       Array.isArray(data.schema) &&
@@ -52,7 +68,7 @@ export default async function Page({
           revision={data.revision}
           operationId={randomUUID()}
           schema={data.schema}
-          initial={data.fields}
+          initial={initial}
         />
       ) : (
         <p className="ad-notice">The content could not be loaded. Please try again.</p>

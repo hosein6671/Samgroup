@@ -1,10 +1,13 @@
+import type { ProductCategoryContent as CategoryDocument } from "../payload-types";
 import { createHash } from "node:crypto";
-import type { Endpoint, Field, GlobalConfig } from "payload";
+import type { Endpoint, Field, GlobalConfig, PayloadRequest } from "payload";
 import { editorAuthenticated } from "./editor-auth";
 import { AboutUs } from "../globals/about-us";
 import { CustomizedSolutions } from "../globals/customized-solutions";
 import { QualityCertifications } from "../globals/quality-certifications";
 import { ContactUs } from "../globals/contact-us";
+
+import { CATEGORY_KEYS, categoryTextFields } from "../collections/product-category-content";
 
 const resources = [AboutUs, CustomizedSolutions, QualityCertifications, ContactUs];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -69,7 +72,12 @@ export const companyEditor: Endpoint = {
   method: "post",
   handler: async (req) => {
     if (!editorAuthenticated(req)) return reply({ error: "Forbidden" }, 403);
-    const config = resources.find((item) => item.slug === req.routeParams?.["key"]);
+    const key = String(req.routeParams?.["key"] ?? "");
+    const categoryKey = key.startsWith("category-") ? key.slice(9) : null;
+    const config =
+      categoryKey && CATEGORY_KEYS.includes(categoryKey)
+        ? ({ slug: key, fields: categoryTextFields } as GlobalConfig)
+        : resources.find((item) => item.slug === key);
     if (!config) return reply({ error: "Unknown resource" }, 404);
     let body: Record<string, unknown>;
     try {
@@ -87,15 +95,35 @@ export const companyEditor: Endpoint = {
       return reply({ error: "Invalid actor" }, 400);
     const slug = config.slug as
       "about-us" | "customized-solutions" | "quality-certifications" | "contact-us";
+    const read = async (transactionReq?: PayloadRequest): Promise<Record<string, unknown>> => {
+      if (categoryKey) {
+        const found = await req.payload.find({
+          collection: "product-category-content",
+          where: { categoryKey: { equals: categoryKey } },
+          limit: 1,
+          locale: "en",
+          fallbackLocale: false,
+          draft: true,
+          depth: 0,
+          overrideAccess: true,
+          req: transactionReq,
+        });
+        return found.docs[0] ? { ...found.docs[0] } : {};
+      }
+      return {
+        ...(await req.payload.findGlobal({
+          slug,
+          locale: "en",
+          fallbackLocale: false,
+          draft: true,
+          depth: 0,
+          overrideAccess: true,
+          req: transactionReq,
+        })),
+      };
+    };
     if (body.action === "read") {
-      const doc = await req.payload.findGlobal({
-        slug,
-        locale: "en",
-        fallbackLocale: false,
-        draft: true,
-        depth: 0,
-        overrideAccess: true,
-      });
+      const doc = await read();
       return reply({
         key: slug,
         revision: doc.updatedAt ?? "initial",
@@ -123,6 +151,21 @@ export const companyEditor: Endpoint = {
     const allowed = names(config.fields);
     if (Object.keys(fields).some((key) => !allowed.includes(key)))
       return reply({ error: "Unknown content field" }, 400);
+    if (
+      categoryKey &&
+      categoryTextFields.some((field) => {
+        if (!("name" in field)) return true;
+        const value = fields[field.name];
+        return (
+          typeof value !== "string" ||
+          !value.trim() ||
+          ("maxLength" in field &&
+            typeof field.maxLength === "number" &&
+            value.length > field.maxLength)
+        );
+      })
+    )
+      return reply({ error: "Check the content fields." }, 400);
     const requestHash = createHash("sha256")
       .update(JSON.stringify({ resource: slug, ...body }))
       .digest("hex");
@@ -144,28 +187,39 @@ export const companyEditor: Endpoint = {
           ? reply({ revision: prior.docs[0].revision, saved: true })
           : reply({ error: "Operation already used" }, 409);
       }
-      const current = await req.payload.findGlobal({
-        slug,
-        locale: "en",
-        fallbackLocale: false,
-        draft: true,
-        depth: 0,
-        overrideAccess: true,
-        req: transactionReq,
-      });
+      const current = await read(transactionReq);
       if ((current.updatedAt ?? "initial") !== body.revision) {
         await req.payload.db.rollbackTransaction(transactionID);
         return reply({ error: "Content changed. Reload before saving." }, 409);
       }
-      const updated = await req.payload.updateGlobal({
-        slug,
-        locale: "en",
+      const options = {
+        locale: "en" as const,
         overrideAccess: true,
         depth: 0,
         draft: body.action === "save-draft",
-        data: { ...fields, _status: body.action === "publish" ? "published" : "draft" },
         req: transactionReq,
-      });
+      };
+      const data = {
+        ...fields,
+        _status: body.action === "publish" ? ("published" as const) : ("draft" as const),
+      };
+      const updated = categoryKey
+        ? typeof current.id === "number"
+          ? await req.payload.update({
+              ...options,
+              collection: "product-category-content",
+              id: current.id,
+              data,
+            })
+          : await req.payload.create({
+              ...options,
+              collection: "product-category-content",
+              data: { ...data, categoryKey } as Omit<
+                CategoryDocument,
+                "id" | "createdAt" | "updatedAt"
+              >,
+            })
+        : await req.payload.updateGlobal({ ...options, slug, data });
       const revision = updated.updatedAt ?? "initial";
       await req.payload.create({
         collection: "editorial-events",
@@ -195,14 +249,7 @@ export const companyEditor: Endpoint = {
       await req.payload.db.rollbackTransaction(transactionID);
       // A serialization loser must reload instead of overwriting the winner's draft.
       try {
-        const latest = await req.payload.findGlobal({
-          slug,
-          locale: "en",
-          fallbackLocale: false,
-          draft: true,
-          depth: 0,
-          overrideAccess: true,
-        });
+        const latest = await read();
         if ((latest.updatedAt ?? "initial") !== body.revision)
           return reply({ error: "Content changed. Reload before saving." }, 409);
       } catch {

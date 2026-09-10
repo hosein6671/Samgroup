@@ -1,57 +1,9 @@
+import { publishedCategoryContent } from "./published-category-content";
 /**
- * The one place a Product Family page's data is assembled.
- *
- * ── What this gate actually changes ─────────────────────────────────────────
- *
- * Before it, a category page was a fixture lookup. After it, the page asks the real API who the
- * category is and keeps using the fixture for what the category says. That is the whole change,
- * and it is a real ownership boundary rather than a staging post: `Category` in `sam_platform`
- * owns existence, canonical slug and name; the fixture owns every word of editorial content,
- * standing in for `GET /content/product-categories/:key`, which does not exist. When Payload
- * arrives it replaces the fixture half and this module gains a second fetch — the API half does
- * not move.
- *
- * ── Fail-open, and why that is not a hedge ──────────────────────────────────
- *
- * Every API outcome other than success renders the fixture. That is not caution about a new code
- * path; it is the correct behaviour for what is being merged. The only API-owned value rendered
- * today is the family's NAME, and the fixture's name is the approved name — it is the value
- * `prisma/seed-categories.ts` seeds the database FROM. So a failed fetch costs the page nothing
- * it can observe, and letting it cost the page a 404 or an error boundary would trade six
- * approved, working design-proof pages for a strictness that protects nothing.
- *
- * `notFound()` is therefore never reached from an API condition here. It stays what it was: the
- * answer to a slug with no fixture — which under the canonical route's `dynamicParams = false` is
- * unreachable, and is kept because it is the behaviour that segment needs the day that changes.
- *
- * ── The slug guard is locale-aware, and has to be ───────────────────────────
- *
- * `Category.slug` is a localized field. The endpoint resolves a request in the requested locale's
- * vocabulary and answers in it: `data.slug` is the translated slug where one exists, and the
- * entity's own column where one does not. The fixture key is neither — it is the DEFAULT-locale
- * slug, permanently (ADR-009 §3, ADR-010 §5).
- *
- * So comparing `data.slug` against the fixture key is a valid identity test in the default locale
- * and an invalid one everywhere else. Applying it unconditionally would be correct today only
- * because no translated slug row exists; the first `fa` slug written turns `/fa/products/base-oils`
- * — the URL ADR-010 §8 explicitly launches — into a false `slug-mismatch`, discarding the localized
- * name the locale was passed for and logging drift that did not happen.
- *
- * The guard is therefore scoped to the default locale, and `parentId` — which is not localized —
- * still guards every locale. What is deliberately NOT built is the alternative: reading the
- * canonical slug back out of `seo.alternates` to compare in every locale. That means consuming the
- * SEO block, which is a later gate, and it buys nothing here — with no translated slug rows,
- * `findBySlug` falls straight through to a unique lookup on the requested slug, so the entity is
- * the fixture's by construction rather than by check.
- *
- * ── Canonical identity is not rewritten from the API ────────────────────────
- *
- * ADR-009 makes one string simultaneously the route segment, the registry key, Payload's
- * `categoryKey` and `ProductFamily.id`. The frontend guards that invariant at module load
- * (`products-data.ts`) and this module does not hand the guard to the network: `id`, `href`,
- * `code`, `descriptor`, `ranges` and `namedBlock` are never overwritten. A response whose `slug`
- * is not the one requested, or which is not a root category, is treated as drift — reported, and
- * the fixture rendered — rather than accepted as a correction.
+ * Product Family composition: Catalog owns identity and localized name; Payload owns published
+ * English narrative. Existing registry copy preserves all six pages until content is published,
+ * and remains the fallback on service failure. Taxonomy, technical content, media and FAQ keep
+ * their existing sources. No infrastructure failure becomes a category 404 (ADR-010).
  */
 
 import { getCategoryBySlug } from "@/lib/catalog";
@@ -142,8 +94,9 @@ export async function resolveCategoryPage(
   slug: string,
   locale: string,
 ): Promise<ResolvedCategoryPage | null> {
-  const content = getCategoryContent(slug);
-  if (!content) return null;
+  const fixture = getCategoryContent(slug);
+  if (!fixture) return null;
+  const content = await publishedCategoryContent(fixture, locale);
 
   const family = FAMILIES.find((entry) => entry.id === content.familyId);
   if (!family) {

@@ -71,6 +71,7 @@ export interface Config {
     pages: Page;
     media: Media;
     'editorial-events': EditorialEvent;
+    'product-category-content': ProductCategoryContent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'editorial-events': EditorialEventsSelect<false> | EditorialEventsSelect<true>;
+    'product-category-content': ProductCategoryContentSelect<false> | ProductCategoryContentSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -304,6 +306,37 @@ export interface EditorialEvent {
   createdAt: string;
 }
 /**
+ * Edit through the website Admin to preserve revision checks and activity receipts.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-category-content".
+ */
+export interface ProductCategoryContent {
+  id: number;
+  categoryKey:
+    | 'base-oils'
+    | 'engine-oils-automotive-lubricants'
+    | 'industrial-oils-lubricants'
+    | 'lubricant-additives'
+    | 'marine-oils-lubricants'
+    | 'antifreeze-coolants';
+  heroTitle: string;
+  heroSupportingText: string;
+  overviewHeading: string;
+  overviewText: string;
+  qualityHeading: string;
+  qualityIntro: string;
+  supplyHeading: string;
+  packagingSupplyText: string;
+  supplyTerms: string;
+  documentationHeading: string;
+  documentationIntro: string;
+  documentationNote: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -342,6 +375,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'editorial-events';
         value: number | EditorialEvent;
+      } | null)
+    | ({
+        relationTo: 'product-category-content';
+        value: number | ProductCategoryContent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -475,6 +512,28 @@ export interface EditorialEventsSelect<T extends boolean = true> {
   revision?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-category-content_select".
+ */
+export interface ProductCategoryContentSelect<T extends boolean = true> {
+  categoryKey?: T;
+  heroTitle?: T;
+  heroSupportingText?: T;
+  overviewHeading?: T;
+  overviewText?: T;
+  qualityHeading?: T;
+  qualityIntro?: T;
+  supplyHeading?: T;
+  packagingSupplyText?: T;
+  supplyTerms?: T;
+  documentationHeading?: T;
+  documentationIntro?: T;
+  documentationNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

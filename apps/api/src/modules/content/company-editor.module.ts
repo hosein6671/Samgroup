@@ -1,3 +1,4 @@
+import { CATEGORY_CONTENT_KEYS } from "./category-content.controller";
 import {
   BadRequestException,
   Body,
@@ -51,7 +52,11 @@ export class CompanyEditorService {
     actorId: string,
     edit?: ContentEditDto,
   ): Promise<Record<string, unknown>> {
-    if (!KEYS.includes(key)) throw new BadRequestException("Unknown content page.");
+    if (
+      !KEYS.includes(key) &&
+      !(key.startsWith("category-") && CATEGORY_CONTENT_KEYS.includes(key.slice(9)))
+    )
+      throw new BadRequestException("Unknown content page.");
     const result = await this.send(
       `/api/editor/company/${key}`,
       JSON.stringify({ ...edit, actorId, action: edit?.action ?? "read" }),

@@ -10,6 +10,7 @@ import { Media, mediaFileURL } from "./collections/media";
 import { EditorialEvents } from "./collections/editorial-events";
 import { companyEditor } from "./editor/company-editor";
 import { editorEvents } from "./editor/editor-events";
+import { ProductCategoryContent } from "./collections/product-category-content";
 import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
 import { cmsDatabaseUri, cmsMediaStorage, payloadSecret } from "./env";
@@ -48,7 +49,7 @@ export default buildConfig({
   admin: {
     user: Users.slug,
   },
-  collections: [Users, Pages, Media, EditorialEvents],
+  collections: [Users, Pages, Media, EditorialEvents, ProductCategoryContent],
   endpoints: [companyEditor, editorEvents],
   /*
    * `sam_cms`, and nothing else. `cmsDatabaseUri()` refuses a connection string naming any other
