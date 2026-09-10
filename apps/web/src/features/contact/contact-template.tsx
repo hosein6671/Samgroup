@@ -38,6 +38,7 @@ import type { ProductContext } from "@/features/forms/inquiry-form";
 export function ContactTemplate({
   copy,
   directory = null,
+  faq = null,
   inquiryType,
   locale,
   locales,
@@ -55,6 +56,7 @@ export function ContactTemplate({
    * passes nothing instead of taking on a data dependency it does not use.
    */
   readonly directory?: ReactNode;
+  readonly faq?: ReactNode;
   readonly inquiryType: string;
   /** The route locale segment, forwarded to the shared chrome — see `SiteNavProps`. */
   readonly locale: string;
@@ -81,6 +83,7 @@ export function ContactTemplate({
           privacyPolicyHref={privacyPolicyHref}
           product={product}
         />
+        {faq}
       </main>
 
       <SiteFooter locale={locale} />

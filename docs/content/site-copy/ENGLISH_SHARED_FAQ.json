@@ -1,0 +1,65 @@
+[
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000001",
+    "question": "How can I contact the right team?",
+    "answer": "Use the Contact Us form and select the enquiry type that matches your request. Include the product or application and the question you want to discuss.",
+    "topic": "company",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": false,
+    "sortOrder": 10
+  },
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000002",
+    "question": "What information helps with product selection?",
+    "answer": "Include the application or equipment, required grade or specification, operating conditions and any reference product. Product suitability needs to be reviewed against the intended use.",
+    "topic": "products",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": false,
+    "sortOrder": 20
+  },
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000003",
+    "question": "How do I ask about minimum order quantity?",
+    "answer": "Include the product, required quantity, preferred packaging and destination in your quotation request. Minimum quantity and other supply terms are established for the specific enquiry.",
+    "topic": "ordering",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": true,
+    "sortOrder": 30
+  },
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000004",
+    "question": "How do I request a sample?",
+    "answer": "Select Sample Request on the Contact Us form, or use the sample enquiry link on a product page. Include the product and intended application so the request can be reviewed.",
+    "topic": "ordering",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": true,
+    "sortOrder": 40
+  },
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000005",
+    "question": "What should I include in an export enquiry?",
+    "answer": "State the destination country and port, product, quantity and preferred packaging. Include any destination-specific documentation requirements so they can be considered with the enquiry.",
+    "topic": "export",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": true,
+    "sortOrder": 50
+  },
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000006",
+    "question": "How can I make my enquiry easier to review?",
+    "answer": "Provide a clear product or application description, quantity, destination and contact details. Add the specific questions or documents you need; this gives the team useful context for its response.",
+    "topic": "ordering",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": true,
+    "sortOrder": 60
+  },
+  {
+    "entryKey": "d04672b1-895a-4b01-9450-000000000007",
+    "question": "What should I include in a custom formulation enquiry?",
+    "answer": "Describe the application, target properties, operating conditions, expected quantity and packaging requirements. Use the Customized Solutions enquiry form to submit these details for review.",
+    "topic": "customization",
+    "relatedCategoryKeys": [],
+    "showOnContactPage": false,
+    "sortOrder": 70
+  }
+]

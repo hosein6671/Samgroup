@@ -47,3 +47,7 @@ Open Website content → Shared FAQ library (`/admin/faqs`). Create an answer, c
 Category editors also offer Use the applications below, heading, introduction and up to 20 title/description rows. Publish applies the selected replacement; publishing an empty list hides Applications. Leave both switches off to preserve the existing presentation. Existing clients omitting these fields preserve stored values.
 
 The Contact eligibility flag is stored for a later consumer; the Contact page and standalone public FAQ page are not connected in this slice. No answers or category edits were seeded. Uploads and production CMS migrations remain outstanding.
+
+### Public FAQ and Contact display
+
+Published library entries now appear at `/en/faq`, grouped using the Topic selector. Enable Available for the Contact FAQ to include an answer on Contact Us. Publishing refreshes these surfaces and the sitemap. Empty Contact results hide its FAQ section; a temporary content failure leaves the enquiry form usable. Category assignment still requires its existing category switch. Seven initial English entries were published locally from `site-copy/ENGLISH_SHARED_FAQ.json`; edit them in the same FAQ library. Public FAQ heading/metadata controls are not yet in the Admin editor.

@@ -31,6 +31,7 @@ export const ROUTES = {
   aboutUs: "/about-us",
   insights: "/insights",
   contactUs: "/contact-us",
+  faq: "/faq",
   requestQuote: "/contact-us/request-a-quote",
   /**
    * The canonical Privacy Policy — `/{locale}/privacy-policy`, per SITE_STRUCTURE §0 and
@@ -214,7 +215,7 @@ export const FOOTER_COLUMNS: readonly {
   },
   {
     heading: "Company",
-    links: SECONDARY_NAV,
+    links: [...SECONDARY_NAV, { href: ROUTES.faq, label: "FAQ" }],
   },
 ];
 

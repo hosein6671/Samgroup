@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ContactFaq } from "@/features/faq/answers";
 
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -144,6 +145,11 @@ export default async function ContactUsPage({
     <>
       <JsonLd data={schema} />
       <ContactTemplate
+        faq={
+          <Suspense fallback={null}>
+            <ContactFaq locale={locale} />
+          </Suspense>
+        }
         locales={locales}
         locale={locale}
         copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}

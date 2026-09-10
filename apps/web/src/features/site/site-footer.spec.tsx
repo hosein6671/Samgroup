@@ -74,7 +74,7 @@ describe("SiteFooter", () => {
       for (const href of hrefs) {
         expect(href.startsWith(`/${code}`)).toBe(true);
         // A second prefix would read `/en/en/...`.
-        expect(href.startsWith(`/${code}/${code}`)).toBe(false);
+        expect(href.split("/")[2]).not.toBe(code);
       }
     }
   });

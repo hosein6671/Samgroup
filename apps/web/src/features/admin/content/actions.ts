@@ -70,7 +70,12 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
   revalidatePath(product ? `/admin/catalog/products/${key}` : `/admin/content/${key}`);
   if (key.startsWith("faq-")) revalidatePath("/admin/faqs");
   if (action === "publish") {
-    if (key.startsWith("faq-")) revalidatePath("/en/products", "layout");
+    if (key.startsWith("faq-")) {
+      revalidatePath("/en/products", "layout");
+      revalidatePath("/en/faq");
+      revalidatePath("/sitemap.xml");
+      revalidatePath("/en/contact-us");
+    }
     if (key.startsWith("category-")) revalidatePath("/sitemap.xml");
     if (product && result.data.slug) {
       revalidatePath(`/en/products/${result.data.slug}`);

@@ -1,4 +1,5 @@
 import { PRIVACY_POLICY_SLUG, resolvePrivacyPolicy } from "@/features/legal/privacy-policy";
+import { publishedFaq } from "@/features/faq/published-faq";
 import { localePath } from "@/features/seo/alternates";
 import { absoluteUrl } from "@/features/seo/site";
 import { ROUTES } from "@/features/site/site-routes";
@@ -152,15 +153,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const primary = defaultLocale(locales).code;
   const activeCodes = new Set(locales.map((locale) => locale.code));
 
-  const [entries, articles, privacyPolicy] = await Promise.all([
+  const [entries, articles, privacyPolicy, faq] = await Promise.all([
     getSitemapEntries(),
     blogEntries(primary),
     resolvePrivacyPolicy(PRIVACY_POLICY_SLUG, primary),
+    publishedFaq(primary).catch(() => null),
   ]);
 
   const urls: MetadataRoute.Sitemap = STRUCTURAL_ROUTES.map((path) => ({
     url: absoluteUrl(localePath(primary, path)),
   }));
+  if (faq?.length) urls.push({ url: absoluteUrl(localePath(primary, ROUTES.faq)) });
 
   /*
    * Only when the CMS is serving a published policy. `result.ok` is false for a definitive 404, for
