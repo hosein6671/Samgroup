@@ -1086,14 +1086,26 @@ model BlogPost {
   authorId    String?   @map("author_id") @db.Uuid
   publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
 
-  category BlogCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  author   User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  tags     BlogPostTag[]
+  category       BlogCategory        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author         User?               @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  tags           BlogPostTag[]
+  editorialDraft BlogEditorialDraft?
 
   @@index([categoryId])
   @@index([authorId])
   @@index([publishedAt])
   @@map("blog_posts")
+}
+
+model BlogEditorialDraft {
+  blogPostId String   @id @map("blog_post_id") @db.Uuid
+  revision   Int      @default(0)
+  content    Json
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  blogPost BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+
+  @@map("blog_editorial_drafts")
 }
 
 model BlogCategory {

@@ -321,7 +321,7 @@ export function ContentForm({
   operationId: string;
   schema: EditorField[];
   initial: Record<string, unknown>;
-  resource?: "company" | "product";
+  resource?: "company" | "product" | "blog";
   media?: EditorialMedia[];
 }): ReactNode {
   const [fields, setFields] = useState(initial);

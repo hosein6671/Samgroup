@@ -3,7 +3,13 @@ import { Module } from "@nestjs/common";
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { AuditModule } from "../audit/audit.module";
+import { IdentityModule } from "../identity/identity.module";
+import { MediaModule } from "../media/media.module";
+import { SeoMetaModule } from "../seo/seo-meta.module";
 
+import { BlogAdminController } from "./blog-admin.controller";
+import { BlogAdminService } from "./blog-admin.service";
 import { BlogPostsController } from "./blog-posts.controller";
 import { BlogPostsService } from "./blog-posts.service";
 
@@ -23,13 +29,20 @@ import { BlogPostsService } from "./blog-posts.service";
  * prevents. `/seo/sitemap-entries` does not enumerate blog posts either, and adding them is that
  * module's gate rather than a side effect of this one.
  *
- * No SeoMetaModule and no MediaModule import: this slice serves no `SeoFields` and no imagery, and
- * `BlogPost` has no media relation to resolve. Both are stated as absent rather than left to be
- * inferred, because both would be a reasonable-looking addition made for the wrong reason.
+ * Admin editing consumes SEO and owner-scoped Media service interfaces. The Blog module does not
+ * query either module's tables directly, and media ownership is always fixed to BlogPost.
  */
 @Module({
-  imports: [PrismaModule, LocaleResolutionModule, ContentTranslationModule],
-  controllers: [BlogPostsController],
-  providers: [BlogPostsService],
+  imports: [
+    PrismaModule,
+    LocaleResolutionModule,
+    ContentTranslationModule,
+    AuditModule,
+    IdentityModule,
+    SeoMetaModule,
+    MediaModule,
+  ],
+  controllers: [BlogPostsController, BlogAdminController],
+  providers: [BlogPostsService, BlogAdminService],
 })
 export class BlogModule {}

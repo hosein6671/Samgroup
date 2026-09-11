@@ -557,6 +557,7 @@ describe("AdminNav — Leads is unchanged and Technical Review is its sibling", 
 
     expect(hrefs).toEqual([
       "/admin/catalog/products",
+      "/admin/blog/posts",
       "/admin",
       "/admin/leads/inquiries",
       "/admin/leads/custom-formulation-requests",
@@ -578,6 +579,7 @@ describe("AdminNav — Leads is unchanged and Technical Review is its sibling", 
 
     expect(hrefs).toEqual([
       "/admin/catalog/products",
+      "/admin/blog/posts",
       "/admin/leads/inquiries",
       "/admin/leads/custom-formulation-requests",
       "/admin/content",

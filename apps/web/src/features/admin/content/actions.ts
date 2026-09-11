@@ -48,6 +48,7 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     raw = form.get("fields"),
     action = form.get("action");
   const product = form.get("resource") === "product";
+  const blog = form.get("resource") === "blog";
   if (
     typeof key !== "string" ||
     typeof raw !== "string" ||
@@ -62,7 +63,7 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     return { ...previous, saved: false, message: "Check the content fields." };
   }
   if (
-    (product || key.startsWith("category-") || key === "faq-page") &&
+    (product || blog || key.startsWith("category-") || key === "faq-page") &&
     fields &&
     typeof fields === "object" &&
     "seo" in fields &&
@@ -70,7 +71,7 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     typeof fields.seo === "object"
   ) {
     const seo = fields.seo as Record<string, unknown>;
-    if (product && seo.canonicalUrl === "") delete seo.canonicalUrl;
+    if ((product || blog) && seo.canonicalUrl === "") delete seo.canonicalUrl;
     if (Array.isArray(seo.keywords))
       seo.keywords = seo.keywords
         .filter((value) => typeof value === "string" && value.trim())
@@ -79,8 +80,8 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
   const accessToken = await getAdminAccessToken();
   if (!accessToken) return { ...previous, saved: false, message: "Sign in again before saving." };
   const result = await apiPatch<{ revision: string; slug?: string }>(
-    `/admin/${product ? "products" : "content"}/${encodeURIComponent(key)}`,
-    product
+    `/admin/${product ? "products" : blog ? "blog/posts" : "content"}/${encodeURIComponent(key)}`,
+    product || blog
       ? { content: fields, action, revision: Number(previous.revision) }
       : { fields, action, revision: previous.revision, operationId: previous.operationId },
     { accessToken },
@@ -102,7 +103,13 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
       saved: false,
       message: "Save was not confirmed. Reload to check the page.",
     };
-  revalidatePath(product ? `/admin/catalog/products/${key}` : `/admin/content/${key}`);
+  revalidatePath(
+    product
+      ? `/admin/catalog/products/${key}`
+      : blog
+        ? `/admin/blog/posts/${key}`
+        : `/admin/content/${key}`,
+  );
   if (key.startsWith("faq-")) revalidatePath("/admin/faqs");
   if (action === "publish") {
     if (key.startsWith("faq-")) {
@@ -116,7 +123,12 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
       revalidatePath(`/en/products/${result.data.slug}`);
       revalidatePath("/en/products", "layout");
       revalidatePath("/admin/catalog/products");
-    } else if (!product && !key.startsWith("faq-"))
+    } else if (blog && result.data.slug) {
+      revalidatePath(`/en/insights/${result.data.slug}`);
+      revalidatePath("/en/insights");
+      revalidatePath("/admin/blog/posts");
+      revalidatePath("/sitemap.xml");
+    } else if (!product && !blog && !key.startsWith("faq-"))
       revalidatePath(key.startsWith("category-") ? `/en/products/${key.slice(9)}` : `/en/${key}`);
   }
   return {

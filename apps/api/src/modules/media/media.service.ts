@@ -58,8 +58,16 @@ export class MediaService {
   }
 
   listProductImages(productId: string): Promise<unknown[]> {
+    return this.listOwnedImages(ContentEntityType.Product, productId);
+  }
+
+  listBlogImages(blogPostId: string): Promise<unknown[]> {
+    return this.listOwnedImages(ContentEntityType.BlogPost, blogPostId);
+  }
+
+  private listOwnedImages(ownerType: ContentEntityType, ownerId: string): Promise<unknown[]> {
     return this.prisma.media.findMany({
-      where: { ownerType: ContentEntityType.Product, ownerId: productId, type: MediaType.IMAGE },
+      where: { ownerType, ownerId, type: MediaType.IMAGE },
       orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
       select: { id: true, url: true, altText: true, sortOrder: true, isPrimary: true },
     });
@@ -70,6 +78,43 @@ export class MediaService {
     file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
     altText: string,
     actorId: string,
+  ): Promise<Record<string, unknown>> {
+    return this.uploadOwnedImage(
+      ContentEntityType.Product,
+      productId,
+      "products",
+      file,
+      altText,
+      actorId,
+      "product.image_uploaded",
+    );
+  }
+
+  async uploadBlogImage(
+    blogPostId: string,
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    altText: string,
+    actorId: string,
+  ): Promise<Record<string, unknown>> {
+    return this.uploadOwnedImage(
+      ContentEntityType.BlogPost,
+      blogPostId,
+      "blog",
+      file,
+      altText,
+      actorId,
+      "blog.image_uploaded",
+    );
+  }
+
+  private async uploadOwnedImage(
+    ownerType: ContentEntityType,
+    ownerId: string,
+    storageFolder: "products" | "blog",
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    altText: string,
+    actorId: string,
+    event: "product.image_uploaded" | "blog.image_uploaded",
   ): Promise<Record<string, unknown>> {
     const extensions: Record<string, string> = {
       "image/jpeg": ".jpg",
@@ -93,7 +138,7 @@ export class MediaService {
     if (!matches) throw new BadRequestException("Image content does not match its file type.");
 
     const storage = this.storage();
-    const key = `products/${productId}/${randomUUID()}${extension}`;
+    const key = `${storageFolder}/${ownerId}/${randomUUID()}${extension}`;
     const client = this.client(storage);
     try {
       await client.send(
@@ -105,13 +150,13 @@ export class MediaService {
           CacheControl: "public, max-age=31536000, immutable",
         }),
       );
-      if (!this.audit) throw new ServiceUnavailableException("Product media audit is unavailable.");
+      if (!this.audit) throw new ServiceUnavailableException("Media audit is unavailable.");
       const audit = this.audit;
       return await this.prisma.$transaction(async (tx) => {
         const count = await tx.media.count({
           where: {
-            ownerType: ContentEntityType.Product,
-            ownerId: productId,
+            ownerType,
+            ownerId,
             type: MediaType.IMAGE,
           },
         });
@@ -120,51 +165,74 @@ export class MediaService {
             url: `/media/${key}`,
             type: MediaType.IMAGE,
             altText: altText.trim(),
-            ownerType: ContentEntityType.Product,
-            ownerId: productId,
+            ownerType,
+            ownerId,
             sortOrder: count,
             isPrimary: count === 0,
           },
           select: { id: true, url: true, altText: true, sortOrder: true, isPrimary: true },
         });
-        await audit.append(
-          { event: "product.image_uploaded", actorId, subjectId: productId, outcome: "success" },
-          tx,
-        );
+        await audit.append({ event, actorId, subjectId: ownerId, outcome: "success" }, tx);
         return created;
       });
     } catch {
       await client
         .send(new DeleteObjectCommand({ Bucket: storage.bucket, Key: key }))
         .catch(() => undefined);
-      throw new ServiceUnavailableException("Product image could not be stored.");
+      throw new ServiceUnavailableException("Image could not be stored.");
     }
   }
 
   async setPrimaryProductImage(productId: string, imageId: string, actorId: string): Promise<void> {
-    if (!this.audit) throw new ServiceUnavailableException("Product media audit is unavailable.");
+    return this.setPrimaryOwnedImage(
+      ContentEntityType.Product,
+      productId,
+      imageId,
+      actorId,
+      "product.image_primary_changed",
+    );
+  }
+
+  async setPrimaryBlogImage(blogPostId: string, imageId: string, actorId: string): Promise<void> {
+    return this.setPrimaryOwnedImage(
+      ContentEntityType.BlogPost,
+      blogPostId,
+      imageId,
+      actorId,
+      "blog.image_primary_changed",
+    );
+  }
+
+  private async setPrimaryOwnedImage(
+    ownerType: ContentEntityType,
+    ownerId: string,
+    imageId: string,
+    actorId: string,
+    event: "product.image_primary_changed" | "blog.image_primary_changed",
+  ): Promise<void> {
+    if (!this.audit) throw new ServiceUnavailableException("Media audit is unavailable.");
     const audit = this.audit;
     await this.prisma.$transaction(async (tx) => {
       const image = await tx.media.findFirst({
         where: {
           id: imageId,
-          ownerType: ContentEntityType.Product,
-          ownerId: productId,
+          ownerType,
+          ownerId,
           type: MediaType.IMAGE,
         },
         select: { id: true },
       });
-      if (!image) throw new BadRequestException("Product image not found.");
+      if (!image) throw new BadRequestException("Image not found.");
       await tx.media.updateMany({
-        where: { ownerType: ContentEntityType.Product, ownerId: productId, type: MediaType.IMAGE },
+        where: { ownerType, ownerId, type: MediaType.IMAGE },
         data: { isPrimary: false },
       });
       await tx.media.update({ where: { id: imageId }, data: { isPrimary: true } });
       await audit.append(
         {
-          event: "product.image_primary_changed",
+          event,
           actorId,
-          subjectId: productId,
+          subjectId: ownerId,
           outcome: "success",
         },
         tx,
@@ -173,25 +241,54 @@ export class MediaService {
   }
 
   async deleteProductImage(productId: string, imageId: string, actorId: string): Promise<void> {
-    if (!this.audit) throw new ServiceUnavailableException("Product media audit is unavailable.");
+    return this.deleteOwnedImage(
+      ContentEntityType.Product,
+      productId,
+      "products",
+      imageId,
+      actorId,
+      "product.image_removed",
+    );
+  }
+
+  async deleteBlogImage(blogPostId: string, imageId: string, actorId: string): Promise<void> {
+    return this.deleteOwnedImage(
+      ContentEntityType.BlogPost,
+      blogPostId,
+      "blog",
+      imageId,
+      actorId,
+      "blog.image_removed",
+    );
+  }
+
+  private async deleteOwnedImage(
+    ownerType: ContentEntityType,
+    ownerId: string,
+    storageFolder: "products" | "blog",
+    imageId: string,
+    actorId: string,
+    event: "product.image_removed" | "blog.image_removed",
+  ): Promise<void> {
+    if (!this.audit) throw new ServiceUnavailableException("Media audit is unavailable.");
     const audit = this.audit;
     const image = await this.prisma.media.findFirst({
       where: {
         id: imageId,
-        ownerType: ContentEntityType.Product,
-        ownerId: productId,
+        ownerType,
+        ownerId,
         type: MediaType.IMAGE,
       },
       select: { id: true, url: true, isPrimary: true },
     });
-    if (!image) throw new BadRequestException("Product image not found.");
+    if (!image) throw new BadRequestException("Image not found.");
     await this.prisma.$transaction(async (tx) => {
       await tx.media.delete({ where: { id: image.id } });
       if (image.isPrimary) {
         const next = await tx.media.findFirst({
           where: {
-            ownerType: ContentEntityType.Product,
-            ownerId: productId,
+            ownerType,
+            ownerId,
             type: MediaType.IMAGE,
           },
           orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
@@ -199,14 +296,11 @@ export class MediaService {
         });
         if (next) await tx.media.update({ where: { id: next.id }, data: { isPrimary: true } });
       }
-      await audit.append(
-        { event: "product.image_removed", actorId, subjectId: productId, outcome: "success" },
-        tx,
-      );
+      await audit.append({ event, actorId, subjectId: ownerId, outcome: "success" }, tx);
     });
     const key = image.url.replace(/^\/media\//, "");
     const storage = this.storage();
-    if (image.url.startsWith(`/media/products/${productId}/`))
+    if (image.url.startsWith(`/media/${storageFolder}/${ownerId}/`))
       await this.client(storage)
         .send(new DeleteObjectCommand({ Bucket: storage.bucket, Key: key }))
         .catch(() => undefined);

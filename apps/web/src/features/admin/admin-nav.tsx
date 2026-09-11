@@ -52,6 +52,7 @@ import type { ReactNode } from "react";
  */
 export type AdminNavKey =
   | "products"
+  | "blog"
   | "content"
   | "overview"
   | "inquiries"
@@ -81,6 +82,13 @@ export function AdminNav({
       href: "/admin/catalog/products",
       label: "Products",
       current: current === "products",
+    });
+
+  if (roleMayEnter(role, "content"))
+    entries.push({
+      href: "/admin/blog/posts",
+      label: "Articles",
+      current: current === "blog",
     });
 
   if (roleMayEnter(role, "shell")) {
