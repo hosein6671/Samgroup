@@ -89,6 +89,12 @@ export async function generateMetadata({
    */
   return {
     title: result.record.title,
+    ...(result.record.featuredImage
+      ? {
+          openGraph: { images: [absoluteUrl(result.record.featuredImage.url)] },
+          twitter: { images: [absoluteUrl(result.record.featuredImage.url)] },
+        }
+      : {}),
     alternates: pageAlternates({
       canonicalPath: articlePath(locale, result.record.slug),
     }),
@@ -128,8 +134,8 @@ export default async function InsightPostPage({
          *
          * Everything in them is a value this page already renders: the record's own title, its own
          * `publishedAt`, and the two-step trail the reader can actually see. No author, no
-         * `dateModified` and no image are asserted — see `articleJsonLd` for why each is absent
-         * rather than filled in.
+         * `dateModified` is omitted because the API does not expose one. The image is asserted only
+         * when the editor selected a primary BlogPost-owned Media record.
          */}
         <JsonLd
           data={articleJsonLd({
@@ -137,6 +143,7 @@ export default async function InsightPostPage({
             headline: result.record.title,
             datePublished: result.record.publishedAt,
             locale,
+            imageUrl: result.record.featuredImage?.url,
           })}
         />
         <JsonLd

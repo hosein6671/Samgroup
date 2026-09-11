@@ -19,6 +19,7 @@ const LIST_ITEM: BlogPostListItemResponse = {
   slug: "sam-demo-understanding-base-oil-groups",
   publishedAt: "2026-03-04T10:00:00.000Z",
   category: CATEGORY,
+  featuredImage: null,
 };
 
 const DETAIL: BlogPostDetailResponse = {
@@ -29,6 +30,7 @@ const DETAIL: BlogPostDetailResponse = {
   publishedAt: LIST_ITEM.publishedAt,
   category: CATEGORY,
   tags: [],
+  featuredImage: null,
 };
 
 type Harness = {

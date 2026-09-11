@@ -23,12 +23,11 @@ import type { BlogPostDetailResponse } from "@sam-group/types";
  * rather than rendering something in its place.
  *
  * **Nothing is invented for an absent field.** SITE_STRUCTURE §8's article template describes a
- * byline, a featured image, a table of contents, a key-takeaways box, a related-products block and a
+ * byline, a table of contents, a key-takeaways box, a related-products block and a
  * related-articles strip. None of them is rendered here, and each is absent for a stated reason
  * rather than for lack of time:
  *
  *   - **byline** — `authorId` is null on every row, and a byline is a claim about a person.
- *   - **featured image** — `BlogPost` has no media relation. There is nothing to show.
  *   - **table of contents** — the body is plain `text` with no heading structure to extract.
  *   - **key takeaways** — no column, and summarising an article on its behalf would be authoring.
  *   - **related products / related articles** — both are a ranking, and no ranking is specified;
@@ -107,6 +106,15 @@ export function PostTemplate({
 
           <section className="fs-sec in-post-body" data-surface="light">
             <div className="fs-wrap in-post-body-inner">
+              {post.featuredImage && (
+                <img
+                  className="in-post-image"
+                  src={post.featuredImage.url}
+                  alt={post.featuredImage.altText ?? ""}
+                  width={1200}
+                  height={675}
+                />
+              )}
               {/*
                * Split on blank lines and rendered as paragraphs. React escapes every value, so the
                * body reaches the page as text and can carry no markup — which is the correct

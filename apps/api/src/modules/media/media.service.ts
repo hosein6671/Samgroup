@@ -57,6 +57,26 @@ export class MediaService {
     });
   }
 
+  async findPrimaryBlogImages(
+    blogPostIds: readonly string[],
+  ): Promise<Map<string, MediaImageResponse>> {
+    if (blogPostIds.length === 0) return new Map();
+    const rows = await this.prisma.media.findMany({
+      where: {
+        ownerType: ContentEntityType.BlogPost,
+        ownerId: { in: [...blogPostIds] },
+        type: MediaType.IMAGE,
+        isPrimary: true,
+      },
+      select: { ownerId: true, id: true, url: true, altText: true },
+    });
+    return new Map(
+      rows
+        .filter((row): row is typeof row & { ownerId: string } => row.ownerId !== null)
+        .map((row) => [row.ownerId, { id: row.id, url: row.url, altText: row.altText }]),
+    );
+  }
+
   listProductImages(productId: string): Promise<unknown[]> {
     return this.listOwnedImages(ContentEntityType.Product, productId);
   }

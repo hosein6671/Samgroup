@@ -5,6 +5,7 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { MediaService } from "../media/media.service";
 
 import { DEFAULT_LIMIT, DEFAULT_PAGE, DEFAULT_SORT } from "./dto/blog-post-list.query";
 
@@ -125,6 +126,7 @@ export class BlogPostsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly translations: ContentTranslationService,
+    private readonly media?: MediaService,
   ) {}
 
   /**
@@ -161,8 +163,12 @@ export class BlogPostsService {
       locale,
     );
 
+    const images = this.media
+      ? await this.media.findPrimaryBlogImages(localized.map((row) => row.id))
+      : new Map();
+
     return {
-      posts: localized.map((row) => toListItem(row)),
+      posts: localized.map((row) => toListItem(row, images.get(row.id))),
       total,
       page,
       limit,
@@ -214,6 +220,10 @@ export class BlogPostsService {
     // so this only satisfies noUncheckedIndexedAccess.
     const translated = rows[0] ?? post;
 
+    const image = this.media
+      ? (await this.media.findPrimaryBlogImages([translated.id])).get(translated.id)
+      : undefined;
+
     return {
       post: {
         id: translated.id,
@@ -223,6 +233,7 @@ export class BlogPostsService {
         publishedAt: requirePublishedAt(translated.publishedAt),
         category,
         tags: tags.map((membership) => membership.blogTag),
+        featuredImage: image ? { url: image.url, altText: image.altText } : null,
       },
       localeFallback,
     };
@@ -336,13 +347,17 @@ function requirePublishedAt(publishedAt: Date | null): string {
   return publishedAt.toISOString();
 }
 
-function toListItem(row: BlogPostRow): BlogPostListItemResponse {
+function toListItem(
+  row: BlogPostRow,
+  image?: { url: string; altText: string | null },
+): BlogPostListItemResponse {
   return {
     id: row.id,
     title: row.title,
     slug: row.slug,
     publishedAt: requirePublishedAt(row.publishedAt),
     category: row.category,
+    featuredImage: image ? { url: image.url, altText: image.altText } : null,
   };
 }
 

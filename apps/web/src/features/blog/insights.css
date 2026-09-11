@@ -142,6 +142,13 @@
   border-color: var(--color-border-accent);
 }
 
+.in-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
 /* The category and the date on one technical line, so the title below is the card's only voice. */
 .in-card-meta {
   display: flex;
@@ -444,6 +451,16 @@
   color: var(--color-text-secondary);
   /* The body is plain text and may carry long unbroken strings; this keeps them inside the column. */
   overflow-wrap: anywhere;
+}
+
+.in-post-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  margin: 0 0 clamp(28px, 4vw, 48px);
+  border-radius: 12px;
 }
 
 .in-post-tags {

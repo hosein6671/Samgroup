@@ -40,6 +40,11 @@ export type BlogTagResponse = {
   slug: string;
 };
 
+export type BlogImageResponse = {
+  url: string;
+  altText: string | null;
+};
+
 /**
  * One row of `GET /blog/posts`.
  *
@@ -58,6 +63,7 @@ export type BlogPostListItemResponse = {
    */
   publishedAt: string;
   category: BlogCategoryResponse;
+  featuredImage: BlogImageResponse | null;
 };
 
 export type BlogPostDetailResponse = {
@@ -70,4 +76,5 @@ export type BlogPostDetailResponse = {
   category: BlogCategoryResponse;
   /** Empty when the post carries no tags, which is every post while no tag vocabulary exists. */
   tags: BlogTagResponse[];
+  featuredImage: BlogImageResponse | null;
 };

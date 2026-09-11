@@ -66,6 +66,7 @@ function isBlogPostListItem(value: unknown): value is BlogPostListItemResponse {
 
   const record = value as Record<string, unknown>;
   const category = record.category as Record<string, unknown> | null | undefined;
+  const image = record.featuredImage as Record<string, unknown> | null | undefined;
 
   return (
     typeof record.id === "string" &&
@@ -75,7 +76,12 @@ function isBlogPostListItem(value: unknown): value is BlogPostListItemResponse {
     typeof category === "object" &&
     category !== null &&
     typeof category.name === "string" &&
-    typeof category.slug === "string"
+    typeof category.slug === "string" &&
+    (image === null ||
+      (typeof image === "object" &&
+        image !== null &&
+        typeof image.url === "string" &&
+        (image.altText === null || typeof image.altText === "string")))
   );
 }
 
@@ -207,6 +213,7 @@ function isBlogPostDetail(value: unknown): value is BlogPostDetailResponse {
 
   const record = value as Record<string, unknown>;
   const category = record.category as Record<string, unknown> | null | undefined;
+  const image = record.featuredImage as Record<string, unknown> | null | undefined;
 
   return (
     typeof record.id === "string" &&
@@ -218,7 +225,12 @@ function isBlogPostDetail(value: unknown): value is BlogPostDetailResponse {
     category !== null &&
     typeof category.name === "string" &&
     typeof category.slug === "string" &&
-    Array.isArray(record.tags)
+    Array.isArray(record.tags) &&
+    (image === null ||
+      (typeof image === "object" &&
+        image !== null &&
+        typeof image.url === "string" &&
+        (image.altText === null || typeof image.altText === "string")))
   );
 }
 

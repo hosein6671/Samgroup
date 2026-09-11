@@ -7,10 +7,8 @@
  *
  * ── What is deliberately absent ─────────────────────────────────────────────
  *
- * No `author`, no `excerpt`, no `readingTime`, no hero image, no related posts and no `featured`
- * flag. `BlogPost` in `sam_platform` is `title`, `slug`, `content`, `categoryId`, `authorId` and
- * `publishedAt` — nothing else exists to serve, and a field declared here that no column backs
- * would be an invitation to render a value the platform would then have to invent.
+ * No `author`, no `excerpt`, no `readingTime`, no related posts and no `featured` flag. The optional
+ * featured image comes from the primary BlogPost-owned Media record rather than a BlogPost column.
  *
  * `authorId` is the one column that DOES exist and is still not on the wire. A byline is a
  * statement about who wrote a piece; `users` holds no rows, the demo content has no author, and
@@ -38,6 +36,11 @@ export type BlogTagResponse = {
   slug: string;
 };
 
+export type BlogImageResponse = {
+  url: string;
+  altText: string | null;
+};
+
 /**
  * One row of `GET /blog/posts`.
  *
@@ -60,6 +63,7 @@ export type BlogPostListItemResponse = {
    */
   publishedAt: string;
   category: BlogCategoryResponse;
+  featuredImage: BlogImageResponse | null;
 };
 
 /** One post, as `GET /blog/posts/:slug` serves it. */
@@ -74,4 +78,5 @@ export type BlogPostDetailResponse = {
   category: BlogCategoryResponse;
   /** Empty when the post carries no tags — which is every post while no tag vocabulary exists. */
   tags: BlogTagResponse[];
+  featuredImage: BlogImageResponse | null;
 };

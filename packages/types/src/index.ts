@@ -20,6 +20,7 @@ export type {
 } from "./api";
 export type {
   BlogCategoryResponse,
+  BlogImageResponse,
   BlogPostDetailResponse,
   BlogPostListItemResponse,
   BlogTagResponse,

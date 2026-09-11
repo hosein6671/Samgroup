@@ -16,14 +16,13 @@ import type { BlogPostListItemResponse } from "@sam-group/types";
  *
  * ── It renders three fields, and that is the whole contract ─────────────────
  *
- * `title`, `category.name` and `publishedAt`. Nothing else is on the wire, and nothing else is
- * inferred from what is.
+ * `title`, `category.name`, `publishedAt` and the optional featured image. Nothing else is inferred.
  *
- * There is deliberately **no excerpt, no author, no read-time, no hero image, no tag list and no
+ * There is deliberately **no excerpt, no author, no read-time, no tag list and no
  * "featured" marker** anywhere in this component. Not blank — absent. `BlogPost` has no `excerpt`
  * column, so a summary here could only be the body cut at a character count, which publishes a
  * sentence the editor never wrote; `authorId` is null on every row and a byline is a claim about a
- * person; read-time, imagery and featured flags have no column at all. A field that does not exist
+ * person; read-time and featured flags have no column at all. A field that does not exist
  * cannot be filled in with a plausible guess — the same rule `product-card.tsx` states.
  *
  * ── It links to the flat article URL ────────────────────────────────────────
@@ -52,6 +51,15 @@ export function InsightCard({
 }): ReactNode {
   return (
     <article className="in-card">
+      {post.featuredImage && (
+        <img
+          className="in-card-image"
+          src={post.featuredImage.url}
+          alt={post.featuredImage.altText ?? ""}
+          width={640}
+          height={360}
+        />
+      )}
       <p className="in-card-meta">
         <span className="in-card-category">{post.category.name}</span>
         <PublishedDate iso={post.publishedAt} locale={locale} className="in-card-date" />
