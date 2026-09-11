@@ -8,7 +8,7 @@ import { requireAdminAccess } from "@/features/admin/session/require-admin";
 import { getAdminAccessToken } from "@/features/admin/session/session";
 import { apiGet } from "@/lib/api-client";
 import { ContentForm } from "@/features/admin/content/content-form";
-import type { EditorField } from "@/features/admin/content/content-form";
+import type { EditorialMedia, EditorField } from "@/features/admin/content/content-form";
 import type { ReactNode } from "react";
 export const dynamic = "force-dynamic";
 export default async function Page({
@@ -38,6 +38,15 @@ export default async function Page({
       }>("/admin/content/" + encodeURIComponent(key), {}, { accessToken })
     : null;
   const data = result?.ok ? result.data : null;
+  const mediaResult = accessToken
+    ? await apiGet<{ items: EditorialMedia[]; total: number }>(
+        "/admin/content/media/library",
+        {},
+        { accessToken },
+      )
+    : null;
+  const media =
+    mediaResult?.ok && Array.isArray(mediaResult.data.items) ? mediaResult.data.items : [];
   const category = key.startsWith("category-") ? getCategoryContent(key.slice(9)) : null;
   const initial =
     category && data?.fields
@@ -105,6 +114,7 @@ export default async function Page({
           operationId={randomUUID()}
           schema={data.schema}
           initial={initial}
+          media={media}
         />
       ) : (
         <p className="ad-notice">The content could not be loaded. Please try again.</p>

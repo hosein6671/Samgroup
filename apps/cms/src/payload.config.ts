@@ -13,6 +13,7 @@ import { Media, mediaFileURL } from "./collections/media";
 import { EditorialEvents } from "./collections/editorial-events";
 import { companyEditor } from "./editor/company-editor";
 import { editorEvents } from "./editor/editor-events";
+import { mediaList, mediaUpload } from "./editor/media-list";
 import { ProductCategoryContent } from "./collections/product-category-content";
 import { Pages } from "./collections/pages";
 import { Users } from "./collections/users";
@@ -53,7 +54,7 @@ export default buildConfig({
     user: Users.slug,
   },
   collections: [Users, Pages, Media, EditorialEvents, ProductCategoryContent, FaqEntries],
-  endpoints: [companyEditor, editorEvents, faqList],
+  endpoints: [companyEditor, editorEvents, faqList, mediaList, mediaUpload],
   /*
    * `sam_cms`, and nothing else. `cmsDatabaseUri()` refuses a connection string naming any other
    * database, so a pasted `sam_platform` URL fails while this config is being built rather than

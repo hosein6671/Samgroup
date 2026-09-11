@@ -1,10 +1,45 @@
 "use server";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
-import { apiPatch } from "@/lib/api-client";
+import { apiPatch, apiPostFormData } from "@/lib/api-client";
 import { requireAdminAccess } from "@/features/admin/session/require-admin";
 import { getAdminAccessToken } from "@/features/admin/session/session";
 export type EditState = { message: string; revision: string; operationId: string; saved: boolean };
+export async function uploadEditorialMedia(form: FormData): Promise<{
+  media?: { id: number; alt: string; url: string; width: number | null; height: number | null };
+  message: string;
+}> {
+  const access = await requireAdminAccess("content");
+  if (access.state !== "authorized") return { message: "Your editing session is unavailable." };
+  const image = form.get("image");
+  const alt = form.get("alt");
+  if (!(image instanceof File) || image.size === 0 || typeof alt !== "string" || !alt.trim())
+    return { message: "Choose an image and enter descriptive alt text." };
+  if (image.size > 5 * 1024 * 1024) return { message: "Image must be no larger than 5 MB." };
+  const accessToken = await getAdminAccessToken();
+  if (!accessToken) return { message: "Sign in again before uploading." };
+  const upload = new FormData();
+  upload.set("image", image);
+  upload.set("alt", alt.trim());
+  const result = await apiPostFormData<{
+    id: number;
+    alt: string;
+    url: string;
+    width: number | null;
+    height: number | null;
+  }>("/admin/content/media/upload", upload, { accessToken });
+  return result.ok
+    ? {
+        media: result.data,
+        message: "Image uploaded and selected. Publish the page to make it public.",
+      }
+    : {
+        message:
+          result.reason === "http" && result.status === 400
+            ? "Check the image type, size and alt text."
+            : "The image could not be uploaded.",
+      };
+}
 export async function saveContent(previous: EditState, form: FormData): Promise<EditState> {
   const access = await requireAdminAccess("content");
   if (access.state !== "authorized")

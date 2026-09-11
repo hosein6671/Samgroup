@@ -1,10 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, ServiceUnavailableException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { randomUUID } from "node:crypto";
 
 import { MediaType } from "../../prisma/generated/client";
 import { PrismaService } from "../../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
 
 import type { MediaImageResponse } from "./dto/media.response";
-import type { ContentEntityType } from "../../common/content/content-entity-type";
+import { ContentEntityType } from "../../common/content/content-entity-type";
 
 /**
  * Owns the `media` table in sam_platform — ARCHITECTURE.md §Modules names Media as a module
@@ -25,7 +29,11 @@ import type { ContentEntityType } from "../../common/content/content-entity-type
  */
 @Injectable()
 export class MediaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config?: ConfigService,
+    private readonly audit?: AuditService,
+  ) {}
 
   /**
    * The public images owned by one entity.
@@ -44,8 +52,206 @@ export class MediaService {
     return this.prisma.media.findMany({
       // Matches @@index([ownerType, ownerId]).
       where: { ownerType, ownerId, type: MediaType.IMAGE },
-      orderBy: { id: "asc" },
+      orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
       select: { id: true, url: true, altText: true },
+    });
+  }
+
+  listProductImages(productId: string): Promise<unknown[]> {
+    return this.prisma.media.findMany({
+      where: { ownerType: ContentEntityType.Product, ownerId: productId, type: MediaType.IMAGE },
+      orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+      select: { id: true, url: true, altText: true, sortOrder: true, isPrimary: true },
+    });
+  }
+
+  async uploadProductImage(
+    productId: string,
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    altText: string,
+    actorId: string,
+  ): Promise<Record<string, unknown>> {
+    const extensions: Record<string, string> = {
+      "image/jpeg": ".jpg",
+      "image/png": ".png",
+      "image/webp": ".webp",
+      "image/avif": ".avif",
+    };
+    const extension = extensions[file.mimetype];
+    if (!extension || !altText.trim() || altText.length > 300)
+      throw new BadRequestException("Choose a supported image and enter descriptive alt text.");
+    if (!file.buffer.length || file.size > 5 * 1024 * 1024)
+      throw new BadRequestException("Image must be no larger than 5 MB.");
+    const matches =
+      (file.mimetype === "image/jpeg" && file.buffer[0] === 0xff && file.buffer[1] === 0xd8) ||
+      (file.mimetype === "image/png" &&
+        file.buffer.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex"))) ||
+      (file.mimetype === "image/webp" &&
+        file.buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+        file.buffer.subarray(8, 12).toString("ascii") === "WEBP") ||
+      (file.mimetype === "image/avif" && file.buffer.subarray(4, 8).toString("ascii") === "ftyp");
+    if (!matches) throw new BadRequestException("Image content does not match its file type.");
+
+    const storage = this.storage();
+    const key = `products/${productId}/${randomUUID()}${extension}`;
+    const client = this.client(storage);
+    try {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: storage.bucket,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+          CacheControl: "public, max-age=31536000, immutable",
+        }),
+      );
+      if (!this.audit) throw new ServiceUnavailableException("Product media audit is unavailable.");
+      const audit = this.audit;
+      return await this.prisma.$transaction(async (tx) => {
+        const count = await tx.media.count({
+          where: {
+            ownerType: ContentEntityType.Product,
+            ownerId: productId,
+            type: MediaType.IMAGE,
+          },
+        });
+        const created = await tx.media.create({
+          data: {
+            url: `/media/${key}`,
+            type: MediaType.IMAGE,
+            altText: altText.trim(),
+            ownerType: ContentEntityType.Product,
+            ownerId: productId,
+            sortOrder: count,
+            isPrimary: count === 0,
+          },
+          select: { id: true, url: true, altText: true, sortOrder: true, isPrimary: true },
+        });
+        await audit.append(
+          { event: "product.image_uploaded", actorId, subjectId: productId, outcome: "success" },
+          tx,
+        );
+        return created;
+      });
+    } catch {
+      await client
+        .send(new DeleteObjectCommand({ Bucket: storage.bucket, Key: key }))
+        .catch(() => undefined);
+      throw new ServiceUnavailableException("Product image could not be stored.");
+    }
+  }
+
+  async setPrimaryProductImage(productId: string, imageId: string, actorId: string): Promise<void> {
+    if (!this.audit) throw new ServiceUnavailableException("Product media audit is unavailable.");
+    const audit = this.audit;
+    await this.prisma.$transaction(async (tx) => {
+      const image = await tx.media.findFirst({
+        where: {
+          id: imageId,
+          ownerType: ContentEntityType.Product,
+          ownerId: productId,
+          type: MediaType.IMAGE,
+        },
+        select: { id: true },
+      });
+      if (!image) throw new BadRequestException("Product image not found.");
+      await tx.media.updateMany({
+        where: { ownerType: ContentEntityType.Product, ownerId: productId, type: MediaType.IMAGE },
+        data: { isPrimary: false },
+      });
+      await tx.media.update({ where: { id: imageId }, data: { isPrimary: true } });
+      await audit.append(
+        {
+          event: "product.image_primary_changed",
+          actorId,
+          subjectId: productId,
+          outcome: "success",
+        },
+        tx,
+      );
+    });
+  }
+
+  async deleteProductImage(productId: string, imageId: string, actorId: string): Promise<void> {
+    if (!this.audit) throw new ServiceUnavailableException("Product media audit is unavailable.");
+    const audit = this.audit;
+    const image = await this.prisma.media.findFirst({
+      where: {
+        id: imageId,
+        ownerType: ContentEntityType.Product,
+        ownerId: productId,
+        type: MediaType.IMAGE,
+      },
+      select: { id: true, url: true, isPrimary: true },
+    });
+    if (!image) throw new BadRequestException("Product image not found.");
+    await this.prisma.$transaction(async (tx) => {
+      await tx.media.delete({ where: { id: image.id } });
+      if (image.isPrimary) {
+        const next = await tx.media.findFirst({
+          where: {
+            ownerType: ContentEntityType.Product,
+            ownerId: productId,
+            type: MediaType.IMAGE,
+          },
+          orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+          select: { id: true },
+        });
+        if (next) await tx.media.update({ where: { id: next.id }, data: { isPrimary: true } });
+      }
+      await audit.append(
+        { event: "product.image_removed", actorId, subjectId: productId, outcome: "success" },
+        tx,
+      );
+    });
+    const key = image.url.replace(/^\/media\//, "");
+    const storage = this.storage();
+    if (image.url.startsWith(`/media/products/${productId}/`))
+      await this.client(storage)
+        .send(new DeleteObjectCommand({ Bucket: storage.bucket, Key: key }))
+        .catch(() => undefined);
+  }
+
+  private storage(): {
+    endpoint: string;
+    region: string;
+    bucket: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+  } {
+    const value = (name: string): string => {
+      const found = this.config?.get<string>(name)?.trim();
+      if (!found) throw new ServiceUnavailableException("Product media storage is not configured.");
+      return found;
+    };
+    const endpoint = value("PRODUCT_MEDIA_ENDPOINT");
+    const bucket = value("PRODUCT_MEDIA_BUCKET");
+    let parsedEndpoint: URL;
+    try {
+      parsedEndpoint = new URL(endpoint);
+    } catch {
+      throw new ServiceUnavailableException("Product media storage is not configured correctly.");
+    }
+    if (
+      !["http:", "https:"].includes(parsedEndpoint.protocol) ||
+      bucket.toLowerCase().includes("private")
+    )
+      throw new ServiceUnavailableException("Product media storage is not configured correctly.");
+    return {
+      endpoint,
+      region: this.config?.get<string>("PRODUCT_MEDIA_REGION")?.trim() || "us-east-1",
+      bucket,
+      accessKeyId: value("PRODUCT_MEDIA_ACCESS_KEY_ID"),
+      secretAccessKey: value("PRODUCT_MEDIA_SECRET_ACCESS_KEY"),
+    };
+  }
+
+  private client(storage: ReturnType<MediaService["storage"]>): S3Client {
+    return new S3Client({
+      endpoint: storage.endpoint,
+      region: storage.region,
+      forcePathStyle: true,
+      credentials: { accessKeyId: storage.accessKeyId, secretAccessKey: storage.secretAccessKey },
     });
   }
 }

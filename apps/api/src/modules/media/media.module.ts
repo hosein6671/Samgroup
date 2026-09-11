@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { PrismaModule } from "../../prisma/prisma.module";
+import { AuditModule } from "../audit/audit.module";
 
 import { MediaService } from "./media.service";
 
@@ -21,7 +22,7 @@ import { MediaService } from "./media.service";
  * That is what keeps the dependency graph acyclic as more consumers arrive.
  */
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuditModule],
   providers: [MediaService],
   exports: [MediaService],
 })

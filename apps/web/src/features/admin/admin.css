@@ -2413,6 +2413,8 @@
   padding: 12px;
   border-radius: 8px;
   color: var(--color-text-inverse);
+  background: transparent;
+  border-color: transparent;
   text-decoration: none;
   line-height: 1.5;
 }
@@ -2420,6 +2422,7 @@
 .ad-dashboard-sidebar a:hover {
   color: var(--color-midnight-800);
   background: var(--ad-brass);
+  border-color: var(--ad-brass);
 }
 .ad-section-heading {
   display: flex;
@@ -2730,6 +2733,54 @@
 .ad-content-form small {
   font-weight: 400;
   line-height: 1.5;
+}
+.ad-media-preview {
+  display: grid;
+  width: min(100%, 320px);
+  gap: 8px;
+  margin-top: 10px;
+}
+.ad-media-preview img {
+  display: block;
+  width: 160px;
+  height: 100px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+  object-fit: cover;
+}
+.ad-media-upload {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+}
+.ad-product-media {
+  margin-block: 28px;
+}
+.ad-product-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-block: 16px;
+}
+.ad-product-media-grid article {
+  padding: 14px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 8px;
+}
+.ad-product-media-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.ad-product-media-grid button {
+  margin-inline-end: 8px;
+  margin-top: 8px;
 }
 .ad-content-actions {
   display: flex;

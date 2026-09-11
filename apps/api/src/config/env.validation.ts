@@ -211,6 +211,26 @@ class EnvironmentVariables {
   @IsString()
   PAYLOAD_API_KEY?: string;
 
+  @IsOptional()
+  @IsString()
+  PRODUCT_MEDIA_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsString()
+  PRODUCT_MEDIA_REGION?: string;
+
+  @IsOptional()
+  @IsString()
+  PRODUCT_MEDIA_BUCKET?: string;
+
+  @IsOptional()
+  @IsString()
+  PRODUCT_MEDIA_ACCESS_KEY_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  PRODUCT_MEDIA_SECRET_ACCESS_KEY?: string;
+
   /*
    * ── Outbound SMTP ─────────────────────────────────────────────────────────
    *

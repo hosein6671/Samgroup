@@ -26,6 +26,9 @@ export class AuditQuery {
   @IsIn([
     "product.draft_saved",
     "product.published",
+    "product.image_uploaded",
+    "product.image_primary_changed",
+    "product.image_removed",
     "auth.login",
     "auth.refresh",
     "auth.logout",

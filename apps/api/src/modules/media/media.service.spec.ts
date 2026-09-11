@@ -33,7 +33,7 @@ describe("MediaService.findImagesForOwner", () => {
     expect(mediaFindMany).toHaveBeenCalledWith({
       // "IMAGE" is the Prisma enum member; PostgreSQL stores it as the mapped label `image`.
       where: { ownerType: "Product", ownerId: PRODUCT_ID, type: "IMAGE" },
-      orderBy: { id: "asc" },
+      orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
       select: { id: true, url: true, altText: true },
     });
   });
@@ -70,5 +70,34 @@ describe("MediaService.findImagesForOwner", () => {
     await expect(
       service.findImagesForOwner(ContentEntityType.Product, PRODUCT_ID),
     ).resolves.toEqual([]);
+  });
+});
+
+describe("MediaService product-image writes", () => {
+  it("lists only image rows owned by the exact product and puts the primary first", async () => {
+    const { service, mediaFindMany } = createService();
+    await service.listProductImages(PRODUCT_ID);
+    expect(mediaFindMany).toHaveBeenCalledWith({
+      where: { ownerType: "Product", ownerId: PRODUCT_ID, type: "IMAGE" },
+      orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }, { id: "asc" }],
+      select: { id: true, url: true, altText: true, sortOrder: true, isPrimary: true },
+    });
+  });
+
+  it("rejects spoofed image bytes before storage is contacted", async () => {
+    const { service } = createService();
+    await expect(
+      service.uploadProductImage(
+        PRODUCT_ID,
+        {
+          buffer: Buffer.from("not a png"),
+          mimetype: "image/png",
+          originalname: "fake.png",
+          size: 9,
+        },
+        "Product container",
+        "22222222-2222-4222-8222-222222222222",
+      ),
+    ).rejects.toMatchObject({ status: 400 });
   });
 });

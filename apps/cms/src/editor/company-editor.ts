@@ -51,7 +51,7 @@ function editorFields(fields: Field[]): EditorField[] {
       return "fields" in field ? editorFields(field.fields) : [];
     if (field.name.startsWith("_") || ["id", "createdAt", "updatedAt"].includes(field.name))
       return [];
-    if (field.type === "upload" || field.type === "relationship") return [];
+    if (field.type === "relationship") return [];
     const label =
       typeof field.label === "string"
         ? field.label
@@ -61,6 +61,10 @@ function editorFields(fields: Field[]): EditorField[] {
       label,
       type: field.type === "text" && field.hasMany ? "stringArray" : field.type,
     };
+    if (field.type === "upload") {
+      if (field.relationTo !== "media") return [];
+      item.type = "media";
+    }
     if ("fields" in field) item.fields = editorFields(field.fields);
     if (field.type === "select") item.hasMany = field.hasMany === true;
     if (field.type === "select")

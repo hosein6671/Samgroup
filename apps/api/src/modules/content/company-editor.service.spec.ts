@@ -59,6 +59,69 @@ describe("company editor gateway", () => {
     expect(fetchMock.mock.calls[0][1].method).toBe("GET");
     expect(fetchMock.mock.calls[0][1].headers["x-editor-secret"]).toBe("separate-editor-test-key");
   });
+  it("projects the editorial media library without leaking storage metadata", async () => {
+    const fetchMock = jest.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              id: 7,
+              alt: "  Blending facility  ",
+              url: "/media/cms/facility.webp",
+              width: 1600,
+              height: 900,
+              filename: "facility.webp",
+              filesize: 123456,
+            },
+            { id: 8, alt: "Wrong origin", url: "https://store.internal/private.png" },
+          ],
+          total: 2,
+        }),
+      ),
+    );
+    global.fetch = fetchMock;
+    await expect(new CompanyEditorService(config).media()).resolves.toEqual({
+      items: [
+        {
+          id: 7,
+          alt: "Blending facility",
+          url: "/media/cms/facility.webp",
+          width: 1600,
+          height: 900,
+        },
+      ],
+      total: 2,
+    });
+    expect(fetchMock.mock.calls[0][0]).toBe("http://cms.internal/api/editor/media");
+  });
+  it("uploads only a signature-matching bounded editorial image", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ id: 9, alt: "Facility", url: "/media/cms/facility.jpg" })),
+      );
+    global.fetch = fetchMock;
+    const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xdb]);
+    await new CompanyEditorService(config).uploadMedia(
+      { buffer: jpeg, mimetype: "image/jpeg", originalname: "facility.jpg", size: jpeg.length },
+      " Facility ",
+    );
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body).toMatchObject({ alt: "Facility", name: "facility.jpg", mimeType: "image/jpeg" });
+    expect(Buffer.from(body.content, "base64")).toEqual(jpeg);
+
+    await expect(
+      new CompanyEditorService(config).uploadMedia(
+        {
+          buffer: Buffer.from("not an image"),
+          mimetype: "image/png",
+          originalname: "fake.png",
+          size: 12,
+        },
+        "Fake",
+      ),
+    ).rejects.toMatchObject({ status: 400 });
+  });
   it("does not turn unavailable history into an empty list", async () => {
     global.fetch = jest.fn().mockResolvedValue(new Response("unavailable", { status: 503 }));
     await expect(new CompanyEditorService(config).events({ page: 1 })).rejects.toMatchObject({

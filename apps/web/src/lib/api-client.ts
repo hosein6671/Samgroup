@@ -297,6 +297,43 @@ export async function apiPost<T>(
   return requestEnvelope<T>("POST", path, undefined, body, options);
 }
 
+/** Server-only multipart upload; the browser never learns the internal API origin or bearer token. */
+export async function apiPostFormData<T>(
+  path: string,
+  body: FormData,
+  options?: RequestOptions,
+): Promise<ApiResult<T>> {
+  const baseUrl = resolveBaseUrl();
+  if (baseUrl === null)
+    return { ok: false, reason: "unreachable", detail: "API_INTERNAL_URL is unset or invalid" };
+  try {
+    const headers: Record<string, string> = { accept: "application/json" };
+    if (options?.accessToken) headers.authorization = `Bearer ${options.accessToken}`;
+    const response = await fetch(composeUrl(baseUrl, path, undefined), {
+      method: "POST",
+      cache: "no-store",
+      headers,
+      body,
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    const responseBody = await readJsonBody(response);
+    if (!response.ok) {
+      const { code, message, details } = readErrorBody(responseBody);
+      return { ok: false, reason: "http", status: response.status, code, message, details };
+    }
+    if (!isRecord(responseBody) || !("data" in responseBody))
+      return { ok: false, reason: "malformed", status: response.status };
+    return {
+      ok: true,
+      data: responseBody.data as T,
+      meta: isRecord(responseBody.meta) ? (responseBody.meta as ApiMeta) : {},
+    };
+  } catch (error: unknown) {
+    if (isFrameworkControlFlow(error)) throw error;
+    return { ok: false, reason: "unreachable", detail: describeTransportFailure(error) };
+  }
+}
+
 /**
  * One PATCH against the API — the workflow mutations, issued only from Server Actions.
  *
@@ -318,6 +355,9 @@ export async function apiPatch<T>(
   options?: RequestOptions,
 ): Promise<ApiResult<T>> {
   return requestEnvelope<T>("PATCH", path, undefined, body, options);
+}
+export async function apiDelete<T>(path: string, options?: RequestOptions): Promise<ApiResult<T>> {
+  return requestEnvelope<T>("DELETE", path, undefined, {}, options);
 }
 
 /**
@@ -356,7 +396,7 @@ export async function apiPostNoContent(
 }
 
 /** The verbs this client issues. No DELETE: nothing in `apps/web` deletes through the API. */
-type HttpMethod = "GET" | "POST" | "PATCH";
+type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 /**
  * What one attempt at reaching the API produced, before anything is read from it.

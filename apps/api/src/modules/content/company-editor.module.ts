@@ -10,10 +10,14 @@ import {
   Module,
   Param,
   Patch,
+  Post,
   Query,
   ServiceUnavailableException,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { ConfigService } from "@nestjs/config";
 import {
   IsDateString,
@@ -77,6 +81,65 @@ export class CompanyEditorService {
     if (!Array.isArray(result.items) || typeof result.total !== "number")
       throw new ServiceUnavailableException("Invalid FAQ list.");
     return withMeta(result.items, { total: result.total, page, limit: 20 });
+  }
+  async media(): Promise<Record<string, unknown>> {
+    const result = await this.send("/api/editor/media");
+    if (!Array.isArray(result.items) || typeof result.total !== "number")
+      throw new ServiceUnavailableException("Invalid media list response.");
+    const items = result.items.flatMap((value) => {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+      const item = value as Record<string, unknown>;
+      if (
+        !Number.isInteger(item.id) ||
+        typeof item.alt !== "string" ||
+        !item.alt.trim() ||
+        typeof item.url !== "string" ||
+        !item.url.startsWith("/media/cms/")
+      )
+        return [];
+      const dimension = (input: unknown): number | null =>
+        typeof input === "number" && Number.isInteger(input) && input > 0 ? input : null;
+      return [
+        {
+          id: item.id,
+          alt: item.alt.trim(),
+          url: item.url,
+          width: dimension(item.width),
+          height: dimension(item.height),
+        },
+      ];
+    });
+    return { items, total: result.total };
+  }
+  async uploadMedia(
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    alt: string,
+  ): Promise<Record<string, unknown>> {
+    if (!alt.trim() || alt.length > 300)
+      throw new BadRequestException("Enter descriptive alt text.");
+    if (!new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]).has(file.mimetype))
+      throw new BadRequestException("Choose a JPEG, PNG, WebP or AVIF image.");
+    if (!file.buffer.length || file.size > 5 * 1024 * 1024)
+      throw new BadRequestException("Image must be no larger than 5 MB.");
+    const signatureMatches =
+      (file.mimetype === "image/jpeg" && file.buffer[0] === 0xff && file.buffer[1] === 0xd8) ||
+      (file.mimetype === "image/png" &&
+        file.buffer.subarray(0, 8).equals(Buffer.from("89504e470d0a1a0a", "hex"))) ||
+      (file.mimetype === "image/webp" &&
+        file.buffer.subarray(0, 4).toString("ascii") === "RIFF" &&
+        file.buffer.subarray(8, 12).toString("ascii") === "WEBP") ||
+      (file.mimetype === "image/avif" && file.buffer.subarray(4, 8).toString("ascii") === "ftyp");
+    if (!signatureMatches)
+      throw new BadRequestException("Image content does not match its file type.");
+    return this.send(
+      "/api/editor/media",
+      JSON.stringify({
+        alt: alt.trim(),
+        name: file.originalname,
+        mimeType: file.mimetype,
+        content: file.buffer.toString("base64"),
+      }),
+    );
   }
   async events(query: ContentEventsQuery): Promise<ReturnType<typeof withMeta>> {
     if (query.from && query.to && Date.parse(query.from) > Date.parse(query.to))
@@ -172,6 +235,23 @@ export class ContentEventsController {
 @Roles(UserRole.ADMIN, UserRole.CONTENT_MANAGER)
 export class CompanyEditorController {
   constructor(private readonly editor: CompanyEditorService) {}
+  @Get("media/library")
+  @Header("Cache-Control", "no-store")
+  media(): Promise<Record<string, unknown>> {
+    return this.editor.media();
+  }
+  @Post("media/upload")
+  @UseInterceptors(FileInterceptor("image", { limits: { fileSize: 5 * 1024 * 1024, files: 1 } }))
+  @Header("Cache-Control", "no-store")
+  uploadMedia(
+    @UploadedFile()
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number } | undefined,
+    @Body("alt") alt: unknown,
+  ): Promise<Record<string, unknown>> {
+    if (!file || typeof alt !== "string")
+      throw new BadRequestException("Choose an image and enter alt text.");
+    return this.editor.uploadMedia(file, alt);
+  }
   @Get(":key")
   @Header("Cache-Control", "no-store")
   read(

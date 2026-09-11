@@ -1,6 +1,6 @@
 "use client";
-import { useActionState, useEffect, useState } from "react";
-import { saveContent } from "./actions";
+import { useActionState, useEffect, useState, useTransition } from "react";
+import { saveContent, uploadEditorialMedia } from "./actions";
 import type { ReactNode } from "react";
 export type EditorField = {
   name: string;
@@ -10,6 +10,63 @@ export type EditorField = {
   fields?: EditorField[];
   options?: { label: string; value: string }[];
 };
+export type EditorialMedia = {
+  id: number;
+  alt: string;
+  url: string;
+  width: number | null;
+  height: number | null;
+};
+function MediaUpload({
+  disabled,
+  onUploaded,
+}: {
+  disabled: boolean;
+  onUploaded: (media: EditorialMedia) => void;
+}): ReactNode {
+  const [pending, startTransition] = useTransition();
+  const [message, setMessage] = useState("");
+  return (
+    <span className="ad-media-upload">
+      <label>
+        New image
+        <input
+          type="file"
+          name="image"
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          disabled={disabled || pending}
+        />
+      </label>
+      <label>
+        Descriptive alt text
+        <input type="text" name="alt" maxLength={300} disabled={disabled || pending} />
+      </label>
+      <button
+        type="button"
+        disabled={disabled || pending}
+        onClick={(event) => {
+          const container = event.currentTarget.closest(".ad-media-upload");
+          const image =
+            container?.querySelector<HTMLInputElement>('input[name="image"]')?.files?.[0];
+          const alt = container?.querySelector<HTMLInputElement>('input[name="alt"]')?.value ?? "";
+          const data = new FormData();
+          if (image) data.set("image", image);
+          data.set("alt", alt);
+          startTransition(async () => {
+            const result = await uploadEditorialMedia(data);
+            setMessage(result.message);
+            if (result.media) onUploaded(result.media);
+          });
+        }}
+      >
+        {pending ? "Uploading…" : "Upload and select"}
+      </button>
+      <small role="status" aria-live="polite">
+        {message}
+      </small>
+    </span>
+  );
+}
 function object(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -57,11 +114,13 @@ function Fields({
   value,
   update,
   disabled,
+  media,
 }: {
   schema: EditorField[];
   value: Record<string, unknown>;
   update: (value: Record<string, unknown>) => void;
   disabled: boolean;
+  media: EditorialMedia[];
 }): ReactNode {
   return schema.map((field) => {
     const current = value[field.name];
@@ -77,6 +136,7 @@ function Fields({
                 schema={field.fields ?? []}
                 value={object(row)}
                 disabled={disabled}
+                media={media}
                 update={(next) => set(rows.map((item, i) => (i === index ? next : item)))}
               />
               <button type="button" onClick={() => set(rows.filter((_, i) => i !== index))}>
@@ -94,9 +154,56 @@ function Fields({
       return (
         <fieldset key={field.name} disabled={disabled}>
           <legend>{field.label}</legend>
-          <Fields schema={field.fields} value={object(current)} disabled={disabled} update={set} />
+          <Fields
+            schema={field.fields}
+            value={object(current)}
+            disabled={disabled}
+            media={media}
+            update={set}
+          />
         </fieldset>
       );
+    if (field.type === "media") {
+      const selectedId =
+        typeof current === "number"
+          ? current
+          : current && typeof current === "object" && "id" in current
+            ? Number((current as { id: unknown }).id)
+            : 0;
+      const selected = media.find((item) => item.id === selectedId);
+      return (
+        <div key={field.name} className="ad-media-field">
+          <label>
+            {field.label}
+            <select
+              value={selectedId || ""}
+              disabled={disabled}
+              onChange={(event) => set(event.target.value ? Number(event.target.value) : null)}
+            >
+              <option value="">No image</option>
+              {media.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.alt}
+                </option>
+              ))}
+            </select>
+          </label>
+          {selected && (
+            <span className="ad-media-preview">
+              <img src={selected.url} alt="" width={160} />
+              <small>{selected.alt}</small>
+            </span>
+          )}
+          <MediaUpload
+            disabled={disabled}
+            onUploaded={(uploaded) => {
+              if (!media.some((item) => item.id === uploaded.id)) media.unshift(uploaded);
+              set(uploaded.id);
+            }}
+          />
+        </div>
+      );
+    }
     if (field.type === "checkbox")
       return (
         <label key={field.name}>
@@ -207,6 +314,7 @@ export function ContentForm({
   schema,
   initial,
   resource = "company",
+  media = [],
 }: {
   pageKey: string;
   revision: string;
@@ -214,6 +322,7 @@ export function ContentForm({
   schema: EditorField[];
   initial: Record<string, unknown>;
   resource?: "company" | "product";
+  media?: EditorialMedia[];
 }): ReactNode {
   const [fields, setFields] = useState(initial);
   const [dirty, setDirty] = useState(false);
@@ -246,6 +355,7 @@ export function ContentForm({
           setDirty(true);
         }}
         disabled={pending}
+        media={media}
       />
       <div className="ad-content-actions">
         <button name="action" value="save-draft" disabled={pending}>

@@ -1,14 +1,20 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Header,
   Param,
   ParseUUIDPipe,
   Patch,
+  Post,
   Query,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { UserRole } from "../../prisma/generated/client";
 import { withMeta } from "../../common/http/with-meta";
 import { CurrentUser } from "../identity/decorators/current-user.decorator";
@@ -34,6 +40,42 @@ export class ProductEditorController {
   @Header("Cache-Control", "no-store")
   get(@Param("id", ParseUUIDPipe) id: string): Promise<Record<string, unknown>> {
     return this.editor.get(id);
+  }
+  @Get(":id/images")
+  @Header("Cache-Control", "no-store")
+  images(@Param("id", ParseUUIDPipe) id: string): Promise<unknown[]> {
+    return this.editor.images(id);
+  }
+  @Post(":id/images")
+  @UseInterceptors(FileInterceptor("image", { limits: { fileSize: 5 * 1024 * 1024, files: 1 } }))
+  uploadImage(
+    @Param("id", ParseUUIDPipe) id: string,
+    @UploadedFile()
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number } | undefined,
+    @Body("altText") altText: unknown,
+    @CurrentUser() actor: AuthenticatedUser,
+  ): Promise<Record<string, unknown>> {
+    if (!file || typeof altText !== "string")
+      throw new BadRequestException("Choose an image and enter alt text.");
+    return this.editor.uploadImage(id, file, altText, actor.id);
+  }
+  @Patch(":id/images/:imageId/primary")
+  async setPrimaryImage(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("imageId", ParseUUIDPipe) imageId: string,
+    @CurrentUser() actor: AuthenticatedUser,
+  ): Promise<{ updated: true }> {
+    await this.editor.setPrimaryImage(id, imageId, actor.id);
+    return { updated: true };
+  }
+  @Delete(":id/images/:imageId")
+  async deleteImage(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("imageId", ParseUUIDPipe) imageId: string,
+    @CurrentUser() actor: AuthenticatedUser,
+  ): Promise<{ deleted: true }> {
+    await this.editor.deleteImage(id, imageId, actor.id);
+    return { deleted: true };
   }
   @Patch(":id")
   @Header("Cache-Control", "no-store")

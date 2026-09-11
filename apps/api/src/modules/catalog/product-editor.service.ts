@@ -2,6 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from "@nestjs/common
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { SeoService } from "../seo/seo.service";
+import { MediaService } from "../media/media.service";
 import type { Prisma } from "../../prisma/generated/client";
 import type { ProductEditorialEdit, ProductEditorQuery } from "./product-editor.dto";
 import { productEditorialSections } from "./product-editorial-sections";
@@ -20,6 +21,7 @@ export class ProductEditorService {
     private readonly prisma: PrismaService,
     private readonly seo: SeoService,
     private readonly audit: AuditService,
+    private readonly media?: MediaService,
   ) {}
 
   async list(query: ProductEditorQuery): Promise<{ items: unknown[]; total: number }> {
@@ -45,6 +47,35 @@ export class ProductEditorService {
       this.prisma.product.count({ where }),
     ]);
     return { items, total };
+  }
+  async images(id: string): Promise<unknown[]> {
+    await this.assertProduct(id);
+    if (!this.media) throw new NotFoundException("Product media is unavailable.");
+    return this.media.listProductImages(id);
+  }
+  async uploadImage(
+    id: string,
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    altText: string,
+    actorId: string,
+  ): Promise<Record<string, unknown>> {
+    await this.assertProduct(id);
+    if (!this.media) throw new NotFoundException("Product media is unavailable.");
+    return this.media.uploadProductImage(id, file, altText, actorId);
+  }
+  async setPrimaryImage(id: string, imageId: string, actorId: string): Promise<void> {
+    await this.assertProduct(id);
+    if (!this.media) throw new NotFoundException("Product media is unavailable.");
+    await this.media.setPrimaryProductImage(id, imageId, actorId);
+  }
+  async deleteImage(id: string, imageId: string, actorId: string): Promise<void> {
+    await this.assertProduct(id);
+    if (!this.media) throw new NotFoundException("Product media is unavailable.");
+    await this.media.deleteProductImage(id, imageId, actorId);
+  }
+  private async assertProduct(id: string): Promise<void> {
+    if (!(await this.prisma.product.findUnique({ where: { id }, select: { id: true } })))
+      throw new NotFoundException("Product not found.");
   }
   async get(id: string): Promise<Record<string, unknown>> {
     const product = await this.prisma.product.findUnique({

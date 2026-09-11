@@ -5,6 +5,9 @@ import type { Prisma } from "../../prisma/generated/client";
 export type AuditEventName =
   | "product.draft_saved"
   | "product.published"
+  | "product.image_uploaded"
+  | "product.image_primary_changed"
+  | "product.image_removed"
   | "auth.login"
   | "auth.refresh"
   | "auth.logout"
