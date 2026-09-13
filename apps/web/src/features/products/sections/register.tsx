@@ -1,3 +1,4 @@
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { BrandedPhoto } from "@/features/home/branded-photo";
@@ -40,21 +41,23 @@ import { FAMILIES } from "../products-data";
  */
 const RANGE_PREVIEW_COUNT = 3;
 
-export function ProductRegister({ locale }: { readonly locale: string }): ReactNode {
+export function ProductRegister({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("products-landing", "register", editorial);
+
   return (
     <section className="fs-sec pr-reg" id="families" data-surface="light">
       <div className="fs-wrap">
         <header className="pr-reg-head reveal-fade-rise">
           <div>
-            <p className="fs-eyebrow">The range</p>
+            <p className="fs-eyebrow">{copy.text("the_range")}</p>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "13ch" }}>
-              Start with the product family.
+              {copy.text("start_with_the_product_family")}
             </h2>
           </div>
-          <p className="fs-lead">
-            Each family brings its published grades, applications, typical properties, packaging
-            context, and available documents into one review path.
-          </p>
+          <p className="fs-lead">{copy.text("each_family_brings_its_published")}</p>
         </header>
 
         <div className="pr-family-grid reveal-stagger">
@@ -100,12 +103,14 @@ export function ProductRegister({ locale }: { readonly locale: string }): ReactN
                       <li key={range}>{range}</li>
                     ))}
                     {more > 0 && (
-                      <li className="pr-family-more">+{more} more on the family page</li>
+                      <li className="pr-family-more">
+                        +{more} {copy.text("more_on_the_family_page")}
+                      </li>
                     )}
                   </ul>
 
                   <span className="pr-family-go" aria-hidden="true">
-                    View range
+                    {copy.text("view_range")}
                     <Arrow size={15} />
                   </span>
                 </div>

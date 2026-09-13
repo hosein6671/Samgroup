@@ -1,3 +1,5 @@
+import { structuralMetadata } from "@/features/content/structural-seo";
+import { publishedStructural } from "@/features/content/published-structural";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -102,5 +104,12 @@ export default async function HomePage({
   // `null` unless a Privacy Policy is published — see `features/legal/privacy-policy.ts`.
   const privacyPolicyHref = await getPrivacyPolicyHref(locale);
 
-  return <HomeExperience locale={locale} locales={locales} privacyPolicyHref={privacyPolicyHref} />;
+  return (
+    <HomeExperience
+      editorial={(await publishedStructural("home", locale))?.fields}
+      locale={locale}
+      locales={locales}
+      privacyPolicyHref={privacyPolicyHref}
+    />
+  );
 }

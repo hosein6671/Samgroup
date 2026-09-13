@@ -42,6 +42,11 @@ import { RolesGuard } from "../identity/guards/roles.guard";
 import type { AuthenticatedUser } from "../identity/authenticated-user";
 
 const KEYS = [
+  "home",
+  "products-landing",
+  "export-logistics",
+  "header",
+  "footer",
   "faq-page",
   "about-us",
   "customized-solutions",

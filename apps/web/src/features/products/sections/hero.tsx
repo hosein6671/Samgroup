@@ -1,3 +1,4 @@
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { BrandedPhoto } from "@/features/home/branded-photo";
@@ -22,28 +23,29 @@ import { FAMILIES } from "../products-data";
  * The two hero actions are structural routes and were rendered raw. The grade index below them is
  * same-page `#family-*` fragments, which carry no locale and are left exactly as they were.
  */
-export function ProductsHero({ locale }: { readonly locale: string }): ReactNode {
+export function ProductsHero({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("products-landing", "hero", editorial);
+
   return (
     <section className="pr-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap pr-hero-inner">
         <div className="pr-hero-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Products</p>
-          <h1 className="fs-d1">Find the product. Define the requirement.</h1>
-          <p className="fs-lead">
-            Browse base oils, additives, automotive and industrial lubricants, marine oils, and
-            coolants by family—or use the Product Finder when you already know the grade,
-            application, or public specification you need.
-          </p>
+          <p className="fs-eyebrow">{copy.text("products")}</p>
+          <h1 className="fs-d1">{copy.text("find_the_product_define_the")}</h1>
+          <p className="fs-lead">{copy.text("browse_base_oils_additives_automotive")}</p>
 
           <div className="pr-hero-actions">
             <a href={localeHref(locale, ROUTES.productFinder)} className="fs-btn fs-btn--gold">
-              Open Product Finder
+              {copy.text("open_product_finder")}
               <Arrow size={15} />
             </a>
             <a href={localeHref(locale, ROUTES.requestQuote)} className="fs-btn fs-btn--glass">
-              Request a Quote
+              {copy.text("request_a_quote")}
             </a>
           </div>
         </div>
@@ -51,8 +53,8 @@ export function ProductsHero({ locale }: { readonly locale: string }): ReactNode
         <div className="pr-hero-visual reveal-fade-rise">
           <BrandedPhoto
             src="/images/products-portfolio-review.webp"
-            alt="Industrial lubricant containers and oil samples arranged for product review."
-            caption="BASE OILS · ADDITIVES · AUTOMOTIVE · INDUSTRIAL · MARINE · COOLANTS"
+            alt={copy.text("industrial_lubricant_containers_and_oil")}
+            caption={copy.text("caption_6")}
             className="pr-hero-photo"
             sizes="(max-width: 1180px) 100vw, 48vw"
           />

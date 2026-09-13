@@ -1,3 +1,4 @@
+import { StructuralContentService } from "./structural-content.service";
 import { FaqPageService } from "./faq-page.service";
 import { FaqController, FaqService } from "./faq.controller";
 import { CategoryContentController, CategoryContentService } from "./category-content.controller";
@@ -36,6 +37,7 @@ import { QualityCertificationsService } from "./quality-certifications.service";
     FaqController,
   ],
   providers: [
+    StructuralContentService,
     FaqService,
     FaqPageService,
     CategoryContentService,

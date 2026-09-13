@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import {
@@ -42,18 +47,22 @@ const GLYPHS: Record<Industry["icon"], (props: { readonly size: "lg" }) => React
   packaging: CatalogueIcon,
 };
 
-export function Industries(): ReactNode {
+export function Industries({
+  editorial,
+}: { readonly editorial?: StructuralFields } = {}): ReactNode {
+  const copy = structuralSection("home", "industries", editorial);
+
   return (
     <section className="fs-sec fs-ind" id="industries" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
       <div className="fs-wrap">
         <div className="fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Industries we serve</div>
-            <h2 className="fs-d2">Where these products go to work.</h2>
+            <div className="fs-eyebrow">{copy.text("industries_we_serve")}</div>
+            <h2 className="fs-d2">{copy.text("where_these_products_go_to")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "36ch" }}>
-            The same catalogue reaches five kinds of buyer, each starting from a different question.
+            {copy.text("the_same_catalogue_reaches_five")}
           </p>
         </div>
 
@@ -69,7 +78,7 @@ export function Industries(): ReactNode {
          * grid appeared as one block. Making the list the orchestration unit is what sequences it.
          */}
         <ul className="fs-cards fs-rv" data-columns="5">
-          {INDUSTRIES.map((item) => {
+          {structuralList(editorial, "industries", INDUSTRIES).map((item) => {
             const Glyph = GLYPHS[item.icon];
 
             return (

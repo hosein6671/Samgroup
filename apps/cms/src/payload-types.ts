@@ -101,6 +101,11 @@ export interface Config {
     'quality-certifications': QualityCertification;
     'contact-us': ContactUs;
     'faq-page': FaqPage;
+    home: Home;
+    'products-landing': ProductsLanding;
+    'export-logistics': ExportLogistic;
+    header: Header;
+    footer: Footer;
   };
   globalsSelect: {
     'about-us': AboutUsSelect<false> | AboutUsSelect<true>;
@@ -108,6 +113,11 @@ export interface Config {
     'quality-certifications': QualityCertificationsSelect<false> | QualityCertificationsSelect<true>;
     'contact-us': ContactUsSelect<false> | ContactUsSelect<true>;
     'faq-page': FaqPageSelect<false> | FaqPageSelect<true>;
+    home: HomeSelect<false> | HomeSelect<true>;
+    'products-landing': ProductsLandingSelect<false> | ProductsLandingSelect<true>;
+    'export-logistics': ExportLogisticsSelect<false> | ExportLogisticsSelect<true>;
+    header: HeaderSelect<false> | HeaderSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
   };
   locale: 'en' | 'fa' | 'ar';
   widgets: {
@@ -1453,6 +1463,479 @@ export interface FaqPage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: number;
+  hero: {
+    petroleum_products_for_professional_buyers: string;
+    base_oils_and_lubricants: string;
+    produced_not_traded: string;
+    specified_with_you: string;
+    sam_group_produces_and_supplies: string;
+    explore_our_products: string;
+    request_a_quotation: string;
+    portfolio_at_a_glance: string;
+    explore_the_sam_group_portfolio: string;
+  };
+  who_we_are: {
+    who_we_are: string;
+    a_manufacturer: string;
+    not_a_trading_company: string;
+    sam_group_produces_base_oils: string;
+    learn_more_about_sam_group: string;
+    industrial_lubricant_samples_and_packaging: string;
+    caption_6: string;
+  };
+  trust: {
+    trust_indicators: string;
+    what_buying_from_the_producer: string;
+    four_things_that_follow_from: string;
+  };
+  ecosystem: {
+    our_products: string;
+    six_families_and_one_route: string;
+    a_range_built_for_lubricant: string;
+    family_0: string;
+    explore_this_range: string;
+  };
+  advantages: {
+    why_businesses_choose_sam_group: string;
+    six_reasons_buyers_work_with: string;
+    the_practical_differences_between_buying: string;
+  };
+  industries: {
+    industries_we_serve: string;
+    where_these_products_go_to: string;
+    the_same_catalogue_reaches_five: string;
+  };
+  custom_formulation: {
+    customized_solutions: string;
+    when_the_catalogue_is_only: string;
+    where_a_standard_product_does: string;
+    oil_sample_review_beside_packaged: string;
+    from_requirement_to_finished_product: string;
+    step: string;
+    primary_cta: string;
+    secondary_cta: string;
+  };
+  network: {
+    export_enquiry_and_logistics_planning: string;
+    define_the_product_prepare_the: string;
+    bring_the_grade_required_quantity: string;
+    a_destination_to_read_it: string;
+    sealed_lubricant_drums_and_an: string;
+    product_grade: string;
+    packaging_destination: string;
+    a_destination: string;
+    export_destination: string;
+    route_drawn_to_destination: string;
+    caption_10: string;
+  };
+  insights: {
+    sam_group_insights: string;
+    practical_knowledge_for_better_product: string;
+    read_clear_guidance_on_product: string;
+    explore_insights: string;
+  };
+  lists?: {
+    who_we_are?:
+      | {
+          source: '0' | '1' | '2';
+          term?: string | null;
+          detail?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    trust_indicators?:
+      | {
+          source: '0' | '1' | '2' | '3';
+          title?: string | null;
+          body?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    advantages?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5';
+          title?: string | null;
+          body?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    industries?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4';
+          name?: string | null;
+          body?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    custom_steps?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5';
+          n?: string | null;
+          title?: string | null;
+          body?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products-landing".
+ */
+export interface ProductsLanding {
+  id: number;
+  hero: {
+    products: string;
+    find_the_product_define_the: string;
+    browse_base_oils_additives_automotive: string;
+    open_product_finder: string;
+    request_a_quote: string;
+    industrial_lubricant_containers_and_oil: string;
+    caption_6: string;
+  };
+  register: {
+    the_range: string;
+    start_with_the_product_family: string;
+    each_family_brings_its_published: string;
+    more_on_the_family_page: string;
+    view_range: string;
+  };
+  catalogue_structure: {
+    how_the_catalogue_is_organised: string;
+    family_product_grade_technical_data: string;
+  };
+  finder_teaser: {
+    product_finder: string;
+    filter_to_the_grade: string;
+    narrow_the_published_range_by: string;
+    _or_search_directly_by: string;
+    open_product_finder: string;
+    selection_parameters: string;
+    direct: string;
+    search_by_product_grade_or: string;
+  };
+  documentation: {
+    documentation: string;
+    specifications_first_forms_second: string;
+  };
+  closing_cta: {
+    next_step: string;
+    cant_find_exactly_what_you: string;
+    the_range_above_is_what: string;
+    request_a_custom_solution: string;
+    or_take_a_shorter_route: string;
+  };
+  lists?: {
+    finder_facets?:
+      | {
+          source: '0' | '1';
+          name?: string | null;
+          sample?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    document_tiers?:
+      | {
+          source: '0' | '1';
+          heading?: string | null;
+          note?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    closing_routes?:
+      | {
+          source: '0' | '1' | '2';
+          label?: string | null;
+          qualifier?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "export-logistics".
+ */
+export interface ExportLogistic {
+  id: number;
+  page: {
+    export_and_logistics: string;
+    plan_the_product_and_the: string;
+    a_useful_export_enquiry_combines: string;
+    discuss_an_export_requirement: string;
+    view_packaging_options: string;
+    petroleum_product_logistics_planning_with: string;
+    product_packaging_destination_trade_term: string;
+    start_with_a_complete_brief: string;
+    five_details_make_an_export: string;
+    share_what_is_already_known: string;
+    from_requirement_to_delivery: string;
+    a_clear_path_from_enquiry: string;
+    the_sequence_keeps_technical_commercial: string;
+    flexible_shipping_and_packaging: string;
+    packaging_selected_around_product_and: string;
+    available_formats_depend_on_the: string;
+    incoterms_and_commercial_scope: string;
+    state_the_trade_term_early: string;
+    indicate_exw_fob_cfr_cif: string;
+    preparing_an_export_enquiry: string;
+    send_the_grade_volume_packaging: string;
+    request_export_terms: string;
+    review_products: string;
+  };
+  lists?: {
+    brief_fields?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4';
+          title?: string | null;
+          description?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    delivery_steps?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7';
+          title?: string | null;
+          description?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    packaging?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5';
+          title?: string | null;
+          description?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    incoterms?:
+      | {
+          source: '0' | '1' | '2' | '3';
+          title?: string | null;
+          description?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
+    ogTitle?: string | null;
+    /**
+     * Falls back to the meta description.
+     */
+    ogDescription?: string | null;
+    twitterCardType?: ('summary' | 'summary_large_image') | null;
+    /**
+     * Falls back to the Open Graph title.
+     */
+    twitterTitle?: string | null;
+    /**
+     * Falls back to the Open Graph description.
+     */
+    twitterDescription?: string | null;
+    /**
+     * Uncheck to mark this page noindex.
+     */
+    robotsIndex?: boolean | null;
+    /**
+     * Uncheck to mark this page nofollow.
+     */
+    robotsFollow?: boolean | null;
+    /**
+     * Internal content planning. Not a ranking factor in modern search.
+     */
+    keywords?: string[] | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header".
+ */
+export interface Header {
+  id: number;
+  brand: {
+    name: string;
+    tagline: string;
+    quoteLabel: string;
+    product_families: string;
+    find_amp_download: string;
+    product_finder: string;
+    download_catalogue: string;
+    all_products: string;
+    contact_us: string;
+  };
+  lists?: {
+    navigation?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5';
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  brand: {
+    name: string;
+    tagline: string;
+    description: string;
+    contactHeading: string;
+    contactLabel: string;
+    rights: string;
+    privacy_label: string;
+  };
+  lists?: {
+    columns?:
+      | {
+          source: '0' | '1';
+          heading?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    company_links?:
+      | {
+          source: '0' | '1' | '2' | '3';
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "about-us_select".
  */
 export interface AboutUsSelect<T extends boolean = true> {
@@ -1862,6 +2345,432 @@ export interface FaqPageSelect<T extends boolean = true> {
         robotsIndex?: T;
         robotsFollow?: T;
         keywords?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        petroleum_products_for_professional_buyers?: T;
+        base_oils_and_lubricants?: T;
+        produced_not_traded?: T;
+        specified_with_you?: T;
+        sam_group_produces_and_supplies?: T;
+        explore_our_products?: T;
+        request_a_quotation?: T;
+        portfolio_at_a_glance?: T;
+        explore_the_sam_group_portfolio?: T;
+      };
+  who_we_are?:
+    | T
+    | {
+        who_we_are?: T;
+        a_manufacturer?: T;
+        not_a_trading_company?: T;
+        sam_group_produces_base_oils?: T;
+        learn_more_about_sam_group?: T;
+        industrial_lubricant_samples_and_packaging?: T;
+        caption_6?: T;
+      };
+  trust?:
+    | T
+    | {
+        trust_indicators?: T;
+        what_buying_from_the_producer?: T;
+        four_things_that_follow_from?: T;
+      };
+  ecosystem?:
+    | T
+    | {
+        our_products?: T;
+        six_families_and_one_route?: T;
+        a_range_built_for_lubricant?: T;
+        family_0?: T;
+        explore_this_range?: T;
+      };
+  advantages?:
+    | T
+    | {
+        why_businesses_choose_sam_group?: T;
+        six_reasons_buyers_work_with?: T;
+        the_practical_differences_between_buying?: T;
+      };
+  industries?:
+    | T
+    | {
+        industries_we_serve?: T;
+        where_these_products_go_to?: T;
+        the_same_catalogue_reaches_five?: T;
+      };
+  custom_formulation?:
+    | T
+    | {
+        customized_solutions?: T;
+        when_the_catalogue_is_only?: T;
+        where_a_standard_product_does?: T;
+        oil_sample_review_beside_packaged?: T;
+        from_requirement_to_finished_product?: T;
+        step?: T;
+        primary_cta?: T;
+        secondary_cta?: T;
+      };
+  network?:
+    | T
+    | {
+        export_enquiry_and_logistics_planning?: T;
+        define_the_product_prepare_the?: T;
+        bring_the_grade_required_quantity?: T;
+        a_destination_to_read_it?: T;
+        sealed_lubricant_drums_and_an?: T;
+        product_grade?: T;
+        packaging_destination?: T;
+        a_destination?: T;
+        export_destination?: T;
+        route_drawn_to_destination?: T;
+        caption_10?: T;
+      };
+  insights?:
+    | T
+    | {
+        sam_group_insights?: T;
+        practical_knowledge_for_better_product?: T;
+        read_clear_guidance_on_product?: T;
+        explore_insights?: T;
+      };
+  lists?:
+    | T
+    | {
+        who_we_are?:
+          | T
+          | {
+              source?: T;
+              term?: T;
+              detail?: T;
+              id?: T;
+            };
+        trust_indicators?:
+          | T
+          | {
+              source?: T;
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+        advantages?:
+          | T
+          | {
+              source?: T;
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+        industries?:
+          | T
+          | {
+              source?: T;
+              name?: T;
+              body?: T;
+              id?: T;
+            };
+        custom_steps?:
+          | T
+          | {
+              source?: T;
+              n?: T;
+              title?: T;
+              body?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products-landing_select".
+ */
+export interface ProductsLandingSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        products?: T;
+        find_the_product_define_the?: T;
+        browse_base_oils_additives_automotive?: T;
+        open_product_finder?: T;
+        request_a_quote?: T;
+        industrial_lubricant_containers_and_oil?: T;
+        caption_6?: T;
+      };
+  register?:
+    | T
+    | {
+        the_range?: T;
+        start_with_the_product_family?: T;
+        each_family_brings_its_published?: T;
+        more_on_the_family_page?: T;
+        view_range?: T;
+      };
+  catalogue_structure?:
+    | T
+    | {
+        how_the_catalogue_is_organised?: T;
+        family_product_grade_technical_data?: T;
+      };
+  finder_teaser?:
+    | T
+    | {
+        product_finder?: T;
+        filter_to_the_grade?: T;
+        narrow_the_published_range_by?: T;
+        _or_search_directly_by?: T;
+        open_product_finder?: T;
+        selection_parameters?: T;
+        direct?: T;
+        search_by_product_grade_or?: T;
+      };
+  documentation?:
+    | T
+    | {
+        documentation?: T;
+        specifications_first_forms_second?: T;
+      };
+  closing_cta?:
+    | T
+    | {
+        next_step?: T;
+        cant_find_exactly_what_you?: T;
+        the_range_above_is_what?: T;
+        request_a_custom_solution?: T;
+        or_take_a_shorter_route?: T;
+      };
+  lists?:
+    | T
+    | {
+        finder_facets?:
+          | T
+          | {
+              source?: T;
+              name?: T;
+              sample?: T;
+              id?: T;
+            };
+        document_tiers?:
+          | T
+          | {
+              source?: T;
+              heading?: T;
+              note?: T;
+              id?: T;
+            };
+        closing_routes?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              qualifier?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "export-logistics_select".
+ */
+export interface ExportLogisticsSelect<T extends boolean = true> {
+  page?:
+    | T
+    | {
+        export_and_logistics?: T;
+        plan_the_product_and_the?: T;
+        a_useful_export_enquiry_combines?: T;
+        discuss_an_export_requirement?: T;
+        view_packaging_options?: T;
+        petroleum_product_logistics_planning_with?: T;
+        product_packaging_destination_trade_term?: T;
+        start_with_a_complete_brief?: T;
+        five_details_make_an_export?: T;
+        share_what_is_already_known?: T;
+        from_requirement_to_delivery?: T;
+        a_clear_path_from_enquiry?: T;
+        the_sequence_keeps_technical_commercial?: T;
+        flexible_shipping_and_packaging?: T;
+        packaging_selected_around_product_and?: T;
+        available_formats_depend_on_the?: T;
+        incoterms_and_commercial_scope?: T;
+        state_the_trade_term_early?: T;
+        indicate_exw_fob_cfr_cif?: T;
+        preparing_an_export_enquiry?: T;
+        send_the_grade_volume_packaging?: T;
+        request_export_terms?: T;
+        review_products?: T;
+      };
+  lists?:
+    | T
+    | {
+        brief_fields?:
+          | T
+          | {
+              source?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+        delivery_steps?:
+          | T
+          | {
+              source?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+        packaging?:
+          | T
+          | {
+              source?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+        incoterms?:
+          | T
+          | {
+              source?: T;
+              title?: T;
+              description?: T;
+              id?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        canonicalUrl?: T;
+        ogTitle?: T;
+        ogDescription?: T;
+        twitterCardType?: T;
+        twitterTitle?: T;
+        twitterDescription?: T;
+        robotsIndex?: T;
+        robotsFollow?: T;
+        keywords?: T;
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header_select".
+ */
+export interface HeaderSelect<T extends boolean = true> {
+  brand?:
+    | T
+    | {
+        name?: T;
+        tagline?: T;
+        quoteLabel?: T;
+        product_families?: T;
+        find_amp_download?: T;
+        product_finder?: T;
+        download_catalogue?: T;
+        all_products?: T;
+        contact_us?: T;
+      };
+  lists?:
+    | T
+    | {
+        navigation?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              id?: T;
+            };
+      };
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  brand?:
+    | T
+    | {
+        name?: T;
+        tagline?: T;
+        description?: T;
+        contactHeading?: T;
+        contactLabel?: T;
+        rights?: T;
+        privacy_label?: T;
+      };
+  lists?:
+    | T
+    | {
+        columns?:
+          | T
+          | {
+              source?: T;
+              heading?: T;
+              id?: T;
+            };
+        company_links?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              id?: T;
+            };
       };
   _status?: T;
   updatedAt?: T;

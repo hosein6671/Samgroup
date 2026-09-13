@@ -1,3 +1,4 @@
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { CatalogueIcon, EnquiryRouteIcon, FamiliesIcon } from "@/features/site/icons";
@@ -31,7 +32,12 @@ const SPEC_GLYPHS: Record<FactIcon, (props: { readonly size: "sm" }) => ReactNod
  * The headline is server-rendered text in three masked lines. That makes it the LCP element and
  * keeps it crawlable; only the canvas and the counters are client work, and both sit behind it.
  */
-export function Hero({ locale }: { readonly locale: string }): ReactNode {
+export function Hero({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("home", "hero", editorial);
+
   return (
     <section className="fs-hero" id="top" data-surface="midnight">
       <OilField />
@@ -41,7 +47,9 @@ export function Hero({ locale }: { readonly locale: string }): ReactNode {
       <div className="fs-hero-body">
         <div className="fs-wrap fs-grid12 fs-hero-grid">
           <div className="fs-hero-copy">
-            <div className="fs-eyebrow fs-rv-l">Petroleum products for professional buyers</div>
+            <div className="fs-eyebrow fs-rv-l">
+              {copy.text("petroleum_products_for_professional_buyers")}
+            </div>
 
             {/*
              * Three lines, three masks — each travels up from behind its own overflow box.
@@ -56,31 +64,27 @@ export function Hero({ locale }: { readonly locale: string }): ReactNode {
              */}
             <h1 className="fs-d1">
               <span className="fs-line-mask">
-                <span>Base oils and lubricants.</span>
+                <span>{copy.text("base_oils_and_lubricants")}</span>
               </span>
               <span className="fs-line-mask">
-                <span>Produced, not traded.</span>
+                <span>{copy.text("produced_not_traded")}</span>
               </span>
               <span className="fs-line-mask">
                 <span>
-                  <em>Specified with you.</em>
+                  <em>{copy.text("specified_with_you")}</em>
                 </span>
               </span>
             </h1>
 
-            <p className="fs-hero-lead fs-rv-l">
-              SAM Group produces and supplies base oils, engine oils, industrial and marine
-              lubricants, additives and coolants — and develops formulations to meet the technical
-              and commercial requirements behind an order.
-            </p>
+            <p className="fs-hero-lead fs-rv-l">{copy.text("sam_group_produces_and_supplies")}</p>
 
             <div className="fs-hero-cta fs-rv-l">
               <a href={localeHref(locale, ROUTES.products)} className="fs-btn fs-btn--gold">
-                Explore our products
+                {copy.text("explore_our_products")}
                 <Arrow />
               </a>
               <a href={localeHref(locale, ROUTES.requestQuote)} className="fs-btn fs-btn--glass">
-                Request a quotation
+                {copy.text("request_a_quotation")}
               </a>
             </div>
           </div>
@@ -100,7 +104,7 @@ export function Hero({ locale }: { readonly locale: string }): ReactNode {
                * navigate by. The visual is unchanged — size lives on the CSS class, not on the
                * tag, which is exactly the role/element separation the design system is built on.
                */}
-              <h2>Portfolio at a glance</h2>
+              <h2>{copy.text("portfolio_at_a_glance")}</h2>
               <dl style={{ margin: 0 }}>
                 {HERO_SPEC.map((row) => {
                   const Glyph = row.icon ? SPEC_GLYPHS[row.icon] : null;
@@ -123,7 +127,7 @@ export function Hero({ locale }: { readonly locale: string }): ReactNode {
 
       <div className="fs-scroll-hint" aria-hidden="true">
         <i />
-        <span>Explore the SAM Group portfolio</span>
+        <span>{copy.text("explore_the_sam_group_portfolio")}</span>
       </div>
 
       {/*

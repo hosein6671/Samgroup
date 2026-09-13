@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { FormulationIcon, ManufacturerIcon, SupplyIcon } from "@/features/site/icons";
@@ -43,7 +48,12 @@ const GLYPHS: Record<
  * A Server Component. The `Story` version needed `"use client"` only for the panels' pointer tilt;
  * with the panels removed there is no client work left in this section at all.
  */
-export function WhoWeAre({ locale }: { readonly locale: string }): ReactNode {
+export function WhoWeAre({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("home", "who-we-are", editorial);
+
   return (
     <section className="fs-sec fs-story fs-who" id="who-we-are" data-surface="light">
       <div
@@ -53,21 +63,19 @@ export function WhoWeAre({ locale }: { readonly locale: string }): ReactNode {
       />
       <div className="fs-wrap fs-grid12">
         <div className="fs-story-left fs-rv">
-          <div className="fs-eyebrow">Who we are</div>
+          <div className="fs-eyebrow">{copy.text("who_we_are")}</div>
           <h2 className="fs-d2">
             <span className="fs-line-mask">
-              <span>A manufacturer,</span>
+              <span>{copy.text("a_manufacturer")}</span>
             </span>
             <span className="fs-line-mask">
               <span>
-                <i>not a trading company.</i>
+                <i>{copy.text("not_a_trading_company")}</i>
               </span>
             </span>
           </h2>
           <p className="fs-lead" style={{ marginTop: 26 }}>
-            SAM Group produces base oils, lubricants and additives, and supplies them to businesses
-            that buy on specification. Dealing with the producer means the formulation, the
-            packaging and the supply terms are all settled in the same conversation.
+            {copy.text("sam_group_produces_base_oils")}
           </p>
 
           {/*
@@ -78,7 +86,7 @@ export function WhoWeAre({ locale }: { readonly locale: string }): ReactNode {
            * moment instead of three independent fades.
            */}
           <dl className="fs-who-list">
-            {WHO_WE_ARE.map((item) => {
+            {structuralList(editorial, "who_we_are", WHO_WE_ARE).map((item) => {
               const Glyph = GLYPHS[item.icon];
 
               return (
@@ -106,7 +114,7 @@ export function WhoWeAre({ locale }: { readonly locale: string }): ReactNode {
             href={localeHref(locale, ROUTES.aboutUs)}
             className="fs-btn fs-btn--outline fs-who-cta"
           >
-            Learn more about SAM Group
+            {copy.text("learn_more_about_sam_group")}
             <Arrow size={14} />
           </a>
         </div>
@@ -114,8 +122,8 @@ export function WhoWeAre({ locale }: { readonly locale: string }): ReactNode {
         <div className="fs-story-right">
           <BrandedPhoto
             src="/images/home/story-product-portfolio.webp"
-            alt="Industrial lubricant samples and packaging formats arranged in a clean warehouse"
-            caption="SAM Group product portfolio"
+            alt={copy.text("industrial_lubricant_samples_and_packaging")}
+            caption={copy.text("caption_6")}
             className="fs-story-photo fs-rv"
             sizes="(max-width: 1180px) calc(100vw - 40px), 46vw"
           />

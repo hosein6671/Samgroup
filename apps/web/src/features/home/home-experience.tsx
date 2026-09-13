@@ -1,3 +1,4 @@
+import type { StructuralFields } from "@sam-group/types";
 import type { ReactNode } from "react";
 
 import "./flagship.css";
@@ -64,6 +65,7 @@ import { WhoWeAre } from "./sections/who-we-are";
  * migration — the components take the same shapes either way.
  */
 export function HomeExperience({
+  editorial,
   locale,
   locales,
 }: SiteNavProps & {
@@ -81,6 +83,7 @@ export function HomeExperience({
    * file from this one.
    */
   readonly privacyPolicyHref?: string | null;
+  readonly editorial?: StructuralFields;
 }): ReactNode {
   return (
     <div id="flagship-root" data-brand="flagship">
@@ -118,15 +121,15 @@ export function HomeExperience({
        * regions the `Notes` sheet names — see `HUBS` in `home-data.ts`.
        */}
       <main id="main-content">
-        <Hero locale={locale} />
-        <WhoWeAre locale={locale} />
-        <Trust />
-        <Ecosystem locale={locale} />
-        <Advantages />
-        <Industries />
-        <CustomFormulation locale={locale} />
-        <Network />
-        <Insights locale={locale} />
+        <Hero editorial={editorial} locale={locale} />
+        <WhoWeAre editorial={editorial} locale={locale} />
+        <Trust editorial={editorial} />
+        <Ecosystem editorial={editorial} locale={locale} />
+        <Advantages editorial={editorial} />
+        <Industries editorial={editorial} />
+        <CustomFormulation editorial={editorial} locale={locale} />
+        <Network editorial={editorial} />
+        <Insights editorial={editorial} locale={locale} />
       </main>
 
       <SiteFooter locale={locale} />

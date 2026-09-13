@@ -1,3 +1,4 @@
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -77,15 +78,19 @@ const STAGES: readonly StructureStage[] = [
   },
 ];
 
-export function CatalogueStructure(): ReactNode {
+export function CatalogueStructure({
+  editorial,
+}: { readonly editorial?: StructuralFields } = {}): ReactNode {
+  const copy = structuralSection("products-landing", "catalogue-structure", editorial);
+
   return (
     <section className="fs-sec pr-struct" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap">
         <header className="pr-struct-head reveal-fade-rise">
-          <p className="fs-eyebrow">How the catalogue is organised</p>
-          <h2 className="fs-d3">Family, product, grade, technical data.</h2>
+          <p className="fs-eyebrow">{copy.text("how_the_catalogue_is_organised")}</p>
+          <h2 className="fs-d3">{copy.text("family_product_grade_technical_data")}</h2>
         </header>
 
         <div className="pr-struct-panel reveal-fade-rise">

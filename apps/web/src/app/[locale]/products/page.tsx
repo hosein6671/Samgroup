@@ -1,3 +1,5 @@
+import { structuralMetadata } from "@/features/content/structural-seo";
+import { publishedStructural } from "@/features/content/published-structural";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -132,7 +134,11 @@ export default async function ProductsPage({
   return (
     <>
       <JsonLd data={schema} />
-      <ProductsExperience locale={locale} locales={locales} />
+      <ProductsExperience
+        editorial={(await publishedStructural("products-landing", locale))?.fields}
+        locale={locale}
+        locales={locales}
+      />
     </>
   );
 }

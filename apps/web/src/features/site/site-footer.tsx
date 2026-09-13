@@ -1,3 +1,5 @@
+import { publishedStructural } from "@/features/content/published-structural";
+import { structuralList, structuralSection } from "@/features/content/structural-copy";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -64,7 +66,14 @@ export async function SiteFooter({
   /** The route's locale segment, resolved on the server. The footer never negotiates one. */
   readonly locale: string;
 }): Promise<ReactNode> {
-  const columns = footerColumnsFor(locale);
+  const editorial = (await publishedStructural("footer", locale))?.fields;
+  const copy = structuralSection("footer", "brand", editorial);
+  const defaults = footerColumnsFor(locale).map((column, index) =>
+    index === 1
+      ? { ...column, links: structuralList(editorial, "company_links", column.links) }
+      : column,
+  );
+  const columns = structuralList(editorial, "columns", defaults);
   const homeHref = localeHref(locale, ROUTES.home);
   const privacyPolicyHref = await getPrivacyPolicyHref(locale);
 
@@ -86,8 +95,8 @@ export async function SiteFooter({
             >
               <LogoMark height={28} />
               <span>
-                <span className="fs-logo-txt">SAM GROUP</span>
-                <span className="fs-logo-sub">Petroleum Engineering</span>
+                <span className="fs-logo-txt">{copy.text("name")}</span>
+                <span className="fs-logo-sub">{copy.text("tagline")}</span>
               </span>
             </Link>
             {/*
@@ -98,9 +107,7 @@ export async function SiteFooter({
              * deliberately not restated here: this is a footer, not the place to carry the one
              * approved fact.
              */}
-            <p style={{ maxWidth: "34ch" }}>
-              Petroleum products, lubricants, base oils and industrial solutions.
-            </p>
+            <p style={{ maxWidth: "34ch" }}>{copy.text("description")}</p>
           </div>
 
           {columns.map((col) => (
@@ -121,8 +128,8 @@ export async function SiteFooter({
            * homepage only.
            */}
           <div className="fs-fcol">
-            <h2>Contact</h2>
-            <Link href={localeHref(locale, ROUTES.contactUs)}>Contact Us</Link>
+            <h2>{copy.text("contactHeading")}</h2>
+            <Link href={localeHref(locale, ROUTES.contactUs)}>{copy.text("contactLabel")}</Link>
           </div>
         </div>
 
@@ -132,10 +139,12 @@ export async function SiteFooter({
          * `space-between` flex row, so it lays out correctly with one child or with two.
          */}
         <div className="fs-fbot">
-          <span>© 2026 Sam Group · All rights reserved</span>
+          <span>
+            © {new Date().getFullYear()} {copy.text("name")} · {copy.text("rights")}
+          </span>
           {privacyPolicyHref !== null && (
             <Link href={privacyPolicyHref} className="fs-flegal">
-              Privacy Policy
+              {copy.text("privacy_label")}
             </Link>
           )}
         </div>

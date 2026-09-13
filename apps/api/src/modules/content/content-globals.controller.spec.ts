@@ -1,3 +1,4 @@
+import { StructuralContentService } from "./structural-content.service";
 import { FaqPageService } from "./faq-page.service";
 import { Test } from "@nestjs/testing";
 
@@ -118,6 +119,15 @@ async function createHarness(): Promise<Harness> {
     controllers: [ContentGlobalsController],
     providers: [
       {
+        provide: StructuralContentService,
+        useValue: {
+          read: jest.fn().mockResolvedValue({
+            response: { available: false, content: null },
+            localeFallback: false,
+          }),
+        },
+      },
+      {
         provide: FaqPageService,
         useValue: {
           find: jest.fn().mockResolvedValue({
@@ -215,7 +225,7 @@ describe("ContentGlobalsController", () => {
   it("404s an unimplemented global without touching the CMS", async () => {
     const { controller, find, findSolutions, findQuality, resolve } = await createHarness();
 
-    const error: unknown = await controller.findOne("home", {}).then(
+    const error: unknown = await controller.findOne({}).then(
       () => null,
       (rejection: unknown) => rejection,
     );
@@ -266,7 +276,7 @@ describe("ContentGlobalsController", () => {
      * and until then each is a 404 decided here rather than an empty read against the CMS. The
      * assertions below are what fixes that four/four boundary.
      */
-    it("recognises the five built names", async () => {
+    it("recognises all ten built names", async () => {
       const { controller } = await createHarness();
 
       for (const built of [
@@ -275,11 +285,16 @@ describe("ContentGlobalsController", () => {
         "quality-certifications",
         "contact-us",
         "faq-page",
+        "home",
+        "products-landing",
+        "export-logistics",
+        "header",
+        "footer",
       ]) {
         await expect(controller.findOne(built, {})).resolves.toBeDefined();
       }
 
-      for (const unbuilt of ["home", "products-landing", "export-logistics"]) {
+      for (const unbuilt of ["unknown-global"]) {
         const error: unknown = await controller.findOne(unbuilt, {}).then(
           () => null,
           (rejection: unknown) => rejection,

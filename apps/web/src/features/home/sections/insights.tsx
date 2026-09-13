@@ -1,3 +1,4 @@
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -46,24 +47,26 @@ import { localeHref, ROUTES } from "@/features/site/site-routes";
  * it left the reader's language to `middleware.ts` to guess. `ROUTES.insights` stays locale-less;
  * `localeHref` applies the prefix here, as it does in the chrome.
  */
-export function Insights({ locale }: { readonly locale: string }): ReactNode {
+export function Insights({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("home", "insights", editorial);
+
   return (
     <section className="fs-sec fs-insights" id="insights" data-surface="light">
       <div className="fs-wrap">
         <div className="fs-ins-head fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">SAM Group insights</div>
+            <div className="fs-eyebrow">{copy.text("sam_group_insights")}</div>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "20ch" }}>
-              Practical knowledge for better product decisions.
+              {copy.text("practical_knowledge_for_better_product")}
             </h2>
-            <p className="fs-lead fs-ins-lede">
-              Read clear guidance on product selection, technical terminology, documentation,
-              packaging, and export enquiry preparation.
-            </p>
+            <p className="fs-lead fs-ins-lede">{copy.text("read_clear_guidance_on_product")}</p>
           </div>
 
           <a href={localeHref(locale, ROUTES.insights)} className="fs-btn fs-btn--outline">
-            Explore insights
+            {copy.text("explore_insights")}
             <Arrow />
           </a>
         </div>

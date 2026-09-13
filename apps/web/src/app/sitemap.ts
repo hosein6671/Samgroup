@@ -1,3 +1,4 @@
+import { structuralInSitemap } from "@/features/content/structural-seo";
 import { getFaqPageContent, faqInSitemap } from "@/features/faq/page-content";
 import { PRIVACY_POLICY_SLUG, resolvePrivacyPolicy } from "@/features/legal/privacy-policy";
 import { publishedFaq } from "@/features/faq/published-faq";
@@ -161,7 +162,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     publishedFaq(primary).catch(() => null),
   ]);
 
-  const urls: MetadataRoute.Sitemap = STRUCTURAL_ROUTES.map((path) => ({
+  const structuralVisibility = await Promise.all(
+    STRUCTURAL_ROUTES.map(async (path) => {
+      const scope =
+        path === ROUTES.home
+          ? "home"
+          : path === ROUTES.products
+            ? "products-landing"
+            : path === ROUTES.exportLogistics
+              ? "export-logistics"
+              : null;
+      return (
+        scope === null || (await structuralInSitemap(scope, primary, localePath(primary, path)))
+      );
+    }),
+  );
+  const urls: MetadataRoute.Sitemap = STRUCTURAL_ROUTES.filter(
+    (_, i) => structuralVisibility[i],
+  ).map((path) => ({
     url: absoluteUrl(localePath(primary, path)),
   }));
   if (faq?.length && faqInSitemap(primary, await getFaqPageContent(primary).catch(() => null)))

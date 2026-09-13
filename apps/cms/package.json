@@ -24,7 +24,8 @@
     "next": "16.2.12",
     "payload": "3.88.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "@sam-group/types": "workspace:*"
   },
   "devDependencies": {
     "@sam-group/tsconfig": "workspace:*",

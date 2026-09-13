@@ -1,3 +1,5 @@
+import { structuralMetadata } from "@/features/content/structural-seo";
+import { publishedStructural } from "@/features/content/published-structural";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
@@ -68,7 +70,11 @@ export default async function ExportLogisticsPage({
   return (
     <>
       <JsonLd data={webPageJsonLd({ url, name: TITLE, description: DESCRIPTION, locale })} />
-      <ExportLogisticsExperience locale={locale} locales={locales} />
+      <ExportLogisticsExperience
+        editorial={(await publishedStructural("export-logistics", locale))?.fields}
+        locale={locale}
+        locales={locales}
+      />
     </>
   );
 }

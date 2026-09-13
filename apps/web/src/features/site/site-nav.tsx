@@ -1,4 +1,6 @@
 "use client";
+import { useHeaderContent } from "@/features/content/header-content";
+import { structuralList, structuralSection } from "@/features/content/structural-copy";
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -104,6 +106,8 @@ export type SiteNavProps = {
 };
 
 export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
+  const editorial = useHeaderContent();
+  const copy = structuralSection("header", "brand", editorial);
   const ref = useRef<HTMLElement>(null);
   const megaRef = useRef<HTMLDivElement>(null);
   const megaTriggerRef = useRef<HTMLButtonElement>(null);
@@ -133,7 +137,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
     locales.map((entry) => entry.code),
   );
 
-  const primary = primaryNavLinks(locale, structuralPath);
+  const primary = structuralList(editorial, "navigation", primaryNavLinks(locale, structuralPath));
   const families = productFamilyLinks(locale);
   const columns = [families.slice(0, 3), families.slice(3, 6)];
 
@@ -251,8 +255,8 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
         >
           <LogoMark height={28} priority />
           <span>
-            <span className="fs-logo-txt">SAM GROUP</span>
-            <span className="fs-logo-sub">Petroleum Engineering</span>
+            <span className="fs-logo-txt">{copy.text("name")}</span>
+            <span className="fs-logo-sub">{copy.text("tagline")}</span>
           </span>
         </Link>
 
@@ -288,10 +292,10 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                   <div className="fs-mega-inner">
                     {columns.map((col, i) => (
                       <div className="fs-mega-col" key={i}>
-                        {i === 0 && <p className="fs-mega-head">Product families</p>}
+                        {i === 0 && <p className="fs-mega-head">{copy.text("product_families")}</p>}
                         {i === 1 && (
                           <p className="fs-mega-head" aria-hidden="true">
-                            &nbsp;
+                            {"\u00a0"}
                           </p>
                         )}
                         <ul>
@@ -312,12 +316,12 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                     ))}
 
                     <div className="fs-mega-col fs-mega-col--promo">
-                      <p className="fs-mega-head">Find &amp; download</p>
+                      <p className="fs-mega-head">{copy.text("find_amp_download")}</p>
                       <ul>
                         <li>
                           <Link href={finderHref}>
                             <FinderIcon size="md" />
-                            Product Finder
+                            {copy.text("product_finder")}
                           </Link>
                         </li>
                         <li>
@@ -329,12 +333,12 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                            */}
                           <Link href={documentationHref}>
                             <CatalogueDownloadIcon size="md" />
-                            Download Catalogue
+                            {copy.text("download_catalogue")}
                           </Link>
                         </li>
                       </ul>
                       <Link href={productsHref} className="fs-mega-all">
-                        All products
+                        {copy.text("all_products")}
                         <Arrow size={13} />
                       </Link>
                     </div>
@@ -397,7 +401,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
           </div>
 
           <Link href={quoteHref} className="fs-btn fs-btn--gold fs-nav-cta">
-            Request a Quote
+            {copy.text("quoteLabel")}
           </Link>
 
           <button
@@ -455,19 +459,19 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                       <li>
                         <Link href={finderHref}>
                           <FinderIcon size="md" />
-                          Product Finder
+                          {copy.text("product_finder")}
                         </Link>
                       </li>
                       <li>
                         <Link href={documentationHref}>
                           <CatalogueDownloadIcon size="md" />
-                          Download Catalogue
+                          {copy.text("download_catalogue")}
                         </Link>
                       </li>
                       <li>
                         <Link href={productsHref}>
                           <Arrow size={13} />
-                          All products
+                          {copy.text("all_products")}
                         </Link>
                       </li>
                     </ul>
@@ -499,10 +503,10 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
          */}
         <div className="fs-drawer-foot">
           <Link href={localeHref(locale, ROUTES.contactUs)} className="fs-btn fs-btn--glass">
-            Contact Us
+            {copy.text("contact_us")}
           </Link>
           <Link href={quoteHref} className="fs-btn fs-btn--gold">
-            Request a Quote
+            {copy.text("quoteLabel")}
           </Link>
         </div>
       </div>

@@ -791,3 +791,9 @@ Category PATCH additionally permits useSharedFaq/useEditorialApplications boolea
 ### FAQ page Global — 11 September 2026
 
 `GET /content/globals/faq-page?locale=en` returns the standard `{ data: { available, content }, meta }` envelope. Published `content` is `{ fields, seo? }`, where fields contains eyebrow/title/introduction/questionsHeading/contactHeading/contactText/contactLabel. Draft, incomplete or untranslated content returns available:false/content:null; upstream failure remains 503. No CMS internal identifiers or revision history are exposed. `GET/PATCH /admin/content/faq-page` uses the existing Admin/ContentManager editor contract, revision checks and audited publication; no new auth surface.
+
+### Structural content globals — 12 September 2026
+
+GET /content/globals/:name additionally serves home, products-landing, export-logistics, header and footer. Response uses the existing available/content envelope. Published English content projects { fields, seo? }; fields contains the named text groups and validated lists. Known unpublished globals return available:false; unknown names remain 404; upstream failures retain error semantics. No draft or internal CMS field is returned.
+
+The same five keys are accepted by the existing authenticated /admin/content/:key editor (Admin/ContentManager). Existing revision, operationId, draft/publish and audit-receipt contracts are unchanged. Text is bounded to 4000 characters per field. Lists select existing source identities; duplicate identities, unknown fields and unsafe SEO canonicals are rejected. Header/footer carry no page SEO.

@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import {
@@ -38,18 +43,20 @@ const GLYPHS: Record<Indicator["icon"], (props: { readonly size: "lg" }) => Reac
   packaging: PackagingIcon,
 };
 
-export function Trust(): ReactNode {
+export function Trust({ editorial }: { readonly editorial?: StructuralFields } = {}): ReactNode {
+  const copy = structuralSection("home", "trust", editorial);
+
   return (
     <section className="fs-sec fs-trust" id="trust-indicators" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
       <div className="fs-wrap">
         <div className="fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Trust indicators</div>
-            <h2 className="fs-d2">What buying from the producer changes.</h2>
+            <div className="fs-eyebrow">{copy.text("trust_indicators")}</div>
+            <h2 className="fs-d2">{copy.text("what_buying_from_the_producer")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "34ch" }}>
-            Four things that follow from dealing with the company that makes the product.
+            {copy.text("four_things_that_follow_from")}
           </p>
         </div>
 
@@ -65,7 +72,7 @@ export function Trust(): ReactNode {
          * grid appeared as one block. Making the list the orchestration unit is what sequences it.
          */}
         <ul className="fs-cards fs-rv" data-columns="4">
-          {TRUST_INDICATORS.map((item) => {
+          {structuralList(editorial, "trust_indicators", TRUST_INDICATORS).map((item) => {
             const Glyph = GLYPHS[item.icon];
 
             return (

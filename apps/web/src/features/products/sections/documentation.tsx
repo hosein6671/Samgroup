@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -28,15 +33,20 @@ import { DOCUMENT_TIERS } from "../products-data";
  * no dedicated DownloadRequest endpoint — the page sends the buyer to the working enquiry route
  * instead of presenting a disabled or silently inert form.
  */
-export function Documentation({ locale }: { readonly locale: string }): ReactNode {
+export function Documentation({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("products-landing", "documentation", editorial);
+
   return (
     <section className="fs-sec pr-docs" id="documentation" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap pr-docs-inner">
         <header className="pr-docs-head reveal-fade-rise">
-          <p className="fs-eyebrow">Documentation</p>
-          <h2 className="fs-d2">Specifications first, forms second.</h2>
+          <p className="fs-eyebrow">{copy.text("documentation")}</p>
+          <h2 className="fs-d2">{copy.text("specifications_first_forms_second")}</h2>
         </header>
 
         {/*
@@ -47,7 +57,7 @@ export function Documentation({ locale }: { readonly locale: string }): ReactNod
           inside a panel, and the panel is the gate.
         */}
         <div className="pr-tiers">
-          {DOCUMENT_TIERS.map((tier) => (
+          {structuralList(editorial, "document_tiers", DOCUMENT_TIERS).map((tier) => (
             <div className={`pr-tier pr-tier--${tier.kind} reveal-fade-rise`} key={tier.heading}>
               <p className="fs-eyebrow">{tier.kind === "gated" ? "Qualified access" : "Open"}</p>
               <h3>{tier.heading}</h3>

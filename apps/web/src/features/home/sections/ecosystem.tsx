@@ -1,4 +1,5 @@
 "use client";
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 
 import { useState, type ReactNode } from "react";
 
@@ -39,7 +40,12 @@ import { OrbitVisual } from "../visuals/orbit-visual";
  * two routes pointing at the same category and one at a family it was not about. Each family now
  * carries its own `key`, so the address comes from the record itself and cannot drift.
  */
-export function Ecosystem({ locale }: { readonly locale: string }): ReactNode {
+export function Ecosystem({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("home", "ecosystem", editorial);
+
   const [active, setActive] = useState<string>(FAMILIES[0]?.id ?? "base");
 
   const current = FAMILIES.find((f) => f.id === active) ?? FAMILIES[0];
@@ -52,12 +58,11 @@ export function Ecosystem({ locale }: { readonly locale: string }): ReactNode {
       <div className="fs-wrap">
         <div className="fs-eco-head fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Our products</div>
-            <h2 className="fs-d2">Six families, and one route into each.</h2>
+            <div className="fs-eyebrow">{copy.text("our_products")}</div>
+            <h2 className="fs-d2">{copy.text("six_families_and_one_route")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "38ch" }}>
-            A range built for lubricant manufacturers, industrial companies and specialised
-            industries. Select a family to see what it covers and what an enquiry needs.
+            {copy.text("a_range_built_for_lubricant")}
           </p>
         </div>
 
@@ -102,7 +107,8 @@ export function Ecosystem({ locale }: { readonly locale: string }): ReactNode {
               {current && (
                 <>
                   <div className="k">
-                    Family 0{index + 1} · {current.sub}
+                    {copy.text("family_0")}
+                    {index + 1} · {current.sub}
                   </div>
                   <h3>{current.name}</h3>
                   <p>{current.body}</p>
@@ -121,7 +127,7 @@ export function Ecosystem({ locale }: { readonly locale: string }): ReactNode {
                       style={{ marginTop: 24, minHeight: 46 }}
                       aria-label={`View ${category.label}`}
                     >
-                      Explore this range
+                      {copy.text("explore_this_range")}
                       <Arrow size={14} />
                     </a>
                   )}

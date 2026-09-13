@@ -1,3 +1,4 @@
+import { StructuralContentService } from "./structural-content.service";
 import { FaqPageService, type FaqPageContent } from "./faq-page.service";
 import { Controller, Get, HttpStatus, Param, Query } from "@nestjs/common";
 
@@ -71,8 +72,14 @@ export class ContentGlobalsController {
     contactUs: ContactUsService,
     private readonly localeResolution: LocaleResolutionService,
     faqPage: FaqPageService,
+    structural: StructuralContentService,
   ) {
     this.readers = {
+      ...Object.fromEntries(
+        (["home", "products-landing", "export-logistics", "header", "footer"] as const).map(
+          (scope) => [scope, { find: (locale: ResolvedLocale) => structural.read(scope, locale) }],
+        ),
+      ),
       "about-us": aboutUs,
       "customized-solutions": customizedSolutions,
       "quality-certifications": qualityCertifications,

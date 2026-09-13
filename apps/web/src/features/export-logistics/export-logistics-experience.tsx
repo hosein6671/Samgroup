@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
@@ -47,7 +52,13 @@ const INCOTERMS = [
   ["CIF", "CFR scope with the contractually applicable cargo insurance arranged by the seller."],
 ] as const;
 
-export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): ReactNode {
+export function ExportLogisticsExperience({
+  locale,
+  locales,
+  editorial,
+}: SiteNavProps & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("export-logistics", "page", editorial);
+
   const isEnglishRoute = locale === "en";
   return (
     <div data-brand="flagship">
@@ -62,30 +73,28 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
         <section className="el-hero" data-surface="midnight">
           <div className="fs-wrap el-hero-grid">
             <div className="el-hero-copy">
-              <div className="fs-eyebrow">Export and logistics</div>
-              <h1 className="fs-d1">Plan the product and the shipment in the same conversation.</h1>
-              <p className="fs-lead">
-                A useful export enquiry combines the selected product with quantity, packaging,
-                destination, and preferred trade terms.
-              </p>
+              <div className="fs-eyebrow">{copy.text("export_and_logistics")}</div>
+              <h1 className="fs-d1">{copy.text("plan_the_product_and_the")}</h1>
+              <p className="fs-lead">{copy.text("a_useful_export_enquiry_combines")}</p>
               <div className="el-actions">
                 <a className="fs-btn fs-btn--gold" href={localeHref(locale, ROUTES.requestQuote)}>
-                  Discuss an export requirement <Arrow />
+                  {copy.text("discuss_an_export_requirement")}
+                  <Arrow />
                 </a>
                 <a className="fs-btn fs-btn--glass" href="#packaging">
-                  View packaging options
+                  {copy.text("view_packaging_options")}
                 </a>
               </div>
             </div>
             <figure className="el-hero-media">
               <Image
                 src="/images/home/network-export-logistics.webp"
-                alt="Petroleum product logistics planning with containers and industrial packaging"
+                alt={copy.text("petroleum_product_logistics_planning_with")}
                 fill
                 priority
                 sizes="(max-width: 900px) calc(100vw - 40px), 44vw"
               />
-              <figcaption>Product · packaging · destination · trade term</figcaption>
+              <figcaption>{copy.text("product_packaging_destination_trade_term")}</figcaption>
             </figure>
           </div>
         </section>
@@ -93,23 +102,22 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
         <section className="fs-sec el-brief" data-surface="light">
           <div className="fs-wrap el-brief-grid">
             <div>
-              <div className="fs-eyebrow">Start with a complete brief</div>
-              <h2 className="fs-d2">Five details make an export enquiry reviewable.</h2>
-              <p className="fs-lead">
-                Share what is already known. Unknown fields can be clarified without turning an
-                assumption into a commercial term.
-              </p>
+              <div className="fs-eyebrow">{copy.text("start_with_a_complete_brief")}</div>
+              <h2 className="fs-d2">{copy.text("five_details_make_an_export")}</h2>
+              <p className="fs-lead">{copy.text("share_what_is_already_known")}</p>
             </div>
             <dl className="el-brief-list">
-              {BRIEF_FIELDS.map(([term, detail], index) => (
-                <div key={term}>
-                  <dt>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    {term}
-                  </dt>
-                  <dd>{detail}</dd>
-                </div>
-              ))}
+              {structuralList(editorial, "brief_fields", BRIEF_FIELDS).map(
+                ([term, detail], index) => (
+                  <div key={term}>
+                    <dt>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      {term}
+                    </dt>
+                    <dd>{detail}</dd>
+                  </div>
+                ),
+              )}
             </dl>
           </div>
         </section>
@@ -117,20 +125,21 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
         <section className="fs-sec el-route" data-surface="midnight">
           <div className="fs-wrap">
             <SectionHead
-              eyebrow="From requirement to delivery"
-              title="A clear path from enquiry to shipment."
+              eyebrow={copy.text("from_requirement_to_delivery")}
+              title={copy.text("a_clear_path_from_enquiry")}
             >
-              The sequence keeps technical, commercial, and shipment decisions connected. A step
-              moves forward only with the information relevant to it.
+              {copy.text("the_sequence_keeps_technical_commercial")}
             </SectionHead>
             <ol className="el-route-list">
-              {DELIVERY_STEPS.map(([title, body], index) => (
-                <li key={title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
-                </li>
-              ))}
+              {structuralList(editorial, "delivery_steps", DELIVERY_STEPS).map(
+                ([title, body], index) => (
+                  <li key={title}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <h3>{title}</h3>
+                    <p>{body}</p>
+                  </li>
+                ),
+              )}
             </ol>
           </div>
         </section>
@@ -138,14 +147,13 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
         <section className="fs-sec el-packaging" id="packaging" data-surface="light">
           <div className="fs-wrap">
             <SectionHead
-              eyebrow="Flexible shipping and packaging"
-              title="Packaging selected around product and route."
+              eyebrow={copy.text("flexible_shipping_and_packaging")}
+              title={copy.text("packaging_selected_around_product_and")}
             >
-              Available formats depend on the selected product, quantity, loading requirements, and
-              destination. Availability is confirmed for the enquiry rather than assumed.
+              {copy.text("available_formats_depend_on_the")}
             </SectionHead>
             <div className="el-pack-grid">
-              {PACKAGING.map(([title, body]) => (
+              {structuralList(editorial, "packaging", PACKAGING).map(([title, body]) => (
                 <article key={title}>
                   <span aria-hidden="true" />
                   <h3>{title}</h3>
@@ -159,16 +167,12 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
         <section className="fs-sec el-terms" data-surface="midnight">
           <div className="fs-wrap el-terms-grid">
             <div className="el-terms-copy">
-              <div className="fs-eyebrow">Incoterms and commercial scope</div>
-              <h2 className="fs-d2">State the trade term early.</h2>
-              <p className="fs-lead">
-                Indicate EXW, FOB, CFR, CIF, or “not sure” in the enquiry. The quotation should name
-                the applicable Incoterm and place or port; payment terms and lead time are confirmed
-                separately.
-              </p>
+              <div className="fs-eyebrow">{copy.text("incoterms_and_commercial_scope")}</div>
+              <h2 className="fs-d2">{copy.text("state_the_trade_term_early")}</h2>
+              <p className="fs-lead">{copy.text("indicate_exw_fob_cfr_cif")}</p>
             </div>
             <dl className="el-term-list">
-              {INCOTERMS.map(([term, meaning]) => (
+              {structuralList(editorial, "incoterms", INCOTERMS).map(([term, meaning]) => (
                 <div key={term}>
                   <dt>{term}</dt>
                   <dd>{meaning}</dd>
@@ -181,17 +185,16 @@ export function ExportLogisticsExperience({ locale, locales }: SiteNavProps): Re
         <section className="fs-sec el-close" data-surface="light">
           <div className="fs-wrap el-close-grid">
             <div>
-              <div className="fs-eyebrow">Preparing an export enquiry?</div>
-              <h2 className="fs-d2">
-                Send the grade, volume, packaging, destination, and Incoterm.
-              </h2>
+              <div className="fs-eyebrow">{copy.text("preparing_an_export_enquiry")}</div>
+              <h2 className="fs-d2">{copy.text("send_the_grade_volume_packaging")}</h2>
             </div>
             <div className="el-close-actions">
               <a className="fs-btn fs-btn--gold" href={localeHref(locale, ROUTES.requestQuote)}>
-                Request export terms <Arrow />
+                {copy.text("request_export_terms")}
+                <Arrow />
               </a>
               <a className="fs-btn fs-btn--outline" href={localeHref(locale, ROUTES.products)}>
-                Review products
+                {copy.text("review_products")}
               </a>
             </div>
           </div>

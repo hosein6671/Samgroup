@@ -1,3 +1,4 @@
+import { StructuralPages, validStructuralContent } from "../globals/structural-pages";
 import { FaqPage, validFaqPage } from "../globals/faq-page";
 import { categoryApplicationsFields, validCategoryApplications } from "./category-applications";
 import { faqFields, validFaqFields } from "../collections/faq-entries";
@@ -14,7 +15,14 @@ import { ContactUs } from "../globals/contact-us";
 
 import { CATEGORY_KEYS, categoryTextFields } from "../collections/product-category-content";
 
-const resources = [AboutUs, CustomizedSolutions, QualityCertifications, ContactUs, FaqPage];
+const resources = [
+  AboutUs,
+  CustomizedSolutions,
+  QualityCertifications,
+  ContactUs,
+  FaqPage,
+  ...StructuralPages,
+];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const reply = (data: unknown, status = 200): Response =>
   Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -112,7 +120,16 @@ export const companyEditor: Endpoint = {
     if (typeof body.actorId !== "string" || !uuid.test(body.actorId))
       return reply({ error: "Invalid actor" }, 400);
     const slug = config.slug as
-      "about-us" | "customized-solutions" | "quality-certifications" | "contact-us" | "faq-page";
+      | "about-us"
+      | "customized-solutions"
+      | "quality-certifications"
+      | "contact-us"
+      | "faq-page"
+      | "home"
+      | "products-landing"
+      | "export-logistics"
+      | "header"
+      | "footer";
     const read = async (transactionReq?: PayloadRequest): Promise<Record<string, unknown>> => {
       if (faqKey) {
         const found = await req.payload.find({
@@ -207,6 +224,8 @@ export const companyEditor: Endpoint = {
       return reply({ error: "Check applications fields." }, 400);
     if (key === "faq-page" && !validFaqPage(fields))
       return reply({ error: "Check page content and SEO fields." }, 400);
+    if (StructuralPages.some((page) => page.slug === key) && !validStructuralContent(key, fields))
+      return reply({ error: "Check page fields." }, 400);
     const requestHash = createHash("sha256")
       .update(JSON.stringify({ resource: slug, ...body }))
       .digest("hex");

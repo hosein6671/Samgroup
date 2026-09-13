@@ -1,3 +1,5 @@
+const { publishedStructural } = vi.hoisted(() => ({ publishedStructural: vi.fn() }));
+vi.mock("@/features/content/published-structural", () => ({ publishedStructural }));
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -36,6 +38,7 @@ const LOCALES = [
 const ORIGINAL_ORIGIN = process.env.SITE_PUBLIC_URL;
 
 beforeEach(() => {
+  publishedStructural.mockReset().mockResolvedValue({ fields: {} });
   delete process.env.SITE_PUBLIC_URL;
   getActiveLocales.mockReset().mockResolvedValue(LOCALES);
   getSitemapEntries.mockReset().mockResolvedValue([]);
@@ -291,4 +294,18 @@ it("omits categories whose published canonical points elsewhere", async () => {
   const listed = await urls();
   expect(listed).toContain("https://samgp.com/en/products/base-oils");
   expect(listed).not.toContain("https://samgp.com/en/products/antifreeze-coolants");
+});
+
+it("omits a structural page that is noindex, canonicalized elsewhere, or unavailable", async () => {
+  publishedStructural.mockImplementation(async (scope: string) =>
+    scope === "home"
+      ? { fields: {}, seo: { robotsIndex: false } }
+      : scope === "products-landing"
+        ? { fields: {}, seo: { canonicalUrl: "https://example.com/catalogue" } }
+        : null,
+  );
+  const result = await urls();
+  expect(result).not.toContain("https://samgp.com/en");
+  expect(result).not.toContain("https://samgp.com/en/products");
+  expect(result).not.toContain("https://samgp.com/en/export-logistics");
 });

@@ -1,3 +1,6 @@
+import { STRUCTURAL_DEFAULTS } from "@sam-group/types/structural-content";
+import { structuralEditorDefaults } from "@/features/content/structural-copy";
+import type { StructuralScope } from "@sam-group/types";
 import { FAQ_PAGE_DEFAULTS } from "@/features/faq/page-content";
 import { getCategoryContent } from "@/features/products/category/data";
 import { categoryEditorDefaults } from "@/features/products/category/category-editorial";
@@ -62,26 +65,32 @@ export default async function Page({
           },
           ...Object.fromEntries(Object.entries(data.fields).filter(([, value]) => value !== null)),
         }
-      : key === "faq-page"
-        ? {
-            ...FAQ_PAGE_DEFAULTS,
-            ...Object.fromEntries(
-              Object.entries(data?.fields ?? {}).filter(([, value]) => value !== null),
-            ),
-          }
-        : key.startsWith("faq-")
+      : Object.prototype.hasOwnProperty.call(STRUCTURAL_DEFAULTS, key)
+        ? structuralEditorDefaults(
+            key as StructuralScope,
+            data?.fields ?? {},
+            data?.revision !== "initial",
+          )
+        : key === "faq-page"
           ? {
-              question: "",
-              answer: "",
-              topic: "products",
-              relatedCategoryKeys: [],
-              showOnContactPage: false,
-              sortOrder: 0,
+              ...FAQ_PAGE_DEFAULTS,
               ...Object.fromEntries(
                 Object.entries(data?.fields ?? {}).filter(([, value]) => value !== null),
               ),
             }
-          : (data?.fields ?? {});
+          : key.startsWith("faq-")
+            ? {
+                question: "",
+                answer: "",
+                topic: "products",
+                relatedCategoryKeys: [],
+                showOnContactPage: false,
+                sortOrder: 0,
+                ...Object.fromEntries(
+                  Object.entries(data?.fields ?? {}).filter(([, value]) => value !== null),
+                ),
+              }
+            : (data?.fields ?? {});
   return (
     <AdminShell title="Edit website content" user={access.user} current="content">
       <Link href="/admin/content">All content pages</Link>

@@ -1,3 +1,5 @@
+import { HeaderContentProvider } from "@/features/content/header-content";
+import { publishedStructural } from "@/features/content/published-structural";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -137,7 +139,9 @@ export default async function LocaleLayout({
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        {children}
+        <HeaderContentProvider fields={(await publishedStructural("header", locale))?.fields ?? {}}>
+          {children}
+        </HeaderContentProvider>
       </body>
     </html>
   );

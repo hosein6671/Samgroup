@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -104,24 +109,27 @@ function hrefFor(id: ClosingRoute["id"], locale: string, productSlug?: string): 
  * feature for now because this is the only page that renders it; when the category pages arrive
  * it moves up a level rather than being copied down.
  */
-export function ClosingCta({ locale, productSlug }: ClosingCtaProps): ReactNode {
+export function ClosingCta({
+  locale,
+  productSlug,
+  editorial,
+}: ClosingCtaProps & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("products-landing", "closing-cta", editorial);
+
   return (
     <section className="fs-sec pr-close" data-surface="light">
       <div className="fs-wrap pr-close-grid">
         <div className="pr-close-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Next step</p>
-          <h2 className="fs-d2">Can&rsquo;t find exactly what you need?</h2>
-          <p className="fs-lead">
-            The range above is what we publish. Formulation to a customer brief is a route of its
-            own, and a sample is the first stage of it.
-          </p>
+          <p className="fs-eyebrow">{copy.text("next_step")}</p>
+          <h2 className="fs-d2">{copy.text("cant_find_exactly_what_you")}</h2>
+          <p className="fs-lead">{copy.text("the_range_above_is_what")}</p>
 
           <p className="pr-close-primary">
             <a
               href={localeHref(locale, ROUTES.customizedSolutions)}
               className="fs-btn fs-btn--gold"
             >
-              Request a custom solution
+              {copy.text("request_a_custom_solution")}
               <Arrow size={15} />
             </a>
           </p>
@@ -129,12 +137,17 @@ export function ClosingCta({ locale, productSlug }: ClosingCtaProps): ReactNode 
 
         <div className="pr-close-steps reveal-fade-rise">
           <p className="pr-steps-head">
-            <span>Or take a shorter route</span>
-            <span>{String(CLOSING_ROUTES.length).padStart(2, "0")}</span>
+            <span>{copy.text("or_take_a_shorter_route")}</span>
+            <span>
+              {String(structuralList(editorial, "closing_routes", CLOSING_ROUTES).length).padStart(
+                2,
+                "0",
+              )}
+            </span>
           </p>
 
           <ol className="pr-steps">
-            {CLOSING_ROUTES.map((route, i) => (
+            {structuralList(editorial, "closing_routes", CLOSING_ROUTES).map((route, i) => (
               <li className="pr-step" key={route.id}>
                 <a href={hrefFor(route.id, locale, productSlug)}>
                   <span className="pr-step-index">{String(i + 1).padStart(2, "0")}</span>

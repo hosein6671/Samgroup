@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import {
@@ -43,7 +48,11 @@ const GLYPHS: Record<Advantage["icon"], (props: { readonly size: "lg" }) => Reac
   partnership: PartnershipIcon,
 };
 
-export function Advantages(): ReactNode {
+export function Advantages({
+  editorial,
+}: { readonly editorial?: StructuralFields } = {}): ReactNode {
+  const copy = structuralSection("home", "advantages", editorial);
+
   return (
     <section className="fs-sec fs-adv" id="why-sam-group" data-surface="light">
       <div
@@ -54,11 +63,11 @@ export function Advantages(): ReactNode {
       <div className="fs-wrap">
         <div className="fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Why businesses choose SAM Group</div>
-            <h2 className="fs-d2">Six reasons buyers work with us directly.</h2>
+            <div className="fs-eyebrow">{copy.text("why_businesses_choose_sam_group")}</div>
+            <h2 className="fs-d2">{copy.text("six_reasons_buyers_work_with")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "34ch" }}>
-            The practical differences between buying from a producer and buying from the market.
+            {copy.text("the_practical_differences_between_buying")}
           </p>
         </div>
 
@@ -74,7 +83,7 @@ export function Advantages(): ReactNode {
          * grid appeared as one block. Making the list the orchestration unit is what sequences it.
          */}
         <ul className="fs-cards fs-rv" data-columns="3">
-          {ADVANTAGES.map((item) => {
+          {structuralList(editorial, "advantages", ADVANTAGES).map((item) => {
             const Glyph = GLYPHS[item.icon];
 
             return (

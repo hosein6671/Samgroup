@@ -1,3 +1,8 @@
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
@@ -26,15 +31,22 @@ import { FINDER_FACETS } from "../products-data";
  * when a facet is added. English conjunction only; this is fixed proof copy, and the real page
  * will get this sentence from the CMS in each locale rather than assembling it in code.
  */
-function facetSentence(): string {
-  const names = FINDER_FACETS.map((facet) => facet.name.toLowerCase());
+function facetSentence(editorial?: StructuralFields): string {
+  const names = structuralList(editorial, "finder_facets", FINDER_FACETS).map((facet) =>
+    facet.name.toLowerCase(),
+  );
   const last = names.at(-1);
   if (names.length < 2 || last === undefined) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${last}`;
 }
 
 /** `locale` is the route's own locale segment, threaded down from `ProductsExperience`. */
-export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode {
+export function FinderTeaser({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("products-landing", "finder-teaser", editorial);
+
   return (
     <section className="fs-sec pr-finder" data-surface="light">
       {/* Texture the register does not have — the fourth cue in the seam; see products.css. */}
@@ -42,18 +54,19 @@ export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode
 
       <div className="fs-wrap pr-finder-grid">
         <div className="pr-finder-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Product Finder</p>
-          <h2 className="fs-d2">Filter to the grade.</h2>
+          <p className="fs-eyebrow">{copy.text("product_finder")}</p>
+          <h2 className="fs-d2">{copy.text("filter_to_the_grade")}</h2>
           {/* The facet names are read off the same constant the panel renders, so the sentence
               and the picture beside it cannot describe different tools. */}
           <p className="fs-lead">
-            Narrow the published range by {facetSentence()}, or search directly by product name,
-            grade, or a public specification value.
+            {copy.text("narrow_the_published_range_by")}
+            {facetSentence(editorial)}
+            {copy.text("_or_search_directly_by")}
           </p>
 
           <div className="pr-finder-actions">
             <a href={localeHref(locale, ROUTES.productFinder)} className="fs-btn fs-btn--outline">
-              Open Product Finder
+              {copy.text("open_product_finder")}
               <Arrow size={15} />
             </a>
           </div>
@@ -70,11 +83,16 @@ export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode
         */}
         <div className="pr-matrix reveal-mask-wipe" aria-hidden="true">
           <p className="pr-matrix-head">
-            <span>Selection parameters</span>
-            <span>{String(FINDER_FACETS.length).padStart(2, "0")}</span>
+            <span>{copy.text("selection_parameters")}</span>
+            <span>
+              {String(structuralList(editorial, "finder_facets", FINDER_FACETS).length).padStart(
+                2,
+                "0",
+              )}
+            </span>
           </p>
 
-          {FINDER_FACETS.map((facet, i) => (
+          {structuralList(editorial, "finder_facets", FINDER_FACETS).map((facet, i) => (
             <div className="pr-matrix-row" key={facet.name}>
               <span className="pr-matrix-index">{String(i + 1).padStart(2, "0")}</span>
               <span className="pr-matrix-name">{facet.name}</span>
@@ -90,9 +108,9 @@ export function FinderTeaser({ locale }: { readonly locale: string }): ReactNode
             <span className="pr-matrix-index">
               <SearchIcon size="sm" />
             </span>
-            <span className="pr-matrix-name">Direct</span>
+            <span className="pr-matrix-name">{copy.text("direct")}</span>
             <span className="pr-matrix-vals">
-              <span>Search by product, grade, or specification</span>
+              <span>{copy.text("search_by_product_grade_or")}</span>
             </span>
           </div>
         </div>

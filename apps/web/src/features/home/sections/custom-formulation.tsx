@@ -1,4 +1,9 @@
 "use client";
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -68,7 +73,12 @@ import { CUSTOM_CTA, CUSTOM_STEPS } from "../home-data";
  */
 const TRAVEL_VH_PER_STEP = 50;
 
-export function CustomFormulation({ locale }: { readonly locale: string }): ReactNode {
+export function CustomFormulation({
+  locale,
+  editorial,
+}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  const copy = structuralSection("home", "custom-formulation", editorial);
+
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLElement>(null);
@@ -81,7 +91,8 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
     const track = trackRef.current;
     if (!section || !track) return;
 
-    const n = CUSTOM_STEPS.length;
+    const n = structuralList(editorial, "custom_steps", CUSTOM_STEPS).length;
+    if (n === 0) return;
     const narrow = window.matchMedia("(max-width: 759px)");
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -176,8 +187,9 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
       if (raf) cancelAnimationFrame(raf);
       section.style.height = "";
     };
-  }, []);
+  }, [editorial]);
 
+  if (structuralList(editorial, "custom_steps", CUSTOM_STEPS).length === 0) return null;
   return (
     <section
       ref={sectionRef}
@@ -198,15 +210,12 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
            * stagger — the same construction Who We Are uses one surface change earlier.
            */}
           <div className="fs-jrny-head-copy fs-rv">
-            <div className="fs-eyebrow fs-rv-l">Customized solutions</div>
-            <h2 className="fs-d2 fs-rv-l">When the catalogue is only part of the answer.</h2>
-            <p className="fs-rv-l">
-              Where a standard product does not meet the requirement, the product is developed
-              against it instead. Six steps take a stated need to a delivered order.
-            </p>
+            <div className="fs-eyebrow fs-rv-l">{copy.text("customized_solutions")}</div>
+            <h2 className="fs-d2 fs-rv-l">{copy.text("when_the_catalogue_is_only")}</h2>
+            <p className="fs-rv-l">{copy.text("where_a_standard_product_does")}</p>
             <div className="fs-jrny-cta fs-rv-l">
               <a href={localeHref(locale, CUSTOM_CTA.primary.href)} className="fs-btn fs-btn--gold">
-                {CUSTOM_CTA.primary.label}
+                {copy.text("primary_cta")}
                 <Arrow size={14} />
               </a>
               <a
@@ -215,7 +224,7 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
                    variant is white text on a near-transparent white fill — measured 1:1. */
                 className="fs-btn fs-btn--outline"
               >
-                {CUSTOM_CTA.secondary.label}
+                {copy.text("secondary_cta")}
               </a>
             </div>
           </div>
@@ -223,18 +232,18 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
           <figure className="fs-jrny-photo fs-rv">
             <Image
               src="/images/home/journey-requirement-to-supply.webp"
-              alt="Oil sample review beside packaged lubricants and an export container"
+              alt={copy.text("oil_sample_review_beside_packaged")}
               fill
               sizes="(max-width: 900px) calc(100vw - 40px), 54vw"
             />
-            <figcaption>From requirement to finished product</figcaption>
+            <figcaption>{copy.text("from_requirement_to_finished_product")}</figcaption>
           </figure>
         </div>
       </div>
 
       <div className="fs-jrny-sticky">
         <div className="fs-jrny-track" ref={trackRef}>
-          {CUSTOM_STEPS.map((stage) => (
+          {structuralList(editorial, "custom_steps", CUSTOM_STEPS).map((stage) => (
             <article className="fs-jstep" key={stage.n}>
               <span className="fs-jstep-ghost" aria-hidden="true">
                 {stage.n}
@@ -242,7 +251,12 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
 
               <div className="fs-jstep-copy">
                 <span className="fs-jstep-no">
-                  STEP {stage.n} / {String(CUSTOM_STEPS.length).padStart(2, "0")}
+                  {copy.text("step")}
+                  {stage.n} /{" "}
+                  {String(structuralList(editorial, "custom_steps", CUSTOM_STEPS).length).padStart(
+                    2,
+                    "0",
+                  )}
                 </span>
                 <h3>{stage.title}</h3>
                 <p>{stage.body}</p>
@@ -268,7 +282,8 @@ export function CustomFormulation({ locale }: { readonly locale: string }): Reac
           <i ref={barRef} />
         </div>
         <div className="fs-jrny-count" aria-hidden="true">
-          {count} / {String(CUSTOM_STEPS.length).padStart(2, "0")}
+          {count} /{" "}
+          {String(structuralList(editorial, "custom_steps", CUSTOM_STEPS).length).padStart(2, "0")}
         </div>
       </div>
     </section>

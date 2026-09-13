@@ -1,4 +1,5 @@
 "use client";
+import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -46,7 +47,9 @@ const LANE = "rgba(152, 163, 180, 0.26)"; /* --fs-steel-2, at the alpha the blue
 const LANE_RING = "rgba(152, 163, 180, 0.3)";
 const LAND_DOT = "rgba(152, 163, 180, 0.3)";
 
-export function Network(): ReactNode {
+export function Network({ editorial }: { readonly editorial?: StructuralFields } = {}): ReactNode {
+  const copy = structuralSection("home", "network", editorial);
+
   const [hover, setHover] = useState(-1);
   const hoverRef = useRef(-1);
   hoverRef.current = hover;
@@ -251,39 +254,40 @@ export function Network(): ReactNode {
       <div className="fs-wrap">
         <div className="fs-globe-head fs-section-head fs-rv">
           <div>
-            <div className="fs-eyebrow">Export enquiry and logistics planning</div>
+            <div className="fs-eyebrow">{copy.text("export_enquiry_and_logistics_planning")}</div>
             <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "22ch" }}>
-              Define the product. Prepare the shipment brief.
+              {copy.text("define_the_product_prepare_the")}
             </h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "36ch" }}>
-            Bring the grade, required quantity, packaging format, destination, and preferred trade
-            term into the same conversation.{" "}
+            {copy.text("bring_the_grade_required_quantity")}{" "}
             {/* Explicit space: JSX trims the whitespace before an expression, which ran the
                 sentences together as "sales map.Tap a hub". */}
-            {verb} a destination to read it.
+            {verb} {copy.text("a_destination_to_read_it")}
           </p>
         </div>
 
         <BrandedPhoto
           src="/images/home/network-export-logistics.webp"
-          alt="Sealed lubricant drums and an IBC prepared beside a shipping container"
-          caption="Product packaging and export preparation"
+          alt={copy.text("sealed_lubricant_drums_and_an")}
+          caption={copy.text("caption_10")}
           className="fs-network-photo fs-rv"
           sizes="(max-width: 700px) calc(100vw - 32px), calc(100vw - 128px)"
         />
 
         <div className="fs-map-shell fs-rv">
           <div className="fs-map-hud">
-            <span className="fs-hud-chip">Product + grade</span>
-            <span className="fs-hud-chip">Packaging + destination</span>
+            <span className="fs-hud-chip">{copy.text("product_grade")}</span>
+            <span className="fs-hud-chip">{copy.text("packaging_destination")}</span>
             <span className="fs-hud-chip" aria-live="polite">
               {hovered ? (
                 <>
                   <b>{hovered.n}</b> · {hovered.lane}
                 </>
               ) : (
-                <span>{verb} a destination</span>
+                <span>
+                  {verb} {copy.text("a_destination")}
+                </span>
               )}
             </span>
           </div>
@@ -316,11 +320,11 @@ export function Network(): ReactNode {
           <div className="fs-map-legend">
             <span className="fs-lg">
               <i style={{ background: STEEL_2 }} />
-              <span>Export destination</span>
+              <span>{copy.text("export_destination")}</span>
             </span>
             <span className="fs-lg">
               <i style={{ background: "rgba(199,205,214,.5)" }} />
-              <span>Route drawn to destination</span>
+              <span>{copy.text("route_drawn_to_destination")}</span>
             </span>
           </div>
         </div>

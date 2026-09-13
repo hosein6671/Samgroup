@@ -112,6 +112,10 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
   );
   if (key.startsWith("faq-")) revalidatePath("/admin/faqs");
   if (action === "publish") {
+    if (["home", "products-landing", "export-logistics", "header", "footer"].includes(key)) {
+      revalidatePath("/", "layout");
+      revalidatePath("/sitemap.xml");
+    }
     if (key.startsWith("faq-")) {
       revalidatePath("/en/products", "layout");
       revalidatePath("/en/faq");

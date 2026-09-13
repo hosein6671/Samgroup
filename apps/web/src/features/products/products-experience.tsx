@@ -1,3 +1,4 @@
+import type { StructuralFields } from "@sam-group/types";
 import type { ReactNode } from "react";
 
 /*
@@ -58,18 +59,22 @@ import { ProductRegister } from "./sections/register";
  * unchanged plus swapping `products-data.ts` from fixtures to `GET /api/v1/categories`. The
  * components take the same shapes either way.
  */
-export function ProductsExperience({ locale, locales }: SiteNavProps): ReactNode {
+export function ProductsExperience({
+  editorial,
+  locale,
+  locales,
+}: SiteNavProps & { editorial?: StructuralFields }): ReactNode {
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        <ProductsHero locale={locale} />
-        <ProductRegister locale={locale} />
-        <CatalogueStructure />
-        <FinderTeaser locale={locale} />
-        <Documentation locale={locale} />
-        <ClosingCta locale={locale} />
+        <ProductsHero editorial={editorial} locale={locale} />
+        <ProductRegister editorial={editorial} locale={locale} />
+        <CatalogueStructure editorial={editorial} />
+        <FinderTeaser editorial={editorial} locale={locale} />
+        <Documentation editorial={editorial} locale={locale} />
+        <ClosingCta editorial={editorial} locale={locale} />
       </main>
 
       <SiteFooter locale={locale} />

@@ -5,7 +5,9 @@
   "types": "./src/index.ts",
   "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./structural-content": "./src/structural-content.ts",
+    "./structural-lists": "./src/structural-lists.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit"
