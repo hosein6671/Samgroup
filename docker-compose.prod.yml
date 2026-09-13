@@ -1,0 +1,155 @@
+services:
+  postgres:
+    ports: []
+
+  minio:
+    ports: []
+
+  nginx:
+    ports:
+      - "80:80"
+    environment:
+      SAM_WEB_UPSTREAM: http://web:3000
+      SAM_API_UPSTREAM: http://api:3000
+      SAM_CMS_UPSTREAM: http://cms:3000
+      SAM_MINIO_UPSTREAM: http://minio:9000
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      cms:
+        condition: service_healthy
+
+  api:
+    image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/api:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: 3000
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      PAYLOAD_INTERNAL_URL: http://cms:3000
+      PAYLOAD_API_KEY: ${PAYLOAD_API_KEY:-}
+      PAYLOAD_EDITOR_SECRET: ${PAYLOAD_EDITOR_SECRET:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      LEAD_NOTIFICATION_TO: ${LEAD_NOTIFICATION_TO:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      PRODUCT_MEDIA_BUCKET: ${MINIO_PUBLIC_BUCKET}
+      PRODUCT_MEDIA_ENDPOINT: http://minio:9000
+      PRODUCT_MEDIA_REGION: ${PRODUCT_MEDIA_REGION:-us-east-1}
+      PRODUCT_MEDIA_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      PRODUCT_MEDIA_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      cms:
+        condition: service_healthy
+    networks: [edge, data]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  web:
+    image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/web:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_INTERNAL_URL: http://api:3000
+      SITE_PUBLIC_URL: ${SITE_PUBLIC_URL:-https://samgp.com}
+      SITE_SEO_INDEXING: ${SITE_SEO_INDEXING:-false}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [edge]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  cms:
+    image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/cms:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URI: ${DATABASE_URI}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      PAYLOAD_EDITOR_SECRET: ${PAYLOAD_EDITOR_SECRET:-}
+      CMS_MEDIA_BUCKET: ${MINIO_PUBLIC_BUCKET}
+      CMS_MEDIA_ENDPOINT: http://minio:9000
+      CMS_MEDIA_REGION: ${CMS_MEDIA_REGION:-us-east-1}
+      CMS_MEDIA_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      CMS_MEDIA_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    networks: [edge, data]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/admin').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  platform-migrate:
+    image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/api:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
+    restart: "no"
+    command: ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [data]
+    profiles: [operations]
+
+  cms-migrate:
+    image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/cms:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
+    restart: "no"
+    working_dir: /cms-cli
+    command: ["node", "--import", "tsx", "node_modules/payload/bin.js", "migrate"]
+    environment:
+      DATABASE_URI: ${DATABASE_URI}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET}
+      CMS_MEDIA_BUCKET: ${MINIO_PUBLIC_BUCKET}
+      CMS_MEDIA_ENDPOINT: http://minio:9000
+      CMS_MEDIA_REGION: ${CMS_MEDIA_REGION:-us-east-1}
+      CMS_MEDIA_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      CMS_MEDIA_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [data]
+    profiles: [operations]

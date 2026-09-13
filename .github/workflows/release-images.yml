@@ -1,0 +1,126 @@
+name: Release images
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: release-images-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build and publish immutable images
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sam_platform
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sam_platform?schema=public
+      API_PORT: 3001
+      JWT_SECRET: image-build-only-not-a-real-secret-000000000000
+
+    steps:
+      - name: Resolve release commit
+        id: release
+        shell: bash
+        run: |
+          echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out verified commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.release.outputs.sha }}
+
+      - name: Set up pnpm and Node
+        uses: pnpm/setup@v2
+        with:
+          runtime: node@24
+          cache: true
+          install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare locale API for the web image build
+        shell: bash
+        run: |
+          psql "$DATABASE_URL" -c 'CREATE DATABASE sam_cms'
+          pnpm exec prisma migrate deploy
+          pnpm exec tsx prisma/seed.ts
+          pnpm --filter @sam-group/api build
+          node apps/api/dist/main.js > /tmp/sam-api.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://127.0.0.1:3001/api/v1/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/sam-api.log
+          exit 1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push API
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/apps/api.Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.release.outputs.owner }}/sam-group-platform/api:${{ steps.release.outputs.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push Web
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/apps/web.Dockerfile
+          network: host
+          push: true
+          build-args: |
+            API_INTERNAL_URL=http://127.0.0.1:3001
+            SITE_PUBLIC_URL=https://samgp.com
+            SITE_SEO_INDEXING=false
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+          tags: ghcr.io/${{ steps.release.outputs.owner }}/sam-group-platform/web:${{ steps.release.outputs.sha }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+      - name: Build and push CMS
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/apps/cms.Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.release.outputs.owner }}/sam-group-platform/cms:${{ steps.release.outputs.sha }}
+          cache-from: type=gha,scope=cms
+          cache-to: type=gha,mode=max,scope=cms
