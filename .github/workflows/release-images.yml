@@ -97,8 +97,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # driver-opts: network=host is required for the Web build's own
+      # `network: host` option (below) to actually reach the "Prepare locale
+      # API" process on 127.0.0.1:3001. Without it, setup-buildx-action's
+      # default `docker-container` driver runs BuildKit inside its own
+      # isolated builder container, so passing `network: host` to the build
+      # itself has no real host network to attach to — confirmed by the
+      # exact failure this fixes: `GET /locales did not answer: ECONNREFUSED`
+      # during the Web image's generateStaticParams, even though the API was
+      # genuinely running and healthy on the runner at that point.
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
+        with:
+          driver-opts: network=host
 
       - name: Build and push API
         uses: docker/build-push-action@v7
