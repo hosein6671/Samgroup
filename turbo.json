@@ -3,7 +3,20 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "API_INTERNAL_URL",
+        "SITE_PUBLIC_URL",
+        "SITE_SEO_INDEXING",
+        "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+        "DATABASE_URI",
+        "PAYLOAD_SECRET",
+        "CMS_MEDIA_BUCKET",
+        "CMS_MEDIA_ENDPOINT",
+        "CMS_MEDIA_REGION",
+        "CMS_MEDIA_ACCESS_KEY_ID",
+        "CMS_MEDIA_SECRET_ACCESS_KEY"
+      ]
     },
     "dev": {
       "cache": false,

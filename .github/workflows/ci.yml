@@ -61,7 +61,16 @@ jobs:
       # Without this, PrismaService can't resolve its own generated client module and
       # type-check fails everywhere PrismaService is used, which is silent on any
       # machine that happened to generate it once and never noticed it was gitignored.
+      #
+      # DATABASE_URL is required here only because prisma.config.ts validates it is
+      # set at config-load time — `generate` itself never opens a connection, so this
+      # value is never dialled. This job has no Postgres service (see the job header:
+      # "no services, no database, fast"), so the verify job's real DATABASE_URL is
+      # not reused here — a placeholder that merely parses as a Prisma connection
+      # string is the whole requirement.
       - name: Generate the Prisma client
+        env:
+          DATABASE_URL: postgresql://ci-only:ci-only@localhost:5432/sam_platform?schema=public
         run: pnpm exec prisma generate
 
       - name: Lint
