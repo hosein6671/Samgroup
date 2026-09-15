@@ -225,7 +225,7 @@ describe("ContentGlobalsController", () => {
   it("404s an unimplemented global without touching the CMS", async () => {
     const { controller, find, findSolutions, findQuality, resolve } = await createHarness();
 
-    const error: unknown = await controller.findOne({}).then(
+    const error: unknown = await controller.findOne("unimplemented-global", {}).then(
       () => null,
       (rejection: unknown) => rejection,
     );
