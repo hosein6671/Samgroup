@@ -8,11 +8,25 @@ services:
   nginx:
     ports:
       - "80:80"
+      - "443:443"
     environment:
       SAM_WEB_UPSTREAM: http://web:3000
       SAM_API_UPSTREAM: http://api:3000
       SAM_CMS_UPSTREAM: http://cms:3000
       SAM_MINIO_UPSTREAM: http://minio:9000
+    volumes:
+      # Host-installed certbot (apt package, not a container — see
+      # docker/nginx/README.md "Activating TLS") writes here directly, at its
+      # normal apt-package paths. nginx only ever reads these.
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Neutralizes the official image's own bundled sample site. It has no
+      # `default_server` marker, but `/etc/nginx/conf.d/*.conf` loads
+      # alphabetically and "default.conf" sorts before "production-tls.conf",
+      # so without this it silently wins the implicit default-server slot for
+      # port 80 — verified: curl with no matching Host header 404'd from the
+      # image's own static-file server instead of reaching our /healthz.
+      - /dev/null:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       web:
         condition: service_healthy

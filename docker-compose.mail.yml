@@ -1,0 +1,87 @@
+# ---------------------------------------------------------------------------
+# Optional overlay: self-hosted mail for the samgp.com domain, using
+# docker-mailserver (Postfix + Dovecot + Rspamd + Fail2ban, MIT licensed,
+# https://github.com/docker-mailserver/docker-mailserver).
+#
+# This file is loaded ONLY when explicitly added to the compose command:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.mail.yml up -d
+#
+# It changes nothing about the existing web/api/cms stack. It is not required
+# to deploy the application — mail is an independent capability, and forms
+# already degrade gracefully (SmtpMailer skips the notification, never the
+# submission) when SMTP_HOST is unset in the api/cms environment.
+#
+# Verified locally, 15 September 2026, on an isolated test domain
+# (samgp-test.local, not this domain): mailbox creation, DKIM key generation,
+# authenticated SMTP submission via the project's own nodemailer dependency,
+# DKIM-signed delivery to another local mailbox, Fail2ban active (3 jails:
+# postfix, dovecot, custom), and — most importantly — an unauthenticated
+# relay attempt to an external address was REFUSED (554 5.7.1 Relay access
+# denied). No email was sent to a real address; nothing on this domain was
+# touched. See docs/MAIL_SERVER_SETUP.md for the full runbook, the exact DNS
+# records required, and how this connects to the application's SMTP_* /
+# LEAD_NOTIFICATION_TO variables.
+#
+# ── Security posture, and why each setting is what it is ────────────────────
+# PERMIT_DOCKER=none      Every send must authenticate. The alternative values
+#                         (network/connected-networks) are documented upstream
+#                         as a way to accidentally create an open relay.
+# POSTFIX_INET_PROTOCOLS=ipv4
+#                         Avoids an IPv6 relay hole when IPv6 is enabled on
+#                         the host but not inside the container network.
+# ENABLE_RSPAMD=1 + ENABLE_OPENDKIM=0
+#                         One spam/DKIM/SPF/DMARC engine, not two arguing.
+# ENABLE_FAIL2BAN=1       Brute-force protection on Postfix and Dovecot auth.
+#                         Requires NET_ADMIN below (nftables needs it to ban).
+# SSL_TYPE=letsencrypt    Reuses the SAME certificate this VPS already issues
+#                         for nginx — set up in the SSL/TLS gate, not here.
+#                         Do not set this to self-signed for the real domain;
+#                         that is a testing-only mode upstream explicitly
+#                         warns against for production.
+#
+# ── What is deliberately NOT decided here ────────────────────────────────────
+# ENABLE_CLAMAV is left at 0 (antivirus scanning). Upstream recommends 3-4 GB
+# RAM when it is enabled; whether to turn it on is a capacity decision for
+# whatever this VPS's actual RAM turns out to be, not a default to inherit
+# silently. The 12 real mailboxes this domain wants are ordinary
+# `setup email add` accounts — see the runbook for the exact commands; none
+# is created here, exactly as no admin credential is seeded anywhere else in
+# this repository.
+# ---------------------------------------------------------------------------
+
+services:
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    # Must match the MX record's target (docs/MAIL_SERVER_SETUP.md) and the
+    # certificate's CN/SAN when SSL_TYPE=letsencrypt.
+    hostname: ${MAIL_HOSTNAME:?Set MAIL_HOSTNAME, e.g. mail.samgp.com}
+    restart: unless-stopped
+    env_file: deploy/mail.env
+    ports:
+      - "25:25" # SMTP (inbound + relay)
+      - "587:587" # Submission (STARTTLS) — what apps/api's SmtpMailer uses
+      - "993:993" # IMAPS — for staff mail clients
+    volumes:
+      - mail-data:/var/mail
+      - mail-state:/var/mail-state
+      - mail-logs:/var/log/mail
+      - mail-config:/tmp/docker-mailserver
+      # The same certbot volume nginx's TLS termination uses — populated by
+      # the SSL/TLS gate. Read-only: this service only ever reads the cert.
+      - ./deploy/certbot/certs:/etc/letsencrypt:ro
+    cap_add:
+      - NET_ADMIN # required for Fail2ban's nftables bans
+    networks:
+      # `edge` only, deliberately. `data` is `internal: true` in
+      # docker-compose.yml — no route off the host — which would silently
+      # break both inbound mail from the internet and this server's own
+      # outbound relay to every other mail server. mailserver never opens a
+      # database connection, so it has no reason to join `data` anyway.
+      - edge
+
+volumes:
+  mail-data:
+  mail-state:
+  mail-logs:
+  mail-config:

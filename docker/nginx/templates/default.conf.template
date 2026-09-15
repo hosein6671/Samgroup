@@ -41,6 +41,14 @@ server {
     listen 80 default_server;
     server_name ${SAM_PUBLIC_HOST} _;
 
+    # Certbot's HTTP-01 challenge, so a certificate can be issued while this
+    # HTTP-only template is still the active one (docker/nginx/README.md
+    # "Activating TLS"). The production-tls template carries the same
+    # location, so renewals keep working after the switch.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
     # Product documents and CVs are not small.
     client_max_body_size 25m;
 
@@ -101,6 +109,10 @@ server {
 server {
     listen 80;
     server_name ${SAM_CMS_HOST};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
     client_max_body_size 25m;
 

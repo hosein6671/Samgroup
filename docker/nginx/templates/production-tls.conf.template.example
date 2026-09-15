@@ -31,11 +31,20 @@ map $http_upgrade $connection_upgrade {
 
 # HTTP: serve the ACME challenge, redirect everything else to HTTPS.
 server {
-    listen 80;
+    listen 80 default_server;
     server_name ${SAM_PUBLIC_HOST} ${SAM_CMS_HOST};
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
+    }
+
+    # The container healthcheck (docker-compose.yml) hits this over plain
+    # HTTP — matching the dev template — so it never depends on TLS or a
+    # redirect being followed correctly.
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "nginx ok\n";
     }
 
     location / {
