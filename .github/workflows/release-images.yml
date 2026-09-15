@@ -62,10 +62,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # apps/api/src/prisma/generated is gitignored and nothing generates it
+      # automatically — see the same step in .github/workflows/ci.yml for the
+      # full reasoning. Without it, the API build below fails to resolve its
+      # own generated client module.
+      - name: Generate the Prisma client
+        run: pnpm exec prisma generate
+
       - name: Prepare locale API for the web image build
         shell: bash
         run: |
-          psql "$DATABASE_URL" -c 'CREATE DATABASE sam_cms'
+          # DATABASE_URL carries Prisma's own `?schema=public`, which plain psql
+          # rejects outright ("invalid URI query parameter: schema") — see the
+          # identical fix in .github/workflows/ci.yml. Stripped for this one
+          # invocation only; Prisma itself still reads the full DATABASE_URL.
+          psql "${DATABASE_URL%%\?*}" -c 'CREATE DATABASE sam_cms'
           pnpm exec prisma migrate deploy
           pnpm exec tsx prisma/seed.ts
           pnpm --filter @sam-group/api build
