@@ -55,6 +55,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # apps/api/src/prisma/generated is gitignored (regenerated, never committed) and
+      # nothing installs it automatically — no postinstall hook exists, on purpose,
+      # matching docker/apps/api.Dockerfile's own explicit `prisma generate` step.
+      # Without this, PrismaService can't resolve its own generated client module and
+      # type-check fails everywhere PrismaService is used, which is silent on any
+      # machine that happened to generate it once and never noticed it was gitignored.
+      - name: Generate the Prisma client
+        run: pnpm exec prisma generate
+
       - name: Lint
         run: pnpm lint
 
@@ -146,6 +155,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # See the same step in the validate job above: gitignored, not auto-generated,
+      # and PrismaService can't resolve its own client without it.
+      - name: Generate the Prisma client
+        run: pnpm exec prisma generate
+
       # Applies the committed migration history exactly as a deployment would.
       # NEVER `migrate dev` and never `db push`: both can invent a migration, and the
       # history is the thing under test.
@@ -153,8 +167,13 @@ jobs:
       # rather than by convention (ADR-002). The service container creates sam_platform;
       # sam_cms is created here so the CMS build has the database its URI names.
       # Payload migrates sam_cms itself — nothing in prisma/ may ever touch it.
+      #
+      # DATABASE_URL carries Prisma's own `?schema=public` query parameter, which plain
+      # `psql` does not understand and rejects outright ("invalid URI query parameter:
+      # schema") — stripped here with parameter expansion; Prisma still reads the full
+      # DATABASE_URL, including the query string, everywhere else in this job.
       - name: Create the CMS database
-        run: psql "$DATABASE_URL" -c 'CREATE DATABASE sam_cms'
+        run: psql "${DATABASE_URL%%\?*}" -c 'CREATE DATABASE sam_cms'
 
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
