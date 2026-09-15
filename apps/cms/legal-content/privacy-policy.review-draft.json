@@ -1,0 +1,164 @@
+{
+  "_NOTE_TO_REVIEWER": "This file is NOT the publishable privacy-policy.json described in README.md. It is a drafting aid only, sitting outside the sanctioned publish pipeline. Before this can become the real privacy-policy.json: (1) a qualified reviewer must read and approve every sentence below, especially the Data Retention section, which currently uses a purpose-based clause instead of fixed periods because SECURITY.md 'Personal Data Retention' states concrete periods and GDPR applicability require real legal input; (2) 'SAM Group' must be checked against the actual registered legal entity name and address, which are not recorded anywhere in this repository; (3) fa and ar translations must be added by a qualified translator/reviewer for those locales before the four-locale requirement in legal-content.ts can be satisfied -- per current project scope, fa/ar development is deliberately paused, so this file intentionally omits them; (4) 'lastUpdatedDate' and 'revision' below are left blank on purpose (matching privacy-policy.example.json's convention) because filling them would assert a revision nobody approved -- set both, then set ACTIVE_PRIVACY_POLICY_REVISION in apps/api/src/modules/forms/privacy-policy-revision.ts to the same revision value, in the same gate that runs pnpm --filter @sam-group/cms publish:legal-content with SAM_LEGAL_CONTENT_FILE pointed at the final file. Once all of that is done and en/fa/ar are all present, this content should pass legal-content.ts's validator with no technical changes needed -- headings are level 2, every block has non-empty text, and no banned placeholder marker appears anywhere below.",
+  "slug": "privacy-policy",
+  "lastUpdatedDate": "",
+  "revision": "",
+  "locales": {
+    "en": {
+      "title": "Privacy Policy",
+      "metaTitle": "Privacy Policy | SAM Group",
+      "metaDescription": "How SAM Group collects, uses, and protects the personal data of visitors, buyers, applicants, and partners who use this website.",
+      "body": [
+        { "kind": "heading", "level": 2, "text": "1. Introduction and Scope" },
+        {
+          "kind": "paragraph",
+          "text": "SAM Group (\"SAM Group\", \"we\", \"us\", or \"our\") is a direct manufacturer of petroleum, lubricant, and petrochemical products serving business buyers internationally. This Privacy Policy explains what personal data we collect through this website, why we collect it, how we use and protect it, and the choices and rights available to you. It applies to visitors of this website and to anyone who submits an inquiry, sample request, custom formulation request, distributor application, job application, catalogue download request, or newsletter subscription through it."
+        },
+        {
+          "kind": "paragraph",
+          "text": "This website is a business-to-business (B2B) platform. It is not directed at consumers, and it is not directed at children. We do not sell personal data."
+        },
+        {
+          "kind": "paragraph",
+          "text": "This Policy does not cover cookies and similar tracking technologies in detail; see the \"Cookies and Similar Technologies\" section below for how that is handled."
+        },
+
+        { "kind": "heading", "level": 2, "text": "2. Who We Are" },
+        {
+          "kind": "paragraph",
+          "text": "SAM Group is the data controller responsible for the personal data described in this Policy, meaning we decide why and how it is processed. Our full legal entity name, registered address, and any data protection contact details required by applicable law will be added to this section as part of legal review, before this Policy is published."
+        },
+
+        { "kind": "heading", "level": 2, "text": "3. Personal Data We Collect" },
+        {
+          "kind": "paragraph",
+          "text": "We collect personal data only when you choose to provide it to us, through one of the forms on this website. The categories of personal data we collect depend on which form you use:"
+        },
+        {
+          "kind": "list",
+          "items": [
+            "Inquiries and sample requests: your name, company name, contact details (such as email and phone number), the product you are asking about, your free-text message, and any files you choose to attach.",
+            "Custom formulation requests: your contact details, a description of your technical requirements, and any files you attach. Attachments may contain your own confidential technical specifications, which we treat as confidential business information belonging to you.",
+            "Distributor applications: your contact details and information about your business, such as your markets and trading history.",
+            "Job applications: your name, contact details, CV/resume, and cover letter.",
+            "Catalogue download requests: your name, company name, country, and email address.",
+            "Newsletter subscription: your email address and preferred language, confirmed through a double opt-in process before you start receiving emails."
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "We also automatically record limited technical information needed to operate the website securely and reliably, such as request logs used to detect abuse and keep our systems running. We do not use this information to build advertising profiles."
+        },
+
+        { "kind": "heading", "level": 2, "text": "4. How We Use Your Personal Data" },
+        { "kind": "paragraph", "text": "We use the personal data described above to:" },
+        {
+          "kind": "list",
+          "items": [
+            "Respond to your inquiry, sample request, custom formulation request, or distributor application, and take the steps you request before entering into a business relationship with you.",
+            "Evaluate a job application you have submitted.",
+            "Send you the catalogue or document you requested.",
+            "Send you newsletter content you have subscribed to receive, until you unsubscribe.",
+            "Operate, secure, and improve this website, and prevent misuse of our forms.",
+            "Comply with legal obligations that apply to us."
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "Where the law requires us to have a legal basis for processing, we rely on your consent (for example, submitting a form or subscribing to our newsletter), on taking steps at your request before entering into a contract, or on our legitimate interest in operating and securing this website and responding to commercial inquiries -- always balanced against your rights and interests."
+        },
+
+        { "kind": "heading", "level": 2, "text": "5. Job Applications Are Handled Separately" },
+        {
+          "kind": "paragraph",
+          "text": "Job applications, including CVs and cover letters, are handled by a restricted internal team and are not shared with our sales organization or used for any commercial purpose. They are used solely to evaluate your application."
+        },
+
+        { "kind": "heading", "level": 2, "text": "6. Who We Share Your Data With" },
+        {
+          "kind": "paragraph",
+          "text": "We do not sell your personal data. We share it only in the following limited circumstances:"
+        },
+        {
+          "kind": "list",
+          "items": [
+            "With service providers who process data on our behalf and under our instructions, such as an email delivery provider used to notify our team of a new submission and, where applicable, to send you a confirmation or the material you requested.",
+            "With hosting and data storage providers who store the data on secure infrastructure on our behalf.",
+            "Where required by law, regulation, legal process, or a valid request from a public authority.",
+            "In connection with a merger, acquisition, or sale of business assets, subject to the same protections described in this Policy."
+          ]
+        },
+
+        { "kind": "heading", "level": 2, "text": "7. Third-Party Messaging Channels" },
+        {
+          "kind": "paragraph",
+          "text": "Our Contact page may list channels such as WhatsApp, LinkedIn, Instagram, or Telegram as an additional way to reach us. If you contact us through one of these channels, that conversation takes place on the third-party platform's own service, and is subject to that platform's own privacy policy and terms, not this one. We recommend reviewing the relevant platform's privacy policy before using it to contact us."
+        },
+
+        { "kind": "heading", "level": 2, "text": "8. International Data Transfers" },
+        {
+          "kind": "paragraph",
+          "text": "As an exporter serving buyers in multiple regions, and because our service providers may operate infrastructure in different countries, your personal data may be processed in a country other than the one in which you are located, including countries that may not have the same data protection laws as your own. Where applicable law requires additional safeguards for such transfers, we take steps intended to be consistent with that law."
+        },
+
+        { "kind": "heading", "level": 2, "text": "9. Data Retention" },
+        {
+          "kind": "paragraph",
+          "text": "We keep personal data only for as long as reasonably necessary for the purpose it was collected for, as described in this Policy, or for as long as required by applicable law, whichever is longer. This means, for example, that an unsuccessful job application is not kept indefinitely, and a commercial inquiry may be kept for as long as it remains relevant to our business relationship with you. When personal data is no longer needed, we delete it or render it anonymous."
+        },
+
+        { "kind": "heading", "level": 2, "text": "10. Your Rights" },
+        {
+          "kind": "paragraph",
+          "text": "Depending on where you are located and the law that applies to you, you may have some or all of the following rights regarding your personal data:"
+        },
+        {
+          "kind": "list",
+          "items": [
+            "The right to ask us whether we hold personal data about you, and to access it.",
+            "The right to ask us to correct inaccurate or incomplete personal data.",
+            "The right to ask us to delete your personal data.",
+            "The right to object to, or ask us to restrict, certain processing of your personal data.",
+            "The right to receive a copy of certain personal data you provided to us, in a portable format.",
+            "The right to withdraw consent at any time, where processing is based on consent -- for example, by unsubscribing from our newsletter -- without affecting the lawfulness of processing carried out before you withdrew it.",
+            "The right to lodge a complaint with a data protection authority, where one has jurisdiction over your data."
+          ]
+        },
+        {
+          "kind": "paragraph",
+          "text": "You can exercise these rights by contacting us using the details on our Contact page. We may need to verify your identity before responding, and we will respond within the timeframe required by applicable law."
+        },
+
+        { "kind": "heading", "level": 2, "text": "11. Cookies and Similar Technologies" },
+        {
+          "kind": "paragraph",
+          "text": "This website may use cookies or similar technologies that are strictly necessary for it to function. Any non-essential use of cookies or similar technologies, and the choices available to you regarding them, will be described in a separate Cookie Notice once that document has also been through legal review."
+        },
+
+        { "kind": "heading", "level": 2, "text": "12. Children's Privacy" },
+        {
+          "kind": "paragraph",
+          "text": "This website is intended for business use by adults and is not directed at children. We do not knowingly collect personal data from children. If you believe a child has provided us with personal data, please contact us so we can address it."
+        },
+
+        { "kind": "heading", "level": 2, "text": "13. Data Security" },
+        {
+          "kind": "paragraph",
+          "text": "We use technical and organizational measures intended to protect personal data against unauthorized access, loss, misuse, or alteration. No method of transmission or storage is completely secure, and we cannot guarantee absolute security."
+        },
+
+        { "kind": "heading", "level": 2, "text": "14. Changes to This Policy" },
+        {
+          "kind": "paragraph",
+          "text": "We may update this Policy from time to time to reflect changes in our practices or for legal, operational, or regulatory reasons. The date at the top of this page shows when it was last revised. Material changes will be reflected by publishing a new version of this page."
+        },
+
+        { "kind": "heading", "level": 2, "text": "15. How to Contact Us" },
+        {
+          "kind": "paragraph",
+          "text": "If you have questions about this Policy or how we handle your personal data, please contact us using the details published on our Contact page."
+        }
+      ]
+    }
+  }
+}
