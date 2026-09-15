@@ -55,7 +55,16 @@ services:
     # source only, so no newer official image exists and none will — see
     # docs/DEVOPS.md "Object storage (MinIO)" for the consequence and the
     # decision still owed before production.
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    #
+    # Pulled from Quay.io, not Docker Hub. Verified 15 September 2026: the
+    # docker.io/minio/minio and docker.io/minio/mc repositories both now
+    # answer "repository does not exist" — confirmed from two independent
+    # networks, so this is upstream's own change, not a local/registry-side
+    # outage. The Quay.io image at this exact tag was verified to be
+    # byte-identical (matching digest) to the last image Docker Hub served
+    # under the same tag before it disappeared. Registry only; the pinned
+    # version is unchanged.
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
@@ -78,7 +87,8 @@ services:
   # One-shot: creates the buckets and sets their access policies, then exits.
   minio-init:
     # Last published mc tag, for the same reason as the server image above.
-    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    # Quay.io, not Docker Hub — see the note on the minio service above.
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
     depends_on:
       minio:
         condition: service_healthy
