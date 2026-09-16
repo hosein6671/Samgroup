@@ -436,11 +436,21 @@
    ============================================================================ */
 
 .in-post-body-inner {
-  /*
-   * A single measured column. The body is the only thing on this section, and a full-wrap paragraph
-   * at 1280px would be a 1200px line length.
-   */
-  max-width: 68ch;
+  display: grid;
+  gap: clamp(32px, 5vw, 64px);
+  /* A single measured column until there is room for a sidebar beside it, not instead of it. */
+  grid-template-columns: minmax(0, 68ch);
+}
+
+@media (min-width: 960px) {
+  .in-post-body-inner {
+    grid-template-columns: minmax(0, 68ch) minmax(220px, 280px);
+    align-items: start;
+  }
+}
+
+.in-post-main {
+  min-width: 0;
 }
 
 .in-post-body-inner p {
@@ -449,8 +459,165 @@
   line-height: var(--fs-text-body--line-height);
   font-weight: 300;
   color: var(--color-text-secondary);
-  /* The body is plain text and may carry long unbroken strings; this keeps them inside the column. */
+  /* The body is rendered from Markdown and may still carry a long unbroken string (a URL typed
+     as plain text); this keeps it inside the column rather than overflowing. */
   overflow-wrap: anywhere;
+}
+
+.in-post-content h2,
+.in-post-content h3 {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  margin: clamp(28px, 3vw, 40px) 0 clamp(12px, 1.4vw, 16px);
+  scroll-margin-top: 96px;
+}
+
+.in-post-content h2 {
+  font-size: var(--fs-text-heading);
+  line-height: var(--fs-text-heading--line-height);
+  letter-spacing: var(--fs-text-heading--letter-spacing);
+}
+
+.in-post-content h3 {
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
+}
+
+/*
+ * The paragraph rule above sets `font-weight: 300`, and Chromium's UA stylesheet gives `<strong>`
+ * a RELATIVE `font-weight: bolder` rather than a fixed one — "bolder" than 300 resolves to 400,
+ * not to anything a reader would call bold. An absolute weight is required to actually look bold.
+ * `600` matches the weight already chosen for `.in-post-content h2`/`h3` above, rather than
+ * introducing a third weight value into this one content block.
+ */
+.in-post-content strong,
+.in-post-content b {
+  font-weight: 600;
+}
+
+.in-post-content a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.in-post-content a:hover,
+.in-post-content a:focus-visible {
+  color: var(--color-text-accent);
+}
+
+.in-post-content img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: clamp(16px, 2vw, 24px) 0;
+}
+
+/*
+ * `list-style` is `none` on every `ul`/`ol` by default (Tailwind Preflight, loaded globally via
+ * `app/globals.css`) — correct for UI chrome, wrong for editorial content, where a reader expects
+ * an actual bulleted/numbered list. Restored per list type rather than left to the reset.
+ */
+.in-post-content ul,
+.in-post-content ol {
+  margin: 0 0 clamp(16px, 1.8vw, 24px);
+  padding-inline-start: 1.4em;
+  color: var(--color-text-secondary);
+}
+
+.in-post-content ul {
+  list-style: disc;
+}
+
+.in-post-content ol {
+  list-style: decimal;
+}
+
+.in-post-content li {
+  margin: 0 0 8px;
+}
+
+.in-post-content blockquote {
+  margin: clamp(16px, 2vw, 24px) 0;
+  padding-inline-start: 16px;
+  border-inline-start: 3px solid var(--color-border-hairline);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.in-post-content code {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-body-sm);
+  background: var(--color-surface-inset);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.in-post-content pre {
+  margin: clamp(16px, 2vw, 24px) 0;
+  padding: 16px;
+  overflow-x: auto;
+  background: var(--color-surface-inset);
+  border-radius: 8px;
+}
+
+.in-post-content pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   ARTICLE — SIDEBAR
+   --------------------------------------------------------------------------- */
+
+.in-post-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3vw, 36px);
+}
+
+.in-post-toc-title,
+.in-post-recent-title {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-hairline);
+}
+
+.in-post-toc ol,
+.in-post-recent ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.in-post-toc li[data-depth="3"] {
+  padding-inline-start: 14px;
+}
+
+.in-post-toc a,
+.in-post-recent a {
+  font-size: var(--fs-text-technical);
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.in-post-toc a:hover,
+.in-post-toc a:focus-visible,
+.in-post-recent a:hover,
+.in-post-recent a:focus-visible {
+  color: var(--color-text-accent);
 }
 
 .in-post-image {

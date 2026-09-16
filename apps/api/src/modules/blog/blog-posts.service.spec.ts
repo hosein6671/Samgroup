@@ -19,6 +19,7 @@ const POST_ROW = {
   title: "Understanding Base Oil Groups",
   slug: "sam-demo-understanding-base-oil-groups",
   publishedAt: PUBLISHED_AT,
+  updatedAt: PUBLISHED_AT,
   category: CATEGORY,
 };
 

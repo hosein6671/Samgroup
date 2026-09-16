@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { saveContent, uploadEditorialMedia } from "./actions";
+import { MarkdownField } from "../blog/markdown-field";
 import type { ReactNode } from "react";
 export type EditorField = {
   name: string;
@@ -249,6 +250,21 @@ function Fields({
           </select>
         </label>
       );
+    if (field.type === "markdown") {
+      const fieldId = `field-${field.name}`;
+      return (
+        <div key={field.name}>
+          <label htmlFor={fieldId}>{field.label}</label>
+          <MarkdownField
+            id={fieldId}
+            name={field.name}
+            disabled={disabled}
+            value={typeof current === "string" ? current : ""}
+            onChange={set}
+          />
+        </div>
+      );
+    }
     if (field.type === "richText" || field.type === "textarea" || field.type === "stringArray")
       return (
         <label key={field.name}>

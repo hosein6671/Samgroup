@@ -62,6 +62,8 @@ export type BlogPostListItemResponse = {
    * than left as a `Date`, so the wire shape does not depend on the JSON serializer in front of it.
    */
   publishedAt: string;
+  /** ISO 8601. Feeds the sitemap's `lastModified` for this post (SEO_ARCHITECTURE.md §4). */
+  updatedAt: string;
   category: BlogCategoryResponse;
   featuredImage: BlogImageResponse | null;
 };
@@ -70,9 +72,15 @@ export type BlogPostDetailResponse = {
   id: string;
   title: string;
   slug: string;
-  /** The body, verbatim. `BlogPost.content` is plain `text` — there is no rich-text column. */
+  /**
+   * The body, verbatim, as Markdown source. `BlogPost.content` is plain `text` — there is no
+   * rich-text column. Sanitization happens client-side at render time (`apps/web`), never here:
+   * this route serves the editor's own source unchanged.
+   */
   content: string;
   publishedAt: string;
+  /** ISO 8601. Feeds `dateModified` in the Article JSON-LD. */
+  updatedAt: string;
   category: BlogCategoryResponse;
   /** Empty when the post carries no tags, which is every post while no tag vocabulary exists. */
   tags: BlogTagResponse[];

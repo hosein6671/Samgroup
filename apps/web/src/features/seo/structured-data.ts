@@ -110,8 +110,9 @@ export function breadcrumbJsonLd(trail: readonly Breadcrumb[]): JsonLdObject {
  * contradicts the visible page is the §9 failure this file exists to avoid. `publisher` carries the
  * organization instead, which is true and is what the page itself signals.
  *
- * **No `dateModified`.** The API serves `publishedAt` and no modification timestamp; substituting
- * the published date would assert the article has never been revised, which nothing here knows.
+ * **`dateModified` is `updatedAt`, verbatim.** `BlogPost.updatedAt` is a Prisma `@updatedAt`
+ * column — bumped on every write to the row, editorial saves included — so it is never earlier
+ * than `datePublished` and never invented from it.
  *
  * **`image` only when the post has one.** Omitted rather than filled with a site logo or a stock
  * asset, which is what turns a rich result into a misleading one.
@@ -121,6 +122,7 @@ export function articleJsonLd({
   headline,
   description,
   datePublished,
+  dateModified,
   locale,
   imageUrl,
 }: {
@@ -129,6 +131,8 @@ export function articleJsonLd({
   readonly description?: string | null;
   /** ISO 8601, straight from `BlogPostResponse.publishedAt`. */
   readonly datePublished: string;
+  /** ISO 8601, straight from `BlogPostResponse.updatedAt`. */
+  readonly dateModified: string;
   readonly locale: string;
   readonly imageUrl?: string | null;
 }): JsonLdObject {
@@ -142,6 +146,7 @@ export function articleJsonLd({
       ? { description }
       : {}),
     datePublished,
+    dateModified,
     inLanguage: locale,
     ...(imageUrl !== undefined && imageUrl !== null && imageUrl !== ""
       ? { image: absoluteUrl(imageUrl) }

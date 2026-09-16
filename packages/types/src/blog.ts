@@ -62,6 +62,8 @@ export type BlogPostListItemResponse = {
    * `publishedAt` set and in the past (API_CONTRACT_FINAL.md §6).
    */
   publishedAt: string;
+  /** ISO 8601. Feeds the sitemap's `lastModified` for this post (SEO_ARCHITECTURE.md §4). */
+  updatedAt: string;
   category: BlogCategoryResponse;
   featuredImage: BlogImageResponse | null;
 };
@@ -71,10 +73,15 @@ export type BlogPostDetailResponse = {
   id: string;
   title: string;
   slug: string;
-  /** The body, verbatim. Plain text in `sam_platform` — there is no rich-text column. */
+  /**
+   * The body, verbatim, as Markdown source. Rendered client-side through a sanitizing Markdown
+   * pipeline (`renderMarkdown` in `apps/web`) — never trusted as raw HTML.
+   */
   content: string;
   /** ISO 8601, never null. See the list row. */
   publishedAt: string;
+  /** ISO 8601. Feeds `dateModified` in the Article JSON-LD (SEO_ARCHITECTURE.md §8). */
+  updatedAt: string;
   category: BlogCategoryResponse;
   /** Empty when the post carries no tags — which is every post while no tag vocabulary exists. */
   tags: BlogTagResponse[];

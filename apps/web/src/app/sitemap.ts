@@ -68,7 +68,8 @@ import type { MetadataRoute } from "next";
  *
  * ── `lastModified` is omitted where nothing records it ──────────────────────
  *
- * Only blog articles carry a real timestamp (`publishedAt`). `categories` has no timestamp column
+ * Only blog articles carry a real timestamp (`updatedAt` — the same column the Article JSON-LD's
+ * `dateModified` reads, so both signals agree). `categories` has no timestamp column
  * at all — the API's own DTO says so and declines to invent one — and structural routes are code,
  * not records. Emitting today's date for a page that has not changed in a year is a false freshness
  * signal, so the field is simply absent. `changeFrequency` and `priority` are omitted everywhere for
@@ -120,7 +121,7 @@ async function blogEntries(locale: string): Promise<MetadataRoute.Sitemap> {
     for (const post of result.posts) {
       entries.push({
         url: absoluteUrl(`${localePath(locale, ROUTES.insights)}/${post.slug}`),
-        lastModified: new Date(post.publishedAt),
+        lastModified: new Date(post.updatedAt),
       });
     }
 

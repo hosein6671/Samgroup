@@ -73,6 +73,7 @@ function isBlogPostListItem(value: unknown): value is BlogPostListItemResponse {
     typeof record.title === "string" &&
     typeof record.slug === "string" &&
     typeof record.publishedAt === "string" &&
+    typeof record.updatedAt === "string" &&
     typeof category === "object" &&
     category !== null &&
     typeof category.name === "string" &&
@@ -221,6 +222,7 @@ function isBlogPostDetail(value: unknown): value is BlogPostDetailResponse {
     typeof record.slug === "string" &&
     typeof record.content === "string" &&
     typeof record.publishedAt === "string" &&
+    typeof record.updatedAt === "string" &&
     typeof category === "object" &&
     category !== null &&
     typeof category.name === "string" &&

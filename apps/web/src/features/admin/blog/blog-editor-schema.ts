@@ -6,7 +6,7 @@ export function blogEditorSchema(categories: Reference[], tags: Reference[]): Ed
   return [
     { name: "title", label: "Article title", type: "text" },
     { name: "slug", label: "URL slug", type: "text" },
-    { name: "content", label: "Article content", type: "textarea" },
+    { name: "content", label: "Article content", type: "markdown" },
     {
       name: "categoryId",
       label: "Category",

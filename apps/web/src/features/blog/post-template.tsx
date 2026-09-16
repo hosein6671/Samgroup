@@ -7,10 +7,12 @@ import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
 
+import { ArticleSidebar } from "./article-sidebar";
 import { insightsHref } from "./insights-query";
 import { PublishedDate } from "./published-date";
+import { renderMarkdown } from "./render-markdown";
 
-import type { BlogPostDetailResponse } from "@sam-group/types";
+import type { BlogPostDetailResponse, BlogPostListItemResponse } from "@sam-group/types";
 
 /**
  * The article template — one component, every post.
@@ -24,18 +26,20 @@ import type { BlogPostDetailResponse } from "@sam-group/types";
  *
  * **Nothing is invented for an absent field.** SITE_STRUCTURE §8's article template describes a
  * byline, a table of contents, a key-takeaways box, a related-products block and a
- * related-articles strip. None of them is rendered here, and each is absent for a stated reason
- * rather than for lack of time:
+ * related-articles strip. Two are rendered now, and the rest stay absent for a stated reason:
  *
  *   - **byline** — `authorId` is null on every row, and a byline is a claim about a person.
- *   - **table of contents** — the body is plain `text` with no heading structure to extract.
+ *   - **table of contents** — now rendered, from the same heading pass that renders the body
+ *     (`renderMarkdown`), so a TOC link and its target can never name different headings.
  *   - **key takeaways** — no column, and summarising an article on its behalf would be authoring.
- *   - **related products / related articles** — both are a ranking, and no ranking is specified;
- *     inventing one would publish an editorial judgement the platform did not make.
+ *   - **related articles** — rendered as "Recent articles" in the sidebar, deliberately NOT a
+ *     ranking: it is the same ordered list `GET /blog/posts` already serves the index, so there
+ *     is no separate editorial judgement being invented here.
+ *   - **related products** — still absent; no product/article association exists to read.
  *
- * The body renders as paragraphs split on blank lines, and that is the whole of the formatting.
- * `BlogPost.content` is plain text — there is no rich-text or Markdown column, and interpreting it
- * as either would render markup the editor never asked for.
+ * The body is Markdown, rendered and sanitized by `renderMarkdown` (`features/blog/render-markdown`)
+ * — never `dangerouslySetInnerHTML` on the raw column. `BlogPost.content` is plain `text` in
+ * `sam_platform`; the Markdown convention lives entirely in this render path, not in the schema.
  *
  * ── The breadcrumb is logical, not a URL hierarchy ──────────────────────────
  *
@@ -50,6 +54,7 @@ export function PostTemplate({
   locale,
   locales,
   localeFallback,
+  recentPosts,
 }: {
   readonly post: BlogPostDetailResponse;
   /** The active locale segment, used to compose the breadcrumb's links and to format the date. */
@@ -57,7 +62,15 @@ export function PostTemplate({
   readonly locales: SiteNavProps["locales"];
   /** The API's `meta.localeFallback`, surfaced as a notice. */
   readonly localeFallback: boolean;
+  /**
+   * Other published posts, for the sidebar's "Recent articles" — fetched by the route with the
+   * same `getBlogPosts` call the Insights index makes, and already filtered to exclude this post.
+   * Empty when this is the only published post, which the sidebar renders as no block at all.
+   */
+  readonly recentPosts: readonly BlogPostListItemResponse[];
 }): ReactNode {
+  const { html, toc } = renderMarkdown(post.content);
+
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -106,50 +119,47 @@ export function PostTemplate({
 
           <section className="fs-sec in-post-body" data-surface="light">
             <div className="fs-wrap in-post-body-inner">
-              {post.featuredImage && (
-                <img
-                  className="in-post-image"
-                  src={post.featuredImage.url}
-                  alt={post.featuredImage.altText ?? ""}
-                  width={1200}
-                  height={675}
-                />
-              )}
-              {/*
-               * Split on blank lines and rendered as paragraphs. React escapes every value, so the
-               * body reaches the page as text and can carry no markup — which is the correct
-               * treatment of a plain `text` column whose contents nothing has sanitised.
-               *
-               * The index is a safe key here and only here: this list is derived from one immutable
-               * string and is never reordered, inserted into or filtered.
-               */}
-              {post.content
-                .split(/\n{2,}/)
-                .map((paragraph) => paragraph.trim())
-                .filter((paragraph) => paragraph !== "")
-                .map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+              <div className="in-post-main">
+                {post.featuredImage && (
+                  <img
+                    className="in-post-image"
+                    src={post.featuredImage.url}
+                    alt={post.featuredImage.altText ?? ""}
+                    width={1200}
+                    height={675}
+                  />
+                )}
 
-              {/*
-               * Rendered only when the post actually carries tags — no row exists in `blog_tags`
-               * today, so this is unreachable. It is here because the field is on the wire and
-               * omitting it would mean the page silently drops real data the day tags land.
-               *
-               * The tags are labels and not links: no tag-filtered route exists, and a link to a
-               * page that does not resolve is worse than a label that does not link.
-               */}
-              {post.tags.length > 0 && (
-                <ul className="in-post-tags" aria-label="Tags">
-                  {post.tags.map((tag) => (
-                    <li key={tag.slug}>{tag.name}</li>
-                  ))}
-                </ul>
-              )}
+                {/*
+                 * `html` is `renderMarkdown`'s output: Markdown parsed, then passed through
+                 * `sanitize-html`'s explicit allow-list. This is the ONE place in the codebase
+                 * that renders a `BlogPost.content` value as markup rather than text, and it does
+                 * so only after that sanitization boundary — never on the raw column.
+                 */}
+                <div className="in-post-content" dangerouslySetInnerHTML={{ __html: html }} />
 
-              <p className="in-post-back">
-                <a href={`/${locale}${ROUTES.insights}`}>All posts</a>
-              </p>
+                {/*
+                 * Rendered only when the post actually carries tags — no row exists in `blog_tags`
+                 * today, so this is unreachable. It is here because the field is on the wire and
+                 * omitting it would mean the page silently drops real data the day tags land.
+                 *
+                 * The tags are labels and not links: no tag-filtered route exists, and a link to a
+                 * page that does not resolve is worse than a label that does not link.
+                 */}
+                {post.tags.length > 0 && (
+                  <ul className="in-post-tags" aria-label="Tags">
+                    {post.tags.map((tag) => (
+                      <li key={tag.slug}>{tag.name}</li>
+                    ))}
+                  </ul>
+                )}
+
+                <p className="in-post-back">
+                  <a href={`/${locale}${ROUTES.insights}`}>All posts</a>
+                </p>
+              </div>
+
+              <ArticleSidebar toc={toc} recentPosts={recentPosts} locale={locale} />
             </div>
           </section>
         </article>

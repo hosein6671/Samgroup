@@ -58,6 +58,7 @@ const BLOG_POST_SELECT = {
   title: true,
   slug: true,
   publishedAt: true,
+  updatedAt: true,
   category: { select: { name: true, slug: true } },
 } as const satisfies Prisma.BlogPostSelect;
 
@@ -67,6 +68,7 @@ const BLOG_POST_DETAIL_SELECT = {
   slug: true,
   content: true,
   publishedAt: true,
+  updatedAt: true,
   category: { select: { name: true, slug: true } },
   tags: {
     // `blog_post_tags` has no ordering column, and `blog_tags` has no `sortOrder` — ordering by
@@ -93,6 +95,7 @@ type BlogPostRow = {
   title: string;
   slug: string;
   publishedAt: Date | null;
+  updatedAt: Date;
   category: { name: string; slug: string };
 };
 
@@ -231,6 +234,7 @@ export class BlogPostsService {
         slug: translated.slug,
         content: translated.content,
         publishedAt: requirePublishedAt(translated.publishedAt),
+        updatedAt: translated.updatedAt.toISOString(),
         category,
         tags: tags.map((membership) => membership.blogTag),
         featuredImage: image ? { url: image.url, altText: image.altText } : null,
@@ -356,6 +360,7 @@ function toListItem(
     title: row.title,
     slug: row.slug,
     publishedAt: requirePublishedAt(row.publishedAt),
+    updatedAt: row.updatedAt.toISOString(),
     category: row.category,
     featuredImage: image ? { url: image.url, altText: image.altText } : null,
   };

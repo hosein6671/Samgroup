@@ -173,10 +173,16 @@ describe("Product Family pages come from the API, per translated locale", () => 
 });
 
 describe("published articles", () => {
-  it("lists each post with its own publication date", async () => {
+  it("lists each post by its own last-modified date, not its publication date", async () => {
     getBlogPosts.mockResolvedValue({
       ok: true,
-      posts: [{ slug: "first-post", publishedAt: "2026-08-01T00:00:00.000Z" }],
+      posts: [
+        {
+          slug: "first-post",
+          publishedAt: "2026-08-01T00:00:00.000Z",
+          updatedAt: "2026-08-05T00:00:00.000Z",
+        },
+      ],
       total: 1,
       page: 1,
       limit: 20,
@@ -186,21 +192,36 @@ describe("published articles", () => {
     const article = result.find((entry) => entry.url.endsWith("/en/insights/first-post"));
 
     expect(article).toBeDefined();
-    expect(article?.lastModified).toEqual(new Date("2026-08-01T00:00:00.000Z"));
+    // Distinct from `publishedAt` above, and asserted against that value specifically — a
+    // regression that reads the wrong field would still pass a test using the same timestamp for
+    // both.
+    expect(article?.lastModified).toEqual(new Date("2026-08-05T00:00:00.000Z"));
   });
 
   it("walks pages until the reported total is covered", async () => {
     getBlogPosts
       .mockResolvedValueOnce({
         ok: true,
-        posts: [{ slug: "a", publishedAt: "2026-08-01T00:00:00.000Z" }],
+        posts: [
+          {
+            slug: "a",
+            publishedAt: "2026-08-01T00:00:00.000Z",
+            updatedAt: "2026-08-01T00:00:00.000Z",
+          },
+        ],
         total: 2,
         page: 1,
         limit: 1,
       })
       .mockResolvedValueOnce({
         ok: true,
-        posts: [{ slug: "b", publishedAt: "2026-08-02T00:00:00.000Z" }],
+        posts: [
+          {
+            slug: "b",
+            publishedAt: "2026-08-02T00:00:00.000Z",
+            updatedAt: "2026-08-02T00:00:00.000Z",
+          },
+        ],
         total: 2,
         page: 2,
         limit: 1,
@@ -217,7 +238,13 @@ describe("published articles", () => {
     getBlogPosts
       .mockResolvedValueOnce({
         ok: true,
-        posts: [{ slug: "a", publishedAt: "2026-08-01T00:00:00.000Z" }],
+        posts: [
+          {
+            slug: "a",
+            publishedAt: "2026-08-01T00:00:00.000Z",
+            updatedAt: "2026-08-01T00:00:00.000Z",
+          },
+        ],
         total: 500,
         page: 1,
         limit: 1,

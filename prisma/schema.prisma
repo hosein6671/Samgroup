@@ -1085,6 +1085,10 @@ model BlogPost {
   categoryId  String    @map("category_id") @db.Uuid
   authorId    String?   @map("author_id") @db.Uuid
   publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  /// Drives `dateModified` in the Article JSON-LD. Bumped by Prisma on every write, editorial
+  /// draft saves included, so it reflects when the row last changed rather than when it was
+  /// last published.
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   category       BlogCategory        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   author         User?               @relation(fields: [authorId], references: [id], onDelete: SetNull)

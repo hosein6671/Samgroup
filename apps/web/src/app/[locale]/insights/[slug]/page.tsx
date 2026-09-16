@@ -11,6 +11,29 @@ import { absoluteUrl } from "@/features/seo/site";
 import { articleJsonLd, breadcrumbJsonLd } from "@/features/seo/structured-data";
 import { ROUTES } from "@/features/site/site-routes";
 import { getActiveLocales } from "@/lib/locales";
+import { getBlogPosts } from "@/lib/blog";
+
+import type { BlogPostListItemResponse } from "@sam-group/types";
+
+/**
+ * The sidebar's "Recent articles" — up to 4 other published posts, current one excluded.
+ *
+ * Best-effort: `getBlogPosts` reports every API condition as a value rather than throwing, and an
+ * unreachable blog service here becomes an empty list, not a broken article page. The article
+ * itself already answered `result.ok` by the time this runs, so the service is known to be up;
+ * a failure here is the narrower "the list call specifically failed", worth degrading past rather
+ * than surfacing on a page whose main content already loaded.
+ */
+async function findRecentPosts(
+  locale: string,
+  excludeSlug: string,
+): Promise<BlogPostListItemResponse[]> {
+  const result = await getBlogPosts(locale, { page: 1 });
+
+  if (!result.ok) return [];
+
+  return result.posts.filter((post) => post.slug !== excludeSlug).slice(0, 4);
+}
 
 /**
  * One article — `/{locale}/insights/{post-slug}`.
@@ -125,6 +148,7 @@ export default async function InsightPostPage({
 
   if (result.ok) {
     const url = absoluteUrl(articlePath(locale, result.record.slug));
+    const recentPosts = await findRecentPosts(locale, result.record.slug);
 
     return (
       <>
@@ -133,15 +157,16 @@ export default async function InsightPostPage({
          * which this route emitted neither of before.
          *
          * Everything in them is a value this page already renders: the record's own title, its own
-         * `publishedAt`, and the two-step trail the reader can actually see. No author, no
-         * `dateModified` is omitted because the API does not expose one. The image is asserted only
-         * when the editor selected a primary BlogPost-owned Media record.
+         * `publishedAt`/`updatedAt`, and the two-step trail the reader can actually see. No author
+         * is asserted. The image is asserted only when the editor selected a primary
+         * BlogPost-owned Media record.
          */}
         <JsonLd
           data={articleJsonLd({
             url,
             headline: result.record.title,
             datePublished: result.record.publishedAt,
+            dateModified: result.record.updatedAt,
             locale,
             imageUrl: result.record.featuredImage?.url,
           })}
@@ -157,6 +182,7 @@ export default async function InsightPostPage({
           post={result.record}
           locale={locale}
           localeFallback={result.localeFallback}
+          recentPosts={recentPosts}
         />
       </>
     );

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createBlogPost } from "./actions";
+import { MarkdownField } from "./markdown-field";
 import type { ReactNode } from "react";
 
 export function NewBlogForm({
@@ -43,10 +44,10 @@ export function NewBlogForm({
           ))}
         </select>
       </label>
-      <label>
-        Article content
-        <textarea name="content" required rows={12} maxLength={100000} />
-      </label>
+      <div>
+        <label htmlFor="new-blog-content">Article content</label>
+        <MarkdownField id="new-blog-content" name="content" required rows={12} maxLength={100000} />
+      </div>
       <button disabled={pending}>{pending ? "Creating…" : "Create private draft"}</button>
       <p role="status" aria-live="polite">
         {message}
