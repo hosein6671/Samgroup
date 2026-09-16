@@ -8,7 +8,7 @@ import {
 import Image from "next/image";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { Arrow } from "@/features/site/logo-mark";
+import { Arrow, LogoMark } from "@/features/site/logo-mark";
 import { localeHref } from "@/features/site/site-routes";
 
 import { CUSTOM_CTA, CUSTOM_STEPS } from "../home-data";
@@ -236,6 +236,10 @@ export function CustomFormulation({
               fill
               sizes="(max-width: 900px) calc(100vw - 40px), 54vw"
             />
+            <span className="fs-photo-brand" aria-hidden="true">
+              <LogoMark height={18} />
+              <span>SAM GROUP</span>
+            </span>
             <figcaption>{copy.text("from_requirement_to_finished_product")}</figcaption>
           </figure>
         </div>

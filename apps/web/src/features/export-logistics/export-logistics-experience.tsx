@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 import "../home/flagship.css";
 import "./export-logistics.css";
 
-import { Arrow } from "@/features/site/logo-mark";
+import { Arrow, LogoMark } from "@/features/site/logo-mark";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
@@ -94,6 +94,10 @@ export function ExportLogisticsExperience({
                 priority
                 sizes="(max-width: 900px) calc(100vw - 40px), 44vw"
               />
+              <span className="fs-photo-brand" aria-hidden="true">
+                <LogoMark height={18} />
+                <span>SAM GROUP</span>
+              </span>
               <figcaption>{copy.text("product_packaging_destination_trade_term")}</figcaption>
             </figure>
           </div>

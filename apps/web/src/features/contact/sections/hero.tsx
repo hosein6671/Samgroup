@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-import { Arrow } from "@/features/site/logo-mark";
+import { Arrow, LogoMark } from "@/features/site/logo-mark";
 
 import { ANCHORS, INTRO } from "../contact-data";
 
@@ -42,6 +42,10 @@ export function ContactHero(): ReactNode {
             priority
             sizes="(max-width: 900px) calc(100vw - 40px), 42vw"
           />
+          <span className="fs-photo-brand" aria-hidden="true">
+            <LogoMark height={18} />
+            <span>SAM GROUP</span>
+          </span>
           <figcaption>
             <span>One enquiry route</span>
             Product · quote · sample · documentation
