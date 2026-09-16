@@ -98,6 +98,7 @@ function listing(rows: number, page: number, total = 33, limit = 20): ProductLis
       slug: `sam-demo-${String(page)}-${String(index)}`,
       description: null,
       categoryId: "category",
+      featuredImage: null,
       createdAt: "2026-01-01T00:00:00.000Z",
     })),
     total,

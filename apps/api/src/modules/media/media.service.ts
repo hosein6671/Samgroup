@@ -58,14 +58,32 @@ export class MediaService {
     });
   }
 
-  async findPrimaryBlogImages(
-    blogPostIds: readonly string[],
+  findPrimaryBlogImages(blogPostIds: readonly string[]): Promise<Map<string, MediaImageResponse>> {
+    return this.findPrimaryImages(ContentEntityType.BlogPost, blogPostIds);
+  }
+
+  /**
+   * Every named product's primary image, `{id: MediaImageResponse}` — the list endpoint's read.
+   *
+   * One extra query per page of results, not one per row: `ownerId: { in: [...] }` batches the
+   * whole page's ids into a single `SELECT`, which is what keeps `ProductsService.findAll` at the
+   * two-query shape every other list read in this codebase already uses (rows, then this).
+   */
+  findPrimaryProductImages(
+    productIds: readonly string[],
   ): Promise<Map<string, MediaImageResponse>> {
-    if (blogPostIds.length === 0) return new Map();
+    return this.findPrimaryImages(ContentEntityType.Product, productIds);
+  }
+
+  private async findPrimaryImages(
+    ownerType: ContentEntityType,
+    ownerIds: readonly string[],
+  ): Promise<Map<string, MediaImageResponse>> {
+    if (ownerIds.length === 0) return new Map();
     const rows = await this.prisma.media.findMany({
       where: {
-        ownerType: ContentEntityType.BlogPost,
-        ownerId: { in: [...blogPostIds] },
+        ownerType,
+        ownerId: { in: [...ownerIds] },
         type: MediaType.IMAGE,
         isPrimary: true,
       },

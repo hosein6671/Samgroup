@@ -7,13 +7,13 @@ import { ProductCard } from "./product-card";
 import type { ProductListItemResponse } from "@sam-group/types";
 
 /**
- * The card's contract after the reserved-media-area change.
+ * The card's contract for the reserved media area.
  *
- * The area holds a DECORATIVE glyph and nothing else today — `GET /products` carries no image
- * field, so there is nothing real to put there. These assertions pin the two things that keep it
- * honest: it is `aria-hidden` (never announced as a picture of the product), and it is a family
- * glyph only where the caller passed a family, the neutral catalogue glyph otherwise. The rest
- * guard the fields that must survive untouched — name, description and the canonical link.
+ * With no `featuredImage`, the area holds a DECORATIVE glyph only: `aria-hidden` (never
+ * announced as a picture of the product), a family glyph only where the caller passed a family,
+ * the neutral catalogue glyph otherwise. With a `featuredImage`, it renders the real photo
+ * instead — real `alt` text, no glyph. The rest guard the fields that must survive untouched —
+ * name, description and the canonical link.
  */
 
 function product(overrides: Partial<ProductListItemResponse> = {}): ProductListItemResponse {
@@ -23,6 +23,7 @@ function product(overrides: Partial<ProductListItemResponse> = {}): ProductListI
     slug: "sam-demo-engine-oil-5w-30",
     description: "DEMO / PLACEHOLDER CONTENT — a seeded row, not an approved product.",
     categoryId: "cat-1",
+    featuredImage: null,
     createdAt: "2026-09-01T00:00:00.000Z",
     ...overrides,
   };
@@ -93,5 +94,38 @@ describe("ProductCard — the reserved media area", () => {
     // the media area and name are unaffected
     expect(html).toContain("pl-card-media");
     expect(html).toContain("pl-card-name");
+  });
+
+  it("renders the real photo, not the glyph, when the row carries a featuredImage", () => {
+    const html = renderHtml(
+      <ProductCard
+        product={product({
+          featuredImage: {
+            id: "img-1",
+            url: "/media/products/p1/photo.webp",
+            altText: "CH-4 20W-50",
+          },
+        })}
+        locale="en"
+        familySlug="engine-oils-automotive-lubricants"
+      />,
+    );
+    expect(html.match(/pl-card-media/g)).toHaveLength(1);
+    expect(html).toContain('<img src="/media/products/p1/photo.webp" alt="CH-4 20W-50"');
+    expect(html).not.toContain("<svg");
+    // not aria-hidden: this is real content, unlike the decorative glyph
+    expect(html).not.toMatch(/<span class="pl-card-media" aria-hidden="true">/);
+  });
+
+  it("falls back to an empty alt, never the null placeholder, when the image has no altText", () => {
+    const html = renderHtml(
+      <ProductCard
+        product={product({
+          featuredImage: { id: "img-1", url: "/media/products/p1/photo.webp", altText: null },
+        })}
+        locale="en"
+      />,
+    );
+    expect(html).toContain('alt=""');
   });
 });

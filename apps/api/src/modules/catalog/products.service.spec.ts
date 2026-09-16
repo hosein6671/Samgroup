@@ -224,6 +224,7 @@ type Stubs = {
   productTypeFindUnique: jest.Mock;
   specificationFindMany: jest.Mock;
   findImagesForOwner: jest.Mock;
+  findPrimaryProductImages: jest.Mock;
   translationFindMany: jest.Mock;
   translationFindFirst: jest.Mock;
   buildSeo: jest.Mock;
@@ -240,6 +241,7 @@ function createService(): Stubs {
   const productTypeFindUnique = jest.fn().mockResolvedValue({ id: PRODUCT_TYPE.id });
   const specificationFindMany = jest.fn().mockResolvedValue(DETAIL_ROW.specifications);
   const findImagesForOwner = jest.fn().mockResolvedValue([]);
+  const findPrimaryProductImages = jest.fn().mockResolvedValue(new Map());
   const translationFindMany = jest.fn().mockResolvedValue([]);
   const translationFindFirst = jest.fn().mockResolvedValue(null);
   const buildSeo = jest.fn().mockResolvedValue(SEO);
@@ -273,9 +275,10 @@ function createService(): Stubs {
   const seo = { buildFor: buildSeo } as unknown as SeoService;
 
   // MediaService is stubbed for the same reason, and there is no `media` delegate on the
-  // Prisma mock above: this service no longer reaches `media` at all. What the query looks
-  // like is media.service.spec.ts's assertion; what this service asks for is this file's.
-  const media = { findImagesForOwner } as unknown as MediaService;
+  // Prisma mock above: every read this service makes goes through MediaService's own methods,
+  // never `prisma.media` directly. What the query looks like is media.service.spec.ts's
+  // assertion; what this service asks for is this file's.
+  const media = { findImagesForOwner, findPrimaryProductImages } as unknown as MediaService;
 
   return {
     // The real translation service, not a stub: it owns the translation queries these tests
@@ -290,6 +293,7 @@ function createService(): Stubs {
     productTypeFindUnique,
     specificationFindMany,
     findImagesForOwner,
+    findPrimaryProductImages,
     translationFindMany,
     translationFindFirst,
     buildSeo,
@@ -900,6 +904,7 @@ describe("ProductsService.findAll — localization", () => {
       slug: "اس‌ان-۵۰۰",
       description: "روغن پایه گروه یک.",
       categoryId: CATEGORY.id,
+      featuredImage: null,
       createdAt: "2026-01-15T09:30:00.000Z",
     });
     expect(result.localeFallback).toBe(false);
@@ -1332,10 +1337,46 @@ describe("ProductsService.findAll — taxonomy is absent from the list", () => {
       "categoryId",
       "createdAt",
       "description",
+      "featuredImage",
       "id",
       "name",
       "slug",
     ]);
+  });
+});
+
+describe("ProductsService.findAll — featuredImage", () => {
+  it("asks MediaService for the whole page's primary images in one batched call", async () => {
+    const { service, findPrimaryProductImages } = createService();
+
+    await service.findAll(EN, {});
+
+    expect(findPrimaryProductImages).toHaveBeenCalledWith([PRODUCT_ROW.id]);
+  });
+
+  it("attaches the row MediaService returned for this product", async () => {
+    const { service, findPrimaryProductImages } = createService();
+    findPrimaryProductImages.mockResolvedValue(
+      new Map([
+        [PRODUCT_ROW.id, { id: "media-1", url: "/media/products/sn-500.webp", altText: "SN 500" }],
+      ]),
+    );
+
+    const result = await service.findAll(EN, {});
+
+    expect(result.products[0]?.featuredImage).toEqual({
+      id: "media-1",
+      url: "/media/products/sn-500.webp",
+      altText: "SN 500",
+    });
+  });
+
+  it("is null for a product MediaService did not return an image for", async () => {
+    const { service } = createService();
+
+    const result = await service.findAll(EN, {});
+
+    expect(result.products[0]?.featuredImage).toBeNull();
   });
 });
 

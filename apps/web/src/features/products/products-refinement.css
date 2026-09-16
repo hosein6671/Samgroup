@@ -144,7 +144,10 @@
   box-shadow: 0 8px 24px rgba(4, 15, 35, 0.05);
 }
 .pf-workspace .pl-card-media {
-  aspect-ratio: 1.65;
+  /* Square, matching the product photography's own 1:1 convention (product-list.css's base
+     rule) — this override previously widened the box past that shape for every card, glyph
+     placeholders included. */
+  aspect-ratio: 1 / 1;
 }
 .pf-active {
   display: flex;
@@ -220,9 +223,6 @@
   }
   .pf-workspace .pl-grid {
     gap: 12px;
-  }
-  .pf-workspace .pl-card-media {
-    aspect-ratio: 1.25;
   }
   .pf-hero .pf-search .pf-search-control {
     gap: 8px;

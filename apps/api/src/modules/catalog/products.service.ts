@@ -394,14 +394,22 @@ export class ProductsService {
      * `products.description` becomes a projection of it rather than an independently editable
      * field — so a reviewed sentence must not be overwritten by an unreviewed translation.
      */
-    const copy = await this.approvedCopy(
-      localized.map((row) => row.id),
-      locale,
-    );
+    const [copy, images] = await Promise.all([
+      this.approvedCopy(
+        localized.map((row) => row.id),
+        locale,
+      ),
+      // Product imagery is read through MediaService, not `prisma.media` — see the note on the
+      // detail read below. One batched query for the whole page, not one join per row.
+      this.media.findPrimaryProductImages(localized.map((row) => row.id)),
+    ]);
 
     return {
       products: localized.map((row) =>
-        toListItem({ ...row, description: copy.get(row.id) ?? row.description }),
+        toListItem(
+          { ...row, description: copy.get(row.id) ?? row.description },
+          images.get(row.id),
+        ),
       ),
       total,
       page,
@@ -915,13 +923,17 @@ function toTaxonomyRef(row: TaxonomyRow): { name: string; slug: string } {
   return { name: row.name, slug: row.slug };
 }
 
-function toListItem(row: ProductRow): ProductListItemResponse {
+function toListItem(
+  row: ProductRow,
+  image?: { id: string; url: string; altText: string | null },
+): ProductListItemResponse {
   return {
     id: row.id,
     name: row.name,
     slug: row.slug,
     description: row.description,
     categoryId: row.categoryId,
+    featuredImage: image ? { id: image.id, url: image.url, altText: image.altText } : null,
     createdAt: row.createdAt.toISOString(),
   };
 }

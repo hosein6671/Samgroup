@@ -65,6 +65,7 @@ function product(overrides: Partial<ProductListItemResponse>): ProductListItemRe
     slug: "base-oil-group-i",
     description: "Group I paraffinic solvent-neutral base oil, published by SN designation.",
     categoryId: "cat-1",
+    featuredImage: null,
     createdAt: "2026-09-05T14:59:26.786Z",
     ...overrides,
   };

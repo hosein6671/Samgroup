@@ -73,6 +73,53 @@ describe("MediaService.findImagesForOwner", () => {
   });
 });
 
+describe("MediaService.findPrimaryProductImages / findPrimaryBlogImages", () => {
+  it("asks for the primary image of exactly the named products, batched in one call", async () => {
+    const { service, mediaFindMany } = createService();
+
+    await service.findPrimaryProductImages(["p1", "p2"]);
+
+    expect(mediaFindMany).toHaveBeenCalledWith({
+      where: {
+        ownerType: "Product",
+        ownerId: { in: ["p1", "p2"] },
+        type: "IMAGE",
+        isPrimary: true,
+      },
+      select: { ownerId: true, id: true, url: true, altText: true },
+    });
+  });
+
+  it("keys the returned map by ownerId, dropping the ownerId field itself", async () => {
+    const { service, mediaFindMany } = createService();
+    mediaFindMany.mockResolvedValue([
+      { ownerId: "p1", id: "media-1", url: "/img/p1.webp", altText: "P1" },
+    ]);
+
+    const result = await service.findPrimaryProductImages(["p1"]);
+
+    expect(result.get("p1")).toEqual({ id: "media-1", url: "/img/p1.webp", altText: "P1" });
+  });
+
+  it("returns an empty map without a query when no ids are given", async () => {
+    const { service, mediaFindMany } = createService();
+
+    const result = await service.findPrimaryProductImages([]);
+
+    expect(result.size).toBe(0);
+    expect(mediaFindMany).not.toHaveBeenCalled();
+  });
+
+  it("queries BlogPost, not Product, for findPrimaryBlogImages", async () => {
+    const { service, mediaFindMany } = createService();
+
+    await service.findPrimaryBlogImages(["post-1"]);
+
+    const call = mediaFindMany.mock.calls[0]?.[0] as { where: { ownerType: string } };
+    expect(call.where.ownerType).toBe("BlogPost");
+  });
+});
+
 describe("MediaService product-image writes", () => {
   it("lists only image rows owned by the exact product and puts the primary first", async () => {
     const { service, mediaFindMany } = createService();

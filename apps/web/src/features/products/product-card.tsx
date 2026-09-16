@@ -16,19 +16,16 @@ import { CatalogueIcon, familyIconFor } from "@/features/site/icons";
  * `name` and `description`. Nothing else is on the wire: `ProductListItemResponse` is `id`, `name`,
  * `slug`, `description`, `categoryId`, `createdAt`, and the last two are join key and timestamp.
  *
- * ── The media area is reserved, not filled ─────────────────────────────────
+ * ── The media area: a real photo when one exists, a glyph when it does not ──
  *
- * Every card opens with a fixed, image-shaped area. Today it holds **only a decorative Flagship
- * glyph** on a quiet surface — the family's own icon where the caller knows which family it is
- * listing (every Family page does), the neutral catalogue glyph where it does not (the Product
- * Finder's cross-family results). It is `aria-hidden`, it is never captioned, and it makes no
- * claim to be a photograph: it is a placeholder holding the space a real product image will take.
- *
- * `GET /products` carries **no image field** — `ProductImageResponse[]` is a `GET /products/:slug`
- * field and `PRODUCT_SELECT` keeps the list without it (a page of rows would be a join per row).
- * A real image on this card therefore waits on a backend change that has not been made. When it
- * lands, the `<img>` replaces the glyph inside `.pl-card-media` alone — no other element here, and
- * no caller, changes.
+ * Every card opens with a fixed, square, image-shaped area (`.pl-card-media`, matching the
+ * product photography's own 1:1 convention — see `product-detail.css`'s gallery note). When
+ * `product.featuredImage` is set — the product's PRIMARY approved image, from `GET /products`'
+ * own `featuredImage` field — it renders there, real `alt` text and all. Otherwise the area holds
+ * a **decorative Flagship glyph**: the family's own icon where the caller knows which family it
+ * is listing (every Family page does), the neutral catalogue glyph where it does not (the Product
+ * Finder's cross-family results). The glyph is `aria-hidden` and never captioned — it makes no
+ * claim to be a photograph, unlike the real image beside it in this same slot.
  *
  * There is deliberately **no grade, no viscosity, no standard, no approval, no packaging, no
  * product code and no performance claim** anywhere in this component. Not blank — absent. Every one
@@ -91,14 +88,22 @@ export function ProductCard({
 
   return (
     <article className="pl-card">
-      {/*
-       * Decorative. `aria-hidden` so assistive tech does not announce a glyph as an image of the
-       * product, and no `alt`/`figcaption` for the same reason. Replaced by an `<img>` here, and
-       * only here, once `GET /products` carries an image — see this file's header.
-       */}
-      <span className="pl-card-media" aria-hidden="true">
-        <PlaceholderIcon size="xl" />
-      </span>
+      {product.featuredImage ? (
+        <span className="pl-card-media">
+          <img
+            src={product.featuredImage.url}
+            alt={product.featuredImage.altText ?? ""}
+            loading="lazy"
+            decoding="async"
+          />
+        </span>
+      ) : (
+        // Decorative. `aria-hidden` so assistive tech does not announce a glyph as an image of
+        // the product, and no `alt`/`figcaption` for the same reason.
+        <span className="pl-card-media" aria-hidden="true">
+          <PlaceholderIcon size="xl" />
+        </span>
+      )}
 
       <h3 className="pl-card-name">
         {/*

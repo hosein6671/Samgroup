@@ -18,6 +18,7 @@ const LIST_ITEM: ProductListItemResponse = {
   slug: "sn-500",
   description: "A Group I base oil.",
   categoryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  featuredImage: null,
   createdAt: "2026-01-15T09:30:00.000Z",
 };
 

@@ -48,7 +48,7 @@ export type ProductListResult =
   | { readonly ok: false; readonly reason: "api-error"; readonly status: number };
 
 /**
- * The six fields of one list row, checked before any of them is trusted.
+ * The seven fields of one list row, checked before any of them is trusted.
  *
  * `apiGet` verifies the envelope, not the payload — a 200 carrying something that is not a product
  * row would otherwise reach a heading as `undefined`. Every field the shared type declares is
@@ -61,6 +61,7 @@ function isProductListItem(value: unknown): value is ProductListItemResponse {
   }
 
   const record = value as Record<string, unknown>;
+  const image = record.featuredImage as Record<string, unknown> | null | undefined;
 
   return (
     typeof record.id === "string" &&
@@ -68,6 +69,12 @@ function isProductListItem(value: unknown): value is ProductListItemResponse {
     typeof record.slug === "string" &&
     (record.description === null || typeof record.description === "string") &&
     typeof record.categoryId === "string" &&
+    (image === null ||
+      (typeof image === "object" &&
+        image !== null &&
+        typeof image.id === "string" &&
+        typeof image.url === "string" &&
+        (image.altText === null || typeof image.altText === "string"))) &&
     typeof record.createdAt === "string"
   );
 }

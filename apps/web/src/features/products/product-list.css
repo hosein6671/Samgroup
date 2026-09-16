@@ -205,7 +205,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  /* Square, matching the product photography's own 1:1 convention — see product-detail.css's
+     gallery note. Holds this shape whether the card is showing the glyph or a real photo, so
+     nothing resizes once `featuredImage` lands on a product that opened with the placeholder. */
+  aspect-ratio: 1 / 1;
   border-radius: 10px;
   border: 1px solid var(--color-border-hairline);
   background: var(--color-surface-sunken);
@@ -215,6 +219,12 @@
 .pl-card-media .fs-icon {
   inline-size: 30px;
   block-size: 30px;
+}
+
+.pl-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .pl-card-name {
@@ -300,11 +310,11 @@
   background: var(--color-border-hairline);
 }
 
-/* Holds the same 4:3 proportion `.pl-card-media` will, so the fallback and the real card are
+/* Holds the same 1:1 proportion `.pl-card-media` will, so the fallback and the real card are
    the same height and nothing jumps when the list streams in. */
 .pl-skeleton--media {
   height: auto;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   border-radius: 10px;
 }
 

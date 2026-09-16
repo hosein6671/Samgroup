@@ -44,12 +44,17 @@ export type CategoryResponse = {
  *
  * ── What the list deliberately does NOT carry ───────────────────────────────
  *
- * **No `segments`, no `productType`, no `specifications`, no `images`, no `seo`.** All five are
- * `GET /products/:slug` fields and the backend's `PRODUCT_SELECT` is explicit that the list stays
- * without them — media because a page of rows would mean a join per row, taxonomy because ADR-008
- * made `?segment=`/`?productType=` list-only *filters* rather than list *fields*. This declaration
- * therefore says what the wire says. A consumer that needs a product's Segments reads the detail
- * endpoint; widening this shape is a backend gate, not a frontend one.
+ * **No `segments`, no `productType`, no `specifications`, no full `images` gallery, no `seo`.**
+ * All are `GET /products/:slug` fields and the backend's `PRODUCT_SELECT` is explicit that the
+ * list stays without them — taxonomy because ADR-008 made `?segment=`/`?productType=` list-only
+ * *filters* rather than list *fields*, the rest because a card renders one photo and a summary,
+ * not a gallery or a technical sheet. A consumer that needs a product's Segments, or its full
+ * image set, reads the detail endpoint; widening this shape further is a backend gate, not a
+ * frontend one.
+ *
+ * `featuredImage` is the one exception: the product's PRIMARY image only, fetched as one batched
+ * query for the whole page (`MediaService.findPrimaryProductImages`) rather than a join per row —
+ * `null` for a product with no approved image yet, which a card renders as its placeholder glyph.
  *
  * `createdAt` is modelled because it is on the wire and this type claims to be the row. Nothing in
  * `apps/web` reads it yet — the list is served in the API's default `name` order.
@@ -61,6 +66,7 @@ export type ProductListItemResponse = {
   description: string | null;
   /** The owning category's id — never its slug. Join key, not a route segment. */
   categoryId: string;
+  featuredImage: ProductImageResponse | null;
   /** ISO 8601. */
   createdAt: string;
 };

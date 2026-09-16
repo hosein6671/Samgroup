@@ -12,7 +12,14 @@ import type { SeoFields } from "@sam-group/types";
  * ProductDetailResponse and on neither the list row nor the nested category.
  */
 
-/** One row of `GET /products`. Deliberately without media: a list of 20 products would mean 20 more joins for imagery no list layout is specified to need. */
+/**
+ * One row of `GET /products`.
+ *
+ * `featuredImage` is the product's PRIMARY image only (`Media.isPrimary`), one extra batched
+ * query for the whole page rather than the full gallery — a list card shows one photo, not a
+ * carousel, and `null` for a product with no approved image yet is the family-glyph placeholder's
+ * cue, not a loading state.
+ */
 export type ProductListItemResponse = {
   id: string;
   name: string;
@@ -20,6 +27,7 @@ export type ProductListItemResponse = {
   description: string | null;
   /** The owning category's id. Its localized name and slug come from `GET /categories`. */
   categoryId: string;
+  featuredImage: ProductImageResponse | null;
   /** ISO 8601. Serialized here rather than left as a `Date`, so the wire shape does not depend on the JSON serializer in front of it. */
   createdAt: string;
 };
