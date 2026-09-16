@@ -28,41 +28,45 @@ export function ProductMediaManager({
           <article key={item.id}>
             <img src={item.url} alt={item.altText ?? ""} width={240} height={160} />
             <p>{item.altText || "No alt text"}</p>
-            {item.isPrimary ? (
-              <strong>Primary image</strong>
-            ) : (
+            <div className="ad-product-media-actions">
+              {item.isPrimary ? (
+                <strong>Primary image</strong>
+              ) : (
+                <button
+                  className="ad-chip"
+                  type="button"
+                  disabled={pending}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const result = await makeProductImagePrimary(productId, item.id);
+                      setMessage(result.message);
+                      if (result.ok)
+                        setItems((current) =>
+                          current.map((entry) => ({ ...entry, isPrimary: entry.id === item.id })),
+                        );
+                    })
+                  }
+                >
+                  Make primary
+                </button>
+              )}
               <button
+                className="ad-chip"
                 type="button"
                 disabled={pending}
-                onClick={() =>
+                onClick={() => {
+                  if (!window.confirm("Remove this product image? This cannot be undone.")) return;
                   startTransition(async () => {
-                    const result = await makeProductImagePrimary(productId, item.id);
+                    const result = await removeProductImage(productId, item.id);
                     setMessage(result.message);
                     if (result.ok)
-                      setItems((current) =>
-                        current.map((entry) => ({ ...entry, isPrimary: entry.id === item.id })),
-                      );
-                  })
-                }
+                      setItems((current) => current.filter((entry) => entry.id !== item.id));
+                  });
+                }}
               >
-                Make primary
+                Remove
               </button>
-            )}
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => {
-                if (!window.confirm("Remove this product image? This cannot be undone.")) return;
-                startTransition(async () => {
-                  const result = await removeProductImage(productId, item.id);
-                  setMessage(result.message);
-                  if (result.ok)
-                    setItems((current) => current.filter((entry) => entry.id !== item.id));
-                });
-              }}
-            >
-              Remove
-            </button>
+            </div>
           </article>
         ))}
       </div>
@@ -74,22 +78,37 @@ export function ProductMediaManager({
             if (result.item) setItems((current) => [...current, result.item!]);
           })
         }
-        className="ad-media-upload"
+        className="ad-product-media-upload"
       >
-        <label>
-          Image
+        <div className="ad-field">
+          <label className="ad-label" htmlFor="product-media-image">
+            Image
+          </label>
           <input
+            className="ad-input"
+            id="product-media-image"
             name="image"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/avif"
             required
           />
-        </label>
-        <label>
-          Descriptive alt text
-          <input name="altText" type="text" maxLength={300} required />
-        </label>
-        <button disabled={pending}>{pending ? "Uploading…" : "Upload product image"}</button>
+        </div>
+        <div className="ad-field">
+          <label className="ad-label" htmlFor="product-media-alt">
+            Descriptive alt text
+          </label>
+          <input
+            className="ad-input"
+            id="product-media-alt"
+            name="altText"
+            type="text"
+            maxLength={300}
+            required
+          />
+        </div>
+        <button className="ad-btn" disabled={pending}>
+          {pending ? "Uploading…" : "Upload product image"}
+        </button>
       </form>
       <p role="status" aria-live="polite">
         {message}

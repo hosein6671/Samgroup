@@ -53,14 +53,18 @@ export default async function UsersPage(): Promise<ReactNode> {
               : "User list unavailable"}
           </h2>
           <p>No accounts have been changed.</p>
-          <Link href="/admin/users">Try again</Link>
+          <Link className="ad-link" href="/admin/users">
+            Try again
+          </Link>
         </section>
       ) : (
         <>
-          <p>{rows.length} accounts</p>
+          <p className="ad-note">{rows.length} accounts</p>
           <div className="ad-table-scroll" role="region" aria-label="Platform users" tabIndex={0}>
             <table className="ad-table">
-              <caption>Current platform accounts</caption>
+              <caption className="ad-sr-only">
+                Current platform accounts. {rows.length} shown.
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">Email</th>
@@ -71,11 +75,15 @@ export default async function UsersPage(): Promise<ReactNode> {
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td>
-                      <Link href={`/admin/users/${encodeURIComponent(row.id)}`}>{row.email}</Link>
-                    </td>
+                    <th scope="row" className="ad-cell-name">
+                      <Link className="ad-link" href={`/admin/users/${encodeURIComponent(row.id)}`}>
+                        {row.email}
+                      </Link>
+                    </th>
                     <td>{row.role}</td>
-                    <td>{row.status}</td>
+                    <td>
+                      <span className={`ad-badge ad-badge--${row.status}`}>{row.status}</span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

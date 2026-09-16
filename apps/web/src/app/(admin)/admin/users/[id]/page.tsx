@@ -53,7 +53,11 @@ export default async function UserPage({
       : null;
   return (
     <AdminShell current="users" title="Manage user" user={access.user}>
-      <Link href="/admin/users">← All users</Link>
+      <p>
+        <Link className="ad-link" href="/admin/users">
+          ← All users
+        </Link>
+      </p>
       {user ? (
         <section className="ad-notice">
           <h2>{user.email}</h2>

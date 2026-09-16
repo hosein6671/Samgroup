@@ -43,14 +43,22 @@ export default async function ProductEditorPage({
   if (!result.ok && result.reason === "http" && result.status === 401) redirect(SESSION_END_PATH);
   return (
     <AdminShell title="Edit product" user={access.user} current="products">
-      <Link href="/admin/catalog/products">All products</Link>
+      <p>
+        <Link className="ad-link" href="/admin/catalog/products">
+          All products
+        </Link>
+      </p>
       {result.ok && typeof result.data.revision === "string" && result.data.fields ? (
         <>
           <p className="ad-note">
             {result.data.category} · English content. Drafts stay private until published. Product
             URLs and technical approvals are unchanged by this editor.
           </p>
-          <Link href={`/en/products/${result.data.slug}`}>View published product</Link>
+          <p>
+            <Link className="ad-link" href={`/en/products/${result.data.slug}`}>
+              View published product
+            </Link>
+          </p>
           <ProductMediaManager productId={id} initial={images.ok ? images.data : []} />
           <ContentForm
             pageKey={id}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminShell } from "@/features/admin/admin-shell";
+import { AdminPagination } from "@/features/admin/admin-pagination";
 import { SESSION_END_PATH } from "@/features/admin/admin-routes";
 import { requireAdminAccess } from "@/features/admin/session/require-admin";
 import { getAdminAccessToken } from "@/features/admin/session/session";
@@ -61,9 +62,11 @@ export default async function BlogPostsPage({
     <AdminShell title="Articles" user={access.user} current="blog">
       <p className="ad-note">Write privately and publish only when the article is ready.</p>
       <p>
-        <Link href="/admin/blog/posts/new">Create article</Link>
+        <Link className="ad-btn" href="/admin/blog/posts/new">
+          Create article
+        </Link>
       </p>
-      <form method="get" className="ad-user-form" aria-label="Find articles">
+      <form method="get" className="ad-search-bar" aria-label="Find articles">
         <label>
           Search articles
           <input type="search" name="q" defaultValue={query.q} maxLength={100} />
@@ -88,31 +91,45 @@ export default async function BlogPostsPage({
               ))}
           </select>
         </label>
-        <button type="submit">Search</button>
-        <Link href="/admin/blog/posts">Reset</Link>
+        <div className="ad-search-bar-actions">
+          <button className="ad-btn" type="submit">
+            Search
+          </button>
+          <Link className="ad-link" href="/admin/blog/posts">
+            Reset
+          </Link>
+        </div>
       </form>
       {result.ok ? (
         <>
-          <p>{result.meta.total ?? result.data.length} articles</p>
           <div className="ad-table-scroll" role="region" aria-label="Articles" tabIndex={0}>
             <table className="ad-table">
-              <caption>Articles · page {page}</caption>
+              <caption className="ad-sr-only">
+                Articles, page {page}. {result.data.length} shown on this page.
+              </caption>
               <thead>
                 <tr>
-                  <th>Article</th>
-                  <th>Category</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th scope="col">Article</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {result.data.map((article) => (
                   <tr key={article.id}>
-                    <td>{article.title}</td>
+                    <th scope="row" className="ad-cell-name">
+                      <Link className="ad-link" href={`/admin/blog/posts/${article.id}`}>
+                        <span className="ad-sr-only">Edit </span>
+                        {article.title}
+                      </Link>
+                    </th>
                     <td>{article.category.name}</td>
-                    <td>{article.publishedAt ? "Published" : "Draft"}</td>
                     <td>
-                      <Link href={`/admin/blog/posts/${article.id}`}>Edit</Link>
+                      {article.publishedAt ? (
+                        <span className="ad-badge ad-badge--published">Published</span>
+                      ) : (
+                        <span className="ad-badge ad-badge--draft">Draft</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -120,12 +137,13 @@ export default async function BlogPostsPage({
             </table>
           </div>
           {result.data.length === 0 && <p>No articles match these filters.</p>}
-          <nav className="ad-pager" aria-label="Article pages">
-            {page > 1 && <Link href={href(page - 1)}>Previous</Link>}
-            {typeof result.meta.total === "number" && page * 20 < result.meta.total && (
-              <Link href={href(page + 1)}>Next</Link>
-            )}
-          </nav>
+          <AdminPagination
+            page={page}
+            pages={Math.max(1, Math.ceil((result.meta.total ?? result.data.length) / 20))}
+            total={result.meta.total ?? result.data.length}
+            unit="articles"
+            hrefForPage={href}
+          />
         </>
       ) : (
         <p className="ad-notice">Articles could not be loaded. Please try again.</p>

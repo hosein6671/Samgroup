@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AdminShell } from "@/features/admin/admin-shell";
+import { AdminPagination } from "@/features/admin/admin-pagination";
 import { requireAdminAccess } from "@/features/admin/session/require-admin";
 import { getAdminAccessToken } from "@/features/admin/session/session";
 import { SESSION_END_PATH } from "@/features/admin/admin-routes";
@@ -53,7 +54,7 @@ export default async function ProductsPage({
       <p className="ad-note">
         Manage product descriptions and search appearance. Save privately, then publish when ready.
       </p>
-      <form method="get" className="ad-user-form" aria-label="Find products">
+      <form method="get" className="ad-search-bar" aria-label="Find products">
         <label>
           Search products
           <input type="search" name="q" defaultValue={query.q} maxLength={100} />
@@ -71,44 +72,51 @@ export default async function ProductsPage({
               ))}
           </select>
         </label>
-        <button type="submit">Search</button>
-        <Link href="/admin/catalog/products">Reset</Link>
+        <div className="ad-search-bar-actions">
+          <button className="ad-btn" type="submit">
+            Search
+          </button>
+          <Link className="ad-link" href="/admin/catalog/products">
+            Reset
+          </Link>
+        </div>
       </form>
       {result.ok && Array.isArray(result.data) ? (
         <>
-          <p>{result.meta.total ?? result.data.length} products</p>
           <div className="ad-table-scroll" role="region" aria-label="Products" tabIndex={0}>
             <table className="ad-table">
-              <caption>Catalogue · page {page}</caption>
+              <caption className="ad-sr-only">
+                Catalogue, page {page}. {result.data.length} shown on this page.
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">Product</th>
                   <th scope="col">Category</th>
-                  <th scope="col">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {result.data.map((product) => (
                   <tr key={product.id}>
-                    <td>{product.name}</td>
-                    <td>{product.category.name}</td>
-                    <td>
-                      <Link href={`/admin/catalog/products/${product.id}`}>
-                        Edit {product.name}
+                    <th scope="row" className="ad-cell-name">
+                      <Link className="ad-link" href={`/admin/catalog/products/${product.id}`}>
+                        <span className="ad-sr-only">Edit </span>
+                        {product.name}
                       </Link>
-                    </td>
+                    </th>
+                    <td>{product.category.name}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           {result.data.length === 0 && <p>No products match these filters.</p>}
-          <nav className="ad-pager" aria-label="Product pages">
-            {page > 1 && <Link href={href(page - 1)}>Previous</Link>}
-            {typeof result.meta.total === "number" && page * 20 < result.meta.total && (
-              <Link href={href(page + 1)}>Next</Link>
-            )}
-          </nav>
+          <AdminPagination
+            page={page}
+            pages={Math.max(1, Math.ceil((result.meta.total ?? result.data.length) / 20))}
+            total={result.meta.total ?? result.data.length}
+            unit="products"
+            hrefForPage={href}
+          />
         </>
       ) : (
         <p className="ad-notice">

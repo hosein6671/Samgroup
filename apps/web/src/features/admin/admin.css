@@ -367,6 +367,38 @@
   cursor: default;
 }
 
+/*
+ * A primary action rendered inline rather than as a form's own full-width submit — "Search" beside
+ * a filter bar, "Create article" beside a list heading. Same accent fill as `.ad-submit`, sized to
+ * its content instead of its container.
+ */
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--color-text-on-accent);
+  background: var(--color-accent-default);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.ad-btn:hover {
+  background: var(--color-accent-hover);
+}
+
+.ad-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 /* --- the outcome banner -------------------------------------------------- */
 
 /*
@@ -1245,6 +1277,28 @@
 /* The importer attached a reason. Heavier boundary, and the word says so. */
 .ad-badge--needs-review,
 .ad-badge--finding {
+  border-color: var(--color-border-accent);
+  font-weight: 600;
+}
+
+/* An article's publication state. Draft gets the heavier accent border — same convention as
+   `--needs-review` above: it is the state that still wants attention. */
+.ad-badge--published {
+  border-color: var(--color-border-strong);
+}
+
+.ad-badge--draft {
+  border-color: var(--color-border-accent);
+  font-weight: 600;
+}
+
+/* A platform account's status. Disabled gets the heavier accent border — the state that wants
+   an operator's attention, same convention as `--needs-review` and `--draft` above. */
+.ad-badge--active {
+  border-color: var(--color-border-strong);
+}
+
+.ad-badge--disabled {
   border-color: var(--color-border-accent);
   font-weight: 600;
 }
@@ -2702,6 +2756,47 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 3px;
 }
+
+/*
+ * A compact list filter — Products, Articles. `.ad-user-form` stays a vertical stack for real
+ * data-entry forms (create/edit user, new article); a search box plus one or two selects reads
+ * better as one row, so it does not share that class.
+ */
+.ad-search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px 18px;
+  margin-block: 22px;
+}
+.ad-search-bar label {
+  display: grid;
+  gap: 6px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+.ad-search-bar :is(input, select) {
+  box-sizing: border-box;
+  min-width: 12rem;
+  font: inherit;
+  padding: 10px 12px;
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+.ad-search-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ad-search-bar :is(input, select):focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
 .ad-content-form {
   display: block;
   max-width: 960px;
@@ -2759,13 +2854,20 @@
 .ad-product-media {
   margin-block: 28px;
 }
+/*
+ * `auto-fill` with a capped max, not `auto-fit` with `1fr`: `1fr` stretches whatever columns exist
+ * to fill the row, so a product with one or two images got a single card the full width of the
+ * form — 500px-plus, on a 3:2 image, well over image-editing size for a thumbnail grid.
+ */
 .ad-product-media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 240px));
   gap: 16px;
   margin-block: 16px;
 }
 .ad-product-media-grid article {
+  display: grid;
+  gap: 8px;
   padding: 14px;
   border: 1px solid var(--color-platinum-300);
   border-radius: 8px;
@@ -2778,9 +2880,31 @@
   object-fit: cover;
   border-radius: 6px;
 }
-.ad-product-media-grid button {
-  margin-inline-end: 8px;
-  margin-top: 8px;
+.ad-product-media-grid p {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+/* The primary-image label and the Remove control, side by side with real space between them —
+   previously adjacent inline elements with no gap of their own read as "Primary imageRemove". */
+.ad-product-media-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ad-product-media-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px 18px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+}
+.ad-product-media-upload .ad-field {
+  margin: 0;
+  min-width: 12rem;
 }
 .ad-content-actions {
   display: flex;
