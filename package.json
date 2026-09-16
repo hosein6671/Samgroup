@@ -24,6 +24,7 @@
     "seed:categories": "tsx prisma/seed-categories.ts",
     "seed:products:demo": "tsx prisma/seed-products-demo.ts",
     "seed:blog:demo": "tsx prisma/seed-blog-demo.ts",
+    "media:optimize-backfill": "tsx apps/api/src/modules/media/backfill-optimize-media.run.ts",
     "prepare": "husky"
   },
   "dependencies": {

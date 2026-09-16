@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { MediaType } from "../../prisma/generated/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { optimizeImage } from "./image-optimizer";
 
 import type { MediaImageResponse } from "./dto/media.response";
 import { ContentEntityType } from "../../common/content/content-entity-type";
@@ -161,11 +162,12 @@ export class MediaService {
     const key = `${storageFolder}/${ownerId}/${randomUUID()}${extension}`;
     const client = this.client(storage);
     try {
+      const optimized = await optimizeImage(file.buffer, file.mimetype);
       await client.send(
         new PutObjectCommand({
           Bucket: storage.bucket,
           Key: key,
-          Body: file.buffer,
+          Body: optimized,
           ContentType: file.mimetype,
           CacheControl: "public, max-age=31536000, immutable",
         }),
