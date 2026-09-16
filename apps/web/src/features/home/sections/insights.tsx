@@ -1,44 +1,36 @@
 import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
+import "../../blog/insights.css";
+
+import { InsightCard } from "@/features/blog/insight-card";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
+import type { BlogPostListItemResponse } from "@sam-group/types";
+
 /**
- * 8 · Editorial insights.
+ * 8 · Editorial insights — the workbook's "Latest News / Insights" segment.
  *
- * ── The articles were invented, and are gone ────────────────────────────────
+ * ── History: the articles were invented, then removed, then made real ───────
  *
- * This section was a magazine well: one lead article with a generated cover, four secondaries in a
- * numbered stack. **Every word of it was fabricated.** The lead was titled "Why Group III supply is
- * rewriting lubricant procurement in 2026", tagged "Base oils · Market", labelled "12 Min read ·
- * Market Analysis", and carried a specific market claim about hydrocracker capacity additions in
- * the Gulf narrowing the Group II–III price gap. The four secondaries were the same in miniature.
+ * This section was originally a magazine well of entirely fabricated articles (a specific,
+ * dated market claim attributed to nobody — the kind of invented fact CLAUDE.md §4 forbids
+ * outright) and was cut down to a CTA-only heading for exactly that reason. It stayed CTA-only
+ * for a while after that: `GET /blog/posts` existed and could have been wired in, but doing so
+ * from this leaf component would have meant making it async, threading `locale` down from the
+ * route, and adding a Suspense boundary — judged a homepage/blog integration, not a tiny reuse,
+ * and out of scope for the gate that made the cut.
  *
- * None of it corresponded to anything: not to a `BlogPost` row, not to the demo blog dataset, not
- * to any approved editorial content. It was prototype filler that read as published analysis, and a
- * dated market assertion attributed to nobody is the kind of invented fact CLAUDE.md §4 forbids
- * outright — arguably worse than an invented statistic, because it is presented as this company's
- * professional judgement.
+ * That integration is now done, at the route: `app/[locale]/page.tsx` fetches the newest
+ * published posts (`findRecentPosts`, the same best-effort pattern `insights/[slug]/page.tsx`
+ * uses for its "Recent articles" sidebar) and hands them down as `recentPosts`, already resolved
+ * by the time this component runs — no fetch, no Suspense boundary, and no client JavaScript
+ * needed here. Every card is `InsightCard`, the same component the real Insights index renders,
+ * so a post looks identical whether it is read here or there.
  *
- * ── Why a CTA and not a real feed ───────────────────────────────────────────
- *
- * `GET /blog/posts` exists and `/{locale}/insights` renders it, so wiring the five real (explicitly
- * DEMO-prefixed) posts in here would be possible. It is deliberately not done: this component is a
- * leaf of a homepage tree that receives no locale and performs no fetch, so consuming the blog
- * would mean making it async, plumbing `locale` down from the route, and adding a Suspense boundary
- * — a homepage/blog integration, not a tiny reuse. Subtraction was the instruction and is the right
- * call; the section now points at the page that already lists the real posts.
- *
- * ── What that removed with it ───────────────────────────────────────────────
- *
- * The generated cover canvas went too. It existed to give a fabricated lead article an image, and
- * with no article there is nothing for it to be the cover of. Losing it is what lets this file drop
- * `"use client"` — it is now a Server Component shipping no JavaScript, which is the honest end
- * state for a section that is a heading and a link.
- *
- * The "All articles" action also pointed at `#insights`, this section, rather than anywhere. It now
- * resolves to the real route.
+ * `recentPosts` empty — no posts published yet, or the blog service did not answer — renders the
+ * CTA alone, same as before this integration existed. No placeholder card, no fabricated row.
  */
 /**
  * `locale` is the route's own locale segment, threaded down from `HomeExperience`.
@@ -50,7 +42,12 @@ import { localeHref, ROUTES } from "@/features/site/site-routes";
 export function Insights({
   locale,
   editorial,
-}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  recentPosts,
+}: {
+  readonly locale: string;
+  readonly editorial?: StructuralFields;
+  readonly recentPosts: readonly BlogPostListItemResponse[];
+}): ReactNode {
   const copy = structuralSection("home", "insights", editorial);
 
   return (
@@ -70,6 +67,14 @@ export function Insights({
             <Arrow />
           </a>
         </div>
+
+        {recentPosts.length > 0 && (
+          <div className="in-grid reveal-stagger">
+            {recentPosts.map((post) => (
+              <InsightCard key={post.id} post={post} locale={locale} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

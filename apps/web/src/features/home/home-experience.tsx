@@ -1,4 +1,4 @@
-import type { StructuralFields } from "@sam-group/types";
+import type { BlogPostListItemResponse, StructuralFields } from "@sam-group/types";
 import type { ReactNode } from "react";
 
 import "./flagship.css";
@@ -68,6 +68,7 @@ export function HomeExperience({
   editorial,
   locale,
   locales,
+  recentPosts,
 }: SiteNavProps & {
   /**
    * The published Privacy Policy's address, or `null`. **No longer consumed here**, and still
@@ -84,6 +85,8 @@ export function HomeExperience({
    */
   readonly privacyPolicyHref?: string | null;
   readonly editorial?: StructuralFields;
+  /** The newest published articles, newest first — `Insights`' "Latest News / Insights" segment. */
+  readonly recentPosts: readonly BlogPostListItemResponse[];
 }): ReactNode {
   return (
     <div id="flagship-root" data-brand="flagship">
@@ -129,7 +132,7 @@ export function HomeExperience({
         <Industries editorial={editorial} />
         <CustomFormulation editorial={editorial} locale={locale} />
         <Network editorial={editorial} />
-        <Insights editorial={editorial} locale={locale} />
+        <Insights editorial={editorial} locale={locale} recentPosts={recentPosts} />
       </main>
 
       <SiteFooter locale={locale} />

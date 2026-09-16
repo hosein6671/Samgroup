@@ -9,6 +9,19 @@ import { Hero } from "./sections/hero";
 import { Insights } from "./sections/insights";
 import { WhoWeAre } from "./sections/who-we-are";
 
+import type { BlogPostListItemResponse } from "@sam-group/types";
+
+/** One published post, shaped as `GET /blog/posts` serves it — for the recentPosts cases below. */
+const RECENT_POST: BlogPostListItemResponse = {
+  id: "post-1",
+  title: "Specification-First Sourcing",
+  slug: "specification-first-sourcing",
+  publishedAt: "2026-09-01T00:00:00.000Z",
+  updatedAt: "2026-09-01T00:00:00.000Z",
+  category: { name: "Industry & Market Updates", slug: "industry-market-updates" },
+  featuredImage: null,
+};
+
 /**
  * NAV-2 — the homepage body preserves the route's locale.
  *
@@ -50,7 +63,7 @@ function homeBody(locale: string): string {
     renderHtml(<WhoWeAre locale={locale} />),
     renderHtml(<Ecosystem locale={locale} />),
     renderHtml(<CustomFormulation locale={locale} />),
-    renderHtml(<Insights locale={locale} />),
+    renderHtml(<Insights locale={locale} recentPosts={[]} />),
   ].join("");
 }
 
@@ -60,7 +73,16 @@ describe("the homepage body addresses every route in the reader's locale", () =>
   });
 
   it("points the editorial action at the Insights index in this locale", () => {
-    expect(hrefsIn(renderHtml(<Insights locale="fa" />))).toEqual(["/fa/insights"]);
+    expect(hrefsIn(renderHtml(<Insights locale="fa" recentPosts={[]} />))).toEqual([
+      "/fa/insights",
+    ]);
+  });
+
+  it("addresses a recent post's card in this locale too, alongside the editorial action", () => {
+    expect(hrefsIn(renderHtml(<Insights locale="fa" recentPosts={[RECENT_POST]} />))).toEqual([
+      "/fa/insights",
+      "/fa/insights/specification-first-sourcing",
+    ]);
   });
 
   it("sends the hero's two actions to Products and to Request a Quote", () => {

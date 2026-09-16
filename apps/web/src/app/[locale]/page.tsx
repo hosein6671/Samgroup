@@ -6,6 +6,9 @@ import type { ReactNode } from "react";
 import { HomeExperience } from "@/features/home/home-experience";
 import { getPrivacyPolicyHref } from "@/features/legal/privacy-policy";
 import { getActiveLocales } from "@/lib/locales";
+import { getBlogPosts } from "@/lib/blog";
+
+import type { BlogPostListItemResponse } from "@sam-group/types";
 
 /**
  * The Sam Group flagship homepage, on its canonical route.
@@ -84,6 +87,26 @@ export const HOME_SEO = {
   description: HOME_DESCRIPTION,
 } as const;
 
+/** How many published articles the Insights section shows — the workbook calls it "3 Latest". */
+const RECENT_POST_COUNT = 3;
+
+/**
+ * The newest published articles, newest first — `GET /blog/posts`' own default order.
+ *
+ * Best-effort, matching `insights/[slug]/page.tsx`'s `findRecentPosts`: `getBlogPosts` reports
+ * every API condition as a value rather than throwing, and an unreachable blog service becomes an
+ * empty array here, not a broken homepage. An empty array is exactly what the section already
+ * renders as — the CTA-only state — so a failed fetch degrades to the same thing a genuinely
+ * empty catalog would.
+ */
+async function findRecentPosts(locale: string): Promise<BlogPostListItemResponse[]> {
+  const result = await getBlogPosts(locale, { page: 1 });
+
+  if (!result.ok) return [];
+
+  return result.posts.slice(0, RECENT_POST_COUNT);
+}
+
 /**
  * The two values the shared chrome needs, and the reason this page became `async`.
  *
@@ -110,6 +133,7 @@ export default async function HomePage({
       locale={locale}
       locales={locales}
       privacyPolicyHref={privacyPolicyHref}
+      recentPosts={await findRecentPosts(locale)}
     />
   );
 }

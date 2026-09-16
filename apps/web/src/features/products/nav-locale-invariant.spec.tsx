@@ -109,7 +109,7 @@ function surfaces(locale: string): Record<string, string> {
       renderHtml(<WhoWeAre locale={locale} />),
       renderHtml(<Ecosystem locale={locale} />),
       renderHtml(<CustomFormulation locale={locale} />),
-      renderHtml(<Insights locale={locale} />),
+      renderHtml(<Insights locale={locale} recentPosts={[]} />),
     ].join(""),
 
     "products landing": [

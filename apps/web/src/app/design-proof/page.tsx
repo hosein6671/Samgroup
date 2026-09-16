@@ -32,5 +32,5 @@ export default async function HomeProofPage(): Promise<ReactNode> {
 
   const locales = await getActiveLocales();
 
-  return <HomeExperience locale={PROOF_LOCALE} locales={locales} />;
+  return <HomeExperience locale={PROOF_LOCALE} locales={locales} recentPosts={[]} />;
 }
