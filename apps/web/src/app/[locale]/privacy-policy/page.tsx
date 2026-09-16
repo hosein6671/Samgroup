@@ -188,14 +188,16 @@ export default async function PrivacyPolicyPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
 
   /*
    * No `Suspense` boundary, for the reason the article and CMS proof routes give: the fetch decides
    * whether the page exists at all, so there is nothing that could honestly render before it
-   * resolves.
+   * resolves. `locales` is independent of it and runs alongside it rather than before it.
    */
-  const result = await resolvePrivacyPolicy(PRIVACY_POLICY_SLUG, locale);
+  const [locales, result] = await Promise.all([
+    getActiveLocales(),
+    resolvePrivacyPolicy(PRIVACY_POLICY_SLUG, locale),
+  ]);
 
   if (result.ok) {
     return (

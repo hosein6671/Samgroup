@@ -75,12 +75,12 @@ export default async function RequestAQuotePage({
   readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<ReactNode> {
   const [{ locale }, query] = await Promise.all([params, searchParams]);
-  const [locales, privacyPolicyHref] = await Promise.all([
+  // Three independent reads — none consumes another's result — run together.
+  const [locales, privacyPolicyHref, product] = await Promise.all([
     getActiveLocales(),
     getPrivacyPolicyHref(locale),
+    resolveProductContext(single(query.product), locale),
   ]);
-
-  const product = await resolveProductContext(single(query.product), locale);
 
   /*
    * No `directory` is passed, and that is unchanged behaviour: this route's subject is one focused

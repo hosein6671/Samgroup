@@ -191,13 +191,13 @@ export default async function CmsProofPage({
   gateCmsProofRouteForProduction();
 
   const { locale, slug } = await params;
-  const locales = await getActiveLocales();
 
   /*
-   * No `Suspense` boundary, for the reason the article route gives: the fetch decides whether the
-   * page exists at all, so there is nothing that could honestly render before it resolves.
+   * No `Suspense` boundary around `resolveCmsPage`, for the reason the article route gives: the
+   * fetch decides whether the page exists at all, so there is nothing that could honestly render
+   * before it resolves. `locales` is independent of it and runs alongside it rather than before it.
    */
-  const result = await resolveCmsPage(slug, locale);
+  const [locales, result] = await Promise.all([getActiveLocales(), resolveCmsPage(slug, locale)]);
 
   if (result.ok) {
     return (

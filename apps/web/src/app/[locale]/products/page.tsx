@@ -109,7 +109,11 @@ export default async function ProductsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
+  // Independent reads — the editorial content does not depend on the locale set — run together.
+  const [locales, editorial] = await Promise.all([
+    getActiveLocales(),
+    publishedStructural("products-landing", locale),
+  ]);
   const canonical = `/${locale}/products`;
   const pageUrl = absoluteUrl(canonical);
   const schema: JsonLdObject = {
@@ -134,11 +138,7 @@ export default async function ProductsPage({
   return (
     <>
       <JsonLd data={schema} />
-      <ProductsExperience
-        editorial={(await publishedStructural("products-landing", locale))?.fields}
-        locale={locale}
-        locales={locales}
-      />
+      <ProductsExperience editorial={editorial?.fields} locale={locale} locales={locales} />
     </>
   );
 }

@@ -105,14 +105,17 @@ export default async function CustomizedSolutionsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
-  const result = await resolveSolutions(locale);
   /*
-   * Resolved here rather than inside the request form, which is a Client Component and cannot read
-   * the API. `null` whenever no Privacy Policy is published, which is what keeps the consent label
+   * Three independent reads, run together rather than in series. `privacyPolicyHref` is resolved
+   * here rather than inside the request form, which is a Client Component and cannot read the
+   * API — `null` whenever no Privacy Policy is published, which is what keeps the consent label
    * from linking a 404 — see `features/legal/privacy-policy.ts`.
    */
-  const privacyPolicyHref = await getPrivacyPolicyHref(locale);
+  const [locales, result, privacyPolicyHref] = await Promise.all([
+    getActiveLocales(),
+    resolveSolutions(locale),
+    getPrivacyPolicyHref(locale),
+  ]);
 
   if (result.ok) {
     /*

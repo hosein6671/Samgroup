@@ -112,17 +112,17 @@ export default async function ContactUsPage({
    * delays neither the page shell nor the enquiry form — the one route on this page that reaches a
    * person, and the one that needs no CMS at all.
    */
-  const [locales, privacyPolicyHref] = await Promise.all([
-    getActiveLocales(),
-    getPrivacyPolicyHref(locale),
-  ]);
-
   const requestedType = single(query.type);
   const inquiryType = isInquiryType(requestedType)
     ? (requestedType as string)
     : DEFAULT_INQUIRY_TYPE;
 
-  const product = await resolveProductContext(single(query.product), locale);
+  // Three independent reads — none consumes another's result — run together.
+  const [locales, privacyPolicyHref, product] = await Promise.all([
+    getActiveLocales(),
+    getPrivacyPolicyHref(locale),
+    resolveProductContext(single(query.product), locale),
+  ]);
 
   const absoluteUrl_ = absoluteUrl(localePath(locale, ROUTES.contactUs));
   const schema: JsonLdObject = {

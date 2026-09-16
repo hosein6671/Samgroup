@@ -153,8 +153,8 @@ export default async function QualityCertificationsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
-  const result = await resolveQuality(locale);
+  // Independent reads — `resolveQuality` does not consume the locale set — run together.
+  const [locales, result] = await Promise.all([getActiveLocales(), resolveQuality(locale)]);
 
   if (result.ok) {
     /*

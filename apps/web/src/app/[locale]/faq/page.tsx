@@ -23,10 +23,13 @@ type Props = {
   searchParams: Promise<{ topic?: string | string[] }>;
 };
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
-  const { locale } = await params;
-  const query = await searchParams;
-  const entries = await publishedFaq(locale);
-  return faqPageMetadata(locale, await getFaqPageContent(locale), !!entries?.length, !!query.topic);
+  const [{ locale }, query] = await Promise.all([params, searchParams]);
+  // Independent of each other — neither consumes the other's result.
+  const [entries, faqContent] = await Promise.all([
+    publishedFaq(locale),
+    getFaqPageContent(locale),
+  ]);
+  return faqPageMetadata(locale, faqContent, !!entries?.length, !!query.topic);
 }
 export default async function FaqPage({ params, searchParams }: Props): Promise<ReactNode> {
   const [{ locale }, query, locales] = await Promise.all([
@@ -35,9 +38,13 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
     getActiveLocales(),
   ]);
   const topic = topics.find(([key]) => key === query.topic);
-  const entries = await publishedFaq(locale, topic ? { category: topic[0] } : {});
   const href = localeHref(locale, "/faq");
-  const copy = { ...FAQ_PAGE_DEFAULTS, ...(await getFaqPageContent(locale))?.fields };
+  // Independent of each other — `getFaqPageContent` does not depend on the topic filter.
+  const [entries, faqContent] = await Promise.all([
+    publishedFaq(locale, topic ? { category: topic[0] } : {}),
+    getFaqPageContent(locale),
+  ]);
+  const copy = { ...FAQ_PAGE_DEFAULTS, ...faqContent?.fields };
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />

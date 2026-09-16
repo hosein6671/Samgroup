@@ -123,17 +123,23 @@ export default async function HomePage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
-  // `null` unless a Privacy Policy is published — see `features/legal/privacy-policy.ts`.
-  const privacyPolicyHref = await getPrivacyPolicyHref(locale);
+  // Four independent reads — none consumes another's result — run together so the route pays
+  // for the slowest of them rather than their sum.
+  const [locales, privacyPolicyHref, editorial, recentPosts] = await Promise.all([
+    getActiveLocales(),
+    // `null` unless a Privacy Policy is published — see `features/legal/privacy-policy.ts`.
+    getPrivacyPolicyHref(locale),
+    publishedStructural("home", locale),
+    findRecentPosts(locale),
+  ]);
 
   return (
     <HomeExperience
-      editorial={(await publishedStructural("home", locale))?.fields}
+      editorial={editorial?.fields}
       locale={locale}
       locales={locales}
       privacyPolicyHref={privacyPolicyHref}
-      recentPosts={await findRecentPosts(locale)}
+      recentPosts={recentPosts}
     />
   );
 }

@@ -119,8 +119,8 @@ export default async function AboutUsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
-  const result = await resolveAboutUs(locale);
+  // Independent reads — `resolveAboutUs` does not consume the locale set — run together.
+  const [locales, result] = await Promise.all([getActiveLocales(), resolveAboutUs(locale)]);
 
   if (result.ok) {
     /*

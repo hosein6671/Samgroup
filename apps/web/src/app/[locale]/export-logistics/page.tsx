@@ -64,17 +64,17 @@ export default async function ExportLogisticsPage({
   readonly params: Promise<{ locale: string }>;
 }): Promise<ReactNode> {
   const { locale } = await params;
-  const locales = await getActiveLocales();
+  // Independent reads — the editorial content does not depend on the locale set — run together.
+  const [locales, editorial] = await Promise.all([
+    getActiveLocales(),
+    publishedStructural("export-logistics", locale),
+  ]);
   const url = absoluteUrl(localePath(locale, ROUTES.exportLogistics));
 
   return (
     <>
       <JsonLd data={webPageJsonLd({ url, name: TITLE, description: DESCRIPTION, locale })} />
-      <ExportLogisticsExperience
-        editorial={(await publishedStructural("export-logistics", locale))?.fields}
-        locale={locale}
-        locales={locales}
-      />
+      <ExportLogisticsExperience editorial={editorial?.fields} locale={locale} locales={locales} />
     </>
   );
 }

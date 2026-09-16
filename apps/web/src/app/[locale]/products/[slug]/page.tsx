@@ -258,8 +258,6 @@ export default async function ProductFamilyPage({
 }): Promise<ReactNode> {
   const [{ locale, slug }, query] = await Promise.all([params, searchParams]);
 
-  const locales = await getActiveLocales();
-
   /*
    * ── 1. Reserved ───────────────────────────────────────────────────────────
    *
@@ -296,9 +294,13 @@ export default async function ProductFamilyPage({
     /*
      * `locale` is forwarded so the API can resolve the family's `name` in it — the one API-owned
      * value this page renders. It is also what scopes the resolver's slug guard, which is only a
-     * valid identity test in the default locale.
+     * valid identity test in the default locale. Run alongside `getActiveLocales()` — the two
+     * reads are independent, so the route pays for the slower of them, not their sum.
      */
-    const page = await resolveCategoryPage(slug, locale);
+    const [locales, page] = await Promise.all([
+      getActiveLocales(),
+      resolveCategoryPage(slug, locale),
+    ]);
 
     /*
      * Unreachable: `content` above came from the same registry the resolver reads, so a fixture
@@ -363,12 +365,13 @@ export default async function ProductFamilyPage({
    * selector's own state, resolved against this product's `grades` rather than the API, exactly
    * as `readStringParam`'s own doc comment states.
    *
-   * There is no `Suspense` boundary around this. A boundary streams a *part* of a page while the
-   * rest renders — but here the fetch decides whether the page exists at all, so there is nothing
-   * that could honestly render before it resolves. Streaming a shell and then replacing it with a
-   * 404 would emit a page that says a product exists and then retract it.
+   * There is no `Suspense` boundary around `resolveProduct`. A boundary streams a *part* of a page
+   * while the rest renders — but here the fetch decides whether the page exists at all, so there
+   * is nothing that could honestly render before it resolves. Streaming a shell and then replacing
+   * it with a 404 would emit a page that says a product exists and then retract it. `getActiveLocales()`
+   * is independent of it and runs alongside it rather than before it.
    */
-  const result = await resolveProduct(slug, locale);
+  const [locales, result] = await Promise.all([getActiveLocales(), resolveProduct(slug, locale)]);
 
   if (result.ok) {
     const product = result.record;

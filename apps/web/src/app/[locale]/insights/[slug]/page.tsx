@@ -136,15 +136,15 @@ export default async function InsightPostPage({
   readonly params: Promise<{ locale: string; slug: string }>;
 }): Promise<ReactNode> {
   const { locale, slug } = await params;
-  const locales = await getActiveLocales();
 
   /*
-   * There is no `Suspense` boundary around this. A boundary streams a *part* of a page while the
-   * rest renders — but here the fetch decides whether the page exists at all, so there is nothing
-   * that could honestly render before it resolves. Streaming a shell and then replacing it with a
-   * 404 would emit a page that says an article exists and then retract it.
+   * There is no `Suspense` boundary around `resolvePost`. A boundary streams a *part* of a page
+   * while the rest renders — but here the fetch decides whether the page exists at all, so there
+   * is nothing that could honestly render before it resolves. Streaming a shell and then replacing
+   * it with a 404 would emit a page that says an article exists and then retract it. `locales` is
+   * independent of it and runs alongside it rather than before it.
    */
-  const result = await resolvePost(slug, locale);
+  const [locales, result] = await Promise.all([getActiveLocales(), resolvePost(slug, locale)]);
 
   if (result.ok) {
     const url = absoluteUrl(articlePath(locale, result.record.slug));
