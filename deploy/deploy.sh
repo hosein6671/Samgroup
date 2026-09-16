@@ -16,6 +16,15 @@ if [ ! -f .env ]; then
   exit 78
 fi
 
+# `compose.sh` passes `.env` to `docker compose --env-file`, which reaches the containers but
+# never this script's own shell — and `backup.sh` runs `pg_dump --username "$POSTGRES_USER"`
+# directly, outside any container. Exporting every `.env` entry here is what makes that (and any
+# other `.env` value a script in this directory reads directly) available to them.
+set -a
+# shellcheck disable=SC1091
+. ./.env
+set +a
+
 current_tag="$(sed -n 's/^SAM_IMAGE_TAG=//p' .env | tail -n 1)"
 if [ -z "$current_tag" ]; then
   echo "SAM_IMAGE_TAG is missing from .env." >&2
