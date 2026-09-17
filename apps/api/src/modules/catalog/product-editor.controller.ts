@@ -22,7 +22,11 @@ import { Roles } from "../identity/decorators/roles.decorator";
 import { JwtAuthGuard } from "../identity/guards/jwt-auth.guard";
 import { RolesGuard } from "../identity/guards/roles.guard";
 import type { AuthenticatedUser } from "../identity/authenticated-user";
-import { ProductEditorialEdit, ProductEditorQuery } from "./product-editor.dto";
+import {
+  ProductEditorialEdit,
+  ProductEditorQuery,
+  ProductSegmentsEdit,
+} from "./product-editor.dto";
 import { ProductEditorService } from "./product-editor.service";
 
 @Controller("admin/products")
@@ -76,6 +80,21 @@ export class ProductEditorController {
   ): Promise<{ deleted: true }> {
     await this.editor.deleteImage(id, imageId, actor.id);
     return { deleted: true };
+  }
+  @Get(":id/segments")
+  @Header("Cache-Control", "no-store")
+  segments(
+    @Param("id", ParseUUIDPipe) id: string,
+  ): Promise<{ assigned: string[]; available: { id: string; name: string; slug: string }[] }> {
+    return this.editor.segments(id);
+  }
+  @Patch(":id/segments")
+  setSegments(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: ProductSegmentsEdit,
+  ): Promise<{ assigned: string[] }> {
+    return this.editor.setSegments(id, body.segmentIds, actor.id);
   }
   @Patch(":id")
   @Header("Cache-Control", "no-store")

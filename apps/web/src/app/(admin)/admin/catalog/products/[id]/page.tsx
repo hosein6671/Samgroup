@@ -11,6 +11,7 @@ import { ContentForm } from "@/features/admin/content/content-form";
 import { PRODUCT_EDITOR_SCHEMA } from "@/features/admin/catalog/products/product-editor-schema";
 import { ProductMediaManager } from "@/features/admin/catalog/products/product-media-manager";
 import type { ProductMediaItem } from "@/features/admin/catalog/products/media-actions";
+import { ProductSegmentManager } from "@/features/admin/catalog/products/product-segment-manager";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit product · SAM Group Admin" };
@@ -40,6 +41,10 @@ export default async function ProductEditorPage({
     {},
     { accessToken: token },
   );
+  const segments = await apiGet<{
+    assigned: string[];
+    available: { id: string; name: string; slug: string }[];
+  }>(`/admin/products/${encodeURIComponent(id)}/segments`, {}, { accessToken: token });
   if (!result.ok && result.reason === "http" && result.status === 401) redirect(SESSION_END_PATH);
   return (
     <AdminShell title="Edit product" user={access.user} current="products">
@@ -60,6 +65,10 @@ export default async function ProductEditorPage({
             </Link>
           </p>
           <ProductMediaManager productId={id} initial={images.ok ? images.data : []} />
+          <ProductSegmentManager
+            productId={id}
+            initial={segments.ok ? segments.data : { assigned: [], available: [] }}
+          />
           <ContentForm
             pageKey={id}
             resource="product"

@@ -89,3 +89,12 @@ export class ProductEditorQuery {
   @IsOptional() @IsString() @MaxLength(100) q?: string;
   @IsOptional() @IsUUID() categoryId?: string;
 }
+
+/**
+ * The full replacement set of Segments a Product belongs to. A set-replace rather than
+ * add/remove: a checkbox list is what the Admin editor renders it as, and a checkbox list
+ * naturally submits its whole current state rather than a diff.
+ */
+export class ProductSegmentsEdit {
+  @IsArray() @ArrayMaxSize(20) @IsUUID(undefined, { each: true }) segmentIds!: string[];
+}

@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { SeoService } from "../seo/seo.service";
@@ -76,6 +81,53 @@ export class ProductEditorService {
   private async assertProduct(id: string): Promise<void> {
     if (!(await this.prisma.product.findUnique({ where: { id }, select: { id: true } })))
       throw new NotFoundException("Product not found.");
+  }
+  async segments(
+    id: string,
+  ): Promise<{ assigned: string[]; available: { id: string; name: string; slug: string }[] }> {
+    await this.assertProduct(id);
+    const [assignedRows, available] = await Promise.all([
+      this.prisma.productSegment.findMany({
+        where: { productId: id },
+        select: { segmentId: true },
+      }),
+      this.prisma.segment.findMany({
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, name: true, slug: true },
+      }),
+    ]);
+    return { assigned: assignedRows.map((row) => row.segmentId), available };
+  }
+  /**
+   * Replaces the whole Segment membership set for a Product — never assigns `Other` (ADR-008 §2:
+   * no Segment row named `other` can exist, so an id that resolved to one would already have been
+   * refused at creation), and rejects an id that names no real Segment rather than silently
+   * dropping it.
+   */
+  async setSegments(
+    id: string,
+    segmentIds: string[],
+    actorId: string,
+  ): Promise<{ assigned: string[] }> {
+    await this.assertProduct(id);
+    const uniqueIds = [...new Set(segmentIds)];
+    if (uniqueIds.length > 0) {
+      const validCount = await this.prisma.segment.count({ where: { id: { in: uniqueIds } } });
+      if (validCount !== uniqueIds.length)
+        throw new BadRequestException("One or more Segments were not found.");
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.productSegment.deleteMany({ where: { productId: id } });
+      if (uniqueIds.length > 0)
+        await tx.productSegment.createMany({
+          data: uniqueIds.map((segmentId) => ({ productId: id, segmentId })),
+        });
+      await this.audit.append(
+        { event: "product.segments_changed", actorId, subjectId: id, outcome: "success" },
+        tx,
+      );
+    });
+    return { assigned: uniqueIds };
   }
   async get(id: string): Promise<Record<string, unknown>> {
     const product = await this.prisma.product.findUnique({

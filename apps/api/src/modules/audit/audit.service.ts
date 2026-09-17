@@ -8,6 +8,7 @@ export type AuditEventName =
   | "product.image_uploaded"
   | "product.image_primary_changed"
   | "product.image_removed"
+  | "product.segments_changed"
   | "blog.post_created"
   | "blog.draft_saved"
   | "blog.published"

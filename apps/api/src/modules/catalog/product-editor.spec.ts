@@ -121,3 +121,101 @@ describe("product editorial boundary", () => {
     expect(tx.productEditorialDraft.upsert).not.toHaveBeenCalled();
   });
 });
+
+describe("product Segment assignment", () => {
+  it("lists the assigned Segment ids alongside every available Segment", async () => {
+    const prisma = {
+      product: { findUnique: jest.fn().mockResolvedValue({ id: "p1" }) },
+      productSegment: {
+        findMany: jest.fn().mockResolvedValue([{ segmentId: "s1" }, { segmentId: "s2" }]),
+      },
+      segment: {
+        findMany: jest.fn().mockResolvedValue([{ id: "s1", name: "Industry", slug: "industry" }]),
+      },
+    };
+    const service = new ProductEditorService(
+      prisma as unknown as PrismaService,
+      {} as SeoService,
+      {} as AuditService,
+    );
+    expect(await service.segments("p1")).toEqual({
+      assigned: ["s1", "s2"],
+      available: [{ id: "s1", name: "Industry", slug: "industry" }],
+    });
+  });
+  it("404s for a product that does not exist", async () => {
+    const prisma = { product: { findUnique: jest.fn().mockResolvedValue(null) } };
+    const service = new ProductEditorService(
+      prisma as unknown as PrismaService,
+      {} as SeoService,
+      {} as AuditService,
+    );
+    await expect(service.segments("missing")).rejects.toMatchObject({ status: 404 });
+  });
+  it("replaces the membership set, records activity, and de-duplicates the input", async () => {
+    const tx = {
+      productSegment: { deleteMany: jest.fn(), createMany: jest.fn() },
+    };
+    const audit = { append: jest.fn() };
+    const prisma = {
+      product: { findUnique: jest.fn().mockResolvedValue({ id: "p1" }) },
+      segment: { count: jest.fn().mockResolvedValue(2) },
+      $transaction: jest.fn(async (work: (value: typeof tx) => Promise<unknown>) => work(tx)),
+    };
+    const service = new ProductEditorService(
+      prisma as unknown as PrismaService,
+      {} as SeoService,
+      audit as unknown as AuditService,
+    );
+    expect(await service.setSegments("p1", ["s1", "s2", "s1"], "actor-1")).toEqual({
+      assigned: ["s1", "s2"],
+    });
+    expect(tx.productSegment.deleteMany).toHaveBeenCalledWith({ where: { productId: "p1" } });
+    expect(tx.productSegment.createMany).toHaveBeenCalledWith({
+      data: [
+        { productId: "p1", segmentId: "s1" },
+        { productId: "p1", segmentId: "s2" },
+      ],
+    });
+    expect(audit.append).toHaveBeenCalledWith(
+      {
+        event: "product.segments_changed",
+        actorId: "actor-1",
+        subjectId: "p1",
+        outcome: "success",
+      },
+      tx,
+    );
+  });
+  it("clears every membership when given an empty set, without creating rows", async () => {
+    const tx = { productSegment: { deleteMany: jest.fn(), createMany: jest.fn() } };
+    const prisma = {
+      product: { findUnique: jest.fn().mockResolvedValue({ id: "p1" }) },
+      $transaction: jest.fn(async (work: (value: typeof tx) => Promise<unknown>) => work(tx)),
+    };
+    const service = new ProductEditorService(
+      prisma as unknown as PrismaService,
+      {} as SeoService,
+      { append: jest.fn() } as unknown as AuditService,
+    );
+    expect(await service.setSegments("p1", [], "actor-1")).toEqual({ assigned: [] });
+    expect(tx.productSegment.deleteMany).toHaveBeenCalled();
+    expect(tx.productSegment.createMany).not.toHaveBeenCalled();
+  });
+  it("refuses an id that names no real Segment, writing nothing", async () => {
+    const prisma = {
+      product: { findUnique: jest.fn().mockResolvedValue({ id: "p1" }) },
+      segment: { count: jest.fn().mockResolvedValue(1) },
+      $transaction: jest.fn(),
+    };
+    const service = new ProductEditorService(
+      prisma as unknown as PrismaService,
+      {} as SeoService,
+      {} as AuditService,
+    );
+    await expect(
+      service.setSegments("p1", ["s1", "does-not-exist"], "actor-1"),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});
