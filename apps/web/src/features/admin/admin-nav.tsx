@@ -59,6 +59,7 @@ export type AdminNavKey =
   | "custom-formulation-requests"
   | "catalog-review"
   | "segments"
+  | "redirects"
   | "users"
   | "audit";
 
@@ -121,6 +122,13 @@ export function AdminNav({
       href: "/admin/catalog/segments",
       label: "Segments",
       current: current === "segments",
+    });
+
+  if (roleMayEnter(role, "redirects"))
+    entries.push({
+      href: "/admin/redirects",
+      label: "Redirects",
+      current: current === "redirects",
     });
 
   if (roleMayEnter(role, "shell")) {

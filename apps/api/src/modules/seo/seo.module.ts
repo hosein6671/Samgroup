@@ -4,8 +4,12 @@ import { Module } from "@nestjs/common";
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { AuditModule } from "../audit/audit.module";
 import { CatalogModule } from "../catalog/catalog.module";
+import { IdentityModule } from "../identity/identity.module";
 
+import { RedirectsAdminController } from "./redirects-admin.controller";
+import { RedirectsAdminService } from "./redirects-admin.service";
 import { RedirectsService } from "./redirects.service";
 import { SeoController } from "./seo.controller";
 import { SitemapService } from "./sitemap.service";
@@ -29,8 +33,10 @@ import { SitemapService } from "./sitemap.service";
     LocaleResolutionModule,
     CatalogModule,
     ContentModule,
+    IdentityModule,
+    AuditModule,
   ],
-  controllers: [SeoController],
-  providers: [RedirectsService, SitemapService],
+  controllers: [SeoController, RedirectsAdminController],
+  providers: [RedirectsService, SitemapService, RedirectsAdminService],
 })
 export class SeoModule {}

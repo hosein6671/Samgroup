@@ -86,12 +86,12 @@ Putting it under `[locale]` would produce three URLs for one internal tool (`/en
 
 - **`middleware.ts` handles three concerns, in this order:**
   1. **Admin paths short-circuit first.** `/admin/*` and `/login` skip locale resolution entirely (they aren't locale-routed) and go straight to the session check — unauthenticated requests redirect to login before any page renders, never serving a shell that fetches and fails ([SECURITY.md](../SECURITY.md#admin-dashboard-access)).
-  2. `next-intl` locale detection/redirect for everything else (per [i18n strategy §2](../i18n/INTERNATIONALIZATION_STRATEGY.md#2-frontend-internationalization-next-intl)).
-  3. `Redirect` table lookup (via `GET /api/v1/seo/redirects`) within the resolved locale.
+  2. `Redirect` table lookup (via `GET /api/v1/seo/redirects`), on a raw, byte-for-byte match against the incoming path — **not** "within the resolved locale" as originally sketched here; see `src/middleware.ts`'s own doc comment for why.
+  3. `next-intl` locale detection/redirect for everything else (per [i18n strategy §2](../i18n/INTERNATIONALIZATION_STRATEGY.md#2-frontend-internationalization-next-intl)).
 
-  Order matters: running locale resolution on an admin path would rewrite `/admin` to `/en/admin` before the auth check ever sees it.
+  Order matters: running locale resolution on an admin path would rewrite `/admin` to `/en/admin` before the auth check ever sees it, and running it before the redirect lookup would locale-prefix a legacy bare path before this tier ever got to send it to its replacement.
 
-  **[SHIPPED] Concern 1 is implemented.** `src/middleware.ts` short-circuits `/admin/*` and `/login` before locale resolution, `/login` and `/admin` exist, and the cookies this tier owns are fixed. See §2a below for the session model. Concern 3 (`Redirect` table) remains deferred to the gate that creates the first row.
+  **[SHIPPED] All three concerns are implemented.** `src/middleware.ts` short-circuits `/admin/*` and `/login` before locale resolution, `/login` and `/admin` exist, and the cookies this tier owns are fixed (see §2a below for the session model). The `Redirect` table lookup runs on **every** remaining request — not narrowed to the locale-prefix candidates below — because a dead legacy path can be any shape (`loadRedirectRule`'s own doc comment in `src/middleware.ts` states why the narrower scoping an earlier version used was a real gap, not a simplification). This means one live, uncached `GET /api/v1/seo/redirects` call per request past rules 0–1, accepted as the cost of a table whose job is exactly to catch paths this file cannot otherwise classify. `/admin/redirects` (an approved-but-previously-unbuilt row in API_CONTRACT_FINAL.md §2.10) is the Admin CRUD that populates the table.
 
   _Superseded status, kept as the record of what was open: "Concern 1 is still deferred, and its backend blocker is now gone. No admin route, login page or middleware session check exists in `apps/web`… **The HttpOnly refresh cookie is this tier's to own**: NestJS sets and reads none, so the cookie's name, `SameSite`, `Secure` behaviour, `Path` and `Max-Age` are decided by the gate that builds this middleware, and the raw token is forwarded to NestJS as a request value."_
 
@@ -226,7 +226,7 @@ Consequences of two root layouts, both accepted:
 
 The second root layout disappears when the proof routes are removed (ADR-010 §9 step 4), leaving `app/[locale]/layout.tsx` as the single root layout. That is why the step-3 redirects belong in `next.config.ts` or middleware rather than in page files — those are not routes, so they need no layout.
 
-**`next-intl` is deferred, and is not installed.** P1 uses **native App Router locale routing plus a hand-written middleware**; nothing in P1 needs message catalogs, and there are none — every visible string in `features/**` is still hardcoded English. `next-intl` gets its own dependency approval at the gate that first introduces translated UI message catalogs. The three-concern middleware list above still describes the eventual shape; concern 1 (admin) has no surface yet and concern 3 (`Redirect` table) has no rows yet, so both stay deferred to their own gates.
+**`next-intl` is deferred, and is not installed.** P1 uses **native App Router locale routing plus a hand-written middleware**; nothing in P1 needs message catalogs, and there are none — every visible string in `features/**` is still hardcoded English. `next-intl` gets its own dependency approval at the gate that first introduces translated UI message catalogs. **[Stale — kept as the record of what was once true]** This paragraph originally continued: "The three-concern middleware list above still describes the eventual shape; concern 1 (admin) has no surface yet and concern 3 (`Redirect` table) has no rows yet, so both stay deferred to their own gates." Both concerns are now shipped — see §2's own "[SHIPPED]" line above.
 
 **Middleware policy, as shipped.** Four ordered rules — and the middleware **does not recognise locales at all**:
 

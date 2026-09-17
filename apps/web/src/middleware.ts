@@ -27,36 +27,43 @@ import {
 import type { NextRequest } from "next/server";
 
 /**
- * The Admin session check, then locale detection and redirect.
+ * The Admin session check, then the `Redirect` table lookup, then locale detection.
  *
- * FRONTEND_ARCHITECTURE §2 describes three eventual concerns in a fixed order — admin
- * short-circuit, locale detection, then the `Redirect` table lookup. **The first two are now
- * implemented**; the third arrives with the gate that creates the first `Redirect` row.
- * `next-intl` is deferred and not installed; this is native App Router routing.
+ * FRONTEND_ARCHITECTURE §2 describes three eventual concerns — admin short-circuit, locale
+ * detection, `Redirect` table lookup — and **all three are now implemented**, in that order
+ * (§2's own listed order has locale detection before the redirect lookup; this file runs the
+ * redirect lookup first instead, and states why below). `next-intl` is deferred and not
+ * installed; this is native App Router routing.
  *
- * The ordering §2 specifies is load-bearing rather than stylistic: running locale resolution on an
- * admin path would rewrite `/admin` to `/en/admin` before the session check ever saw it, and the
- * Admin surface is deliberately outside `[locale]`.
+ * The ordering is load-bearing rather than stylistic: running locale resolution on an admin path
+ * would rewrite `/admin` to `/en/admin` before the session check ever saw it, and running it
+ * before the redirect lookup would locale-prefix a legacy bare path (turning `/old-quality` into
+ * `/en/old-quality`, a second dead path) before this tier ever got a chance to send it to its
+ * replacement.
  *
- * ── It classifies paths, it does not recognise locales ──────────────────────
+ * ── It classifies paths, it does not recognise locales — for locale detection ────────────────
  *
- * The ordered policy is deliberately blind:
+ * The rules after admin/proof/redirect are deliberately blind:
  *
  *   1. `/design-proof/**`            → bypass entirely
- *   2. `/`                           → redirect candidate
- *   3. known locale-less structural  → redirect candidate
- *   4. everything else               → pass through, untouched
+ *   2. `Redirect` table lookup       → every remaining path (see `loadRedirectRule`)
+ *   3. `/`                           → locale-prefix candidate
+ *   4. known locale-less structural  → locale-prefix candidate
+ *   5. everything else               → pass through, untouched
  *
- * Rule 4 is the important one. `/en/products` and `/xx/products` and `/foo` all take it, and the
- * router decides: `/en` matches `[locale]` and renders, while `/xx` and `/foo` match nothing and
- * 404 because `dynamicParams = false` closes the segment to the generated set. So this file needs
- * no notion of what a locale code looks like — no two-letter regex, no BCP-47 parsing, no
- * inspection of the active list to classify. That is not a shortcut; a shape test would buy
- * nothing (both branches 404 identically) and would misfire the day a structural page is added
- * whose first segment happens to be two letters.
+ * Rule 5 is the important one, and it is unchanged from before the redirect lookup existed.
+ * `/en/products` and `/xx/products` and `/foo` all take it, and the router decides: `/en` matches
+ * `[locale]` and renders, while `/xx` and `/foo` match nothing and 404 because
+ * `dynamicParams = false` closes the segment to the generated set. So *locale detection* needs no
+ * notion of what a locale code looks like — no two-letter regex, no BCP-47 parsing, no inspection
+ * of the active list to classify. That is not a shortcut; a shape test would buy nothing (both
+ * branches 404 identically) and would misfire the day a structural page is added whose first
+ * segment happens to be two letters.
  *
- * The consequence is that **the locale API is queried only on a redirect candidate** — `/` and the
- * handful of known structural paths — never on the general traffic that takes rule 4.
+ * **The locale API is still queried only on a locale-prefix candidate** — `/` and the handful of
+ * known structural paths — never on the general traffic that takes rule 5. The `Redirect` lookup
+ * does not get this narrowing (see `loadRedirectRule`'s own doc comment for why it can't): it runs
+ * on every request rules 1 and 2 don't already dispose of, redirect candidate or not.
  *
  * ── Why this does not import `lib/locales` ──────────────────────────────────
  *
@@ -308,6 +315,76 @@ async function loadActiveLocales(): Promise<Awaited<
   }
 }
 
+const REDIRECTS_PATH = "/seo/redirects";
+
+type RedirectRule = {
+  readonly fromPath: string;
+  readonly toPath: string;
+  readonly statusCode: number;
+};
+
+function isRedirectRule(value: unknown): value is RedirectRule {
+  if (typeof value !== "object" || value === null) return false;
+
+  const row = value as Record<string, unknown>;
+
+  return (
+    typeof row.fromPath === "string" &&
+    typeof row.toPath === "string" &&
+    typeof row.statusCode === "number"
+  );
+}
+
+/**
+ * The `Redirect` row whose `fromPath` matches this request's raw path exactly, or `null`.
+ *
+ * ── `locale` on the row is bookkeeping, not something this function reads ──────────────────
+ *
+ * `fromPath` is matched byte-for-byte against `request.nextUrl.pathname` — never split on a
+ * locale prefix, never re-resolved against the active locale list. A rule meant for one locale is
+ * written WITH that locale's prefix already inside `fromPath` (e.g. `"/fa/old-page"`); a rule with
+ * no locale on the row is written as the bare path (e.g. `"/old-page"`) and matches only a request
+ * that arrives at that literal, unprefixed path. `Redirect.locale` exists for `/admin/redirects`
+ * to filter and label rules by, not for this lookup to branch on.
+ *
+ * ── Why this runs on every request, unlike `loadActiveLocales` ─────────────────────────────
+ *
+ * A dead legacy path can be any shape: a bare path that was never locale-prefixed
+ * (`"/old-quality"`), an already-locale-prefixed page that got renamed (`"/en/old-quality"`), or a
+ * whole removed segment `STRUCTURAL_SEGMENTS` no longer lists. `loadActiveLocales` can stay narrow
+ * because "does this look like a locale-prefix candidate" has a cheap, correct answer for that one
+ * question (`/` or a known structural segment); "does this path have a `Redirect` rule" does not
+ * have an equivalent cheap test — the whole point of the table is to catch paths this file cannot
+ * otherwise classify. Narrowing it to the locale-prefix candidates (an earlier version of this
+ * function did exactly that) silently misses the ordinary case: a page removed outright, whose old
+ * URL matches no `STRUCTURAL_SEGMENTS` entry at all.
+ *
+ * The cost this accepts: `api-client.ts` is deliberately `cache: "no-store"` on every request (see
+ * its own header comment — there is no approved cache-invalidation architecture yet), so this is a
+ * live network call on every request middleware does not already disallow via rules 0 and 1. That
+ * is a real, accepted per-request cost, not an oversight — see `docs/frontend/FRONTEND_ARCHITECTURE.md`
+ * §2 for the record of that trade-off.
+ */
+async function loadRedirectRule(pathname: string): Promise<RedirectRule | null> {
+  const result = await apiGet<unknown>(REDIRECTS_PATH);
+
+  if (!result.ok) {
+    console.warn(
+      `[middleware] no redirect lookup — GET ${REDIRECTS_PATH} failed (${result.reason})`,
+    );
+
+    return null;
+  }
+
+  if (!Array.isArray(result.data)) {
+    return null;
+  }
+
+  const match = result.data.find((row) => isRedirectRule(row) && row.fromPath === pathname);
+
+  return match !== undefined && isRedirectRule(match) ? match : null;
+}
+
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
@@ -328,12 +405,29 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
+  // 2. The `Redirect` table lookup — FRONTEND_ARCHITECTURE §2's concern 3, checked on every
+  //    remaining request rather than only the locale-prefix candidates below. A dead legacy path
+  //    can be any shape (`/old-quality`, `/en/old-quality`, a whole removed segment that matches
+  //    no current route) and this file's own stated design refuses to guess which requests
+  //    "look" already valid (see "It classifies paths, it does not recognise locales" above) — so
+  //    there is no cheap, correct way to narrow this further without either re-introducing a
+  //    shape heuristic that section rejects, or missing the exact paths a redirect exists for.
+  const redirectRule = await loadRedirectRule(pathname);
+
+  if (redirectRule) {
+    const target = request.nextUrl.clone();
+
+    target.pathname = redirectRule.toPath;
+
+    return NextResponse.redirect(target, redirectRule.statusCode);
+  }
+
   const firstSegment = pathname.split("/")[1] ?? "";
 
-  // 2 and 3. The only two shapes that get a locale prefix added.
+  // 3 and 4. The only two shapes that get a locale prefix added.
   const isRedirectCandidate = pathname === "/" || STRUCTURAL_SEGMENTS.has(firstSegment);
 
-  // 4. Everything else — including `/en/...`, `/xx/...` and `/foo` — is the router's business.
+  // 5. Everything else — including `/en/...`, `/xx/...` and `/foo` — is the router's business.
   if (!isRedirectCandidate) {
     return NextResponse.next();
   }

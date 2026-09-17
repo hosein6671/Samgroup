@@ -70,6 +70,11 @@ describe("the area role lists follow the RBAC matrix", () => {
     expect(AREA_ROLES.segments).not.toBe(AREA_ROLES.shell);
   });
 
+  it("keeps Redirect management Admin-only, distinct from the content area", () => {
+    expect(AREA_ROLES.redirects).toEqual(["admin"]);
+    expect(AREA_ROLES.redirects).not.toBe(AREA_ROLES.shell);
+  });
+
   it("admits no role outside the four the platform defines", () => {
     for (const area of ["shell", "leads", "review"] as const) {
       for (const role of AREA_ROLES[area]) {

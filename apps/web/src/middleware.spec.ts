@@ -317,11 +317,17 @@ describe("regression — the public site is untouched", () => {
     expect((await middleware(request("/"))).headers.get("location")).toBe(`${ORIGIN}/en`);
   });
 
-  it("still passes an already-localized path through without an API call", async () => {
+  it("still passes an already-localized path through without a locale-API call", async () => {
+    apiGet.mockResolvedValue({ ok: true, data: [], meta: {} });
+
     const response = await middleware(request("/en/products/base-oils"));
 
     expect(response.headers.get("location")).toBeNull();
-    expect(apiGet).not.toHaveBeenCalled();
+    // The Redirect table lookup now runs unconditionally (see loadRedirectRule's own doc
+    // comment), but locale detection keeps its narrower scoping: this path is not a
+    // locale-prefix candidate, so /locales is never queried for it.
+    expect(apiGet).toHaveBeenCalledTimes(1);
+    expect(apiGet).toHaveBeenCalledWith("/seo/redirects");
     expect(refresh).not.toHaveBeenCalled();
   });
 
@@ -357,5 +363,127 @@ describe("regression — the public site is untouched", () => {
     }
 
     expect(refresh).not.toHaveBeenCalled();
+  });
+});
+
+describe("the Redirect table lookup", () => {
+  const LOCALES = {
+    ok: true,
+    data: [
+      { code: "en", name: "English", nativeName: "English", direction: "ltr", isDefault: true },
+    ],
+    meta: {},
+  };
+
+  function stub(redirects: unknown): void {
+    apiGet.mockImplementation((path: string) => {
+      if (path === "/seo/redirects")
+        return Promise.resolve({ ok: true, data: redirects, meta: {} });
+      if (path === "/locales") return Promise.resolve(LOCALES);
+      throw new Error(`unexpected apiGet path in test: ${path}`);
+    });
+  }
+
+  it("sends a matching legacy path straight to its replacement, with the rule's own status code", async () => {
+    stub([
+      {
+        fromPath: "/old-quality",
+        toPath: "/quality-certifications",
+        statusCode: 301,
+        locale: null,
+      },
+    ]);
+
+    const response = await middleware(request("/old-quality"));
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/quality-certifications`);
+  });
+
+  it("honours a 302 rule as temporary, not permanent", async () => {
+    stub([
+      {
+        fromPath: "/old-quality",
+        toPath: "/quality-certifications",
+        statusCode: 302,
+        locale: null,
+      },
+    ]);
+
+    expect((await middleware(request("/old-quality"))).status).toBe(302);
+  });
+
+  it("matches fromPath byte-for-byte, including a locale prefix the rule itself carries", async () => {
+    stub([{ fromPath: "/fa/old-page", toPath: "/fa/new-page", statusCode: 301, locale: "fa" }]);
+
+    const response = await middleware(request("/fa/old-page"));
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/fa/new-page`);
+  });
+
+  it("catches an already-locale-prefixed page that was renamed, not only bare legacy paths", async () => {
+    stub([
+      {
+        fromPath: "/en/old-quality-page",
+        toPath: "/en/quality-certifications",
+        statusCode: 301,
+        locale: null,
+      },
+    ]);
+
+    // This is the case a narrower, locale-prefix-candidate-only scoping would miss entirely: the
+    // page already carries a working locale segment, so it would otherwise fall to rule 5 and 404.
+    const response = await middleware(request("/en/old-quality-page"));
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/en/quality-certifications`);
+  });
+
+  it("falls through to ordinary locale-prefixing when no rule matches", async () => {
+    stub([
+      { fromPath: "/unrelated-old-path", toPath: "/somewhere-else", statusCode: 301, locale: null },
+    ]);
+
+    const response = await middleware(request("/products"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/en/products`);
+  });
+
+  it("still checks a currently-valid already-localized path — it just won't match anything there", async () => {
+    stub([
+      { fromPath: "/unrelated-old-path", toPath: "/somewhere-else", statusCode: 301, locale: null },
+    ]);
+
+    const response = await middleware(request("/en/products"));
+
+    expect(response.headers.get("location")).toBeNull();
+    expect(apiGet).toHaveBeenCalledWith("/seo/redirects");
+  });
+
+  it("passes through to locale-prefixing when the redirects source is unreachable", async () => {
+    apiGet.mockImplementation((path: string) => {
+      if (path === "/seo/redirects")
+        return Promise.resolve({ ok: false, reason: "unreachable", detail: "ECONNREFUSED" });
+      if (path === "/locales") return Promise.resolve(LOCALES);
+      throw new Error(`unexpected apiGet path in test: ${path}`);
+    });
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    const response = await middleware(request("/products"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/en/products`);
+  });
+
+  it("ignores a row shaped like something else — a locale entry cannot masquerade as a redirect", async () => {
+    // The exact shape `/locales` itself returns, in case the two calls are ever mixed up.
+    stub(LOCALES.data);
+
+    const response = await middleware(request("/products"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(`${ORIGIN}/en/products`);
   });
 });
