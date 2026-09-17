@@ -1,4 +1,5 @@
 import type { Endpoint } from "payload";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 
 import { editorAuthenticated } from "./editor-auth";
@@ -43,6 +44,33 @@ export const mediaList: Endpoint = {
 
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 
+/**
+ * The uploaded file's own name becomes the object's storage key and, via `mediaFileURL`
+ * (`collections/media.ts`), a segment of its public `/media/cms/<file>` URL — verbatim, until this
+ * function runs. A name a person actually types (a phone's default "IMG_1234.jpg", a screenshot's
+ * "Screenshot 2026-09-17 at 2.30.10 PM.png", ChatGPT's own export name with commas and spaces) is
+ * not a safe URL path segment, and Payload's S3 storage plugin does not sanitize it — it was
+ * reaching MinIO and the wire exactly as typed. A space survives as a space in the stored key but
+ * the browser percent-encodes it when requesting the `<img src>`, and the two stop matching.
+ *
+ * ASCII-folded, hyphenated, and given a short random suffix so two uploads that sanitize to the
+ * same base name never collide — the Prisma-owned upload path (`media.service.ts`) sidesteps this
+ * entirely with a random UUID key; this collection keeps the human-readable name (Payload's admin
+ * list is titled by it) but makes it safe the same way a URL slug always is.
+ */
+function sanitizedFilename(originalName: string): string {
+  const base = path.basename(originalName);
+  const extension = path.extname(base);
+  const stem = base.slice(0, base.length - extension.length);
+  const slug =
+    stem
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "image";
+
+  return `${slug}-${randomBytes(4).toString("hex")}${extension.toLowerCase()}`;
+}
+
 export const mediaUpload: Endpoint = {
   path: "/editor/media",
   method: "post",
@@ -86,7 +114,7 @@ export const mediaUpload: Endpoint = {
       file: {
         data: bytes,
         mimetype: input.mimeType,
-        name: path.basename(input.name),
+        name: sanitizedFilename(input.name),
         size: bytes.length,
       },
     });
