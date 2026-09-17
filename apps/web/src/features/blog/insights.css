@@ -537,7 +537,7 @@
   display: grid;
   gap: clamp(32px, 5vw, 64px);
   /* A single measured column until there is room for a sidebar beside it, not instead of it. */
-  grid-template-columns: minmax(0, 68ch);
+  grid-template-columns: minmax(0, 82ch);
 }
 
 /*
@@ -546,15 +546,19 @@
  * as a block (an earlier version of this rule) only moved the same dead space to both sides at
  * once. Letting the track itself absorb the slack, then capping and end-aligning the sidebar
  * INSIDE it, spends that space on gap and margin instead of on a third, wider empty band.
+ *
+ * The reading column is capped at 82ch rather than the more conventional ~68-70ch: at 68ch the
+ * gap this track absorbs read as an oversized empty gutter on a wide monitor — widening the
+ * column itself, not the gutter, is what the page actually needed.
  */
 @media (min-width: 960px) {
   .in-post-body-inner {
-    grid-template-columns: minmax(0, 68ch) 1fr;
+    grid-template-columns: minmax(0, 82ch) 1fr;
     align-items: start;
   }
 
   .in-post-sidebar {
-    max-width: 360px;
+    max-width: 340px;
     justify-self: end;
   }
 }
