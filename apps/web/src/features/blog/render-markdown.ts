@@ -32,7 +32,24 @@ import type { Tokens } from "marked";
 
 export type TocEntry = { readonly id: string; readonly text: string; readonly depth: 2 | 3 };
 
-export type RenderedMarkdown = { readonly html: string; readonly toc: TocEntry[] };
+export type RenderedMarkdown = {
+  readonly html: string;
+  readonly toc: TocEntry[];
+  /** A mechanical estimate from the source's own word count — see the note below. */
+  readonly readingMinutes: number;
+};
+
+/**
+ * Word count over 200 words per minute, rounded up and floored at one minute. Not a stored fact —
+ * `BlogPost` has no `readingMinutes` column, and none is added: this is arithmetic over the same
+ * `content` the reader is about to see, recomputed on every render, so it can never drift from the
+ * body it describes the way a cached or hand-entered figure could.
+ */
+function estimateReadingMinutes(source: string): number {
+  const words = source.trim().split(/\s+/).filter(Boolean).length;
+
+  return Math.max(1, Math.round(words / 200));
+}
 
 const ALLOWED_TAGS = [
   "p",
@@ -112,5 +129,5 @@ export function renderMarkdown(source: string): RenderedMarkdown {
     },
   });
 
-  return { html, toc };
+  return { html, toc, readingMinutes: estimateReadingMinutes(source) };
 }

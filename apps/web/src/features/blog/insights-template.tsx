@@ -24,11 +24,12 @@ import type { BlogPostListResult } from "@/lib/blog";
  *
  * ── A short page, on purpose ────────────────────────────────────────────────
  *
- * Hero, then the list, then the site footer. There is no category rail, no featured article, no
- * newsletter block and no editorial-plan section, and none of those is an oversight: a category rail
- * would publish an unapproved taxonomy, a featured article needs a `featured` column that does not
- * exist, and the newsletter form's endpoint is contracted but unbuilt. Every one of them would need
- * content or a column the platform does not have.
+ * Hero, then the list, then the site footer. There is no category rail and no newsletter block, and
+ * neither is an oversight: a category rail would publish an unapproved taxonomy, and the newsletter
+ * form's endpoint is contracted but unbuilt. Both would need content or an endpoint the platform does
+ * not have. **The newest post on an unfiltered first page is now given a larger treatment**
+ * (`FeaturedInsightCard`, in `sections/list.tsx`) — mechanical, from `GET /blog/posts`' own sort
+ * order, not a `featured` column or an editorial pick.
  *
  * ── The list streams; the hero does not wait for it ─────────────────────────
  *

@@ -69,7 +69,7 @@ export function PostTemplate({
    */
   readonly recentPosts: readonly BlogPostListItemResponse[];
 }): ReactNode {
-  const { html, toc } = renderMarkdown(post.content);
+  const { html, toc, readingMinutes } = renderMarkdown(post.content);
 
   return (
     <div data-brand="flagship">
@@ -104,6 +104,7 @@ export function PostTemplate({
                   {post.category.name}
                 </a>
                 <PublishedDate iso={post.publishedAt} locale={locale} className="in-post-date" />
+                <span className="in-post-reading-time">{readingMinutes} min read</span>
               </p>
 
               <h1 className="fs-d1 in-post-title">{post.title}</h1>
@@ -155,7 +156,9 @@ export function PostTemplate({
                 )}
 
                 <p className="in-post-back">
-                  <a href={`/${locale}${ROUTES.insights}`}>All posts</a>
+                  <a className="fs-btn fs-btn--outline" href={`/${locale}${ROUTES.insights}`}>
+                    All posts
+                  </a>
                 </p>
               </div>
 

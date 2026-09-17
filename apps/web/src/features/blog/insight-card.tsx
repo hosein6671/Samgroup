@@ -78,3 +78,53 @@ export function InsightCard({
     </article>
   );
 }
+
+/**
+ * The newest post, given the same larger treatment `BrandedPhoto` gives a marketing photograph —
+ * full-bleed image, dark scrim, copy over it — instead of `InsightCard`'s plain frame.
+ *
+ * "Newest" is a mechanical fact of `GET /blog/posts`' own sort order, not an editorial pick: the
+ * index calls this exactly once, on `result.posts[0]`, unfiltered and on page one. There is still no
+ * `featured` column and none is implied — see `insights-template.tsx`'s note on why this page has
+ * stayed spare. **Same field contract as `InsightCard`, nothing added**: title, category, date and
+ * the optional image. No excerpt and no read-time, for the reason `InsightCard`'s own note gives —
+ * neither column exists.
+ */
+export function FeaturedInsightCard({
+  post,
+  locale,
+}: {
+  readonly post: BlogPostListItemResponse;
+  readonly locale: string;
+}): ReactNode {
+  return (
+    <article className="in-featured">
+      <div className="in-featured-media">
+        {post.featuredImage ? (
+          <img
+            src={post.featuredImage.url}
+            alt={post.featuredImage.altText ?? ""}
+            width={1400}
+            height={600}
+          />
+        ) : (
+          // No image: the ink ground and blueprint field alone still carry the copy legibly.
+          <div className="fs-blueprint" aria-hidden="true" />
+        )}
+      </div>
+
+      <div className="in-featured-copy">
+        <p className="in-featured-meta">
+          <span className="in-featured-category">{post.category.name}</span>
+          <PublishedDate iso={post.publishedAt} locale={locale} className="in-featured-date" />
+        </p>
+
+        <h2 className="in-featured-title">
+          <a className="in-featured-link" href={`/${locale}${ROUTES.insights}/${post.slug}`}>
+            {post.title}
+          </a>
+        </h2>
+      </div>
+    </article>
+  );
+}

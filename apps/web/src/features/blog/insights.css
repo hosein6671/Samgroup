@@ -146,6 +146,7 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  background: var(--color-surface-inset);
   border-radius: 8px;
 }
 
@@ -214,6 +215,103 @@
 .in-card:has(.in-card-link:focus-visible) {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+}
+
+/* ============================================================================
+   INDEX — FEATURED (the newest post, unfiltered page one only)
+   ============================================================================ */
+
+.in-featured {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0 0 clamp(28px, 3vw, 40px);
+  border: 1px solid rgba(6, 19, 70, 0.14);
+  border-radius: 16px;
+  background: var(--fs-ink);
+}
+
+.in-featured-media {
+  position: relative;
+  aspect-ratio: 21 / 9;
+}
+
+.in-featured-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/*
+ * The same scrim `.fs-branded-photo` and `.fs-jrny-photo` already carry, so the copy over it stays
+ * legible against any photograph rather than only against the ones this file happens to test with.
+ */
+.in-featured-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(3, 11, 31, 0.92), rgba(3, 11, 31, 0.1) 55%);
+}
+
+.in-featured-copy {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 1;
+  padding: clamp(22px, 4vw, 44px);
+}
+
+.in-featured-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.in-featured-category {
+  color: var(--fs-gold-2);
+}
+
+.in-featured-title {
+  margin: 0;
+  max-width: 26ch;
+  font-family: var(--font-display);
+  font-size: var(--fs-text-display);
+  font-weight: 400;
+  line-height: var(--fs-text-display--line-height);
+  letter-spacing: var(--fs-text-display--letter-spacing);
+  color: #fff;
+  text-wrap: balance;
+}
+
+.in-featured-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.in-featured-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.in-featured:has(.in-featured-link:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .in-featured-media {
+    aspect-ratio: 4 / 3;
+  }
 }
 
 /* ============================================================================
@@ -442,10 +540,22 @@
   grid-template-columns: minmax(0, 68ch);
 }
 
+/*
+ * The second track is `1fr`, not a second capped measure: two fixed-width tracks left a bare gap
+ * between the sidebar and `.fs-wrap`'s own 1560px edge on a wide monitor, and centering that pair
+ * as a block (an earlier version of this rule) only moved the same dead space to both sides at
+ * once. Letting the track itself absorb the slack, then capping and end-aligning the sidebar
+ * INSIDE it, spends that space on gap and margin instead of on a third, wider empty band.
+ */
 @media (min-width: 960px) {
   .in-post-body-inner {
-    grid-template-columns: minmax(0, 68ch) minmax(220px, 280px);
+    grid-template-columns: minmax(0, 68ch) 1fr;
     align-items: start;
+  }
+
+  .in-post-sidebar {
+    max-width: 360px;
+    justify-self: end;
   }
 }
 
@@ -579,7 +689,8 @@
 }
 
 .in-post-toc-title,
-.in-post-recent-title {
+.in-post-recent-title,
+.in-post-contact-title {
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   line-height: var(--fs-text-technical--line-height);
@@ -620,12 +731,26 @@
   color: var(--color-text-accent);
 }
 
+.in-post-contact-body {
+  margin: 0 0 16px;
+  font-size: var(--fs-text-body-sm);
+  line-height: var(--fs-text-body-sm--line-height);
+  color: var(--color-text-secondary);
+}
+
+.in-post-contact .fs-btn {
+  width: 100%;
+}
+
 .in-post-image {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  /* A neutral panel behind the pixels, so a slow or failed load reads as a quiet placeholder
+     rather than a stark white void with a small broken-image glyph in the corner. */
+  background: var(--color-surface-inset);
   margin: 0 0 clamp(28px, 4vw, 48px);
   border-radius: 12px;
 }
@@ -654,15 +779,6 @@
   margin: clamp(28px, 3vw, 44px) 0 0;
   padding-top: clamp(18px, 2vw, 26px);
   border-top: 1px solid var(--color-border-hairline);
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-}
-
-.in-post-back a {
-  color: var(--color-text-primary);
-  text-underline-offset: 4px;
 }
 
 .in-post-back a:hover,

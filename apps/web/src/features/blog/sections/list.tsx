@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { InsightCard } from "../insight-card";
+import { FeaturedInsightCard, InsightCard } from "../insight-card";
 import { insightsHref, FIRST_PAGE } from "../insights-query";
 
 import type { InsightsQuery } from "../insights-query";
@@ -161,6 +161,16 @@ export async function InsightsList({
   const listed = result.ok ? result.posts.length : 0;
   const filtered = query.category !== null;
 
+  /*
+   * The newest post gets the larger treatment, but only where "newest" reads unambiguously as
+   * such: the first, unfiltered page. Elsewhere — a category view, page two — every post shown is
+   * already narrowed by the visitor's own choice, and pulling one out of that set as "featured"
+   * would misstate what the list is showing them.
+   */
+  const showFeatured = query.page === FIRST_PAGE && !filtered && listed > 0;
+  const featuredPost = showFeatured && result.ok ? result.posts[0] : undefined;
+  const gridPosts = result.ok ? (showFeatured ? result.posts.slice(1) : result.posts) : [];
+
   return (
     <section className="fs-sec in-list" data-surface="light">
       <div className="fs-wrap">
@@ -186,11 +196,17 @@ export async function InsightsList({
               </p>
             )}
 
-            <div className="in-grid reveal-stagger">
-              {result.posts.map((post) => (
-                <InsightCard key={post.id} post={post} locale={locale} />
-              ))}
-            </div>
+            {featuredPost && (
+              <FeaturedInsightCard key={featuredPost.id} post={featuredPost} locale={locale} />
+            )}
+
+            {gridPosts.length > 0 && (
+              <div className="in-grid reveal-stagger">
+                {gridPosts.map((post) => (
+                  <InsightCard key={post.id} post={post} locale={locale} />
+                ))}
+              </div>
+            )}
 
             <Pager locale={locale} query={query} total={result.total} limit={result.limit} />
           </>
