@@ -142,4 +142,32 @@ describe("company editor gateway", () => {
   it("restricts editorial history to Admin", () => {
     expect(Reflect.getMetadata(ROLES_METADATA_KEY, ContentEventsController)).toEqual(["ADMIN"]);
   });
+  it("uploads an editorial image whose base64 body exceeds the plain-content size limit", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ id: 10, alt: "Facility", url: "/media/cms/facility.jpg" })),
+      );
+    global.fetch = fetchMock;
+    const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xdb]), Buffer.alloc(300_000)]);
+    await expect(
+      new CompanyEditorService(config).uploadMedia(
+        { buffer: jpeg, mimetype: "image/jpeg", originalname: "facility.jpg", size: jpeg.length },
+        "Facility",
+      ),
+    ).resolves.toMatchObject({ id: 10 });
+    const sentBody = fetchMock.mock.calls[0][1].body as string;
+    expect(Buffer.byteLength(sentBody, "utf8")).toBeGreaterThan(200000);
+  });
+  it("still bounds plain content saves at the smaller text limit", async () => {
+    global.fetch = jest.fn();
+    await expect(
+      new CompanyEditorService(config).request("contact-us", "actor", {
+        operationId: "11111111-1111-4111-8111-111111111111",
+        revision: "one",
+        action: "save-draft",
+        fields: { note: "x".repeat(200001) },
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+  });
 });

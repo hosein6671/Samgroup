@@ -144,6 +144,7 @@ export class CompanyEditorService {
         mimeType: file.mimetype,
         content: file.buffer.toString("base64"),
       }),
+      7 * 1024 * 1024,
     );
   }
   async events(query: ContentEventsQuery): Promise<ReturnType<typeof withMeta>> {
@@ -159,13 +160,17 @@ export class CompanyEditorService {
       throw new ServiceUnavailableException("Invalid content history response.");
     return withMeta(result.items, { total: result.total, page: query.page, limit: 50 });
   }
-  private async send(path: string, body?: string): Promise<Record<string, unknown>> {
+  private async send(
+    path: string,
+    body?: string,
+    maxBytes = 200000,
+  ): Promise<Record<string, unknown>> {
     const origin = this.config.get<string>("PAYLOAD_INTERNAL_URL");
     const apiKey = this.config.get<string>("PAYLOAD_API_KEY");
     const secret = this.config.get<string>("PAYLOAD_EDITOR_SECRET");
     if (!origin || !apiKey || !secret)
       throw new ServiceUnavailableException("Content editing is unavailable.");
-    if (body && Buffer.byteLength(body, "utf8") > 200000)
+    if (body && Buffer.byteLength(body, "utf8") > maxBytes)
       throw new BadRequestException("Content is too large.");
     let response: Response;
     try {
