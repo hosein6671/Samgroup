@@ -8,6 +8,7 @@ import {
   Container,
   Download,
   Droplet,
+  ExternalLink,
   Factory,
   FileSearch,
   Filter,
@@ -15,7 +16,10 @@ import {
   Gauge,
   Handshake,
   Layers,
+  Mail,
+  MapPin,
   Microscope,
+  Phone,
   Route,
   Search,
   Ship,
@@ -338,4 +342,31 @@ export function TechnicalDataIcon(props: IconProps = {}): ReactNode {
  */
 export function TechnicalDataPendingIcon(props: IconProps = {}): ReactNode {
   return <FileSearch className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/* ------------------------------------------------------- direct contact channels */
+
+/** A telephone channel — main line or sales line alike; the label names which. */
+export function PhoneChannelIcon(props: IconProps = {}): ReactNode {
+  return <Phone className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/** An email channel — general or sales alike; the label names which. */
+export function EmailChannelIcon(props: IconProps = {}): ReactNode {
+  return <Mail className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/** A physical address. */
+export function AddressChannelIcon(props: IconProps = {}): ReactNode {
+  return <MapPin className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
+}
+
+/**
+ * A social or messaging channel that opens off-site — WhatsApp, LinkedIn, Instagram, Telegram
+ * alike. One neutral glyph rather than four brand marks: Lucide carries no official logos, and a
+ * hand-drawn stand-in for a brand's mark is worse than none. The label already names which channel
+ * it is; this only says "leaves the site."
+ */
+export function SocialChannelIcon(props: IconProps = {}): ReactNode {
+  return <ExternalLink className={iconClass(props)} strokeWidth={STROKE} {...HIDDEN} />;
 }

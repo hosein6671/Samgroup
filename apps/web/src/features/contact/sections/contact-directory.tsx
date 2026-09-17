@@ -1,24 +1,38 @@
 import type { ReactNode } from "react";
 import type { ContactUsContent } from "@sam-group/types";
 
+import {
+  AddressChannelIcon,
+  EmailChannelIcon,
+  PhoneChannelIcon,
+  SocialChannelIcon,
+} from "@/features/site/icons";
+
 function phoneHref(value: string): string {
   return `tel:${value.replace(/[^+\d]/g, "")}`;
 }
 
 function ContactItem({
+  icon,
   label,
   value,
   href,
 }: {
+  icon: ReactNode;
   label: string;
   value: string;
   href?: string;
 }): ReactNode {
   return (
-    <div className="ct-directory-item">
-      <dt>{label}</dt>
-      <dd>{href ? <a href={href}>{value}</a> : <address>{value}</address>}</dd>
-    </div>
+    <li className="ct-directory-item">
+      <div className="ct-directory-icon">{icon}</div>
+      <div className="ct-directory-text">
+        <p className="ct-directory-label">{label}</p>
+        <p className="ct-directory-value">
+          {href ? <a href={href}>{value}</a> : <address>{value}</address>}
+        </p>
+      </div>
+    </li>
   );
 }
 
@@ -78,7 +92,7 @@ export function ContactDirectory({
   return (
     <section className="ct-directory" aria-labelledby="contact-directory-title">
       <div className="fs-wrap ct-directory-inner">
-        <header className="ct-directory-head">
+        <header className="ct-directory-head reveal-fade-rise">
           <p className="fs-eyebrow">Direct contact</p>
           <h2 id="contact-directory-title" className="fs-d3">
             Reach the right team.
@@ -88,9 +102,10 @@ export function ContactDirectory({
           </p>
         </header>
 
-        <dl className="ct-directory-list">
+        <ul className="ct-directory-list reveal-stagger">
           {content.mainPhone && (
             <ContactItem
+              icon={<PhoneChannelIcon />}
               label="Main phone"
               value={content.mainPhone}
               href={phoneHref(content.mainPhone)}
@@ -98,6 +113,7 @@ export function ContactDirectory({
           )}
           {content.salesPhone && (
             <ContactItem
+              icon={<PhoneChannelIcon />}
               label="Sales phone"
               value={content.salesPhone}
               href={phoneHref(content.salesPhone)}
@@ -105,6 +121,7 @@ export function ContactDirectory({
           )}
           {content.generalEmail && (
             <ContactItem
+              icon={<EmailChannelIcon />}
               label="General email"
               value={content.generalEmail}
               href={`mailto:${content.generalEmail}`}
@@ -112,6 +129,7 @@ export function ContactDirectory({
           )}
           {content.salesEmail && (
             <ContactItem
+              icon={<EmailChannelIcon />}
               label="Sales email"
               value={content.salesEmail}
               href={`mailto:${content.salesEmail}`}
@@ -119,10 +137,20 @@ export function ContactDirectory({
           )}
           {social.map(
             ([label, href]) =>
-              href && <ContactItem key={label} label={label} value={`Open ${label}`} href={href} />,
+              href && (
+                <ContactItem
+                  key={label}
+                  icon={<SocialChannelIcon />}
+                  label={label}
+                  value={`Open ${label}`}
+                  href={href}
+                />
+              ),
           )}
-          {content.address && <ContactItem label="Address" value={content.address} />}
-        </dl>
+          {content.address && (
+            <ContactItem icon={<AddressChannelIcon />} label="Address" value={content.address} />
+          )}
+        </ul>
       </div>
     </section>
   );

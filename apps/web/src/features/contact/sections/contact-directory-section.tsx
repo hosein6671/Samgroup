@@ -138,12 +138,18 @@ export function ContactDirectorySkeleton(): ReactNode {
 
         <div className="ct-directory-list" aria-hidden="true">
           <div className="ct-directory-item">
-            <span className="ct-skeleton ct-skeleton--label" />
-            <span className="ct-skeleton ct-skeleton--value" />
+            <span className="ct-skeleton ct-skeleton--icon" />
+            <span className="ct-directory-text">
+              <span className="ct-skeleton ct-skeleton--label" />
+              <span className="ct-skeleton ct-skeleton--value" />
+            </span>
           </div>
           <div className="ct-directory-item">
-            <span className="ct-skeleton ct-skeleton--label" />
-            <span className="ct-skeleton ct-skeleton--value" />
+            <span className="ct-skeleton ct-skeleton--icon" />
+            <span className="ct-directory-text">
+              <span className="ct-skeleton ct-skeleton--label" />
+              <span className="ct-skeleton ct-skeleton--value" />
+            </span>
           </div>
         </div>
       </div>
