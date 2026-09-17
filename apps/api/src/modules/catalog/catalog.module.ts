@@ -14,6 +14,8 @@ import { CategoriesController } from "./categories.controller";
 import { CategoriesService } from "./categories.service";
 import { ProductsController } from "./products.controller";
 import { ProductsService } from "./products.service";
+import { SegmentsAdminController } from "./segments-admin.controller";
+import { SegmentsAdminService } from "./segments-admin.service";
 import {
   CatalogReviewQueueController,
   ProductClaimReviewController,
@@ -64,12 +66,19 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     CategoriesController,
     ProductsController,
     ProductEditorController,
+    SegmentsAdminController,
     CatalogReviewQueueController,
     SpecificationReviewController,
     ProductClaimReviewController,
     ProductCopyReviewController,
   ],
-  providers: [CategoriesService, ProductsService, CatalogReviewService, ProductEditorService],
+  providers: [
+    CategoriesService,
+    ProductsService,
+    CatalogReviewService,
+    ProductEditorService,
+    SegmentsAdminService,
+  ],
   exports: [CategoriesService, ProductsService],
 })
 export class CatalogModule {}

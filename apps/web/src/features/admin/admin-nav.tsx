@@ -58,6 +58,7 @@ export type AdminNavKey =
   | "inquiries"
   | "custom-formulation-requests"
   | "catalog-review"
+  | "segments"
   | "users"
   | "audit";
 
@@ -114,6 +115,13 @@ export function AdminNav({
       current: current === "catalog-review",
     });
   }
+
+  if (roleMayEnter(role, "segments"))
+    entries.push({
+      href: "/admin/catalog/segments",
+      label: "Segments",
+      current: current === "segments",
+    });
 
   if (roleMayEnter(role, "shell")) {
     entries.push({ href: "/admin/users", label: "Users", current: current === "users" });

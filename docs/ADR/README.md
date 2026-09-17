@@ -29,6 +29,7 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-023](./ADR-023-admin-brand-alignment.md)                         | Admin brand alignment with SAM navy/brass; existing security and ownership boundaries retained                                            | Accepted |
 | [ADR-024](./ADR-024-unified-catalogue-editor-proposal.md)             | Unified catalogue editor, Admin user management and activity/security audit                                                               | Accepted |
 | [ADR-025](./ADR-025-versioned-blog-editorial-drafts.md)               | Versioned blog drafts preserve the published projection until an explicit, atomic publish                                                 | Accepted |
+| [ADR-026](./ADR-026-admin-managed-segment-creation.md)                | Admin-only create-and-list for Segment rows from `/admin`; closes ADR-008 §7's Admin/API-writes deferral                                  | Accepted |
 
 **ADR-021 is reserved, not free.** No file carries that number yet, but two live documents already
 cite it for the policy-revision decision — [`docs/legal/DRAFT-privacy-policy-REVIEW-ONLY.md`](../legal/DRAFT-privacy-policy-REVIEW-ONLY.md)

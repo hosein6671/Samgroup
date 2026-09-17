@@ -16,6 +16,7 @@ export type AuditEventName =
   | "blog.image_uploaded"
   | "blog.image_primary_changed"
   | "blog.image_removed"
+  | "segment.created"
   | "auth.login"
   | "auth.refresh"
   | "auth.logout"

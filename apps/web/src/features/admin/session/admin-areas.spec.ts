@@ -61,6 +61,15 @@ describe("the area role lists follow the RBAC matrix", () => {
     expect(AREA_ROLES.review).not.toBe(AREA_ROLES.shell);
   });
 
+  /**
+   * ADR-026: Segment creation is Admin-only, like the review queue and unlike `content` (Admin +
+   * Content Manager) — a Segment is taxonomy structure, not "ordinary catalogue editorial content".
+   */
+  it("keeps Segment creation Admin-only, distinct from the content area", () => {
+    expect(AREA_ROLES.segments).toEqual(["admin"]);
+    expect(AREA_ROLES.segments).not.toBe(AREA_ROLES.shell);
+  });
+
   it("admits no role outside the four the platform defines", () => {
     for (const area of ["shell", "leads", "review"] as const) {
       for (const role of AREA_ROLES[area]) {

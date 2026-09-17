@@ -44,7 +44,7 @@ export const CUSTOMER_ROLE = "customer";
  * Three today. A fourth arrives with the next module, and adding one is meant to be a line here
  * plus the matching `@Roles()` in NestJS — not a change to how any page is written.
  */
-export type AdminArea = "shell" | "leads" | "review" | "content";
+export type AdminArea = "shell" | "leads" | "review" | "content" | "segments";
 
 /**
  * Area → the roles permitted to open it.
@@ -62,11 +62,18 @@ export type AdminArea = "shell" | "leads" | "review" | "content";
  * identical today, and deliberately so — they are identical by coincidence, not by rule. Folding
  * review into `shell` would mean that the day the dashboard admits another role, that role silently
  * gains the screen where technical data is approved for publication.
+ *
+ * `segments` is `/admin/catalog/segments` (ADR-026): Admin only, mirroring `@Roles(UserRole.ADMIN)`
+ * on `SegmentsAdminController`. Deliberately **not** folded into `content` (Admin + Content
+ * Manager, ADR-024's carve-out for "ordinary catalogue editorial content and SEO") — a Segment is
+ * taxonomy structure every future Product's filterability depends on, which ADR-026 keeps
+ * Admin-only for the same reason `review` is.
  */
 export const AREA_ROLES: Readonly<Record<AdminArea, readonly string[]>> = {
   shell: [ADMIN_ROLE],
   leads: [ADMIN_ROLE, CONTENT_MANAGER_ROLE, SALES_EXPERT_ROLE],
   review: [ADMIN_ROLE],
+  segments: [ADMIN_ROLE],
   content: [ADMIN_ROLE, CONTENT_MANAGER_ROLE],
 };
 
