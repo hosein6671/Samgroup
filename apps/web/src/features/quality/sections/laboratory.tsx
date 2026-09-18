@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { ANCHORS } from "../quality-anchors";
 
 import type { ContentFigure, QualityLaboratory } from "@sam-group/types";
@@ -119,14 +121,15 @@ export function QualityLaboratorySection({
 /**
  * The laboratory photograph.
  *
- * ── Why a plain `<img>` and not `next/image` ────────────────────────────────
+ * ── `next/image`, in `fill` mode ─────────────────────────────────────────────
  *
  * Editorial media URLs are **origin-relative** (`/media/cms/<file>`) and served from this site's own
- * origin by nginx, so there is no remote pattern to configure and nothing cross-origin to optimise.
- * Adopting `next/image` here would mean choosing a loader and an optimisation topology for a
- * deployment target that does not exist yet. Intrinsic `width`/`height` come from the CMS record, so
- * the layout does not shift while the file loads — the reason `next/image` is usually reached for.
- * The same trade `SectionFigure` records on the About page.
+ * origin by nginx, so there is no remote pattern to configure and nothing cross-origin to optimise —
+ * the deployment-undecided objection this comment used to record no longer applies: the VPS is live,
+ * and `hero-v2.tsx` already proves the same relative-URL shape works with `next/image` unchanged.
+ * `.qc-slot-frame` is already `position: relative` with its own `aspect-ratio`, so `fill` needs no
+ * intrinsic `width`/`height` from the CMS record at all — the frame's CSS is the source of truth for
+ * layout, exactly as it already was for the plain `<img>` this replaces.
  *
  * ── Alt text comes from the Media record ────────────────────────────────────
  *
@@ -153,14 +156,13 @@ function LaboratoryFigure({
   return (
     <figure className={className === undefined ? "qc-slot" : `qc-slot ${className}`}>
       <div className="qc-slot-frame">
-        <img
+        <Image
           className="qc-slot-image"
           src={image.url}
           alt={image.alt ?? ""}
-          {...(image.width !== null && { width: image.width })}
-          {...(image.height !== null && { height: image.height })}
+          fill
+          sizes="(max-width: 900px) 100vw, 50vw"
           loading="lazy"
-          decoding="async"
         />
       </div>
       {caption !== null && (

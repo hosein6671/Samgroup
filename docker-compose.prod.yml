@@ -88,6 +88,11 @@ services:
       API_INTERNAL_URL: http://api:3000
       SITE_PUBLIC_URL: ${SITE_PUBLIC_URL:-https://samgp.com}
       SITE_SEO_INDEXING: ${SITE_SEO_INDEXING:-false}
+      # `web`'s own `/media/*` proxy route reads these at request time — see that route's own
+      # doc comment. `web` reaches `minio` directly because both are on `edge` (the same reason
+      # nginx's own `/media/` block can).
+      MEDIA_PROXY_ENDPOINT: http://minio:9000
+      MEDIA_PROXY_BUCKET: ${MINIO_PUBLIC_BUCKET}
     depends_on:
       api:
         condition: service_healthy

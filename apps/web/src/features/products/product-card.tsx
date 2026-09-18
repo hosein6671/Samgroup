@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import type { ProductListItemResponse } from "@sam-group/types";
@@ -90,11 +91,12 @@ export function ProductCard({
     <article className="pl-card">
       {product.featuredImage ? (
         <span className="pl-card-media">
-          <img
+          <Image
             src={product.featuredImage.url}
             alt={product.featuredImage.altText ?? ""}
+            fill
+            sizes="(max-width: 640px) 45vw, 240px"
             loading="lazy"
-            decoding="async"
           />
         </span>
       ) : (

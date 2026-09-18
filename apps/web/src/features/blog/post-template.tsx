@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import "../home/flagship.css";
@@ -122,12 +123,14 @@ export function PostTemplate({
             <div className="fs-wrap in-post-body-inner">
               <div className="in-post-main">
                 {post.featuredImage && (
-                  <img
+                  <Image
                     className="in-post-image"
                     src={post.featuredImage.url}
                     alt={post.featuredImage.altText ?? ""}
                     width={1200}
                     height={675}
+                    sizes="(max-width: 960px) 100vw, 800px"
+                    priority
                   />
                 )}
 

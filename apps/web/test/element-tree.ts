@@ -1,3 +1,5 @@
+import NextImage from "next/image";
+
 import type { ReactElement, ReactNode } from "react";
 
 /**
@@ -30,6 +32,13 @@ import type { ReactElement, ReactNode } from "react";
  * expansion as an element carrying its `href` — which is what the link assertions read. That is
  * deliberate: it keeps the specs independent of Link's internals.
  *
+ * `next/image`'s `Image`, unlike `Link`, **is** a plain function component, and invoking it outside
+ * a real React render throws ("Invalid hook call") rather than returning JSX a shallow walk could
+ * use — the same class of problem `Link` sidesteps by not being one. It is excluded from invocation
+ * by identity, for the same reason and the same effect: an `<Image>` element survives expansion
+ * unresolved, carrying its own props (`src`, `alt`, `width`, `height`, `fill`, `sizes`) for a spec to
+ * read directly, rather than the subtree silently disappearing into `expand`'s `catch`.
+ *
  * ── The shipped shell spec keeps its own copy ──────────────────────────────
  *
  * `app/(admin)/admin/page.spec.tsx` carries a simpler walker and predates this file; it is left as
@@ -61,7 +70,7 @@ export function expand(node: ReactNode): ReactNode {
 
   const { type, props } = node as unknown as { type: unknown; props: Record<string, unknown> };
 
-  if (typeof type === "function") {
+  if (typeof type === "function" && type !== NextImage) {
     let rendered: ReactNode;
 
     try {
@@ -120,6 +129,16 @@ export function tagOf(element: TreeElement): string | null {
 /** Every host element with the given tag. */
 export function findTags(node: ReactNode, tag: string): TreeElement[] {
   return elementsOf(node).filter((element) => tagOf(element) === tag);
+}
+
+/**
+ * Every `next/image` element — matched by component identity, since it survives expansion
+ * unresolved (see `expand`'s own doc comment) and so never carries the host tag name `"img"`
+ * `findTags` looks for. A spec reads `src`, `alt`, `width`, `height`, `fill` and `sizes` straight
+ * off the element's own props, exactly as it would for a real `<img>`.
+ */
+export function findImages(node: ReactNode): TreeElement[] {
+  return elementsOf(node).filter((element) => element.type === NextImage);
 }
 
 /**

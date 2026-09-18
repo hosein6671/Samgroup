@@ -2,7 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ACTIVE_LOCALES } from "@test/active-locales";
 
-import { accessibleName, elementsOf, findLinks, findTags, textOf } from "@test/element-tree";
+import {
+  accessibleName,
+  elementsOf,
+  findImages,
+  findLinks,
+  findTags,
+  textOf,
+} from "@test/element-tree";
 
 import { AboutExperience } from "./about-experience";
 import { AboutUnavailable } from "./about-unavailable";
@@ -258,14 +265,15 @@ describe("accessibility of the rendered page", () => {
   });
 
   it("carries the alt text from the Media record onto the image", () => {
-    const image = findTags(render(), "img")[0];
+    const image = findImages(render())[0];
 
     expect(image?.props.alt).toBe("VERIFICATION ALT TEXT");
     // Intrinsic dimensions reserve the space, so the page does not shift while the file loads.
     expect(image?.props.width).toBe(1200);
     expect(image?.props.height).toBe(1500);
-    expect(image?.props.loading).toBe("eager");
-    expect(image?.props.fetchPriority).toBe("high");
+    // `priority` is what tells next/image to load eagerly, at the browser's highest fetch
+    // priority — the hero photo is above the fold on every viewport this page renders at.
+    expect(image?.props.priority).toBe(true);
   });
 
   it("renders repeating content as lists rather than as loose markup", () => {

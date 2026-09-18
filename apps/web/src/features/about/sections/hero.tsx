@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Arrow } from "@/features/site/logo-mark";
 import { contentRouteHref } from "@/features/site/site-routes";
 
@@ -78,16 +80,29 @@ export function AboutHero({
 }
 
 /**
+ * The fallback intrinsic size fed to `next/image` when the CMS record carries no `width`/`height`
+ * of its own — matched to `.ab-slot-frame`'s own CSS `aspect-ratio` for each `ratio` value, so a
+ * missing CMS dimension never disagrees with the frame it is about to be cropped into.
+ */
+const FALLBACK_SIZE: Record<"landscape" | "portrait", { width: number; height: number }> = {
+  landscape: { width: 1200, height: 900 },
+  portrait: { width: 960, height: 1200 },
+};
+
+/**
  * A section photograph, in the frame the page already had.
  *
- * ── Why a plain `<img>` and not `next/image` ────────────────────────────────
+ * ── `next/image`, with an explicit size ──────────────────────────────────────
  *
  * Editorial media URLs are **origin-relative** (`/media/cms/<file>`) and served from this site's own
- * origin by nginx, so there is no remote pattern to configure and nothing cross-origin to optimise.
- * Adopting `next/image` here would mean choosing a loader and an optimisation topology for a
- * deployment target that does not exist yet (DEVOPS.md's VPS is unacquired), which is a decision,
- * not a detail. Intrinsic `width`/`height` come from the CMS record, so the layout does not shift
- * while the file loads — the reason `next/image` is usually reached for.
+ * origin by nginx, so there is no remote pattern to configure and nothing cross-origin to optimise —
+ * the deployment-undecided objection this comment used to record no longer applies: the VPS is live,
+ * and `hero-v2.tsx` already proves the same relative-URL shape works with `next/image` unchanged.
+ * `fill` was considered and rejected here specifically: `.ab-slot-frame` is `padding`ed and its own
+ * `::before`/`::after` draw the blueprint field, so an absolutely-positioned `fill` image would flood
+ * past that padding to the frame's edge — a real visual regression `laboratory.tsx`'s equivalent
+ * frame does not share, because that one has no padding. Explicit `width`/`height` keeps the image a
+ * normal grid child instead, exactly as the plain `<img>` it replaces was.
  *
  * ── Alt text comes from the Media record ────────────────────────────────────
  *
@@ -114,15 +129,14 @@ export function SectionFigure({
       data-ratio={ratio}
     >
       <div className="ab-slot-frame">
-        <img
+        <Image
           className="ab-slot-image"
           src={image.url}
           alt={image.alt ?? ""}
-          {...(image.width !== null && { width: image.width })}
-          {...(image.height !== null && { height: image.height })}
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "auto"}
-          decoding="async"
+          width={image.width ?? FALLBACK_SIZE[ratio].width}
+          height={image.height ?? FALLBACK_SIZE[ratio].height}
+          sizes="(max-width: 900px) 100vw, 50vw"
+          priority={priority}
         />
       </div>
       {caption !== null && (

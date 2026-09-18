@@ -111,7 +111,11 @@ describe("ProductCard — the reserved media area", () => {
       />,
     );
     expect(html.match(/pl-card-media/g)).toHaveLength(1);
-    expect(html).toContain('<img src="/media/products/p1/photo.webp" alt="CH-4 20W-50"');
+    // next/image proxies the real URL through /_next/image and adds a computed srcSet, so the
+    // encoded original path — not a literal <img src="..."> — is what a real render produces.
+    expect(html).toContain(encodeURIComponent("/media/products/p1/photo.webp"));
+    expect(html).toContain('alt="CH-4 20W-50"');
+    expect(html).toContain('data-nimg="fill"');
     expect(html).not.toContain("<svg");
     // not aria-hidden: this is real content, unlike the decorative glyph
     expect(html).not.toMatch(/<span class="pl-card-media" aria-hidden="true">/);

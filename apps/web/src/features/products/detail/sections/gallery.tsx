@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { familyIconFor } from "@/features/site/icons";
@@ -18,11 +19,15 @@ import type { ProductImageResponse } from "@sam-group/types";
  * assertions rather than by a live browser screenshot of a real product, honestly, because there
  * is no real product to screenshot it on yet.
  *
- * ── Why `<img>` and not `next/image` ────────────────────────────────────────
+ * ── `next/image`, in `fill` mode ─────────────────────────────────────────────
  *
- * Unchanged from the previous gate's own reasoning: `media.url` points at S3-compatible object
- * storage whose production host CLAUDE.md still records as undecided, and `next/image` requires
- * that host declared in `next.config.ts` today. A plain `<img>` has neither problem.
+ * `media.url` is an origin-relative path (`/media/products/<file>`), served from this site's own
+ * origin, so there is no remote host to declare in `next.config.ts` — the previous objection here
+ * assumed one was needed; `hero-v2.tsx` already proves the same relative-URL shape works with
+ * `next/image` unchanged. `.pd-gallery-stage`/`.pd-gallery-slide` were already `position: relative`
+ * / `position: absolute; inset: 0` in `product-detail.css`, which is `fill`'s own shape exactly —
+ * this swap needed no CSS change. `ProductImageResponse` carries no `width`/`height`, which `fill`
+ * does not need.
  *
  * ── Selection is CSS, not JavaScript ─────────────────────────────────────────
  *
@@ -55,14 +60,15 @@ export function ProductGallery({
     <div className="pd-gallery-media">
       <div className="pd-gallery-stage" role="group" aria-label={`Images of ${productName}`}>
         {images.map((image, index) => (
-          <img
+          <Image
             key={image.id}
             id={`pd-gallery-${image.id}`}
             className="pd-gallery-slide"
             src={image.url}
             alt={image.altText ?? ""}
+            fill
+            sizes="(max-width: 900px) 100vw, 480px"
             loading={index === 0 ? "eager" : "lazy"}
-            decoding="async"
           />
         ))}
       </div>
@@ -76,7 +82,7 @@ export function ProductGallery({
                 href={`#pd-gallery-${image.id}`}
                 aria-label={`Show image ${String(index + 1)} of ${String(images.length)}`}
               >
-                <img src={image.url} alt="" loading="lazy" decoding="async" />
+                <Image src={image.url} alt="" fill sizes="64px" loading="lazy" />
               </a>
             </li>
           ))}

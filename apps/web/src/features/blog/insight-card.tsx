@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { ROUTES } from "@/features/site/site-routes";
@@ -52,12 +53,13 @@ export function InsightCard({
   return (
     <article className="in-card">
       {post.featuredImage && (
-        <img
+        <Image
           className="in-card-image"
           src={post.featuredImage.url}
           alt={post.featuredImage.altText ?? ""}
           width={640}
           height={360}
+          sizes="(max-width: 640px) 100vw, 400px"
         />
       )}
       <p className="in-card-meta">
@@ -101,11 +103,13 @@ export function FeaturedInsightCard({
     <article className="in-featured">
       <div className="in-featured-media">
         {post.featuredImage ? (
-          <img
+          <Image
             src={post.featuredImage.url}
             alt={post.featuredImage.altText ?? ""}
             width={1400}
             height={600}
+            sizes="100vw"
+            priority
           />
         ) : (
           // No image: the ink ground and blueprint field alone still carry the copy legibly.

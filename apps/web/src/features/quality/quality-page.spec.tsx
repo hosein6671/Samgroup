@@ -5,7 +5,14 @@ import { describe, expect, it } from "vitest";
 
 import { ACTIVE_LOCALES } from "@test/active-locales";
 
-import { accessibleName, elementsOf, findLinks, findTags, textOf } from "@test/element-tree";
+import {
+  accessibleName,
+  elementsOf,
+  findImages,
+  findLinks,
+  findTags,
+  textOf,
+} from "@test/element-tree";
 
 import { QualityExperience } from "./quality-experience";
 import { QualityUnavailable } from "./quality-unavailable";
@@ -425,12 +432,14 @@ describe("accessibility of the rendered page", () => {
     }
   });
 
-  it("carries the alt text from the Media record onto the image, with intrinsic dimensions", () => {
-    const image = findTags(render(), "img")[0];
+  it("carries the alt text from the Media record onto the image, in fill mode", () => {
+    const image = findImages(render())[0];
 
     expect(image?.props.alt).toBe("VERIFICATION LAB ALT");
-    expect(image?.props.width).toBe(1600);
-    expect(image?.props.height).toBe(1000);
+    // `fill` rather than intrinsic width/height: `.qc-slot-frame` is already `position: relative`
+    // with its own CSS `aspect-ratio`, which is what reserves the space and prevents layout shift
+    // here — not a pixel size read off the CMS record.
+    expect(image?.props.fill).toBe(true);
   });
 
   it("renders repeating content as lists rather than as loose markup", () => {

@@ -694,6 +694,7 @@
 }
 
 .pd-gallery-thumb {
+  position: relative;
   display: block;
   inline-size: 64px;
   block-size: 64px;
