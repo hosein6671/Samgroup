@@ -1,0 +1,12 @@
+# Bind-mounted to /tmp/docker-mailserver/postfix-main.cf — docker-mailserver's own supported
+# override point, appended to the image's generated main.cf at container start.
+#
+# Rspamd's fuzzy-hash check calls out to a remote service (rspamd.com) on every scanned message,
+# and that round trip's latency — measured against this VPS at ~8s average scan time — exceeded
+# Postfix's default milter timeouts often enough to REJECT real mail with "4.7.1 timeout
+# processing message" (confirmed against a genuine Gmail delivery attempt, 18 September 2026).
+# Disabling the fuzzy check would remove real spam-detection coverage for a latency problem;
+# widening the timeout keeps the check and gives it room to finish even on a slow connection.
+milter_connect_timeout = 30s
+milter_command_timeout = 30s
+milter_content_timeout = 30s

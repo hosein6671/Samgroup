@@ -32,7 +32,7 @@ map $http_upgrade $connection_upgrade {
 # HTTP: serve the ACME challenge, redirect everything else to HTTPS.
 server {
     listen 80 default_server;
-    server_name ${SAM_PUBLIC_HOST} ${SAM_CMS_HOST};
+    server_name ${SAM_PUBLIC_HOST} www.${SAM_PUBLIC_HOST} ${SAM_CMS_HOST} ${SAM_MAIL_HOSTNAME};
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -107,6 +107,23 @@ server {
     }
 }
 
+# --- www redirect ------------------------------------------------------------
+# www.${SAM_PUBLIC_HOST} is not a second origin — it shares the public site's
+# certificate (certbot --expand added it as an extra SAN) purely so the TLS
+# handshake succeeds before nginx gets a chance to redirect. No app ever sees
+# this host.
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name www.${SAM_PUBLIC_HOST};
+
+    ssl_certificate     /etc/letsencrypt/live/${SAM_PUBLIC_HOST}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SAM_PUBLIC_HOST}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    return 301 https://${SAM_PUBLIC_HOST}$request_uri;
+}
+
 # --- Payload admin, separate host (ADR-005) ---------------------------------
 server {
     listen 443 ssl;
@@ -132,5 +149,38 @@ server {
     location / {
         set $cms_upstream ${SAM_CMS_UPSTREAM};
         proxy_pass $cms_upstream;
+    }
+}
+
+# --- Webmail (Roundcube), separate host — docs/MAIL_SERVER_SETUP.md --------
+# Inert until ${SAM_MAIL_HOSTNAME} is set and a certificate exists for it (the
+# same certbot --webroot run this file's own header describes, issued against
+# the hostname that ends up here). Reads/sends mail through `mailserver`
+# (docker-compose.mail.yml) exactly as a desktop mail client would; it holds
+# no mail data of its own.
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${SAM_MAIL_HOSTNAME};
+
+    ssl_certificate     /etc/letsencrypt/live/${SAM_MAIL_HOSTNAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SAM_MAIL_HOSTNAME}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+
+    client_max_body_size 25m;
+
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    location / {
+        set $roundcube_upstream ${SAM_ROUNDCUBE_UPSTREAM};
+        proxy_pass $roundcube_upstream;
     }
 }

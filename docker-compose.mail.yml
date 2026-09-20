@@ -12,15 +12,12 @@
 # already degrade gracefully (SmtpMailer skips the notification, never the
 # submission) when SMTP_HOST is unset in the api/cms environment.
 #
-# Verified locally, 15 September 2026, on an isolated test domain
-# (samgp-test.local, not this domain): mailbox creation, DKIM key generation,
-# authenticated SMTP submission via the project's own nodemailer dependency,
-# DKIM-signed delivery to another local mailbox, Fail2ban active (3 jails:
-# postfix, dovecot, custom), and — most importantly — an unauthenticated
-# relay attempt to an external address was REFUSED (554 5.7.1 Relay access
-# denied). No email was sent to a real address; nothing on this domain was
-# touched. See docs/MAIL_SERVER_SETUP.md for the full runbook, the exact DNS
-# records required, and how this connects to the application's SMTP_* /
+# First verified locally, 15 September 2026, on an isolated test domain (samgp-test.local, not
+# this domain) — see git history for that record. Superseded by a real deployment: as of
+# 18-20 September 2026 this overlay runs live on the real VPS for samgp.com — DNS cut over,
+# real DKIM key published, mailboxes migrated from the previous host (imapsync), and delivery
+# verified both ways against a real external mailbox (Gmail). See docs/MAIL_SERVER_SETUP.md for
+# the full runbook, the exact DNS records, and how this connects to the application's SMTP_* /
 # LEAD_NOTIFICATION_TO variables.
 #
 # ── Security posture, and why each setting is what it is ────────────────────
@@ -30,8 +27,13 @@
 # POSTFIX_INET_PROTOCOLS=ipv4
 #                         Avoids an IPv6 relay hole when IPv6 is enabled on
 #                         the host but not inside the container network.
-# ENABLE_RSPAMD=1 + ENABLE_OPENDKIM=0
-#                         One spam/DKIM/SPF/DMARC engine, not two arguing.
+# ENABLE_RSPAMD=1 + ENABLE_OPENDKIM=0 + ENABLE_AMAVIS=0
+#                         One spam/DKIM/SPF/DMARC engine, not two arguing. Amavis is a SEPARATE
+#                         toggle from OpenDKIM and is ON by default even with Rspamd enabled —
+#                         found live, 18 September 2026, as the image's own startup warning
+#                         ("Running Amavis/SA & Rspamd at the same time is discouraged") and
+#                         confirmed as a real cause of delivery failures on this VPS's modest
+#                         RAM, not just a discouraged combination.
 # ENABLE_FAIL2BAN=1       Brute-force protection on Postfix and Dovecot auth.
 #                         Requires NET_ADMIN below (nftables needs it to ban).
 # SSL_TYPE=letsencrypt    Reuses the SAME certificate this VPS already issues
@@ -48,6 +50,20 @@
 # `setup email add` accounts — see the runbook for the exact commands; none
 # is created here, exactly as no admin credential is seeded anywhere else in
 # this repository.
+#
+# ── Roundcube (webmail) ──────────────────────────────────────────────────
+# docker-mailserver is Postfix+Dovecot+Rspamd — it has no browser UI of its
+# own. Roundcube is the standard, actively-maintained webmail client
+# (roundcube/roundcube, official image) that reads/sends through THIS
+# server's own IMAP/submission ports, exactly as a desktop mail client
+# (Outlook, Thunderbird) would — it is a client of mailserver, not a second
+# mail server. Its own storage is one SQLite file (address book, preferences,
+# per-user settings) — never the mail itself, which always lives in
+# mailserver's `mail-data` volume above.
+#
+# Reached through nginx at MAIL_HOSTNAME over HTTPS (the same TLS certificate
+# mailserver uses), on the `edge` network nginx already sits on — no port is
+# published directly, matching how `web`/`api`/`cms` are reached in production.
 # ---------------------------------------------------------------------------
 
 services:
@@ -67,9 +83,15 @@ services:
       - mail-state:/var/mail-state
       - mail-logs:/var/log/mail
       - mail-config:/tmp/docker-mailserver
-      # The same certbot volume nginx's TLS termination uses — populated by
-      # the SSL/TLS gate. Read-only: this service only ever reads the cert.
-      - ./deploy/certbot/certs:/etc/letsencrypt:ro
+      # docker-mailserver's own supported override point — appended to the image's generated
+      # main.cf at container start. See the file's own header for why the milter timeouts need
+      # widening. Read-only: the image only ever reads this at boot.
+      - ./deploy/mailserver/postfix-main.cf:/tmp/docker-mailserver/postfix-main.cf:ro
+      # The SAME host path nginx's own TLS termination already mounts
+      # (docker-compose.prod.yml's nginx service, `/etc/letsencrypt:/etc/letsencrypt:ro`)
+      # — host-installed certbot (apt package), not a per-project directory.
+      # Read-only: this service only ever reads the cert.
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     cap_add:
       - NET_ADMIN # required for Fail2ban's nftables bans
     networks:
@@ -80,8 +102,38 @@ services:
       # database connection, so it has no reason to join `data` anyway.
       - edge
 
+  roundcube:
+    image: roundcube/roundcubemail:latest
+    restart: unless-stopped
+    depends_on:
+      - mailserver
+    environment:
+      # `ssl://` = implicit TLS on IMAP's standard 993 (mailserver's own
+      # `SSL_TYPE=letsencrypt` cert) — no plaintext IMAP hop, even inside the
+      # container network.
+      ROUNDCUBEMAIL_DEFAULT_HOST: ssl://mailserver
+      ROUNDCUBEMAIL_DEFAULT_PORT: 993
+      # `tls://` = STARTTLS on submission (587) — what apps/api's own
+      # SmtpMailer already uses against this same server.
+      ROUNDCUBEMAIL_SMTP_SERVER: tls://mailserver
+      ROUNDCUBEMAIL_SMTP_PORT: 587
+      # SQLite: no separate database service or credential for what is only
+      # per-user webmail preferences, not the mail data itself.
+      ROUNDCUBEMAIL_DB_TYPE: sqlite
+    volumes:
+      - roundcube-db:/var/roundcube/db
+      - roundcube-config:/var/roundcube/config
+      # roundcube/roundcubemail's own supported override point — every *.php file under this
+      # directory is `include()`d at container start (see the file's own header). Read-only: the
+      # image only ever reads it.
+      - ./deploy/mailserver/roundcube-tls.php:/var/roundcube/config/zz-tls.php:ro
+    networks:
+      - edge
+
 volumes:
   mail-data:
   mail-state:
   mail-logs:
   mail-config:
+  roundcube-db:
+  roundcube-config:

@@ -130,11 +130,18 @@ services:
       # and the SAM_ prefix stays an implementation detail of this container.
       SAM_PUBLIC_HOST: ${PUBLIC_HOST}
       SAM_CMS_HOST: ${CMS_HOST}
+      # Optional: only reachable in the production TLS template, and only
+      # once the docker-compose.mail.yml overlay's `roundcube` service
+      # exists. Blank here is harmless — nginx's own `SAM_*`-filtered
+      # envsubst leaves an unset name as an empty string, and this variable
+      # is not referenced by the templates local development actually loads.
+      SAM_MAIL_HOSTNAME: ${MAIL_HOSTNAME:-}
       SAM_WEB_UPSTREAM: ${WEB_UPSTREAM}
       SAM_API_UPSTREAM: ${API_UPSTREAM}
       SAM_CMS_UPSTREAM: ${CMS_UPSTREAM}
       SAM_MINIO_UPSTREAM: ${MINIO_UPSTREAM}
       SAM_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET}
+      SAM_ROUNDCUBE_UPSTREAM: ${ROUNDCUBE_UPSTREAM:-}
     volumes:
       # Templates, not conf.d: the entrypoint needs conf.d writable to place
       # the rendered output there, so conf.d must not be a read-only mount.

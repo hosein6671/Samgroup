@@ -14,6 +14,11 @@ services:
       SAM_API_UPSTREAM: http://api:3000
       SAM_CMS_UPSTREAM: http://cms:3000
       SAM_MINIO_UPSTREAM: http://minio:9000
+      # Only resolvable once docker-compose.mail.yml's `roundcube` service is
+      # also brought up (docs/MAIL_SERVER_SETUP.md) — harmless to set here
+      # otherwise, since nginx only opens this upstream when a request for
+      # SAM_MAIL_HOSTNAME actually arrives.
+      SAM_ROUNDCUBE_UPSTREAM: http://roundcube:80
     volumes:
       # Host-installed certbot (apt package, not a container — see
       # docker/nginx/README.md "Activating TLS") writes here directly, at its
