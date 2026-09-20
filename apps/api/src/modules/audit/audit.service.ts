@@ -17,6 +17,8 @@ export type AuditEventName =
   | "blog.image_uploaded"
   | "blog.image_primary_changed"
   | "blog.image_removed"
+  | "category.image_uploaded"
+  | "category.image_removed"
   | "segment.created"
   | "redirect.created"
   | "redirect.updated"

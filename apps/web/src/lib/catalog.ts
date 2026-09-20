@@ -30,14 +30,17 @@ export type CategoryResult =
   | { readonly ok: false; readonly reason: "api-error"; readonly status: number };
 
 /**
- * The four fields this gate reads, checked before any of them is trusted.
+ * The fields this gate reads, checked before any of them is trusted.
  *
  * `apiGet` verifies the envelope, not the payload. A 200 carrying a shape that is not a category
  * would otherwise reach the resolver as a well-typed lie and put `undefined` into a heading, so
  * it is narrowed here and reported as `api-error` if it fails.
  *
  * `seo` is on the wire for this endpoint and is deliberately neither checked nor read — consuming
- * it is a later gate, and extra properties do not affect anything here.
+ * it is a later gate, and extra properties do not affect anything here. `processImage` IS checked,
+ * because `resolveCategoryPage` reads it (`category-contract.ts`'s `processImage` field) — an
+ * absent or malformed `processImage` fails this guard exactly like a missing `slug` would, so a
+ * contract break here degrades to the fixture rather than putting a half-typed image into a page.
  */
 function isCategoryResponse(value: unknown): value is CategoryResponse {
   if (typeof value !== "object" || value === null) {
@@ -50,7 +53,20 @@ function isCategoryResponse(value: unknown): value is CategoryResponse {
     typeof record.id === "string" &&
     typeof record.name === "string" &&
     typeof record.slug === "string" &&
-    (record.parentId === null || typeof record.parentId === "string")
+    (record.parentId === null || typeof record.parentId === "string") &&
+    (record.processImage === null || isProcessImage(record.processImage))
+  );
+}
+
+function isProcessImage(
+  value: unknown,
+): value is { id: string; url: string; altText: string | null } {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.id === "string" &&
+    typeof record.url === "string" &&
+    (record.altText === null || typeof record.altText === "string")
   );
 }
 

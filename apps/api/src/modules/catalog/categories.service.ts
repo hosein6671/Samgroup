@@ -5,6 +5,7 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { MediaService } from "../media/media.service";
 import { SeoService } from "../seo/seo.service";
 
 import type { CategoryDetailResponse, CategoryResponse } from "./dto/category.response";
@@ -63,6 +64,7 @@ export class CategoriesService {
     private readonly prisma: PrismaService,
     private readonly translations: ContentTranslationService,
     private readonly seo: SeoService,
+    private readonly media: MediaService,
   ) {}
 
   /**
@@ -132,7 +134,22 @@ export class CategoriesService {
       locale,
     );
 
-    return { category: { ...localized, seo }, localeFallback };
+    // At most one row: a Category takes exactly one process photograph, never a gallery — the
+    // Admin upload path (`CategoriesAdminService`) enforces that by deleting any existing row
+    // before writing a new one, so `[0]` is the whole set, not an arbitrary pick from many.
+    const images = await this.media.findImagesForOwner(ContentEntityType.Category, category.id);
+    const processImage = images[0] ?? null;
+
+    return {
+      category: {
+        ...localized,
+        seo,
+        processImage: processImage
+          ? { id: processImage.id, url: processImage.url, altText: processImage.altText }
+          : null,
+      },
+      localeFallback,
+    };
   }
 
   /**

@@ -147,12 +147,28 @@ export async function resolveCategoryPage(
   }
 
   return {
-    content,
     /*
-     * The merge, in full. `name` is the single API-owned rendered value in this gate — it is what
-     * the API can localize and the fixture cannot. Everything else is spread through untouched,
-     * `id` above all: it is the canonical identifier, it is already guarded at module load, and a
-     * value the network could rewrite would not be an identifier.
+     * `processImage` is the one `content` field the API can supply: an Admin-uploaded photograph
+     * overlays the fixture's own (always-absent) value, so the page's photography slot renders a
+     * real image the moment one exists, with no fixture edit and no redeploy. A `null` from the
+     * API — nothing uploaded yet — is treated the same as the fixture never having the field:
+     * `content.processImage` stays `undefined`, and the block renders its existing placeholder.
+     */
+    content: result.record.processImage
+      ? {
+          ...content,
+          processImage: {
+            src: result.record.processImage.url,
+            alt: result.record.processImage.altText ?? "",
+            caption: result.record.processImage.altText ?? "",
+          },
+        }
+      : content,
+    /*
+     * The merge, in full otherwise. `name` is the other API-owned rendered value in this gate —
+     * it is what the API can localize and the fixture cannot. Everything else is spread through
+     * untouched, `id` above all: it is the canonical identifier, it is already guarded at module
+     * load, and a value the network could rewrite would not be an identifier.
      */
     family: { ...family, name: result.record.name },
     source: "api",

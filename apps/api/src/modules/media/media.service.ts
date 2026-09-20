@@ -146,14 +146,38 @@ export class MediaService {
     );
   }
 
-  private async uploadOwnedImage(
-    ownerType: ContentEntityType,
-    ownerId: string,
-    storageFolder: "products" | "blog",
+  /**
+   * A Category takes exactly one image — the "process" photograph on its public page — not a
+   * gallery, so the admin caller deletes any existing row (see `deleteCategoryImage`) before
+   * calling this. The upload itself is unchanged from the gallery case: `isPrimary`/`sortOrder`
+   * still get written (`count === 0` is always true for a Category), they are just never read
+   * back as a set.
+   */
+  async uploadCategoryImage(
+    categoryId: string,
     file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
     altText: string,
     actorId: string,
-    event: "product.image_uploaded" | "blog.image_uploaded",
+  ): Promise<Record<string, unknown>> {
+    return this.uploadOwnedImage(
+      ContentEntityType.Category,
+      categoryId,
+      "categories",
+      file,
+      altText,
+      actorId,
+      "category.image_uploaded",
+    );
+  }
+
+  private async uploadOwnedImage(
+    ownerType: ContentEntityType,
+    ownerId: string,
+    storageFolder: "products" | "blog" | "categories",
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    altText: string,
+    actorId: string,
+    event: "product.image_uploaded" | "blog.image_uploaded" | "category.image_uploaded",
   ): Promise<Record<string, unknown>> {
     const extensions: Record<string, string> = {
       "image/jpeg": ".jpg",
@@ -302,13 +326,24 @@ export class MediaService {
     );
   }
 
+  async deleteCategoryImage(categoryId: string, imageId: string, actorId: string): Promise<void> {
+    return this.deleteOwnedImage(
+      ContentEntityType.Category,
+      categoryId,
+      "categories",
+      imageId,
+      actorId,
+      "category.image_removed",
+    );
+  }
+
   private async deleteOwnedImage(
     ownerType: ContentEntityType,
     ownerId: string,
-    storageFolder: "products" | "blog",
+    storageFolder: "products" | "blog" | "categories",
     imageId: string,
     actorId: string,
-    event: "product.image_removed" | "blog.image_removed",
+    event: "product.image_removed" | "blog.image_removed" | "category.image_removed",
   ): Promise<void> {
     if (!this.audit) throw new ServiceUnavailableException("Media audit is unavailable.");
     const audit = this.audit;

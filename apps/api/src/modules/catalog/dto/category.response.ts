@@ -28,7 +28,12 @@ export type CategoryResponse = {
  * `GET /categories/:slug` — the same category, plus the SEO record for the requested locale
  * (§2.3). `SeoFields` comes from `@sam-group/types` rather than being declared here because
  * Payload-owned content must satisfy the identical shape (SEO_ARCHITECTURE.md §0).
+ *
+ * `processImage` is the Admin-managed "process" photograph for the public product-family page
+ * (`Media` row with `ownerType: "Category"`, at most one per category) — `null` when the Admin
+ * has not uploaded one yet, in which case `apps/web` renders its existing labelled placeholder.
  */
 export type CategoryDetailResponse = CategoryResponse & {
   seo: SeoFields;
+  processImage: { id: string; url: string; altText: string | null } | null;
 };

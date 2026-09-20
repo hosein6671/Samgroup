@@ -75,6 +75,16 @@ describe("the area role lists follow the RBAC matrix", () => {
     expect(AREA_ROLES.redirects).not.toBe(AREA_ROLES.shell);
   });
 
+  /**
+   * Category process-image management is ordinary catalogue editorial content (ADR-024's
+   * carve-out), not taxonomy structure — so it gets `content`'s role list, not `segments`' or
+   * `redirects`' Admin-only one.
+   */
+  it("gives Category image management the content area's role list", () => {
+    expect([...AREA_ROLES.categories].sort()).toEqual(["admin", "content_manager"]);
+    expect(AREA_ROLES.categories).toEqual(AREA_ROLES.content);
+  });
+
   it("admits no role outside the four the platform defines", () => {
     for (const area of ["shell", "leads", "review"] as const) {
       for (const role of AREA_ROLES[area]) {

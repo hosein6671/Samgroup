@@ -38,8 +38,8 @@ const SEO: SeoFields = {
   alternates: [{ locale: "en", slug: "base-oils" }],
 };
 
-/** The slug endpoint's shape: the list row plus SEO (§2.3). */
-const CATEGORY_DETAIL: CategoryDetailResponse = { ...CATEGORY, seo: SEO };
+/** The slug endpoint's shape: the list row plus SEO (§2.3) and the process image, if any. */
+const CATEGORY_DETAIL: CategoryDetailResponse = { ...CATEGORY, seo: SEO, processImage: null };
 
 type Harness = {
   controller: CategoriesController;

@@ -10,6 +10,8 @@ import { IdentityModule } from "../identity/identity.module";
 import { MediaModule } from "../media/media.module";
 import { SeoMetaModule } from "../seo/seo-meta.module";
 
+import { CategoriesAdminController } from "./categories-admin.controller";
+import { CategoriesAdminService } from "./categories-admin.service";
 import { CategoriesController } from "./categories.controller";
 import { CategoriesService } from "./categories.service";
 import { ProductsController } from "./products.controller";
@@ -64,6 +66,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
   ],
   controllers: [
     CategoriesController,
+    CategoriesAdminController,
     ProductsController,
     ProductEditorController,
     SegmentsAdminController,
@@ -74,6 +77,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
   ],
   providers: [
     CategoriesService,
+    CategoriesAdminService,
     ProductsService,
     CatalogReviewService,
     ProductEditorService,

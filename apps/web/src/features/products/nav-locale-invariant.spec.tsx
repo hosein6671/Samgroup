@@ -79,6 +79,7 @@ const PRODUCT: ProductDetailResponse = {
     name: "Base Oils",
     slug: "base-oils",
     parentId: null,
+    processImage: null,
   },
   segments: [],
   productType: null,

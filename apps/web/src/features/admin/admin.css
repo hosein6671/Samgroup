@@ -2906,6 +2906,46 @@
   margin: 0;
   min-width: 12rem;
 }
+/* One category, one image — a single section per family rather than the product grid's
+   multi-image cards, so this reuses `.ad-product-media-upload`'s layout for its own form and
+   adds only the preview figure and list spacing the gallery version has no need of. */
+.ad-category-image-list {
+  display: grid;
+  gap: 32px;
+  margin-top: 16px;
+}
+.ad-category-image-preview {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.ad-category-image-preview img {
+  display: block;
+  width: 240px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--color-platinum-300);
+}
+.ad-category-image-preview figcaption {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.ad-category-image-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px 18px;
+  padding: 14px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+}
+.ad-category-image-upload .ad-field {
+  margin: 0;
+  min-width: 12rem;
+}
 .ad-content-actions {
   display: flex;
   gap: 12px;

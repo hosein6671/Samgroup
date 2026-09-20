@@ -44,7 +44,8 @@ export const CUSTOMER_ROLE = "customer";
  * Three today. A fourth arrives with the next module, and adding one is meant to be a line here
  * plus the matching `@Roles()` in NestJS — not a change to how any page is written.
  */
-export type AdminArea = "shell" | "leads" | "review" | "content" | "segments" | "redirects";
+export type AdminArea =
+  "shell" | "leads" | "review" | "content" | "segments" | "redirects" | "categories";
 
 /**
  * Area → the roles permitted to open it.
@@ -73,6 +74,11 @@ export type AdminArea = "shell" | "leads" | "review" | "content" | "segments" | 
  * `/admin/redirects` CRUD row): Admin only, mirroring `@Roles(UserRole.ADMIN)` on
  * `RedirectsAdminController`. A misconfigured rule can silently break or loop a live public URL,
  * which is a site-wide routing risk rather than a piece of editorial content.
+ *
+ * `categories` is `/admin/catalog/categories`: Admin + Content Manager, mirroring
+ * `@Roles(UserRole.ADMIN, UserRole.CONTENT_MANAGER)` on `CategoriesAdminController`. Unlike
+ * `segments`, a Category's process photograph is ordinary catalogue editorial content (ADR-024's
+ * carve-out), not taxonomy structure — nothing here changes which Category rows exist.
  */
 export const AREA_ROLES: Readonly<Record<AdminArea, readonly string[]>> = {
   shell: [ADMIN_ROLE],
@@ -80,6 +86,7 @@ export const AREA_ROLES: Readonly<Record<AdminArea, readonly string[]>> = {
   review: [ADMIN_ROLE],
   segments: [ADMIN_ROLE],
   redirects: [ADMIN_ROLE],
+  categories: [ADMIN_ROLE, CONTENT_MANAGER_ROLE],
   content: [ADMIN_ROLE, CONTENT_MANAGER_ROLE],
 };
 

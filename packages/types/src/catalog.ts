@@ -33,6 +33,13 @@ export type CategoryResponse = {
   slug: string;
   /** Null for a top-level category — the six Product Families the site is built around. */
   parentId: string | null;
+  /**
+   * The Admin-managed "process" photograph for the family page's v2 photography slot — `null`
+   * when nothing has been uploaded yet, in which case the page renders its own labelled
+   * placeholder. Populated by `GET /categories/:slug` (the one caller this gate has); absent
+   * from `GET /categories`' list rows on the wire, same as `seo` above.
+   */
+  processImage: { id: string; url: string; altText: string | null } | null;
 };
 
 /**

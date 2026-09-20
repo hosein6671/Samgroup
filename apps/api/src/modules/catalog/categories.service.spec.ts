@@ -2,6 +2,7 @@ import { ContentTranslationService } from "../../common/content/content-translat
 import { ApiException } from "../../common/http/api.exception";
 import { ErrorCode } from "../../common/http/error-code";
 import { PrismaService } from "../../prisma/prisma.service";
+import { MediaService } from "../media/media.service";
 import { SeoService } from "../seo/seo.service";
 
 import { CategoriesService } from "./categories.service";
@@ -69,8 +70,13 @@ function createService(): Stubs {
   // contentTranslation mock that this file's translation assertions depend on.
   const seo = { buildFor: buildSeo } as unknown as SeoService;
 
+  // Stubbed for the same reason as SeoService: nothing here asserts on how a process image is
+  // found, only that `findBySlug` attaches whatever it returns — `[]` gives every test the
+  // `processImage: null` default the equality assertions below expect.
+  const media = { findImagesForOwner: jest.fn().mockResolvedValue([]) } as unknown as MediaService;
+
   return {
-    service: new CategoriesService(prisma, new ContentTranslationService(prisma), seo),
+    service: new CategoriesService(prisma, new ContentTranslationService(prisma), seo, media),
     categoryFindMany,
     categoryFindUnique,
     translationFindMany,
@@ -198,7 +204,10 @@ describe("CategoriesService.findBySlug", () => {
       where: { slug: "base-oils" },
       select: { id: true, name: true, slug: true, parentId: true },
     });
-    expect(result).toEqual({ category: { ...BASE_OILS, seo: SEO }, localeFallback: false });
+    expect(result).toEqual({
+      category: { ...BASE_OILS, seo: SEO, processImage: null },
+      localeFallback: false,
+    });
   });
 
   it("resolves a locale-specific slug through content_translations", async () => {
@@ -236,7 +245,7 @@ describe("CategoriesService.findBySlug", () => {
       where: { slug: "base-oils" },
       select: { id: true, name: true, slug: true, parentId: true },
     });
-    expect(result.category).toEqual({ ...BASE_OILS, seo: SEO });
+    expect(result.category).toEqual({ ...BASE_OILS, seo: SEO, processImage: null });
     expect(result.localeFallback).toBe(true);
   });
 
