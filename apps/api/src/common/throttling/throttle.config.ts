@@ -123,13 +123,16 @@ export function generateThrottleKey(_context: unknown, tracker: string, name: st
  * ── The tracker behind a reverse proxy ──────────────────────────────────────
  *
  * `ThrottlerGuard.getTracker` returns `req.ip`. Express resolves that to the socket peer unless
- * `trust proxy` is set, and ADR-005 puts nginx in front of `apps/api` — so in the deployed topology
- * every request would arrive with nginx's address and **all clients would share one bucket**.
+ * `trust proxy` is set, and ADR-005 puts nginx in front of `apps/api` — so without it every
+ * request would arrive with nginx's address and **all clients would share one bucket**.
  *
- * `trust proxy` is deliberately NOT enabled here. Enabling it without knowing exactly how many
- * proxies sit in front makes `X-Forwarded-For` client-writable, which turns the limit from
- * over-strict into trivially bypassable — strictly the worse failure. It is a deployment
- * configuration decision that belongs with the VPS work, and the VPS does not exist yet.
+ * **`trust proxy` is now enabled, trusting exactly one hop** — see `common/http/trust-proxy.ts`
+ * for the setting (`main.ts` applies it) and the reasoning: nginx's `X-Forwarded-For` directive
+ * only ever *appends* its own view of the connecting peer, never relays a caller-supplied value
+ * verbatim, which is what makes trusting exactly that one known hop safe rather than a spoofing
+ * surface. `req.ip` now resolves to the real visitor, proven against a real Express listener in
+ * `trust-proxy.spec.ts`. Raising the trusted hop count needs the same reasoning applied to
+ * whatever new proxy is added in front of nginx — it is not a number to guess.
  */
 export const THROTTLE_OPTIONS: ThrottlerModuleOptions = {
   throttlers: [

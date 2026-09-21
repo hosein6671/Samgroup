@@ -57,10 +57,10 @@ import type { TurnstileConfig } from "../../../config/configuration";
  * ── Nothing about the submitter is sent, and nothing is logged ──────────────
  *
  * The request body is the secret and the token. **The remote IP is deliberately not sent**, even
- * though Turnstile accepts it: `trust proxy` is not configured (see `throttle.config.ts`), so
- * behind ADR-005's nginx `req.ip` is the proxy's address — sending it would either be a useless
- * constant or, once `trust proxy` is enabled, a client-writable value. It adds nothing to a check
- * whose token is already single-use.
+ * though Turnstile accepts it and `req.ip` is now the real visitor (`trust proxy` trusts nginx's
+ * one hop — see `common/http/trust-proxy.ts`). Omitting it is not a limitation working around an
+ * unresolved address any more; it is a choice that stands on its own, because it adds nothing to a
+ * check whose token is already single-use.
  *
  * No log line here carries the token, the secret, the submitter's address or any field of the
  * submission — the same rule `SmtpMailer` and `PayloadClient` keep. Cloudflare's `error-codes` are

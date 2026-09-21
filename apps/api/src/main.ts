@@ -11,14 +11,22 @@ import { NestFactory } from "@nestjs/core";
 import helmet from "helmet";
 
 import { AppModule } from "./app.module";
+import { TRUST_PROXY_HOPS } from "./common/http/trust-proxy";
 import { validationExceptionFactory } from "./common/validation/validation-exception.factory";
+
+import type { NestExpressApplication } from "@nestjs/platform-express";
 
 async function bootstrap(): Promise<void> {
   // CORS stays off. web and api are served from one origin behind nginx (ADR-005) and no
   // browser-originated request ever reaches this API — every call is server-side from
   // Next.js (API_CONTRACT_FINAL.md §1). Enabling CORS would advertise a browser-reachable
   // surface the architecture says does not exist.
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: false });
+
+  // See trust-proxy.ts: exactly one hop (nginx) sits in front of this process, and it only ever
+  // appends its own view of the client address, so trusting it is safe rather than spoofable.
+  // This is what makes `req.ip` — the throttler's tracker — the real visitor instead of nginx.
+  app.set("trust proxy", TRUST_PROXY_HOPS);
 
   app.use(helmet());
   const audit = app.get(AuditService);
