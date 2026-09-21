@@ -29,7 +29,16 @@ import type { ApplyRows } from "./rows";
 export const EXPECTED_CATEGORY_COUNT = 6;
 export const EXPECTED_SEGMENT_COUNT = 8;
 export const EXPECTED_PRODUCT_TYPE_COUNT = 8;
-export const EXPECTED_SPEC_PROPERTY_COUNT = 26;
+/**
+ * 28, not 26. `743bace` ("normalize coolant review properties", 28 August 2026) added two
+ * controlled coolant properties to `SPEC_PROPERTY_SEED` (reserve alkalinity, ASTM D1121; pH,
+ * ASTM D1287 — see ADR-018) in the same commit that last touched this file, but left this
+ * constant at its pre-patch value. `reference-data.ts`'s `specPropertyRows()` writes every seed
+ * entry unconditionally on a fresh apply, so a real FIRST_APPLY against an empty database has
+ * always written 28 since that commit — the drift was never caught because no fresh first apply
+ * was rehearsed against an empty database again until PRODUCT-DATA-2C's production apply.
+ */
+export const EXPECTED_SPEC_PROPERTY_COUNT = 28;
 
 export class PostWriteVerificationError extends Error {
   constructor(message: string) {
