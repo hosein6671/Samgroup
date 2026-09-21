@@ -39,5 +39,10 @@ pnpm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
+# AI assistant tooling (local, not part of the project)
+.agents/
+.claude/
+AGENTS.md
+
 # Misc
 .vercel/

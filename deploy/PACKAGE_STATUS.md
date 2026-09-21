@@ -1,5 +1,7 @@
 # Deployment package verification
 
+> **Superseded, 18 September 2026.** Everything below describes a local-only smoke test; both of its own "still required" claims have since been closed. The release workflow **has** since been executed on GitHub (`.github/workflows/release-images.yml`, triggered after CI passes on `main`) and images have been pulled and deployed to a real VPS multiple times via `deploy/deploy.sh` — most recently commit `84e9567`, verified live via direct `curl` and a fresh PageSpeed Insights run. This file is kept as the historical record of the pre-deployment local verification pass, not edited in place, per this project's convention for dated status entries — see [DEVOPS.md § Deployment Target](../docs/DEVOPS.md#deployment-target) and [PROJECT_HANDOFF.md](../docs/PROJECT_HANDOFF.md) item 6 for current status.
+
 ## Verified locally — 14 September 2026
 
 All three Linux images built successfully with the pinned dependency lockfile at installation: sam-platform/api:local-check, sam-platform/cms:local-check and sam-platform/web:local-check. None was published to a registry or deployed to a server.

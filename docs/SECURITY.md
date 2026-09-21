@@ -80,7 +80,7 @@ Added by [ADR-012](./ADR/ADR-012-application-session-and-account-status.md), wit
 - **Idempotent, and it never resets an existing password — or an existing status.** A rerun with a _different_ password reports that the account exists and changes nothing; a rerun against a **disabled** admin does not re-enable it. A bootstrap script that silently rewrote a credential, or undid an administrative decision, would be a privilege-escalation path for anyone who could run it, and "I reran the seed" would be indistinguishable from an attack.
 - **Nothing is printed but the address the operator supplied** — never the password, never the hash, and never a driver error that could quote the connection string.
 
-**Whether production creates its first Admin this way is a separate operational decision, and it has not been taken** — the VPS does not exist yet ([DEVOPS.md](./DEVOPS.md#deployment-target)). The script is safe to run anywhere only in the sense that it refuses to do anything surprising.
+**Whether production creates its first Admin this way is a separate operational decision.** The VPS itself now exists ([DEVOPS.md](./DEVOPS.md#deployment-target), corrected 18 September 2026), so the premise that previously deferred this decision no longer holds — whether the decision has actually been taken since is not verified here and is not to be assumed either way. The script is safe to run anywhere only in the sense that it refuses to do anything surprising.
 
 ### Auth secrets are deployment-scoped
 
