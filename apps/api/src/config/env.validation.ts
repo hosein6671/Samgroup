@@ -123,6 +123,35 @@ export class IsOptionalPort implements ValidatorConstraintInterface {
 }
 
 /**
+ * A Postgres connection-pool size, or nothing at all.
+ *
+ * The same "blank means unset" reading `IsOptionalPort` uses, for the same reason: a copied
+ * `.env.example` produces a present-but-blank variable, and that must boot rather than refuse to.
+ *
+ * The upper bound is a sanity check, not a technical ceiling `pg` itself enforces — it exists to
+ * catch a typo (an extra zero) before it asks Postgres for more connections than its own
+ * `max_connections` default (100) has room for across every process that shares this server.
+ * Raising it for a real deployment need is a configuration change, not a code change — but a typo
+ * should fail at boot, the same principle `API_PORT`'s range check already applies.
+ */
+@ValidatorConstraint({ name: "isOptionalPoolSize" })
+export class IsOptionalPoolSize implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    if (value === undefined || value === null || value === "") {
+      return true;
+    }
+
+    const size = Number(value);
+
+    return Number.isInteger(size) && size >= 1 && size <= 100;
+  }
+
+  defaultMessage(): string {
+    return "DATABASE_POOL_MAX must be a whole number between 1 and 100, or be left unset";
+  }
+}
+
+/**
  * A literal `"true"` or `"false"`, or nothing at all.
  *
  * Deliberately not `@IsBoolean()`: environment variables are strings, and class-transformer's
@@ -178,6 +207,15 @@ class EnvironmentVariables {
 
   @Validate(IsPlatformDatabaseUrl)
   DATABASE_URL!: string;
+
+  /**
+   * The Postgres connection-pool size `PrismaService` opens. **Optional** — see
+   * `configuration.ts`'s `DEFAULT_DATABASE_POOL_MAX` for the value an unset one falls back to, and
+   * `IsOptionalPoolSize` above for why blank is accepted here rather than rejected.
+   */
+  @IsOptional()
+  @Validate(IsOptionalPoolSize)
+  DATABASE_POOL_MAX?: string;
 
   /**
    * The access-token signing key.

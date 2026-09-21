@@ -17,9 +17,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor(configService: ConfigService) {
     // Prisma 7 has no built-in connection pool: a driver adapter is required for a direct
     // PostgreSQL connection, the same way prisma/seed.ts constructs its client.
+    //
+    // `max` is explicit rather than left to `pg.Pool`'s own default — see `configuration.ts`'s
+    // `databasePoolMax` for what it bounds and why: this is the one number that decides how many
+    // requests against sam_platform can be genuinely concurrent in this process, and leaving it
+    // implicit would leave it untunable without a code change.
     super({
       adapter: new PrismaPg({
         connectionString: configService.getOrThrow<string>("databaseUrl"),
+        max: configService.getOrThrow<number>("databasePoolMax"),
       }),
     });
   }

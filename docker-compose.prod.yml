@@ -47,6 +47,7 @@ services:
       NODE_ENV: production
       API_PORT: 3000
       DATABASE_URL: ${DATABASE_URL}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-}
       JWT_SECRET: ${JWT_SECRET}
       PAYLOAD_INTERNAL_URL: http://cms:3000
       PAYLOAD_API_KEY: ${PAYLOAD_API_KEY:-}

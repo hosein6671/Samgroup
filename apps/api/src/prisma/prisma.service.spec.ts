@@ -14,7 +14,7 @@ describe("PrismaService", () => {
   }
 
   it("takes its connection string from configuration", () => {
-    const configService = new ConfigService({ databaseUrl: DATABASE_URL });
+    const configService = new ConfigService({ databaseUrl: DATABASE_URL, databasePoolMax: 10 });
     const getOrThrow = jest.spyOn(configService, "getOrThrow");
 
     createService(configService);
@@ -23,11 +23,26 @@ describe("PrismaService", () => {
   });
 
   it("throws when the connection string is absent rather than connecting to a default", () => {
-    expect(() => createService(new ConfigService({}))).toThrow();
+    expect(() => createService(new ConfigService({ databasePoolMax: 10 }))).toThrow();
+  });
+
+  it("takes its connection-pool size from configuration rather than an implicit default", () => {
+    const configService = new ConfigService({ databaseUrl: DATABASE_URL, databasePoolMax: 25 });
+    const getOrThrow = jest.spyOn(configService, "getOrThrow");
+
+    createService(configService);
+
+    expect(getOrThrow).toHaveBeenCalledWith("databasePoolMax");
+  });
+
+  it("throws when the pool size is absent rather than falling back to pg's own default", () => {
+    expect(() => createService(new ConfigService({ databaseUrl: DATABASE_URL }))).toThrow();
   });
 
   it("connects on module init", async () => {
-    const service = createService(new ConfigService({ databaseUrl: DATABASE_URL }));
+    const service = createService(
+      new ConfigService({ databaseUrl: DATABASE_URL, databasePoolMax: 10 }),
+    );
     const connect = jest.spyOn(service, "$connect").mockResolvedValue(undefined);
 
     await service.onModuleInit();
@@ -38,7 +53,9 @@ describe("PrismaService", () => {
   // The only place $disconnect can actually be proven. A SIGTERM test cannot: process
   // termination closes the sockets on its own, whether or not the hook ever ran.
   it("disconnects on module destroy", async () => {
-    const service = createService(new ConfigService({ databaseUrl: DATABASE_URL }));
+    const service = createService(
+      new ConfigService({ databaseUrl: DATABASE_URL, databasePoolMax: 10 }),
+    );
     const disconnect = jest.spyOn(service, "$disconnect").mockResolvedValue(undefined);
 
     await service.onModuleDestroy();

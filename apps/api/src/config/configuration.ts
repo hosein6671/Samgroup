@@ -1,7 +1,28 @@
+/**
+ * `pg.Pool`'s own default when nothing configures one — `@prisma/adapter-pg` inherits it
+ * unchanged. Named and exported here so that default is a documented, tested decision rather
+ * than a fact buried in a dependency: see `databasePoolMax` below for what it governs and
+ * `docker-compose.yml`'s postgres service (`max_connections` at its own image default, 100) for
+ * the ceiling every process sharing that server divides between them.
+ */
+export const DEFAULT_DATABASE_POOL_MAX = 10;
+
 export type AppConfig = {
   nodeEnv: string;
   apiPort: number;
   databaseUrl: string;
+  /**
+   * How many concurrent Postgres connections `PrismaService` may hold open at once.
+   *
+   * **Unset means `DEFAULT_DATABASE_POOL_MAX`, not "no limit"** — `pg.Pool` always caps this
+   * somewhere, so leaving the number implicit only hides it. Made an explicit, tunable value so
+   * raising it for real concurrent-traffic capacity is a `DATABASE_POOL_MAX` deployment setting,
+   * not a code change: this application has exactly one `apps/api` process today (ADR-005), so
+   * this pool alone bounds how many requests can be mid-query against sam_platform at once —
+   * `pg.Pool` queues an additional request for a free connection rather than failing it, with no
+   * queue-wait timeout of its own unless `pg` is asked to set one, which this does not yet do.
+   */
+  databasePoolMax: number;
   /**
    * Where Payload answers, on the internal network — ADR-003's server-to-server hop, and the only
    * place in the platform that knows Payload has an address at all.
@@ -104,6 +125,9 @@ export default (): AppConfig => ({
   // Validated by validateEnv before this runs, so no fallback is needed.
   apiPort: Number(process.env.API_PORT),
   databaseUrl: process.env.DATABASE_URL ?? "",
+  // Number("") is 0 and so is Number(undefined)'s NaN under `||`, so one fallback covers unset
+  // and blank alike — the same reading smtpPort takes below.
+  databasePoolMax: Number(process.env.DATABASE_POOL_MAX?.trim() ?? "") || DEFAULT_DATABASE_POOL_MAX,
   payloadInternalUrl: process.env.PAYLOAD_INTERNAL_URL?.trim() ?? "",
   payloadApiKey: process.env.PAYLOAD_API_KEY?.trim() ?? "",
   // Deliberately NOT trimmed, for the reason smtpPassword is not: a generated secret may contain

@@ -100,6 +100,27 @@ describe("validateEnv", () => {
   });
 });
 
+describe("DATABASE_POOL_MAX", () => {
+  it("accepts an environment with none set", () => {
+    expect(() => validateEnv(base)).not.toThrow();
+  });
+
+  // A copied `.env.example` produces a present-but-blank variable, same as SMTP_PORT.
+  it("accepts a blank value rather than refusing to boot", () => {
+    expect(() => validateEnv({ ...base, DATABASE_POOL_MAX: "" })).not.toThrow();
+  });
+
+  it.each(["1", "10", "100"])("accepts %s", (value) => {
+    expect(validateEnv({ ...base, DATABASE_POOL_MAX: value })).toMatchObject({
+      DATABASE_POOL_MAX: value,
+    });
+  });
+
+  it.each(["0", "-1", "101", "not-a-number", "10.5"])("throws on %s", (value) => {
+    expect(() => validateEnv({ ...base, DATABASE_POOL_MAX: value })).toThrow();
+  });
+});
+
 /**
  * The mail group.
  *
