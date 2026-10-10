@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concept 01 · Spectral Editorial</title>
+<!-- PROTOTYPE ONLY. Isolated from apps/web. Google Fonts link is acceptable here; production keeps next/font self-hosting. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&family=Inter+Tight:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Palette: taken verbatim from apps/web/src/features/home/flagship.css (--fs-*) and
+      packages/ui/src/tokens/color.ts (sam-blue ramp). Only alpha/tonal variants are derived. ── */
+:root{
+  --ink:#030b1f; --ink-deep:#020817; --raised:#08163a;
+  --navy:#061346; --navy-2:#0a1c57; --navy-3:#12296e;
+  --steel:#6e7a90; --steel-2:#98a3b4; --silver:#c7cdd6; --silver-2:#e4e8ed;
+  --gold:#c39a4e; --gold-2:#e3c689;
+  --blue-logo:#004a80; --blue-400:#318cd8; --blue-300:#81b9e9;
+  --text:#eef1f6; --text-2:#a6b0c2; --text-3:#8d99ad;
+  --rule:rgba(199,205,214,.16); --rule-strong:rgba(199,205,214,.32);
+  --f-display:"Inter Tight",Helvetica,Arial,sans-serif;
+  --f-text:"Inter",Helvetica,Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --gutter:clamp(16px,4.5vw,72px);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:var(--f-text);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+::selection{background:var(--gold);color:var(--ink)}
+:focus-visible{outline:2px solid var(--gold-2);outline-offset:3px}
+
+/* Swiss 12-col grid. Hairline column guides are real structure: content snaps to them. */
+.wrap{max-width:1560px;margin:0 auto;padding:0 var(--gutter);position:relative}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(12px,1.6vw,28px)}
+.guides{position:absolute;inset:0 var(--gutter);pointer-events:none;display:grid;grid-template-columns:repeat(12,1fr);column-gap:clamp(12px,1.6vw,28px)}
+.guides span{border-left:1px solid rgba(199,205,214,.045)}
+.guides span:last-child{border-right:1px solid rgba(199,205,214,.045)}
+
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.mono b{color:var(--gold-2);font-weight:500}
+.rule{height:1px;background:var(--rule)}
+.display{font-family:var(--f-display);font-weight:200;letter-spacing:-.035em;line-height:.98}
+.h2{font-family:var(--f-display);font-weight:300;font-size:clamp(34px,2.4vw + 20px,72px);letter-spacing:-.03em;line-height:1.02}
+.lead{font-size:clamp(17px,.3vw + 16px,20px);color:var(--text-2);line-height:1.55;max-width:56ch}
+.body-2{color:var(--text-2);font-size:15px;line-height:1.6}
+
+/* Buttons. Sharp corners: one shape system for the whole concept (radius 0). */
+.btn{display:inline-flex;align-items:center;gap:14px;height:52px;padding:0 22px;font-family:var(--f-text);font-weight:500;font-size:15px;border:1px solid transparent;transition:transform .25s var(--ease),background .25s,border-color .25s,color .25s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn--gold{background:var(--gold);color:#1a1204}
+.btn--gold:hover{background:var(--gold-2)}
+.btn--line{border-color:var(--rule-strong);color:var(--text)}
+.btn--line:hover{border-color:var(--gold);color:var(--gold-2)}
+.btn .arr{display:inline-block;width:18px;height:1px;background:currentColor;position:relative;transition:width .3s var(--ease)}
+.btn .arr::after{content:"";position:absolute;right:0;top:-3px;width:7px;height:7px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg)}
+.btn:hover .arr{width:28px}
+.link{display:inline-flex;gap:12px;align-items:center;font-weight:500;color:var(--text);border-bottom:1px solid var(--rule-strong);padding-bottom:6px;transition:border-color .3s,color .3s}
+.link:hover{color:var(--gold-2);border-color:var(--gold)}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:50;height:68px;display:flex;align-items:center;transition:background .4s,border-color .4s;border-bottom:1px solid transparent}
+.nav.is-solid{background:rgba(3,11,31,.86);backdrop-filter:blur(10px);border-color:var(--rule)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:30px;width:auto}
+.brand-txt{display:flex;flex-direction:column;line-height:1}
+.brand-txt strong{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.02em}
+.brand-txt span{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;color:var(--gold);margin-top:4px}
+.nav-r{display:flex;align-items:center;gap:10px}
+.lang{font-family:var(--f-mono);font-size:12px;border:1px solid var(--rule-strong);height:36px;padding:0 12px;display:flex;align-items:center}
+.nav .btn{height:38px;font-size:13px;padding:0 16px}
+.burger{width:38px;height:38px;border:1px solid var(--rule-strong);display:grid;place-content:center;gap:5px;background:none;cursor:pointer}
+.burger i{display:block;width:16px;height:1px;background:var(--text)}
+
+/* Hero */
+.hero{position:relative;min-height:100dvh;display:flex;align-items:flex-end;padding:100px 0 32px;overflow:hidden;isolation:isolate}
+#heroGL{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(3,11,31,.88) 0%,rgba(3,11,31,.55) 46%,rgba(3,11,31,0) 75%),linear-gradient(0deg,var(--ink) 0%,rgba(3,11,31,0) 30%)}
+.hero-eyebrow{grid-column:1/-1;margin-bottom:22px;display:flex;gap:18px;align-items:center}
+.hero-eyebrow::before{content:"";width:40px;height:1px;background:var(--gold)}
+.hero h1{grid-column:1/9;font-size:clamp(42px,3.3vw + 12px,84px)}
+.hero h1 .ln{display:block;overflow:hidden;padding-bottom:.06em}
+.hero h1 .ln>span{display:block}
+.hero h1 .ln:nth-child(2){color:var(--text-2)}
+.hero h1 .ln:nth-child(3) em{font-style:italic;font-weight:200;color:var(--gold-2)}
+.hero-copy{grid-column:1/7;margin-top:26px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.ledger{grid-column:9/13;grid-row:2/4;align-self:end;border-top:1px solid var(--rule-strong)}
+.ledger .mono{padding:14px 0}
+.ledger-row{display:grid;grid-template-columns:1fr auto;align-items:baseline;border-top:1px solid var(--rule);padding:16px 0}
+.ledger-row span{color:var(--text-2);font-size:14px}
+.ledger-row strong{font-family:var(--f-display);font-weight:200;font-size:48px;line-height:1;letter-spacing:-.04em}
+.ledger-row:hover strong{color:var(--gold-2)}
+.hero-explore{grid-column:1/-1;margin-top:36px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center}
+.hero-explore a{display:flex;gap:14px;align-items:center}
+.coord{font-family:var(--f-mono);font-size:12px;color:var(--text-3)}
+
+/* Section scaffold */
+section{position:relative}
+.sec{padding:clamp(96px,10vw,176px) 0}
+.sec-head{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:inherit;align-items:end;margin-bottom:clamp(48px,5vw,88px)}
+.meta-bar{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--rule-strong);margin-bottom:48px}
+
+/* Who we are */
+.who h2{grid-column:1/9;grid-row:2;font-size:clamp(40px,3.6vw + 8px,84px)}
+.who .lead{grid-column:2/8;grid-row:3;margin-top:40px}
+.who-figure{grid-column:9/13;grid-row:2/5;margin-top:8px;align-self:start;position:relative;aspect-ratio:4/5;overflow:hidden;border:1px solid var(--rule)}
+.who-figure img{width:100%;height:100%;object-fit:cover;filter:grayscale(.35) contrast(1.05);transform:scale(1.08);transition:transform 1.4s var(--ease)}
+.who-figure.in img{transform:scale(1)}
+.who-figure canvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen}
+.who-figure figcaption{position:absolute;left:0;right:0;bottom:0;padding:14px 16px;background:linear-gradient(0deg,rgba(3,11,31,.9),transparent)}
+.claims{grid-column:1/8;grid-row:4;margin-top:64px}
+.claim{display:grid;grid-template-columns:72px 200px 1fr;gap:20px;padding:26px 0;border-top:1px solid var(--rule);align-items:baseline;transition:padding .4s var(--ease)}
+.claim:hover{padding-left:12px}
+.claim .n{font-family:var(--f-mono);font-size:12px;color:var(--gold)}
+.claim h3{font-family:var(--f-mono);font-weight:500;font-size:13px;letter-spacing:.12em}
+.claim p{color:var(--text-2)}
+.who .link{grid-column:2/8;grid-row:5;margin-top:40px;justify-self:start}
+
+/* Trust */
+.trust{background:var(--ink-deep);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);overflow:hidden}
+#trustField{position:absolute;inset:0;width:100%;height:100%;opacity:.9}
+.trust .h2{grid-column:1/9}
+.trust .lead{grid-column:1/6;margin-top:28px}
+.t-row{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule-strong)}
+.t-cell{padding:32px 28px 40px 0;border-right:1px solid var(--rule);position:relative}
+.t-cell+.t-cell{padding-left:28px}
+.t-cell:last-child{border-right:0}
+.t-cell::before{content:"";position:absolute;top:-1px;left:0;height:1px;width:0;background:linear-gradient(90deg,var(--gold),var(--blue-300));transition:width .7s var(--ease)}
+.t-cell:hover::before{width:100%}
+.t-cell .mono{margin-bottom:56px;display:block}
+.t-cell h3{font-family:var(--f-display);font-weight:400;font-size:24px;letter-spacing:-.02em;margin-bottom:14px}
+
+/* Ecosystem / Product families */
+.eco .h2{grid-column:1/9}
+.eco .lead{grid-column:1/6;margin-top:28px}
+.eco-body{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(12px,1.6vw,28px);border-top:1px solid var(--rule-strong)}
+.fam-list{grid-column:1/6;list-style:none}
+.fam-list button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:52px 1fr auto;gap:16px;align-items:baseline;padding:22px 0;border-bottom:1px solid var(--rule);transition:color .3s,padding .4s var(--ease)}
+.fam-list button .code{font-family:var(--f-mono);font-size:12px;color:var(--text-3)}
+.fam-list button .nm{font-family:var(--f-display);font-weight:300;font-size:clamp(24px,1.4vw + 14px,40px);letter-spacing:-.025em;color:var(--text-3);transition:color .3s}
+.fam-list button .sub{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);opacity:0;transition:opacity .3s}
+.fam-list button:hover .nm,.fam-list button[aria-selected=true] .nm{color:var(--text)}
+.fam-list button[aria-selected=true]{padding-left:14px}
+.fam-list button[aria-selected=true] .code{color:var(--gold)}
+.fam-list button[aria-selected=true] .sub{opacity:1}
+.fam-detail{grid-column:7/13;padding:28px 0 0;position:relative}
+#famBars{width:100%;height:260px;display:block;border-bottom:1px solid var(--rule)}
+.fam-detail .mono{margin:28px 0 14px;display:block}
+.fam-detail h3{font-family:var(--f-display);font-weight:300;font-size:clamp(30px,1.6vw + 18px,48px);letter-spacing:-.03em;line-height:1.05}
+.fam-detail p{margin-top:18px;color:var(--text-2);max-width:52ch}
+.specs{display:grid;grid-template-columns:1fr 1fr;margin-top:32px;border-top:1px solid var(--rule)}
+.specs div{padding:16px 0}
+.specs div+div{padding-left:20px;border-left:1px solid var(--rule)}
+.specs dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
+.fam-detail .link{margin-top:32px}
+.swap{transition:opacity .35s,transform .45s var(--ease)}
+.swap.out{opacity:0;transform:translateY(8px)}
+
+/* Advantages: asymmetric hairline mosaic, not equal cards */
+.adv .h2{grid-column:1/8}
+.adv .lead{grid-column:1/6;margin-top:28px}
+.adv-grid{display:grid;grid-template-columns:repeat(12,1fr);border-top:1px solid var(--rule-strong)}
+.adv-item{padding:36px 28px 44px 0;border-bottom:1px solid var(--rule);position:relative}
+.adv-item:nth-child(1){grid-column:1/6;padding-top:56px}
+.adv-item:nth-child(2){grid-column:6/10;border-left:1px solid var(--rule);padding-left:28px}
+.adv-item:nth-child(3){grid-column:10/13;border-left:1px solid var(--rule);padding-left:28px}
+.adv-item:nth-child(4){grid-column:1/4}
+.adv-item:nth-child(5){grid-column:4/9;border-left:1px solid var(--rule);padding-left:28px}
+.adv-item:nth-child(6){grid-column:9/13;border-left:1px solid var(--rule);padding-left:28px}
+.adv-item:nth-child(1) h3{font-size:clamp(30px,1.4vw + 18px,44px)}
+.adv-item .mono{display:block;margin-bottom:40px}
+.adv-item h3{font-family:var(--f-display);font-weight:300;font-size:26px;letter-spacing:-.025em;margin-bottom:12px;transition:color .3s}
+.adv-item:hover h3{color:var(--gold-2)}
+
+/* Industries: full-bleed index rows */
+.ind .h2{grid-column:1/9}
+.ind .lead{grid-column:1/6;margin-top:28px}
+.ind-list{list-style:none;border-top:1px solid var(--rule-strong)}
+.ind-row{position:relative;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(12px,1.6vw,28px);padding:30px 0;border-bottom:1px solid var(--rule);overflow:hidden;cursor:default}
+.ind-row .code{grid-column:1/2;font-family:var(--f-mono);font-size:12px;color:var(--text-3);padding-top:14px}
+.ind-row h3{grid-column:2/8;font-family:var(--f-display);font-weight:200;font-size:clamp(28px,2.2vw + 14px,60px);letter-spacing:-.035em;line-height:1.05;transition:transform .6s var(--ease),color .3s}
+.ind-row p{grid-column:9/13;color:var(--text-2);padding-top:12px;opacity:.7;transition:opacity .4s}
+.ind-row::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue-300),transparent);transform:scaleX(0);transform-origin:left;transition:transform .9s var(--ease);opacity:.55}
+.ind-row:hover::before{transform:scaleX(1)}
+.ind-row:hover h3{transform:translateX(18px);color:var(--gold-2)}
+.ind-row:hover p{opacity:1}
+
+/* Custom formulation: pinned horizontal sequence */
+.cf{background:var(--ink-deep);border-top:1px solid var(--rule)}
+.cf-intro{padding:clamp(96px,10vw,160px) 0 64px}
+.cf-intro .h2{grid-column:1/9}
+.cf-intro .lead{grid-column:1/6;margin-top:28px}
+.cf-intro .hero-cta{grid-column:1/-1}
+.cf-pin{height:520vh;position:relative}
+.cf-stage{position:sticky;top:0;height:100dvh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+#cfLine{position:absolute;left:0;right:0;top:50%;height:200px;transform:translateY(-50%);width:100%;pointer-events:none}
+.cf-track{display:flex;gap:0;will-change:transform;padding-left:var(--gutter)}
+.step{flex:0 0 min(44vw,560px);padding:0 48px 0 0;border-left:1px solid var(--rule);padding-left:28px;min-height:360px;display:flex;flex-direction:column;transition:opacity .4s}
+.step .big{font-family:var(--f-display);font-weight:200;font-size:clamp(80px,9vw,160px);line-height:.85;letter-spacing:-.06em;color:transparent;-webkit-text-stroke:1px var(--rule-strong);transition:-webkit-text-stroke-color .4s, color .4s}
+.step.on .big{-webkit-text-stroke-color:var(--gold);color:rgba(195,154,78,.06)}
+.step .mono{margin:24px 0 10px}
+.step h3{font-family:var(--f-display);font-weight:300;font-size:36px;letter-spacing:-.03em}
+.step p{color:var(--text-2);margin-top:12px;max-width:42ch}
+.io{margin-top:auto;padding-top:24px;display:grid;gap:6px;font-family:var(--f-mono);font-size:12px;color:var(--text-3)}
+.io b{color:var(--blue-300);font-weight:400}
+.cf-count{position:absolute;bottom:40px;left:var(--gutter);right:var(--gutter);display:flex;justify-content:space-between;border-top:1px solid var(--rule);padding-top:14px}
+
+/* Network */
+.net .h2{grid-column:1/8}
+.net .lead{grid-column:1/6;margin-top:28px}
+.net-body{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(12px,1.6vw,28px);border-top:1px solid var(--rule-strong)}
+.net-map{grid-column:1/9;position:relative;aspect-ratio:16/9}
+#netMap{width:100%;height:100%;display:block}
+.net-side{grid-column:9/13;padding-top:24px}
+.dest{list-style:none}
+.dest li{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--rule);cursor:pointer;transition:color .3s,padding .3s var(--ease)}
+.dest li span:last-child{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+.dest li:hover,.dest li.on{color:var(--gold-2);padding-left:10px}
+.net-read{margin-top:24px;padding:16px 0;border-top:1px solid var(--rule-strong);min-height:84px}
+.net-stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--rule);margin-top:24px}
+.net-stats div{padding:24px 0;display:flex;align-items:baseline;gap:18px}
+.net-stats div+div{border-left:1px solid var(--rule);padding-left:24px}
+.net-stats strong{font-family:var(--f-display);font-weight:200;font-size:56px;line-height:1;letter-spacing:-.04em}
+
+/* Insights */
+.ins .h2{grid-column:1/8}
+.ins .lead{grid-column:1/6;margin-top:28px}
+.ins .link{grid-column:1/6;margin-top:32px;justify-self:start}
+.post{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(12px,1.6vw,28px);border-top:1px solid var(--rule-strong);padding:32px 0;align-items:start}
+.post .mono{grid-column:1/4}
+.post h3{grid-column:4/11;font-family:var(--f-display);font-weight:300;font-size:clamp(26px,1.4vw + 16px,44px);letter-spacing:-.03em;line-height:1.08;transition:color .3s}
+.post:hover h3{color:var(--gold-2)}
+.post .go{grid-column:12/13;justify-self:end;width:48px;height:48px;border:1px solid var(--rule-strong);display:grid;place-items:center;transition:border-color .3s,transform .4s var(--ease)}
+.post:hover .go{border-color:var(--gold);transform:translateX(4px)}
+.post-empty{grid-column:4/11;color:var(--text-3)}
+
+.foot{border-top:1px solid var(--rule);padding:48px 0;color:var(--text-3)}
+
+/* Reveal */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .9s var(--ease),transform 1.1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.hero h1 .ln>span{transform:translateY(105%);transition:transform 1.2s var(--ease)}
+.loaded .hero h1 .ln>span{transform:none}
+.loaded .hero h1 .ln:nth-child(2)>span{transition-delay:.1s}
+.loaded .hero h1 .ln:nth-child(3)>span{transition-delay:.2s}
+
+/* Concept badge (prototype chrome only) */
+.badge{position:fixed;left:16px;bottom:16px;z-index:60;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;background:var(--gold);color:#1a1204;padding:8px 12px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation:none!important;scroll-behavior:auto!important}
+  .rv{opacity:1;transform:none}
+  .hero h1 .ln>span{transform:none}
+  .cf-pin{height:auto}
+  .cf-stage{position:relative;height:auto;padding:24px 0 96px}
+  .cf-track{flex-direction:column;transform:none!important;padding-right:var(--gutter)}
+  .step{flex:auto;min-height:0;padding-bottom:40px}
+  .step .big{color:rgba(195,154,78,.06);-webkit-text-stroke-color:var(--gold)}
+  #cfLine,.cf-count{display:none}
+}
+
+@media (max-width:900px){
+  .guides{display:none}
+  .grid>*,.sec-head>*{grid-column:1/-1!important}
+  .hero{padding-top:100px}
+  .hero::after{background:linear-gradient(0deg,var(--ink) 10%,rgba(3,11,31,.7) 60%,rgba(3,11,31,.35))}
+  .ledger{grid-row:auto;margin-top:48px}
+  .ledger-row strong{font-size:36px}
+  .who .wrap>*{grid-row:auto!important}
+  .who-figure{aspect-ratio:4/3}
+  .claim{grid-template-columns:48px 1fr;}
+  .claim p{grid-column:2}
+  .t-row{grid-template-columns:1fr 1fr}
+  .t-cell{border-bottom:1px solid var(--rule)}
+  .t-cell:nth-child(2n){border-right:0}
+  .t-cell:nth-child(3){padding-left:0}
+  .t-cell .mono{margin-bottom:24px}
+  .eco-body>*,.net-body>*{grid-column:1/-1!important}
+  .fam-list button .sub{display:none}
+  #famBars{height:160px}
+  .adv-grid>*{grid-column:1/-1!important;border-left:0!important;padding-left:0!important}
+  .ind-row>*{grid-column:1/-1!important}
+  .ind-row .code{padding-top:0}
+  .ind-row p{opacity:1;padding-top:8px}
+  .cf-pin{height:auto}
+  .cf-stage{position:relative;height:auto;padding:0 0 80px}
+  .cf-track{flex-direction:column;transform:none!important;padding-right:var(--gutter)}
+  .step{flex:auto;min-height:0;padding-bottom:40px}
+  #cfLine,.cf-count{display:none}
+  .step .big{font-size:72px;color:rgba(195,154,78,.06);-webkit-text-stroke-color:var(--gold)}
+  .net-stats{grid-template-columns:1fr}
+  .net-stats div+div{border-left:0;padding-left:0;border-top:1px solid var(--rule)}
+  .post>*{grid-column:1/-1!important}
+  .post .go{justify-self:start;margin-top:16px}
+  .nav .btn{display:none}
+}
+@media (max-width:560px){ .t-row{grid-template-columns:1fr} .t-cell{border-right:0;padding-left:0!important} }
+</style>
+</head>
+<body>
+<div class="badge">CONCEPT 01 · SPECTRAL EDITORIAL · PROTOTYPE</div>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="SAM Group home">
+      <img src="../../apps/web/public/brand/sam-group-mark.png" alt="">
+      <span class="brand-txt"><strong>SAM GROUP</strong><span>PETROLEUM ENGINEERING</span></span>
+    </a>
+    <div class="nav-r">
+      <span class="lang">EN</span>
+      <a class="btn btn--gold" href="#">Request a Quote</a>
+      <button class="burger" aria-label="Menu"><i></i><i></i></button>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- 1 HERO -->
+<section class="hero" id="top" data-surface="midnight">
+  <canvas id="heroGL" aria-hidden="true"></canvas>
+  <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="wrap grid" style="width:100%">
+    <p class="hero-eyebrow mono">Petroleum products for professional buyers</p>
+    <h1 class="display">
+      <span class="ln"><span>Base oils and lubricants.</span></span>
+      <span class="ln"><span>Produced, not traded.</span></span>
+      <span class="ln"><span><em>Specified with you.</em></span></span>
+    </h1>
+    <div class="hero-copy">
+      <p class="lead">SAM Group produces and supplies base oils, engine oils, industrial and marine lubricants, additives and coolants — and develops formulations to meet the technical and commercial requirements behind an order.</p>
+      <div class="hero-cta">
+        <a class="btn btn--gold" href="#products">Explore our products <i class="arr"></i></a>
+        <a class="btn btn--line" href="#">Request a quotation</a>
+      </div>
+    </div>
+    <aside class="ledger" aria-label="Portfolio at a glance">
+      <p class="mono">Portfolio at a glance</p>
+      <div class="ledger-row"><span>Product families</span><strong data-count="6">6</strong></div>
+      <div class="ledger-row"><span>Customization steps</span><strong data-count="6">6</strong></div>
+      <div class="ledger-row"><span>Structured enquiry route</span><strong data-count="1">1</strong></div>
+    </aside>
+    <div class="hero-explore">
+      <a class="mono" href="#who"><span style="width:28px;height:1px;background:var(--gold);display:inline-block"></span>Explore the SAM Group portfolio</a>
+      <span class="coord" id="coord">FIELD · 000</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 WHO WE ARE -->
+<section class="sec who" id="who">
+  <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="wrap grid">
+    <div class="meta-bar mono rv"><span><b>Who we are</b></span><span>SAM Group</span></div>
+    <h2 class="display rv">A manufacturer,<br>not a trading company.</h2>
+    <p class="lead rv">SAM Group produces base oils, lubricants and additives, and supplies them to businesses that buy on specification. Dealing with the producer means the formulation, the packaging and the supply terms are all settled in the same conversation.</p>
+    <figure class="who-figure rv" id="whoFig">
+      <img src="../../apps/web/public/images/home/story-product-portfolio.webp" alt="SAM Group product portfolio">
+      <canvas id="whoLines" aria-hidden="true"></canvas>
+      <figcaption class="mono">SAM Group product portfolio</figcaption>
+    </figure>
+    <div class="claims">
+      <div class="claim rv"><span class="n">01</span><h3>WE PRODUCE</h3><p>Base oils, engine oils, lubricants and additives — made, not bought in and resold.</p></div>
+      <div class="claim rv"><span class="n">02</span><h3>WE FORMULATE</h3><p>Products developed against a stated technical and commercial requirement.</p></div>
+      <div class="claim rv"><span class="n">03</span><h3>WE SUPPLY</h3><p>Packaging and volumes arranged around the product and the route it travels.</p></div>
+    </div>
+    <a class="link rv" href="#">Learn more about SAM Group <span>→</span></a>
+  </div>
+</section>
+
+<!-- 3 TRUST INDICATORS -->
+<section class="sec trust" id="trust-indicators">
+  <canvas id="trustField" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="sec-head grid">
+      <div class="meta-bar mono rv"><span><b>Trust indicators</b></span><span>04 conditions</span></div>
+      <h2 class="h2 rv">What buying from the producer changes.</h2>
+      <p class="lead rv">Four things that follow from dealing with the company that makes the product.</p>
+    </div>
+    <div class="t-row">
+      <div class="t-cell rv"><span class="mono">T/01</span><h3>Direct manufacturer</h3><p class="body-2">Your specification reaches the people who produce the product, without an intermediary in between.</p></div>
+      <div class="t-cell rv"><span class="mono">T/02</span><h3>Sample before commitment</h3><p class="body-2">Engine oil and base oil enquiries begin with a sample, so the product is evaluated before anything is agreed.</p></div>
+      <div class="t-cell rv"><span class="mono">T/03</span><h3>Formulation to requirement</h3><p class="body-2">Where the catalogue does not answer the need, the product is developed against the requirement instead.</p></div>
+      <div class="t-cell rv"><span class="mono">T/04</span><h3>Supply built around the order</h3><p class="body-2">Bulk, flexitank, IBC and drum, selected for the volume and the route rather than offered as a fixed list.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 PRODUCT PORTFOLIO -->
+<section class="sec eco" id="products">
+  <div class="wrap">
+    <div class="sec-head grid">
+      <div class="meta-bar mono rv"><span><b>Our products</b></span><span>Product portfolio · Six families · One enquiry route</span></div>
+      <h2 class="h2 rv">Six families, and one route into each.</h2>
+      <p class="lead rv">A range built for lubricant manufacturers, industrial companies and specialised industries. Select a family to see what it covers and what an enquiry needs.</p>
+    </div>
+    <div class="eco-body rv">
+      <ul class="fam-list" role="tablist" id="famList"></ul>
+      <div class="fam-detail" role="tabpanel" id="famPanel">
+        <canvas id="famBars" aria-hidden="true"></canvas>
+        <div class="swap" id="famSwap">
+          <span class="mono" id="famMeta"></span>
+          <h3 id="famName"></h3>
+          <p id="famBody"></p>
+          <dl class="specs" id="famSpecs"></dl>
+          <a class="link" href="#">Explore this range <span>→</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 WHY CHOOSE -->
+<section class="sec adv" id="why">
+  <div class="wrap">
+    <div class="sec-head grid">
+      <div class="meta-bar mono rv"><span><b>Why businesses choose SAM Group</b></span><span>06 reasons</span></div>
+      <h2 class="h2 rv">Six reasons buyers work with us directly.</h2>
+      <p class="lead rv">The practical differences between buying from a producer and buying from the market.</p>
+    </div>
+    <div class="adv-grid">
+      <div class="adv-item rv"><span class="mono">R/01</span><h3>Direct manufacturer</h3><p class="body-2">Buying from the producer keeps pricing, supply and quality in one accountable place.</p></div>
+      <div class="adv-item rv"><span class="mono">R/02</span><h3>Customized solutions</h3><p class="body-2">Technical capability to develop a product against a customer's own requirement.</p></div>
+      <div class="adv-item rv"><span class="mono">R/03</span><h3>Quality control</h3><p class="body-2">Products are tested and evaluated for performance before they are released.</p></div>
+      <div class="adv-item rv"><span class="mono">R/04</span><h3>Flexible supply</h3><p class="body-2">Order volumes, packaging formats and delivery arrangements handled case by case.</p></div>
+      <div class="adv-item rv"><span class="mono">R/05</span><h3>Technical expertise</h3><p class="body-2">Support with product selection and formulation development, not just order taking.</p></div>
+      <div class="adv-item rv"><span class="mono">R/06</span><h3>Long-term partnership</h3><p class="body-2">Built for repeat supply with distributors, blenders and industrial manufacturers.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 INDUSTRIES -->
+<section class="sec ind" id="industries">
+  <div class="wrap">
+    <div class="sec-head grid">
+      <div class="meta-bar mono rv"><span><b>Industries we serve</b></span><span>05 buyers</span></div>
+      <h2 class="h2 rv">Where these products go to work.</h2>
+      <p class="lead rv">The same catalogue reaches five kinds of buyer, each starting from a different question.</p>
+    </div>
+    <ul class="ind-list">
+      <li class="ind-row rv"><span class="code">I/01</span><h3>Automotive &amp; Transportation</h3><p>Engine, transmission and driveline lubricants for vehicle fleets and workshops.</p></li>
+      <li class="ind-row rv"><span class="code">I/02</span><h3>Industrial Manufacturing</h3><p>Hydraulic, gear and process fluids specified against plant duty cycles.</p></li>
+      <li class="ind-row rv"><span class="code">I/03</span><h3>Lubricant Manufacturers</h3><p>Base oils and additive components supplied as blending inputs.</p></li>
+      <li class="ind-row rv"><span class="code">I/04</span><h3>Petrochemical Industry</h3><p>Petroleum-based products supplied into downstream processing and formulation.</p></li>
+      <li class="ind-row rv"><span class="code">I/05</span><h3>Packaging &amp; Specialty Industries</h3><p>Specialty grades and packaging formats for lower-volume, specific applications.</p></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7 CUSTOM FORMULATION -->
+<section class="cf" id="custom">
+  <div class="wrap cf-intro grid">
+    <div class="meta-bar mono rv"><span><b>Customized solutions</b></span><span>From requirement to finished product</span></div>
+    <h2 class="h2 rv">When the catalogue is only part of the answer.</h2>
+    <p class="lead rv">Where a standard product does not meet the requirement, the product is developed against it instead. Six steps take a stated need to a delivered order.</p>
+    <div class="hero-cta rv"><a class="btn btn--gold" href="#">Request a custom solution <i class="arr"></i></a><a class="btn btn--line" href="#">Talk to our team</a></div>
+  </div>
+  <div class="cf-pin" id="cfPin">
+    <div class="cf-stage">
+      <canvas id="cfLine" aria-hidden="true"></canvas>
+      <div class="cf-track" id="cfTrack"></div>
+      <div class="cf-count mono"><span id="cfNow">01 / 06</span><span>SAM Group · From requirement to finished product</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 NETWORK -->
+<section class="sec net" id="network">
+  <div class="wrap">
+    <div class="sec-head grid">
+      <div class="meta-bar mono rv"><span><b>Export enquiry and logistics planning</b></span><span>Product + grade · Packaging + destination</span></div>
+      <h2 class="h2 rv">Define the product. Prepare the shipment brief.</h2>
+      <p class="lead rv">Bring the grade, required quantity, packaging format, destination, and preferred trade term into the same conversation. Hover a destination to read it.</p>
+    </div>
+    <div class="net-body rv">
+      <div class="net-map"><canvas id="netMap" aria-label="Export destinations map" role="img"></canvas></div>
+      <div class="net-side">
+        <p class="mono" style="margin-bottom:8px">Export destination</p>
+        <ul class="dest" id="destList"></ul>
+        <div class="net-read"><p class="mono" id="netState">Hover a destination</p><p id="netName" style="font-family:var(--f-display);font-size:28px;font-weight:300;letter-spacing:-.02em;margin-top:6px"></p></div>
+      </div>
+      <div class="net-stats">
+        <div><strong>4</strong><span class="mono">Named Incoterms</span></div>
+        <div><strong>6</strong><span class="mono">Packaging formats</span></div>
+        <div><strong>1</strong><span class="mono">Export enquiry path</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 INSIGHTS -->
+<section class="sec ins" id="insights">
+  <div class="wrap">
+    <div class="sec-head grid">
+      <div class="meta-bar mono rv"><span><b>SAM Group insights</b></span><span>Latest</span></div>
+      <h2 class="h2 rv">Practical knowledge for better product decisions.</h2>
+      <p class="lead rv">Read clear guidance on product selection, technical terminology, documentation, packaging, and export enquiry preparation.</p>
+      <a class="link rv" href="#">Explore insights <span>→</span></a>
+    </div>
+    <a class="post rv" href="#">
+      <span class="mono">Industry &amp; Market Updates<br><b>September 15, 2026</b></span>
+      <h3>The Shift From Brand-First to Specification-First Lubricant Sourcing</h3>
+      <span class="go">→</span>
+    </a>
+  </div>
+</section>
+</main>
+
+<footer class="foot"><div class="wrap mono">SiteFooter · unchanged in this concept (restyled with the same hairline grid and mono metadata)</div></footer>
+
+<script>
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C = { ink:[3,11,31], navy3:[18,41,110], blue4:[49,140,216], blue3:[129,185,233], gold:[195,154,78], gold2:[227,198,137], silver:[199,205,214] };
+const rgba = (c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+/* Run a draw loop only while its element is on screen. */
+function visibleLoop(el, draw){
+  let on=false, raf=0, t0=performance.now();
+  const tick=t=>{ draw((t-t0)/1000); if(on) raf=requestAnimationFrame(tick); };
+  new IntersectionObserver(([e])=>{
+    on=e.isIntersecting && !reduce;
+    if(on){ cancelAnimationFrame(raf); raf=requestAnimationFrame(tick); }
+  },{rootMargin:'80px'}).observe(el);
+  draw(reduce?4:0);
+}
+function fit(cv, scale=1){
+  const dpr=Math.min(devicePixelRatio||1,2)*scale, r=cv.getBoundingClientRect();
+  cv.width=Math.max(1,r.width*dpr); cv.height=Math.max(1,r.height*dpr);
+  return dpr;
+}
+
+/* ── HERO: WebGL spectral field. Rendered at 0.5x resolution, ~1 draw call/frame. ── */
+(function(){
+  const cv=document.getElementById('heroGL');
+  const gl=cv.getContext('webgl',{antialias:false,alpha:false,powerPreference:'low-power'});
+  if(!gl){ cv.style.background='radial-gradient(80% 70% at 75% 40%,#12296e,#030b1f 70%)'; return; }
+  const vs=`attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+  const fs=`precision mediump float;
+  uniform vec2 r;uniform float t;uniform vec2 m;
+  vec3 INK=vec3(${C.ink.map(v=>(v/255).toFixed(4))});
+  vec3 NAVY=vec3(${C.navy3.map(v=>(v/255).toFixed(4))});
+  vec3 BLUE=vec3(${C.blue4.map(v=>(v/255).toFixed(4))});
+  vec3 BLUE3=vec3(${C.blue3.map(v=>(v/255).toFixed(4))});
+  vec3 GOLD=vec3(${C.gold.map(v=>(v/255).toFixed(4))});
+  vec3 GOLD2=vec3(${C.gold2.map(v=>(v/255).toFixed(4))});
+  float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+    return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+  float fbm(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*n(p);p*=2.03;a*=.5;}return s;}
+  void main(){
+    vec2 uv=gl_FragCoord.xy/r; float ar=r.x/r.y; vec2 q=vec2(uv.x*ar,uv.y);
+    vec3 col=mix(INK,NAVY*.55,smoothstep(.0,1.,uv.x)*.6*smoothstep(1.2,.2,uv.y));
+    float w=fbm(q*1.6+vec2(t*.04,0.));
+    // Five luminous ribbons, each a spectral blend from navy-blue to brand gold.
+    for(int i=0;i<5;i++){
+      float fi=float(i);
+      float y=.30+fi*.085+.09*sin(q.x*1.3+t*.18+fi*1.7)+.12*(w-.5)+.04*sin(q.x*4.+t*.3+fi);
+      y+= (m.y-.5)*.05*smoothstep(.0,.6,uv.x);
+      float d=abs(uv.y-y);
+      float core=exp(-d*mix(220.,90.,fi/4.));
+      float halo=exp(-d*18.)*.10;
+      float k=clamp(uv.x*1.1-.15+fi*.08,0.,1.);
+      vec3 rib=mix(BLUE,BLUE3,k);
+      rib=mix(rib,GOLD2,smoothstep(.55,1.,k)*(fi==2.?1.:.35));
+      float fade=smoothstep(.05,.55,uv.x);
+      col+=rib*(core*.85+halo)*fade*(fi==2.?1.15:.6);
+    }
+    // Procedural contour lines, very faint, gold.
+    float c=abs(fract(fbm(q*2.2-t*.02)*9.)-.5);
+    col+=GOLD*smoothstep(.03,.0,c)*.06*smoothstep(.3,.9,uv.x);
+    // Grain
+    col+=(h(gl_FragCoord.xy+t)-.5)*.025;
+    gl_FragColor=vec4(col,1.);
+  }`;
+  const sh=(type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;};
+  const pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,vs));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
+  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const uR=gl.getUniformLocation(pr,'r'),uT=gl.getUniformLocation(pr,'t'),uM=gl.getUniformLocation(pr,'m');
+  let mx=.5,my=.5,tx=.5,ty=.5;
+  addEventListener('pointermove',e=>{tx=e.clientX/innerWidth;ty=1-e.clientY/innerHeight;},{passive:true});
+  const resize=()=>{fit(cv,.5);gl.viewport(0,0,cv.width,cv.height);};
+  resize(); addEventListener('resize',resize);
+  const coord=document.getElementById('coord');
+  visibleLoop(cv,t=>{
+    mx+=(tx-mx)*.04; my+=(ty-my)*.04;
+    gl.uniform2f(uR,cv.width,cv.height);gl.uniform1f(uT,t);gl.uniform2f(uM,mx,my);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    coord.textContent=`FIELD · ${String(Math.round(mx*999)).padStart(3,'0')} / ${String(Math.round(my*999)).padStart(3,'0')}`;
+  });
+})();
+
+/* ── WHO: procedural contour lines drawn over the photo ── */
+(function(){
+  const cv=document.getElementById('whoLines'),x=cv.getContext('2d');
+  const draw=t=>{
+    fit(cv); const W=cv.width,H=cv.height; x.clearRect(0,0,W,H);
+    for(let i=0;i<14;i++){
+      x.beginPath();
+      for(let px=0;px<=W;px+=8){
+        const y=H*(.12+i*.06)+Math.sin(px*.006+i*.7+t*.4)*H*.025+Math.sin(px*.017+t*.2)*H*.01;
+        px?x.lineTo(px,y):x.moveTo(px,y);
+      }
+      x.strokeStyle=i%5===2?rgba(C.gold2,.35):rgba(C.blue3,.16);
+      x.lineWidth=1; x.stroke();
+    }
+  };
+  visibleLoop(cv,draw); addEventListener('resize',()=>draw(0));
+})();
+
+/* ── TRUST: slow particle drift, two brand tones ── */
+(function(){
+  const cv=document.getElementById('trustField'),x=cv.getContext('2d');
+  const P=Array.from({length:innerWidth<700?50:120},()=>({x:Math.random(),y:Math.random(),v:.02+Math.random()*.05,s:Math.random()*1.4+.4,g:Math.random()<.18}));
+  visibleLoop(cv,t=>{
+    fit(cv); const W=cv.width,H=cv.height; x.clearRect(0,0,W,H);
+    for(const p of P){
+      const px=((p.x+t*p.v*.1)%1)*W, py=(p.y+Math.sin(t*.3+p.x*9)*.01)*H;
+      x.fillStyle=p.g?rgba(C.gold2,.5):rgba(C.blue3,.28);
+      x.fillRect(px,py,p.s*2,p.s*2);
+    }
+  });
+})();
+
+/* ── PRODUCT FAMILIES ── */
+const FAM=[
+ {code:"BO",name:"Base Oils",sub:"Blending base stock",body:"Refined base fractions supplied to lubricant manufacturers and blenders, and used as the starting point for the formulations below.",specs:[["Supplied as","Bulk and flexitank"],["Enquiry needs","Grade, volume, destination"]]},
+ {code:"AD",name:"Lubricant Additives & Components",short:"Additives",sub:"Performance components",body:"Additive components and packages for blenders formulating their own products, selected against the performance the finished lubricant has to reach.",specs:[["Supplied as","Drum and IBC"],["Enquiry needs","Application and target property"]]},
+ {code:"EO",name:"Engine Oils & Automotive Lubricants",short:"Engine Oils",sub:"Engine, transmission and driveline",body:"Finished lubricants for road transport and vehicle fleets, covering engine, transmission and driveline applications across viscosity grades.",specs:[["Supplied as","1 L to 208 L, and bulk"],["Enquiry needs","Equipment and operating conditions"]]},
+ {code:"IN",name:"Industrial Oils & Lubricants",short:"Industrial",sub:"Plant, hydraulics and gearing",body:"Hydraulic, gear, compressor and process fluids for manufacturing plant, chosen against the duty the equipment runs at rather than by name alone.",specs:[["Supplied as","Drum, IBC and bulk"],["Enquiry needs","Equipment, duty and volume"]]},
+ {code:"MR",name:"Marine Oils & Lubricants",short:"Marine",sub:"Vessel engines and systems",body:"Lubricants for marine engines and onboard systems, supplied against the vessel's requirement and the port the delivery has to reach.",specs:[["Supplied as","Drum and bulk"],["Enquiry needs","Vessel, system and port"]]},
+ {code:"AC",name:"Antifreeze & Coolants",short:"Coolants",sub:"Thermal management",body:"Antifreeze and coolant products for automotive and industrial cooling systems, supplied as concentrate or ready-to-use according to the requirement.",specs:[["Supplied as","Concentrate or ready-to-use"],["Enquiry needs","System, climate and volume"]]},
+];
+(function(){
+  const list=document.getElementById('famList'), swap=document.getElementById('famSwap');
+  const cv=document.getElementById('famBars'), x=cv.getContext('2d');
+  let cur=0, target=new Array(48).fill(0), vals=new Array(48).fill(0);
+  const seed=i=>{ target=target.map((_,k)=>.25+.7*Math.abs(Math.sin(k*.37*(i+1)+i*1.9)*Math.cos(k*.11+i))); };
+  FAM.forEach((f,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<button role="tab" aria-selected="${i===0}"><span class="code">${f.code}</span><span class="nm">${f.short||f.name}</span><span class="sub">${f.sub}</span></button>`;
+    li.firstChild.addEventListener('click',()=>select(i));
+    li.firstChild.addEventListener('mouseenter',()=>{ if(matchMedia('(hover:hover)').matches) select(i); });
+    list.appendChild(li);
+  });
+  function render(i){
+    const f=FAM[i];
+    document.getElementById('famMeta').textContent=`Family 0${i+1} · ${f.sub}`;
+    document.getElementById('famName').textContent=f.name;
+    document.getElementById('famBody').textContent=f.body;
+    document.getElementById('famSpecs').innerHTML=f.specs.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  }
+  function select(i){
+    if(i===cur) return; cur=i;
+    list.querySelectorAll('button').forEach((b,k)=>b.setAttribute('aria-selected',k===i));
+    seed(i); swap.classList.add('out'); setTimeout(()=>{render(i);swap.classList.remove('out');},220);
+  }
+  render(0); seed(0);
+  visibleLoop(cv,t=>{
+    fit(cv); const W=cv.width,H=cv.height; x.clearRect(0,0,W,H);
+    const n=vals.length, bw=W/n;
+    for(let k=0;k<n;k++){
+      vals[k]+=(target[k]-vals[k])*(reduce?1:.08);
+      const v=vals[k]*(0.92+0.08*Math.sin(t*1.4+k*.5));
+      const h=v*H*.9, u=k/(n-1);
+      const g=x.createLinearGradient(0,H,0,H-h);
+      const c1=u<.6?C.blue4:C.blue3, c2=u>.62?C.gold2:C.blue3;
+      g.addColorStop(0,rgba(c1,.05)); g.addColorStop(1,rgba(c2,.85));
+      x.fillStyle=g; x.fillRect(k*bw+bw*.3,H-h,Math.max(1,bw*.18),h);
+      x.fillStyle=rgba(u>.62?C.gold2:C.blue3,.9); x.fillRect(k*bw+bw*.3-1,H-h-2,Math.max(2,bw*.18)+2,1.5);
+    }
+  });
+})();
+
+/* ── CUSTOM FORMULATION: pinned horizontal track + luminous progress line ── */
+const STEPS=[
+ ["Understand","We start from the technical, commercial and application requirements behind the request — what the product has to do, where it has to do it, and on what terms.","Application and duty","Stated requirement"],
+ ["Develop","The technical team evaluates the requirement and either adapts an existing formulation or develops a new one to meet it.","Stated requirement","Candidate formulation"],
+ ["Test","The candidate product is tested and evaluated against the specification and performance criteria the requirement set out.","Candidate formulation","Measured result"],
+ ["Approve","Samples are reviewed and approved against the customer's own requirements before anything moves into production.","Sample and result","Customer approval"],
+ ["Produce","The approved product moves into controlled production, made to the formulation that was signed off rather than to a near equivalent.","Approved formulation","Produced batch"],
+ ["Deliver","The finished product is packaged and delivered on the supply and logistics terms agreed with the requirement.","Produced batch","Delivered order"],
+];
+(function(){
+  const track=document.getElementById('cfTrack'), pin=document.getElementById('cfPin'), now=document.getElementById('cfNow');
+  track.innerHTML=STEPS.map((s,i)=>`<article class="step${i?'':' on'}"><span class="big">0${i+1}</span><span class="mono">Step0${i+1} / 06</span><h3>${s[0]}</h3><p>${s[1]}</p><div class="io"><span>Input · <b>${s[2]}</b></span><span>Output · <b>${s[3]}</b></span></div></article>`).join('');
+  const steps=[...track.children], cv=document.getElementById('cfLine'), x=cv.getContext('2d');
+  let p=0;
+  visibleLoop(pin,t=>{
+    if(innerWidth<=900||reduce) return;
+    const r=pin.getBoundingClientRect(), span=r.height-innerHeight;
+    p=Math.min(1,Math.max(0,-r.top/span));
+    const dist=track.scrollWidth-innerWidth+80;
+    track.style.transform=`translate3d(${-p*dist}px,0,0)`;
+    const idx=Math.min(5,Math.floor(p*6)); steps.forEach((s,k)=>s.classList.toggle('on',k===idx));
+    now.textContent=`0${idx+1} / 06`;
+    fit(cv); const W=cv.width,H=cv.height; x.clearRect(0,0,W,H);
+    x.beginPath();
+    for(let px=0;px<=W;px+=6){ const y=H*.5+Math.sin(px*.004+t*.8)*H*.12*Math.sin(px*.0013+p*6); px?x.lineTo(px,y):x.moveTo(px,y); }
+    const g=x.createLinearGradient(0,0,W,0); g.addColorStop(0,rgba(C.blue4,0)); g.addColorStop(Math.max(.01,p*.9),rgba(C.blue3,.5)); g.addColorStop(Math.min(.99,p*.9+.08),rgba(C.gold2,.9)); g.addColorStop(1,rgba(C.gold,0));
+    x.strokeStyle=g; x.lineWidth=1.5*Math.min(devicePixelRatio,2); x.stroke();
+  });
+})();
+
+/* ── NETWORK: equirectangular dot field + spectral arcs from HQ ── */
+const HQ={lon:56.3,lat:27.2};
+/* LAND: the same simplified outline the live Network section draws (home-data.ts). */
+const LAND=[[[-168,65],[-160,71],[-140,70],[-125,70],[-110,68],[-95,70],[-85,73],[-75,68],[-60,60],[-55,52],[-65,45],[-70,42],[-75,35],[-81,25],[-90,29],[-97,26],[-105,22],[-115,30],[-125,40],[-130,52],[-140,60],[-155,58]],[[-80,8],[-72,11],[-62,10],[-52,5],[-45,-2],[-35,-6],[-38,-15],[-48,-25],[-58,-35],[-62,-40],[-65,-50],[-70,-55],[-73,-45],[-72,-35],[-71,-20],[-75,-12],[-79,-5]],[[-17,15],[-10,25],[0,32],[10,34],[20,32],[32,31],[35,25],[40,15],[43,11],[51,12],[48,3],[41,-3],[40,-12],[35,-20],[33,-27],[27,-34],[20,-35],[15,-28],[12,-17],[9,-2],[3,5],[-8,5],[-15,12]],[[-10,36],[-9,43],[0,50],[5,53],[10,57],[20,58],[30,60],[40,64],[55,68],[70,72],[90,75],[110,74],[130,71],[150,70],[165,67],[178,66],[178,60],[160,56],[145,50],[135,45],[130,42],[122,38],[120,32],[118,25],[110,20],[105,12],[100,8],[98,15],[94,22],[88,22],[85,20],[80,13],[77,8],[72,20],[68,24],[62,25],[57,20],[50,28],[45,38],[38,38],[30,36],[28,41],[22,38],[15,40],[10,44],[3,42],[-5,36]],[[114,-22],[122,-18],[130,-12],[138,-12],[142,-10],[145,-15],[150,-22],[153,-28],[150,-37],[143,-39],[135,-35],[129,-32],[120,-34],[115,-33],[113,-26]],[[95,5],[105,0],[115,-5],[125,-8],[135,-4],[130,1],[120,2],[110,3],[100,6]],[[130,32],[136,35],[141,40],[145,44],[142,45],[138,37],[132,33]],[[-6,50],[-5,55],[-3,58],[0,54],[1,51]],[[-45,60],[-55,70],[-50,78],[-30,82],[-20,75],[-25,68],[-40,60]],[[166,-46],[172,-42],[174,-37],[178,-38],[175,-42],[170,-46]]];
+const inLand=(lon,lat)=>LAND.some(poly=>{let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[xi,yi]=poly[i],[xj,yj]=poly[j];if((yi>lat)!==(yj>lat)&&lon<(xj-xi)*(lat-yi)/(yj-yi)+xi)c=!c;}return c;});
+const HUBS=[["Türkiye",35,39],["Countries around India",78,21],["North Africa",10,31],["West Africa",3.4,6.5],["East Africa",39.3,-6.8],["Southern Africa",25,-29]];
+(function(){
+  const cv=document.getElementById('netMap'),x=cv.getContext('2d'),ul=document.getElementById('destList');
+  let hot=-1, prog=HUBS.map(()=>0), dots=null;
+  HUBS.forEach((h,i)=>{
+    const li=document.createElement('li'); li.tabIndex=0; li.innerHTML=`<span>${h[0]}</span><span>Export destination</span>`;
+    const on=()=>{hot=i;ul.querySelectorAll('li').forEach((l,k)=>l.classList.toggle('on',k===i));document.getElementById('netState').textContent='Route drawn to destination';document.getElementById('netName').textContent=h[0];};
+    li.addEventListener('mouseenter',on); li.addEventListener('focus',on); li.addEventListener('click',on);
+    ul.appendChild(li);
+  });
+  // Viewport over Africa / Middle East / South Asia.
+  const view={l:-25,r:100,t:50,b:-38};
+  const P=(lon,lat,W,H)=>[(lon-view.l)/(view.r-view.l)*W,(view.t-lat)/(view.t-view.b)*H];
+  visibleLoop(cv,t=>{
+    fit(cv); const W=cv.width,H=cv.height; x.clearRect(0,0,W,H);
+    if(!dots||dots.W!==W){ dots=[];dots.W=W; const step=Math.max(10,W/90);
+      for(let gx=step/2;gx<W;gx+=step) for(let gy=step/2;gy<H;gy+=step){ const lon=view.l+gx/W*(view.r-view.l), lat=view.t-gy/H*(view.t-view.b); dots.push([gx,gy,inLand(lon,lat)]); } }
+    for(const [gx,gy,l] of dots){ x.fillStyle=l?'rgba(199,205,214,.26)':'rgba(199,205,214,.045)'; x.fillRect(gx,gy,1.5,1.5); }
+    const [hx,hy]=P(HQ.lon,HQ.lat,W,H);
+    HUBS.forEach((h,i)=>{
+      const [dx,dy]=P(h[1],h[2],W,H), on=hot===i||hot<0;
+      prog[i]+=((hot===i?1:hot<0?.999:0)-prog[i])*(reduce?1:.06);
+      const cx=(hx+dx)/2, cy=Math.min(hy,dy)-Math.hypot(dx-hx,dy-hy)*.28;
+      x.beginPath();
+      const N=60, end=Math.round(N*Math.max(prog[i],.0));
+      for(let k=0;k<=end;k++){const u=k/N; const px=(1-u)*(1-u)*hx+2*(1-u)*u*cx+u*u*dx, py=(1-u)*(1-u)*hy+2*(1-u)*u*cy+u*u*dy; k?x.lineTo(px,py):x.moveTo(px,py);}
+      const g=x.createLinearGradient(hx,hy,dx,dy); g.addColorStop(0,rgba(C.gold2,hot===i?.95:.35)); g.addColorStop(1,rgba(C.blue3,hot===i?.95:.25));
+      x.strokeStyle=g; x.lineWidth=(hot===i?2:1)*Math.min(devicePixelRatio,2); x.stroke();
+      const pulse=hot===i?(4+2*Math.sin(t*4)):3;
+      x.fillStyle=rgba(hot===i?C.gold2:C.blue3,on?.9:.4); x.beginPath(); x.arc(dx,dy,pulse,0,7); x.fill();
+      if(hot===i){x.strokeStyle=rgba(C.gold2,.35);x.beginPath();x.arc(dx,dy,10+6*((t*.8)%1)*2,0,7);x.stroke();}
+    });
+    x.fillStyle=rgba(C.gold,1); x.fillRect(hx-4,hy-4,8,8);
+    x.strokeStyle=rgba(C.gold,.4); x.strokeRect(hx-9,hy-9,18,18);
+  });
+})();
+
+/* ── Reveal + nav ── */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.15});
+document.querySelectorAll('.rv,.who-figure').forEach(el=>io.observe(el));
+new IntersectionObserver(([e])=>document.getElementById('nav').classList.toggle('is-solid',!e.isIntersecting),{rootMargin:'-80px 0px 0px 0px'}).observe(document.querySelector('.hero-explore'));
+requestAnimationFrame(()=>document.body.classList.add('loaded'));
+</script>
+</body>
+</html>

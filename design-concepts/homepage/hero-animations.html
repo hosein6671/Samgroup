@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hero Animation Options</title>
+<!-- PROTOTYPE ONLY. Five hero-animation options for Concept 03, same copy, same photographs, side by side.
+     Isolated from apps/web. Pick one, and it replaces the hero in concept-03-duotone-split.html. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500&family=Inter+Tight:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#030b1f;--gold:#c39a4e;--gold-2:#e3c689;--b3:#81b9e9;--tx:#eef1f6;--tx2:#a6b0c2;--tx3:#8d99ad;
+  --f-display:"Inter Tight",Helvetica,Arial,sans-serif;--f-text:"Inter",Helvetica,Arial,sans-serif;--f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --g:clamp(20px,5vw,88px);--ease:cubic-bezier(.16,1,.3,1);--io:cubic-bezier(.77,0,.18,1);
+  --t-hero:clamp(36px,30.4px + 1.75vw,64px);--t-lead:clamp(17px,16.4px + .1875vw,20px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--tx);font-family:var(--f-text);-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+img{display:block}
+
+/* Option switcher (prototype chrome) */
+.switch{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(3,11,31,.82);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px)}
+.switch button{all:unset;cursor:pointer;padding:9px 14px;border-radius:999px;font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;color:var(--tx2);transition:background .3s,color .3s;white-space:nowrap}
+.switch button:hover{color:#fff}
+.switch button[aria-pressed=true]{background:var(--gold);color:#1a1204}
+.switch button:focus-visible{outline:2px solid var(--gold-2)}
+.note{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:100;max-width:min(680px,calc(100% - 32px));padding:10px 16px;border-radius:12px;background:rgba(3,11,31,.85);border:1px solid rgba(255,255,255,.12);font-size:13px;line-height:1.5;color:var(--tx2);text-align:center}
+.note b{color:var(--gold-2);font-weight:500}
+
+/* Shared hero structure */
+.v{display:none;position:relative}
+.v.on{display:block}
+.hero{position:relative;height:100dvh;min-height:620px;overflow:hidden;isolation:isolate;display:flex;align-items:center}
+.media{position:absolute;inset:0;z-index:-2;overflow:hidden;background:var(--ink)}
+.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:68% 56%;filter:contrast(1.1) saturate(1.06) brightness(.93)}
+.scrim{position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+  linear-gradient(90deg,rgba(3,11,31,.95) 0%,rgba(3,11,31,.8) 32%,rgba(3,11,31,.2) 66%,rgba(3,11,31,.08) 100%),
+  linear-gradient(0deg,rgba(3,11,31,.9) 0%,rgba(3,11,31,0) 34%)}
+.grade{position:absolute;inset:0;z-index:1;pointer-events:none;mix-blend-mode:soft-light;background:linear-gradient(115deg,rgba(0,32,80,.75) 0%,rgba(0,74,128,.35) 42%,rgba(227,198,137,.32) 78%,rgba(195,154,78,.4) 100%)}
+.copy{width:100%;padding:0 var(--g);max-width:calc(760px + var(--g)*2)}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-2);display:flex;align-items:center;gap:14px}
+.eyebrow::before{content:"";width:28px;height:1px;background:currentColor}
+h1{font-family:var(--f-display);font-weight:300;font-size:var(--t-hero);letter-spacing:-.028em;line-height:1.05;margin-top:22px}
+h1 .ln{display:block;overflow:hidden;padding-bottom:.06em}
+h1 .ln>span{display:block}
+h1 .ln:nth-child(2){color:var(--tx2)}
+h1 .ln:nth-child(3){color:var(--gold-2)}
+.lead{font-size:var(--t-lead);line-height:1.6;color:var(--tx2);max-width:54ch;margin-top:24px}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px}
+.btn{display:inline-flex;align-items:center;gap:12px;height:52px;padding:0 26px;border-radius:999px;font-weight:500;font-size:15px;transition:background-color .35s,border-color .35s,color .35s,box-shadow .35s}
+.btn--gold{background:var(--gold);color:#1a1204}.btn--gold:hover{background:var(--gold-2);box-shadow:0 10px 26px -14px rgba(195,154,78,.7)}
+.btn--line{border:1px solid rgba(255,255,255,.4)}.btn--line:hover{border-color:var(--gold-2);color:var(--gold-2);background:rgba(195,154,78,.08)}
+.btn span{transition:transform .35s}.btn:hover span{transform:translateX(4px)}
+
+/* Shared entrance for the copy: lines rise from a mask, then lead and CTAs fade up. Restarted per option. */
+.v .eyebrow,.v .lead,.v .cta{opacity:0;transform:translateY(14px)}
+.v h1 .ln>span{transform:translateY(110%)}
+.v.play .eyebrow{opacity:1;transform:none;transition:opacity .9s .2s,transform 1.1s .2s var(--ease)}
+.v.play h1 .ln>span{transform:none;transition:transform 1.2s var(--ease)}
+.v.play h1 .ln:nth-child(1)>span{transition-delay:.35s}.v.play h1 .ln:nth-child(2)>span{transition-delay:.47s}.v.play h1 .ln:nth-child(3)>span{transition-delay:.59s}
+.v.play .lead{opacity:1;transform:none;transition:opacity 1s .85s,transform 1.2s .85s var(--ease)}
+.v.play .cta{opacity:1;transform:none;transition:opacity 1s 1s,transform 1.2s 1s var(--ease)}
+
+/* ── A · CINEMATIC REEL ── */
+#A .shot{position:absolute;inset:0;opacity:0;filter:blur(10px);transition:opacity 1.8s,filter 1.8s}
+#A .shot.on{opacity:1;filter:none}
+#A .shot.on img{animation:kb 8.5s linear forwards}
+@keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.16) translate3d(-2%,-1%,0)}}
+#A .lb{position:absolute;left:0;right:0;height:15vh;background:var(--ink);z-index:5}
+#A .lb.t{top:0}#A .lb.b{bottom:0}
+#A.play .lb{transition:transform 1.7s var(--io) .1s}
+#A.play .lb.t{transform:translateY(-100%)}#A.play .lb.b{transform:translateY(100%)}
+
+/* ── B · APERTURE ── */
+#B .frame{position:absolute;inset:0;clip-path:inset(49% 34% 49% 34%);transform:scale(1.25)}
+#B.play .frame{clip-path:inset(0 0 0 0);transform:scale(1.04);transition:clip-path 1.7s var(--io) .1s,transform 2.6s var(--ease) .1s}
+#B .shot{position:absolute;inset:0;clip-path:inset(0 0 0 100%)}
+#B .shot.base{clip-path:none}
+#B .shot.in{clip-path:inset(0 0 0 0);transition:clip-path 1.3s var(--io)}
+#B .edge{position:absolute;top:0;bottom:0;width:2px;left:100%;z-index:2;background:linear-gradient(180deg,transparent,var(--gold-2) 30%,var(--gold-2) 70%,transparent);box-shadow:0 0 18px 2px rgba(227,198,137,.55);opacity:0}
+#B .edge.go{left:0;opacity:1;transition:left 1.3s var(--io),opacity .2s}
+#B .shot img{animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{from{transform:scale(1.02) translateX(0)}to{transform:scale(1.08) translateX(-1.5%)}}
+
+/* ── C · LIQUID LEVEL ── */
+#C canvas.meniscus{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+#C .shot{position:absolute;inset:0}
+#C .shot img{animation:drift 14s ease-in-out infinite alternate}
+
+/* ── D · SCROLL ZOOM ── */
+#D{height:260vh}
+#D .hero{position:sticky;top:0}
+#D .media img{transform-origin:72% 62%;transform:scale(var(--z,2.2));filter:contrast(1.1) saturate(1.06) brightness(calc(.6 + .33 * var(--p,0)))}
+#D .scrim{opacity:var(--s,.4)}
+#D .eyebrow,#D .lead,#D .cta{transition:opacity .6s,transform .8s var(--ease)!important}
+#D h1 .ln>span{transition:transform .9s var(--ease)!important}
+#D.play .eyebrow,#D.play .lead,#D.play .cta{opacity:0;transform:translateY(14px)}
+#D.play h1 .ln>span{transform:translateY(110%)}
+#D .k1 .eyebrow,#D .k1 h1 .ln:nth-child(1)>span{opacity:1;transform:none}
+#D .k2 h1 .ln:nth-child(2)>span{transform:none}
+#D .k3 h1 .ln:nth-child(3)>span{transform:none}
+#D .k4 .lead{opacity:1;transform:none}
+#D .k5 .cta{opacity:1;transform:none}
+
+/* ── E · SPOTLIGHT ── */
+#E .base img{filter:blur(6px) saturate(.4) brightness(.38) contrast(1.05);transform:scale(1.04)}
+#E .lit{position:absolute;inset:0;z-index:1;-webkit-mask-image:radial-gradient(circle var(--r,280px) at var(--mx,70%) var(--my,55%),#000 0%,rgba(0,0,0,.85) 40%,transparent 100%);mask-image:radial-gradient(circle var(--r,280px) at var(--mx,70%) var(--my,55%),#000 0%,rgba(0,0,0,.85) 40%,transparent 100%)}
+#E .lit img{filter:contrast(1.12) saturate(1.12) brightness(1.02);transform:scale(1.04)}
+#E .glow{position:absolute;left:var(--mx,70%);top:var(--my,55%);width:calc(var(--r,280px)*2.2);height:calc(var(--r,280px)*2.2);transform:translate(-50%,-50%);border-radius:50%;z-index:2;pointer-events:none;mix-blend-mode:soft-light;background:radial-gradient(circle,rgba(255,236,190,.45),transparent 60%)}
+#E .r0{--r:0px}
+#E.play .lit,#E.play .glow{transition:--r 1.2s}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .v .eyebrow,.v .lead,.v .cta{opacity:1!important;transform:none!important}.v h1 .ln>span{transform:none!important}
+  #A .lb{display:none}#B .frame{clip-path:none;transform:none}#D{height:auto}#D .media img{transform:none}
+}
+@media (max-width:760px){.switch{top:auto;bottom:70px}.switch button{padding:8px 10px;font-size:11px}.scrim{background:linear-gradient(0deg,rgba(3,11,31,.95) 20%,rgba(3,11,31,.6) 70%,rgba(3,11,31,.4))}.hero{align-items:flex-end;padding-bottom:140px}}
+</style>
+</head>
+<body>
+
+<nav class="switch" aria-label="Hero animation options">
+  <button data-v="A" aria-pressed="true">A · Reel</button>
+  <button data-v="B" aria-pressed="false">B · Aperture</button>
+  <button data-v="C" aria-pressed="false">C · Liquid</button>
+  <button data-v="D" aria-pressed="false">D · Scroll zoom</button>
+  <button data-v="E" aria-pressed="false">E · Spotlight</button>
+</nav>
+<p class="note" id="note"></p>
+
+<template id="copy">
+  <div class="copy">
+    <p class="eyebrow">Petroleum products for professional buyers</p>
+    <h1><span class="ln"><span>Base oils and lubricants.</span></span><span class="ln"><span>Produced, not traded.</span></span><span class="ln"><span>Specified with you.</span></span></h1>
+    <p class="lead">SAM Group produces and supplies base oils, engine oils, industrial and marine lubricants, additives and coolants — and develops formulations to meet the technical and commercial requirements behind an order.</p>
+    <div class="cta"><a class="btn btn--gold" href="#">Explore our products <span>→</span></a><a class="btn btn--line" href="#">Request a quotation</a></div>
+  </div>
+</template>
+
+<!-- A · Cinematic Reel (the current hero) -->
+<section class="v" id="A" data-note="<b>A · Cinematic Reel</b>: the current hero. Four shots push in slowly and dissolve every 6.5 s; letterbox bars open on load.">
+  <div class="hero">
+    <div class="media" data-shots></div><span class="grade"></span><div class="scrim"></div>
+    <span class="lb t"></span><span class="lb b"></span>
+  </div>
+</section>
+
+<!-- B · Aperture -->
+<section class="v" id="B" data-note="<b>B · Aperture</b>: the photo opens from a thin slit like a shutter, then each new shot wipes in sideways behind a glowing gold edge.">
+  <div class="hero">
+    <div class="media"><div class="frame" data-shots></div><span class="edge"></span></div><span class="grade"></span><div class="scrim"></div>
+  </div>
+</section>
+
+<!-- C · Liquid Level -->
+<section class="v" id="C" data-note="<b>C · Liquid Level</b>: each new shot rises from below behind a moving liquid surface with a gold meniscus, like oil filling a glass.">
+  <div class="hero">
+    <div class="media" data-shots></div><canvas class="meniscus" aria-hidden="true"></canvas><span class="grade"></span><div class="scrim"></div>
+  </div>
+</section>
+
+<!-- D · Scroll Zoom -->
+<section class="v" id="D" data-note="<b>D · Scroll Zoom</b>: scroll down. The view starts as a close-up on the bottles and pulls back to the full frame while the headline arrives line by line.">
+  <div class="hero">
+    <div class="media" data-single></div><span class="grade"></span><div class="scrim"></div>
+  </div>
+</section>
+
+<!-- E · Spotlight -->
+<section class="v" id="E" data-note="<b>E · Spotlight</b>: move the mouse over the image. A soft light reveals the sharp, graded photograph; without a pointer it drifts across the bottles by itself.">
+  <div class="hero">
+    <div class="media"><div class="base" data-single style="position:absolute;inset:0"></div><div class="lit" data-single></div><span class="glow"></span></div><div class="scrim" style="opacity:.85"></div>
+  </div>
+</section>
+
+<script>
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const P='../../apps/web/public/images/';
+const SHOTS=['base-oils-lab-samples.webp','engine-oils-automotive-lab-samples.webp','industrial-oils-lab-samples.webp','marine-oils-lab-samples.webp'];
+const copyTpl=document.getElementById('copy').content;
+document.querySelectorAll('.v .hero').forEach(h=>h.appendChild(copyTpl.cloneNode(true)));
+document.querySelectorAll('[data-shots]').forEach(m=>m.innerHTML=SHOTS.map((s,i)=>`<div class="shot${i===0?' on base':''}"><img src="${P+s}" alt=""></div>`).join(''));
+document.querySelectorAll('[data-single]').forEach(m=>m.innerHTML=`<img src="${P+SHOTS[0]}" alt="">`);
+
+/* Each option exposes start/stop so only the visible one runs. */
+const V={};
+
+/* A · Reel */
+V.A=(()=>{const el=document.getElementById('A'),shots=[...el.querySelectorAll('.shot')];let t=0,i=0;
+  const show=n=>shots.forEach((s,k)=>{s.classList.toggle('on',k===n);if(k===n){const im=s.querySelector('img');im.style.animation='none';void im.offsetWidth;im.style.animation='';}});
+  return{start(){i=0;show(0);if(!reduce)t=setInterval(()=>{i=(i+1)%shots.length;show(i);},6500);},stop(){clearInterval(t);}};})();
+
+/* B · Aperture: horizontal wipe with a leading gold edge */
+V.B=(()=>{const el=document.getElementById('B'),shots=[...el.querySelectorAll('.shot')],edge=el.querySelector('.edge');let t=0,i=0;
+  const reset=()=>{shots.forEach((s,k)=>{s.classList.remove('in');s.style.zIndex='';s.classList.toggle('base',k===0);});i=0;};
+  const next=()=>{const n=(i+1)%shots.length,s=shots[n];s.classList.remove('in','base');s.style.zIndex=1;void s.offsetWidth;s.classList.add('in');
+    edge.classList.remove('go');edge.style.left='100%';void edge.offsetWidth;edge.style.left='';edge.classList.add('go');
+    setTimeout(()=>{shots.forEach((o,k)=>{if(k!==n){o.classList.remove('in','base');o.style.zIndex='';}});s.classList.add('base');s.style.zIndex='';s.classList.remove('in');edge.classList.remove('go');},1400);i=n;};
+  return{start(){reset();if(!reduce)t=setInterval(next,6000);},stop(){clearInterval(t);}};})();
+
+/* C · Liquid Level: a rising wave clips the incoming shot; the meniscus is drawn on canvas along the same curve */
+V.C=(()=>{const el=document.getElementById('C'),shots=[...el.querySelectorAll('.shot')],cv=el.querySelector('canvas'),x=cv.getContext('2d');let t=0,raf=0,i=0,on=false;
+  const fit=()=>{const d=Math.min(devicePixelRatio||1,2),r=cv.getBoundingClientRect();cv.width=r.width*d;cv.height=r.height*d;return d;};
+  const wave=(w,h,lvl,time)=>{const pts=[];for(let px=0;px<=w;px+=w/48){pts.push([px,h*lvl+Math.sin(px/w*Math.PI*2.2+time*2.6)*h*.025+Math.sin(px/w*Math.PI*5.1-time*1.7)*h*.012]);}return pts;};
+  const pour=(n,dur)=>{const s=shots[n];s.style.zIndex=1;s.style.display='block';const t0=performance.now();cancelAnimationFrame(raf);
+    const frame=now=>{const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3),lvl=1.06-1.14*e,time=now/1000;const r=el.getBoundingClientRect(),w=r.width,h=r.height;
+      const pts=wave(w,h,lvl,time);s.style.clipPath=`polygon(${pts.map(p=>`${(p[0]/w*100).toFixed(2)}% ${(p[1]/h*100).toFixed(2)}%`).join(',')},100% 100%,0% 100%)`;
+      const d=fit();x.clearRect(0,0,cv.width,cv.height);if(k<1){x.beginPath();pts.forEach((p,j)=>j?x.lineTo(p[0]*d,p[1]*d):x.moveTo(p[0]*d,p[1]*d));
+        const g=x.createLinearGradient(0,0,cv.width,0);g.addColorStop(0,'rgba(129,185,233,.0)');g.addColorStop(.35,'rgba(227,198,137,.9)');g.addColorStop(.7,'rgba(255,240,205,1)');g.addColorStop(1,'rgba(129,185,233,.0)');
+        x.strokeStyle=g;x.lineWidth=2.2*d;x.shadowColor='rgba(227,198,137,.8)';x.shadowBlur=14*d;x.stroke();}
+      if(k<1&&on)raf=requestAnimationFrame(frame);else{shots.forEach((o,j)=>{if(j!==n){o.style.display='none';o.style.zIndex='';}});s.style.clipPath='none';s.style.zIndex='';x.clearRect(0,0,cv.width,cv.height);}};
+    raf=requestAnimationFrame(frame);};
+  return{start(){on=true;shots.forEach((s,k)=>{s.style.display=k===0?'block':'none';s.style.clipPath='none';});i=0;if(reduce)return;pour(0,1800);t=setInterval(()=>{i=(i+1)%shots.length;pour(i,1700);},6500);},
+    stop(){on=false;clearInterval(t);cancelAnimationFrame(raf);}};})();
+
+/* D · Scroll Zoom: progress through the tall section drives zoom, exposure and the line-by-line headline */
+V.D=(()=>{const el=document.getElementById('D'),copy=el.querySelector('.copy');let on=false;
+  const upd=()=>{if(!on)return;const r=el.getBoundingClientRect(),span=el.offsetHeight-innerHeight,p=Math.min(1,Math.max(0,-r.top/span));
+    const e=1-Math.pow(1-p,2);el.style.setProperty('--z',(2.2-1.18*e).toFixed(3));el.style.setProperty('--p',e.toFixed(3));el.style.setProperty('--s',(.4+.6*e).toFixed(3));
+    copy.classList.toggle('k1',p>.08);copy.classList.toggle('k2',p>.22);copy.classList.toggle('k3',p>.36);copy.classList.toggle('k4',p>.52);copy.classList.toggle('k5',p>.66);};
+  addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);
+  return{start(){on=true;scrollTo(0,0);if(reduce){copy.classList.add('k1','k2','k3','k4','k5');return;}upd();},stop(){on=false;}};})();
+
+/* E · Spotlight: the lit layer is masked to a soft circle that eases toward the pointer; idles along the bottle line */
+V.E=(()=>{const el=document.getElementById('E'),hero=el.querySelector('.hero'),m=el.querySelector('.media');let raf=0,on=false,tx=.7,ty=.56,cx=.7,cy=.56,last=0,r=0;
+  hero.addEventListener('pointermove',e=>{const b=hero.getBoundingClientRect();tx=(e.clientX-b.left)/b.width;ty=(e.clientY-b.top)/b.height;last=performance.now();});
+  const loop=now=>{if(!on)return;if(now-last>2500){const k=now/1000;tx=.66+Math.sin(k*.45)*.2;ty=.56+Math.sin(k*.9)*.06;}
+    cx+=(tx-cx)*.08;cy+=(ty-cy)*.08;r+=((innerWidth<760?180:300)-r)*.05;m.style.setProperty('--mx',(cx*100).toFixed(2)+'%');m.style.setProperty('--my',(cy*100).toFixed(2)+'%');m.style.setProperty('--r',r.toFixed(1)+'px');raf=requestAnimationFrame(loop);};
+  return{start(){on=true;r=0;last=0;if(reduce){m.style.setProperty('--r','2000px');return;}raf=requestAnimationFrame(loop);},stop(){on=false;cancelAnimationFrame(raf);}};})();
+
+/* Switcher */
+let cur=null;const note=document.getElementById('note');
+const go=id=>{if(cur){V[cur].stop();const o=document.getElementById(cur);o.classList.remove('on','play');}
+  cur=id;const el=document.getElementById(id);el.classList.add('on');el.classList.remove('play');void el.offsetWidth;
+  document.querySelectorAll('.switch button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===id));note.innerHTML=el.dataset.note;
+  scrollTo(0,0);setTimeout(()=>el.classList.add('play'),40);V[id].start();};
+document.querySelectorAll('.switch button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.v)));
+go(location.hash.slice(1)&&V[location.hash.slice(1)]?location.hash.slice(1):'A');
+</script>
+</body>
+</html>
