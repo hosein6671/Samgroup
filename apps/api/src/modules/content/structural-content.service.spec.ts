@@ -1,4 +1,4 @@
-import { STRUCTURAL_DEFAULTS } from "@sam-group/types/structural-content";
+import { STRUCTURAL_DEFAULTS, structuralImageSlots } from "@sam-group/types/structural-content";
 import { structuralLists } from "@sam-group/types/structural-lists";
 import { StructuralContentService } from "./structural-content.service";
 import { PayloadClient } from "./payload.client";
@@ -26,10 +26,54 @@ describe("structural content publication boundary", () => {
       expect(findGlobal).toHaveBeenCalledWith(scope, {
         locale: "en",
         "fallback-locale": "none",
-        depth: "0",
+        // Only a scope with photograph slots expands uploads.
+        depth: Object.keys(structuralImageSlots(scope)).length > 0 ? "1" : "0",
       });
     },
   );
+  it("projects photographs to url, alt and size, and an empty or unexpanded slot to null", async () => {
+    findGlobal.mockResolvedValue({
+      ...STRUCTURAL_DEFAULTS.home,
+      lists: structuralLists("home"),
+      _status: "published",
+      images: {
+        who_we_are: {
+          id: 7,
+          url: "/cms-media/who.webp",
+          alt: "Plant floor",
+          width: 1600,
+          height: 900,
+          filename: "who.webp",
+          prefix: "private-prefix",
+        },
+        custom_formulation: 12,
+        network: null,
+      },
+    });
+    const result = await service.read("home", en);
+    const content = result.response.content as { fields: Record<string, unknown> };
+    expect(content.fields.images).toEqual({
+      who_we_are: { url: "/cms-media/who.webp", alt: "Plant floor", width: 1600, height: 900 },
+      custom_formulation: null,
+      network: null,
+    });
+    expect(JSON.stringify(result)).not.toContain("private-prefix");
+  });
+  it("gives every photograph slot even when the document has no images group", async () => {
+    findGlobal.mockResolvedValue({
+      ...STRUCTURAL_DEFAULTS.home,
+      lists: structuralLists("home"),
+      _status: "published",
+    });
+    const content = (await service.read("home", en)).response.content as {
+      fields: Record<string, unknown>;
+    };
+    expect(content.fields.images).toEqual({
+      who_we_are: null,
+      custom_formulation: null,
+      network: null,
+    });
+  });
   it("does not expose drafts or incomplete records", async () => {
     findGlobal.mockResolvedValue({
       ...STRUCTURAL_DEFAULTS.home,

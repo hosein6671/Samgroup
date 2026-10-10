@@ -1,5 +1,10 @@
 "use client";
-import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
+import {
+  structuralImage,
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -49,6 +54,9 @@ const LAND_DOT = "rgba(152, 163, 180, 0.3)";
 
 export function Network({ editorial }: { readonly editorial?: StructuralFields } = {}): ReactNode {
   const copy = structuralSection("home", "network", editorial);
+  /* Destination names and the stat row are editable in /admin; coordinates stay code-owned. */
+  const hubs = structuralList(editorial, "network_hubs", HUBS);
+  const stats = structuralList(editorial, "network_stats", NETWORK_STATS);
 
   const [hover, setHover] = useState(-1);
   const hoverRef = useRef(-1);
@@ -154,7 +162,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
         if (on || w > 900) {
           ctx.font = "500 9.5px var(--font-mono-src), monospace";
           ctx.fillStyle = on ? "rgba(255,255,255,.95)" : "rgba(214,222,238,.42)";
-          ctx.fillText((HUBS[i]?.n ?? "").toUpperCase(), hb.x + 13, hb.y + 3.5);
+          ctx.fillText((hubs[i]?.n ?? "").toUpperCase(), hb.x + 13, hb.y + 3.5);
         }
       });
 
@@ -210,7 +218,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
         }
         dots.current = next;
         hqPx.current = proj(HQ.lon, HQ.lat);
-        hubPx.current = HUBS.map((hb) => proj(hb.lon, hb.lat));
+        hubPx.current = hubs.map((hb) => proj(hb.lon, hb.lat));
       },
     },
   );
@@ -247,7 +255,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
     setHover(best);
   };
 
-  const hovered = hover >= 0 ? HUBS[hover] : null;
+  const hovered = hover >= 0 ? hubs[hover] : null;
 
   return (
     <section className="fs-sec fs-globe" id="network" data-surface="midnight">
@@ -268,8 +276,14 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
         </div>
 
         <BrandedPhoto
-          src="/images/home/network-export-logistics.webp"
-          alt={copy.text("sealed_lubricant_drums_and_an")}
+          {...(structuralImage(
+            editorial,
+            "network",
+            copy.text("sealed_lubricant_drums_and_an"),
+          ) ?? {
+            src: "/images/home/network-export-logistics.webp",
+            alt: copy.text("sealed_lubricant_drums_and_an"),
+          })}
           caption={copy.text("caption_10")}
           className="fs-network-photo fs-rv"
           sizes="(max-width: 700px) calc(100vw - 32px), calc(100vw - 128px)"
@@ -329,14 +343,16 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
           </div>
         </div>
 
-        <div className="fs-globe-stats fs-rv">
-          {NETWORK_STATS.map((s) => (
-            <div className="fs-gs" key={s.label}>
-              <b className="fs-tnum">{s.value}</b>
-              <span>{s.label}</span>
-            </div>
-          ))}
-        </div>
+        {stats.length > 0 && (
+          <div className="fs-globe-stats fs-rv">
+            {stats.map((s, i) => (
+              <div className="fs-gs" key={i}>
+                <b className="fs-tnum">{s.value}</b>
+                <span>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

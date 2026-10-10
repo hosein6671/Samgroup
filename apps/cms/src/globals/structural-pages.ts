@@ -1,9 +1,26 @@
-import { STRUCTURAL_DEFAULTS } from "@sam-group/types/structural-content";
+import { STRUCTURAL_DEFAULTS, structuralImageSlots } from "@sam-group/types/structural-content";
 import { structuralLists } from "@sam-group/types/structural-lists";
 import { projectStructuralLists } from "@sam-group/types/structural-lists";
 import type { Field, GlobalConfig } from "payload";
 import { editorOnly, publishedForService } from "../access";
 import { categorySeoFields, validCategorySeo } from "../editor/category-seo";
+
+/**
+ * Absent, or only the scope's own slots, each empty or a media id (a number, or the expanded
+ * record the editor read back). A scope without photographs accepts no `images` at all.
+ */
+export function validStructuralImages(scope: string, value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  const slots = structuralImageSlots(scope);
+  if (typeof value !== "object" || Array.isArray(value) || Object.keys(slots).length === 0)
+    return false;
+  return Object.entries(value as Record<string, unknown>).every(([key, media]) => {
+    if (!(key in slots)) return false;
+    const id =
+      media && typeof media === "object" && "id" in media ? (media as { id: unknown }).id : media;
+    return id === null || id === undefined || (Number.isInteger(id) && (id as number) > 0);
+  });
+}
 
 export function validStructuralContent(scope: string, value: Record<string, unknown>): boolean {
   const defaults = (STRUCTURAL_DEFAULTS as Record<string, Record<string, Record<string, string>>>)[
@@ -22,9 +39,35 @@ export function validStructuralContent(scope: string, value: Record<string, unkn
         )
       );
     }) &&
+    validStructuralImages(scope, value.images) &&
     projectStructuralLists(scope, value.lists) !== null &&
     validCategorySeo(value.seo)
   );
+}
+
+/**
+ * The scope's optional photographs, one upload per figure slot. Not localized: a photograph is the
+ * same in every language, and the only text about it, its alt, is localized on the Media record.
+ * Empty keeps the layout's built-in photograph, so no slot is required.
+ */
+function imageGroup(slug: string): Field[] {
+  const slots = Object.entries(structuralImageSlots(slug));
+  if (slots.length === 0) return [];
+  return [
+    {
+      name: "images",
+      type: "group",
+      label: "Photographs",
+      fields: slots.map(([name, label]): Field => ({
+        name,
+        label,
+        type: "upload",
+        relationTo: "media",
+        localized: false,
+        admin: { description: "Optional. Empty keeps the built-in photograph." },
+      })),
+    },
+  ];
 }
 
 export const StructuralPages: GlobalConfig[] = Object.entries(STRUCTURAL_DEFAULTS).map(
@@ -47,6 +90,7 @@ export const StructuralPages: GlobalConfig[] = Object.entries(STRUCTURAL_DEFAULT
           maxLength: 4000,
         })),
       })),
+      ...imageGroup(slug),
       {
         name: "lists",
         type: "group",

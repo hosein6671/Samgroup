@@ -1561,6 +1561,20 @@ export interface Home {
           title?: string | null;
           body?: string | null;
           id?: string | null;
+  images?: {
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    who_we_are?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    custom_formulation?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    network?: (number | null) | Media;
+  };
         }[]
       | null;
     industries?:
@@ -1600,6 +1614,43 @@ export interface Home {
     /**
      * Falls back to the meta title.
      */
+          input?: string | null;
+          output?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    hero_facts?:
+      | {
+          source: '0' | '1' | '2';
+          label?: string | null;
+          value?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    families?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5';
+          name?: string | null;
+          short?: string | null;
+          sub?: string | null;
+          body?: string | null;
+          supplied?: string | null;
+          enquiry?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    network_hubs?:
+      | {
+          source: '0' | '1' | '2' | '3' | '4' | '5';
+          n?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    network_stats?:
+      | {
+          source: '0' | '1' | '2';
+          label?: string | null;
+          value?: string | null;
     ogTitle?: string | null;
     /**
      * Falls back to the meta description.
@@ -2483,6 +2534,13 @@ export interface HomeSelect<T extends boolean = true> {
         custom_steps?:
           | T
           | {
+  images?:
+    | T
+    | {
+        who_we_are?: T;
+        custom_formulation?: T;
+        network?: T;
+      };
               source?: T;
               n?: T;
               title?: T;
@@ -2525,6 +2583,43 @@ export interface ProductsLandingSelect<T extends boolean = true> {
         request_a_quote?: T;
         industrial_lubricant_containers_and_oil?: T;
         caption_6?: T;
+              input?: T;
+              output?: T;
+              id?: T;
+            };
+        hero_facts?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+        families?:
+          | T
+          | {
+              source?: T;
+              name?: T;
+              short?: T;
+              sub?: T;
+              body?: T;
+              supplied?: T;
+              enquiry?: T;
+              id?: T;
+            };
+        network_hubs?:
+          | T
+          | {
+              source?: T;
+              n?: T;
+              id?: T;
+            };
+        network_stats?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              value?: T;
       };
   register?:
     | T

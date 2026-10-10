@@ -1,6 +1,6 @@
 import { structuralLists } from "@sam-group/types/structural-lists";
-import { STRUCTURAL_DEFAULTS } from "@sam-group/types/structural-content";
-import { type StructuralScope } from "@sam-group/types";
+import { STRUCTURAL_DEFAULTS, structuralImageSlots } from "@sam-group/types/structural-content";
+import { type ContentImage, type StructuralScope } from "@sam-group/types";
 import { type StructuralFields } from "@sam-group/types";
 export type { StructuralFields };
 export function structuralSection(
@@ -20,6 +20,22 @@ export function structuralSection(
     text: (key) =>
       typeof data[key] === "string" && data[key].trim() ? data[key] : (defaults[key] ?? ""),
   };
+}
+
+/**
+ * The photograph chosen in /admin for one figure slot, or `null` to keep the built-in one.
+ * Alt falls back to the layout's own alt string when the Media record has none.
+ */
+export function structuralImage(
+  fields: StructuralFields | undefined,
+  slot: string,
+  fallbackAlt: string,
+): { src: string; alt: string } | null {
+  const images = fields?.images as Record<string, ContentImage | null> | undefined;
+  const image = images?.[slot];
+  return image && typeof image.url === "string" && image.url
+    ? { src: image.url, alt: image.alt ?? fallbackAlt }
+    : null;
 }
 
 /** Merge editable rows with code-owned presentation identities. Explicit empty arrays hide rows. */
@@ -86,6 +102,17 @@ export function structuralEditorDefaults(
             ...Object.fromEntries(Object.entries(data.lists).filter(([, value]) => value !== null)),
           }
         : structuralLists(scope),
+    ...(Object.keys(structuralImageSlots(scope)).length > 0
+      ? {
+          // Keeps the current picks in the form; an empty slot stays empty (built-in photograph).
+          images: Object.fromEntries(
+            Object.keys(structuralImageSlots(scope)).map((slot) => [
+              slot,
+              (data.images as Record<string, unknown> | undefined)?.[slot] ?? null,
+            ]),
+          ),
+        }
+      : {}),
     ...(scope === "header" || scope === "footer"
       ? {}
       : {

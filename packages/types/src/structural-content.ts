@@ -194,3 +194,23 @@ export const STRUCTURAL_DEFAULTS = {
 } as const;
 export type StructuralScope = keyof typeof STRUCTURAL_DEFAULTS;
 export type StructuralFields = Record<string, unknown>;
+
+/**
+ * Optional photographs on the bespoke layouts, chosen from the editorial media library in /admin.
+ *
+ * Each key is one figure slot; the value is its admin label. An empty slot is a supported state:
+ * the layout keeps its built-in photograph. Alt text is not a slot field — it lives on the Media
+ * record (SEO_ARCHITECTURE.md §Image SEO), and the layout's own alt string is the fallback when
+ * the record has none. Captions stay in the text slots above.
+ */
+export const STRUCTURAL_IMAGES = {
+  home: {
+    who_we_are: "Who we are photograph",
+    custom_formulation: "Customized solutions photograph",
+    network: "Export network photograph",
+  },
+} as const satisfies Partial<Record<StructuralScope, Record<string, string>>>;
+
+export function structuralImageSlots(scope: string): Readonly<Record<string, string>> {
+  return (STRUCTURAL_IMAGES as Record<string, Record<string, string>>)[scope] ?? {};
+}

@@ -1,4 +1,5 @@
 import {
+  structuralImage,
   structuralList,
   structuralSection,
   type StructuralFields,
@@ -121,8 +122,14 @@ export function WhoWeAre({
 
         <div className="fs-story-right">
           <BrandedPhoto
-            src="/images/home/story-product-portfolio.webp"
-            alt={copy.text("industrial_lubricant_samples_and_packaging")}
+            {...(structuralImage(
+              editorial,
+              "who_we_are",
+              copy.text("industrial_lubricant_samples_and_packaging"),
+            ) ?? {
+              src: "/images/home/story-product-portfolio.webp",
+              alt: copy.text("industrial_lubricant_samples_and_packaging"),
+            })}
             caption={copy.text("caption_6")}
             className="fs-story-photo fs-rv"
             sizes="(max-width: 1180px) calc(100vw - 40px), 46vw"

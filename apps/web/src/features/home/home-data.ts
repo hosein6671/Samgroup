@@ -206,9 +206,9 @@ export const TRUST_INDICATORS: readonly Indicator[] = [
  *
  * `angle` places the station on the orbital plane; six families sit at 60° intervals.
  *
- * **`specs` names no standard.** Each row describes a property of the family — what it covers,
- * how it is packaged, what an enquiry needs — and never a specification a certificate would have
- * to back.
+ * **`supplied` and `enquiry` name no standard.** Each describes a property of the family — how
+ * it is packaged, what an enquiry needs — and never a specification a certificate would have to
+ * back.
  */
 export type Family = {
   readonly id: string;
@@ -229,8 +229,14 @@ export type Family = {
   readonly sub: string;
   readonly angle: number;
   readonly body: string;
-  readonly specs: readonly (readonly [string, string])[];
+  /** How the family is supplied: the detail panel's "Supplied as" row. Editable in /admin. */
+  readonly supplied: string;
+  /** What an enquiry needs: the detail panel's "Enquiry needs" row. Editable in /admin. */
+  readonly enquiry: string;
 };
+
+/** The detail panel's two row labels. The values are per family and editable in /admin. */
+export const FAMILY_SPEC_LABELS = { supplied: "Supplied as", enquiry: "Enquiry needs" } as const;
 
 export const FAMILIES: readonly Family[] = [
   {
@@ -242,10 +248,8 @@ export const FAMILIES: readonly Family[] = [
     sub: "Blending base stock",
     angle: -90,
     body: "Refined base fractions supplied to lubricant manufacturers and blenders, and used as the starting point for the formulations below.",
-    specs: [
-      ["Supplied as", "Bulk and flexitank"],
-      ["Enquiry needs", "Grade, volume, destination"],
-    ],
+    supplied: "Bulk and flexitank",
+    enquiry: "Grade, volume, destination",
   },
   {
     id: "add",
@@ -256,10 +260,8 @@ export const FAMILIES: readonly Family[] = [
     sub: "Performance components",
     angle: -30,
     body: "Additive components and packages for blenders formulating their own products, selected against the performance the finished lubricant has to reach.",
-    specs: [
-      ["Supplied as", "Drum and IBC"],
-      ["Enquiry needs", "Application and target property"],
-    ],
+    supplied: "Drum and IBC",
+    enquiry: "Application and target property",
   },
   {
     id: "eng",
@@ -270,10 +272,8 @@ export const FAMILIES: readonly Family[] = [
     sub: "Engine, transmission and driveline",
     angle: 30,
     body: "Finished lubricants for road transport and vehicle fleets, covering engine, transmission and driveline applications across viscosity grades.",
-    specs: [
-      ["Supplied as", "1 L to 208 L, and bulk"],
-      ["Enquiry needs", "Equipment and operating conditions"],
-    ],
+    supplied: "1 L to 208 L, and bulk",
+    enquiry: "Equipment and operating conditions",
   },
   {
     id: "ind",
@@ -284,10 +284,8 @@ export const FAMILIES: readonly Family[] = [
     sub: "Plant, hydraulics and gearing",
     angle: 90,
     body: "Hydraulic, gear, compressor and process fluids for manufacturing plant, chosen against the duty the equipment runs at rather than by name alone.",
-    specs: [
-      ["Supplied as", "Drum, IBC and bulk"],
-      ["Enquiry needs", "Equipment, duty and volume"],
-    ],
+    supplied: "Drum, IBC and bulk",
+    enquiry: "Equipment, duty and volume",
   },
   {
     id: "mar",
@@ -298,10 +296,8 @@ export const FAMILIES: readonly Family[] = [
     sub: "Vessel engines and systems",
     angle: 150,
     body: "Lubricants for marine engines and onboard systems, supplied against the vessel's requirement and the port the delivery has to reach.",
-    specs: [
-      ["Supplied as", "Drum and bulk"],
-      ["Enquiry needs", "Vessel, system and port"],
-    ],
+    supplied: "Drum and bulk",
+    enquiry: "Vessel, system and port",
   },
   {
     id: "cool",
@@ -312,10 +308,8 @@ export const FAMILIES: readonly Family[] = [
     sub: "Thermal management",
     angle: 210,
     body: "Antifreeze and coolant products for automotive and industrial cooling systems, supplied as concentrate or ready-to-use according to the requirement.",
-    specs: [
-      ["Supplied as", "Concentrate or ready-to-use"],
-      ["Enquiry needs", "System, climate and volume"],
-    ],
+    supplied: "Concentrate or ready-to-use",
+    enquiry: "System, climate and volume",
   },
 ];
 
@@ -443,7 +437,9 @@ export type Stage = {
   readonly n: string;
   readonly title: string;
   readonly body: string;
-  readonly facts: readonly (readonly [string, string])[];
+  /** The step's Input and Output rows. Plain strings so the /admin list can overlay them by name. */
+  readonly input: string;
+  readonly output: string;
   readonly art: string;
 };
 
@@ -453,65 +449,56 @@ const BRASS = 'stroke="rgba(195,154,78,.62)" stroke-width="1.3"';
 const NODE = 'fill="rgba(227,198,137,.75)"';
 const GRID = `<g ${HAIRLINE}><path d="M0 75h400M0 150h400M0 225h400M100 0v300M200 0v300M300 0v300"/></g>`;
 
+/** The two row labels under each step. The values are per step and editable in /admin. */
+export const STEP_FACT_LABELS = { input: "Input", output: "Output" } as const;
+
 export const CUSTOM_STEPS: readonly Stage[] = [
   {
     n: "01",
     title: "Understand",
     body: "We start from the technical, commercial and application requirements behind the request — what the product has to do, where it has to do it, and on what terms.",
-    facts: [
-      ["Input", "Application and duty"],
-      ["Output", "Stated requirement"],
-    ],
+    input: "Application and duty",
+    output: "Stated requirement",
     art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><path d="M120 190V110h60v80M220 190v-50h60v50"/><path d="M90 190h220"/></g><g ${BRASS}><path d="M150 110V70M250 140v-40"/></g><g ${NODE}><circle cx="150" cy="70" r="4"/><circle cx="250" cy="100" r="4"/></g></svg>`,
   },
   {
     n: "02",
     title: "Develop",
     body: "The technical team evaluates the requirement and either adapts an existing formulation or develops a new one to meet it.",
-    facts: [
-      ["Input", "Stated requirement"],
-      ["Output", "Candidate formulation"],
-    ],
+    input: "Stated requirement",
+    output: "Candidate formulation",
     art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><path d="M140 110l32-18 32 18v36l-32 18-32-18z"/><path d="M204 146l32-18 32 18v36l-32 18-32-18z"/><path d="M172 92V58M236 128V92l32-18"/></g><circle cx="205" cy="150" r="70" ${BRASS} stroke-dasharray="4 7"/><g ${NODE}><circle cx="172" cy="92" r="4"/><circle cx="236" cy="128" r="4"/><circle cx="268" cy="74" r="4"/></g></svg>`,
   },
   {
     n: "03",
     title: "Test",
     body: "The candidate product is tested and evaluated against the specification and performance criteria the requirement set out.",
-    facts: [
-      ["Input", "Candidate formulation"],
-      ["Output", "Measured result"],
-    ],
+    input: "Candidate formulation",
+    output: "Measured result",
     art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<path d="M20 220C80 214 110 182 160 152S250 92 300 80s60-8 80-6" ${LINE}/><path d="M20 244C80 240 110 214 160 190S250 136 300 124s60-6 80-4" ${BRASS} stroke-dasharray="5 8"/><g ${NODE}><circle cx="160" cy="152" r="5"/><circle cx="300" cy="80" r="5"/></g></svg>`,
   },
   {
     n: "04",
     title: "Approve",
     body: "Samples are reviewed and approved against the customer's own requirements before anything moves into production.",
-    facts: [
-      ["Input", "Sample and result"],
-      ["Output", "Customer approval"],
-    ],
+    input: "Sample and result",
+    output: "Customer approval",
     art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><rect x="120" y="70" width="160" height="160" rx="14"/><path d="M120 118h160"/></g><g ${BRASS} stroke-linecap="round"><path d="M158 168l24 24 60-60"/></g><g ${NODE}><circle cx="146" cy="94" r="4"/></g></svg>`,
   },
   {
     n: "05",
     title: "Produce",
     body: "The approved product moves into controlled production, made to the formulation that was signed off rather than to a near equivalent.",
-    facts: [
-      ["Input", "Approved formulation"],
-      ["Output", "Produced batch"],
-    ],
+    input: "Approved formulation",
+    output: "Produced batch",
     art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><rect x="60" y="120" width="66" height="110" rx="10"/><rect x="150" y="92" width="66" height="138" rx="10"/><rect x="240" y="142" width="66" height="88" rx="10"/></g><g ${BRASS} stroke-dasharray="6 9"><path d="M126 160h24M216 160h24"/></g><path d="M40 230h320" ${HAIRLINE}/><g ${NODE}><circle cx="93" cy="136" r="4"/><circle cx="183" cy="108" r="4"/></g></svg>`,
   },
   {
     n: "06",
     title: "Deliver",
     body: "The finished product is packaged and delivered on the supply and logistics terms agreed with the requirement.",
-    facts: [
-      ["Input", "Produced batch"],
-      ["Output", "Delivered order"],
-    ],
+    input: "Produced batch",
+    output: "Delivered order",
     art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><rect x="60" y="150" width="90" height="70" rx="8"/><rect x="164" y="150" width="90" height="70" rx="8"/><path d="M60 178h90M164 178h90"/></g><path d="M262 190C300 190 316 138 356 122" ${BRASS} stroke-dasharray="5 8"/><g ${NODE}><circle cx="356" cy="122" r="6"/></g></svg>`,
   },
 ];

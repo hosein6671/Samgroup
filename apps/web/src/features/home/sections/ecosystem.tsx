@@ -1,12 +1,16 @@
 "use client";
-import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, productFamilyByKey } from "@/features/site/site-routes";
 
-import { FAMILIES } from "../home-data";
+import { FAMILIES, FAMILY_SPEC_LABELS } from "../home-data";
 import { OrbitVisual } from "../visuals/orbit-visual";
 
 /**
@@ -46,11 +50,21 @@ export function Ecosystem({
 }: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
   const copy = structuralSection("home", "ecosystem", editorial);
 
-  const [active, setActive] = useState<string>(FAMILIES[0]?.id ?? "base");
+  /*
+   * Names, labels, summaries and the two detail rows are editable in /admin (the Home page's
+   * `families` list); id, key, code and orbit angle stay code-owned. Memoised on `editorial`
+   * because OrbitVisual rebuilds its scene whenever the `families` reference changes.
+   */
+  const families = useMemo(() => structuralList(editorial, "families", FAMILIES), [editorial]);
 
-  const current = FAMILIES.find((f) => f.id === active) ?? FAMILIES[0];
-  const index = FAMILIES.findIndex((f) => f.id === active);
+  const [active, setActive] = useState<string>(families[0]?.id ?? "base");
+
+  const current = families.find((f) => f.id === active) ?? families[0];
+  const index = families.findIndex((f) => f.id === active);
   const category = current ? productFamilyByKey(current.key) : undefined;
+
+  /* Every family removed in /admin: no orbit, tabs or panel to show, so the section steps aside. */
+  if (families.length === 0) return null;
 
   return (
     <section className="fs-sec fs-eco" id="products" data-surface="midnight">
@@ -68,7 +82,7 @@ export function Ecosystem({
 
         <div className="fs-eco-stage">
           <div className="fs-eco-canvas">
-            <OrbitVisual families={FAMILIES} activeId={active} onSelect={setActive} />
+            <OrbitVisual families={families} activeId={active} onSelect={setActive} />
           </div>
 
           {/*
@@ -89,7 +103,7 @@ export function Ecosystem({
           <div className="fs-eco-side">
             {/* The tab strip is the non-moving route to the same content. */}
             <div className="fs-eco-tabs" role="tablist" aria-label="Product families">
-              {FAMILIES.map((f) => (
+              {families.map((f) => (
                 <button
                   key={f.id}
                   type="button"
@@ -113,12 +127,14 @@ export function Ecosystem({
                   <h3>{current.name}</h3>
                   <p>{current.body}</p>
                   <ul className="fs-eco-specs">
-                    {current.specs.map(([k, v]) => (
-                      <li key={k}>
-                        <span>{k}</span>
-                        <span>{v}</span>
-                      </li>
-                    ))}
+                    <li>
+                      <span>{FAMILY_SPEC_LABELS.supplied}</span>
+                      <span>{current.supplied}</span>
+                    </li>
+                    <li>
+                      <span>{FAMILY_SPEC_LABELS.enquiry}</span>
+                      <span>{current.enquiry}</span>
+                    </li>
                   </ul>
                   {category && (
                     <a

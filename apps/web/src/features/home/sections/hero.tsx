@@ -1,4 +1,8 @@
-import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
+import {
+  structuralList,
+  structuralSection,
+  type StructuralFields,
+} from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
 import { CatalogueIcon, EnquiryRouteIcon, FamiliesIcon } from "@/features/site/icons";
@@ -37,6 +41,8 @@ export function Hero({
   editorial,
 }: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
   const copy = structuralSection("home", "hero", editorial);
+  /* Editable in /admin. An emptied list hides the panel rather than leaving a heading with no rows. */
+  const facts = structuralList(editorial, "hero_facts", HERO_SPEC);
 
   return (
     <section className="fs-hero" id="top" data-surface="midnight">
@@ -97,30 +103,32 @@ export function Hero({
           <aside className="fs-hero-side fs-rv-l">
             <ProductRouteSchematic />
 
-            <div className="fs-hero-spec">
-              {/*
-               * `h2`, not the prototype's `h4`. The panel sits directly after the `h1`, and
-               * jumping two levels breaks the document outline that screen-reader users
-               * navigate by. The visual is unchanged — size lives on the CSS class, not on the
-               * tag, which is exactly the role/element separation the design system is built on.
-               */}
-              <h2>{copy.text("portfolio_at_a_glance")}</h2>
-              <dl style={{ margin: 0 }}>
-                {HERO_SPEC.map((row) => {
-                  const Glyph = row.icon ? SPEC_GLYPHS[row.icon] : null;
+            {facts.length > 0 && (
+              <div className="fs-hero-spec">
+                {/*
+                 * `h2`, not the prototype's `h4`. The panel sits directly after the `h1`, and
+                 * jumping two levels breaks the document outline that screen-reader users
+                 * navigate by. The visual is unchanged — size lives on the CSS class, not on the
+                 * tag, which is exactly the role/element separation the design system is built on.
+                 */}
+                <h2>{copy.text("portfolio_at_a_glance")}</h2>
+                <dl style={{ margin: 0 }}>
+                  {facts.map((row, i) => {
+                    const Glyph = row.icon ? SPEC_GLYPHS[row.icon] : null;
 
-                  return (
-                    <div className="fs-spec-row" key={row.label}>
-                      <dt>
-                        {Glyph ? <Glyph size="sm" /> : null}
-                        {row.label}
-                      </dt>
-                      <dd className="fs-tnum">{row.value}</dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            </div>
+                    return (
+                      <div className="fs-spec-row" key={i}>
+                        <dt>
+                          {Glyph ? <Glyph size="sm" /> : null}
+                          {row.label}
+                        </dt>
+                        <dd className="fs-tnum">{row.value}</dd>
+                      </div>
+                    );
+                  })}
+                </dl>
+              </div>
+            )}
           </aside>
         </div>
       </div>

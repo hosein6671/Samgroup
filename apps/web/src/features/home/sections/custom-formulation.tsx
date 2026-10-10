@@ -1,5 +1,6 @@
 "use client";
 import {
+  structuralImage,
   structuralList,
   structuralSection,
   type StructuralFields,
@@ -11,7 +12,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Arrow, LogoMark } from "@/features/site/logo-mark";
 import { localeHref } from "@/features/site/site-routes";
 
-import { CUSTOM_CTA, CUSTOM_STEPS } from "../home-data";
+import { CUSTOM_CTA, CUSTOM_STEPS, STEP_FACT_LABELS } from "../home-data";
 
 /**
  * 7 · Custom Formulation Highlight — the workbook's seventh Home segment.
@@ -231,8 +232,14 @@ export function CustomFormulation({
 
           <figure className="fs-jrny-photo fs-rv">
             <Image
-              src="/images/home/journey-requirement-to-supply.webp"
-              alt={copy.text("oil_sample_review_beside_packaged")}
+              {...(structuralImage(
+                editorial,
+                "custom_formulation",
+                copy.text("oil_sample_review_beside_packaged"),
+              ) ?? {
+                src: "/images/home/journey-requirement-to-supply.webp",
+                alt: copy.text("oil_sample_review_beside_packaged"),
+              })}
               fill
               sizes="(max-width: 900px) calc(100vw - 40px), 54vw"
             />
@@ -265,11 +272,12 @@ export function CustomFormulation({
                 <h3>{stage.title}</h3>
                 <p>{stage.body}</p>
                 <div className="fs-jstep-list">
-                  {stage.facts.map(([value, label]) => (
-                    <span key={label}>
-                      {value} · {label}
-                    </span>
-                  ))}
+                  <span>
+                    {STEP_FACT_LABELS.input} · {stage.input}
+                  </span>
+                  <span>
+                    {STEP_FACT_LABELS.output} · {stage.output}
+                  </span>
                 </div>
               </div>
 
