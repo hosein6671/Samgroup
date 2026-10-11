@@ -28,3 +28,7 @@ pnpm-lock.yaml
 
 # Binary source material (see docs/PROJECT_HANDOFF.md §3 "Source material")
 *.xlsx
+
+# Design prototypes: standalone HTML mock-ups, some with photographs embedded as base64.
+# Not application code; reformatting them would only churn multi-megabyte diffs.
+design-concepts/

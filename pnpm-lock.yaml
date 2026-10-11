@@ -136,6 +136,9 @@ importers:
       '@types/sanitize-html':
         specifier: 2.16.1
         version: 2.16.1
+      express:
+        specifier: 5.2.1
+        version: 5.2.1(supports-color@8.1.1)
       jest:
         specifier: 30.4.2
         version: 30.4.2(@types/node@24.13.3)(babel-plugin-macros@3.1.0)(esbuild-register@3.6.0(esbuild@0.28.1)(supports-color@8.1.1))(supports-color@8.1.1)
