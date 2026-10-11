@@ -37,6 +37,14 @@ export const STRUCTURAL_DEFAULTS = {
         "A range built for lubricant manufacturers, industrial companies and specialised industries. Select a family to see what it covers and what an enquiry needs.",
       family_0: "Family 0",
       explore_this_range: "Explore this range",
+      portfolio_label: "Product portfolio",
+      families_count: "Six families",
+      enquiry_route: "One enquiry route",
+      supplied_as: "Supplied as",
+      enquiry_needs: "Enquiry needs",
+      families_tablist_label: "Product families",
+      show_details: "show details",
+      view_range: "View",
     },
     advantages: {
       why_businesses_choose_sam_group: "Why businesses choose SAM Group",
@@ -61,6 +69,8 @@ export const STRUCTURAL_DEFAULTS = {
       step: "STEP",
       primary_cta: "Request a custom solution",
       secondary_cta: "Talk to our team",
+      input_label: "Input",
+      output_label: "Output",
     },
     network: {
       export_enquiry_and_logistics_planning: "Export enquiry and logistics planning",
@@ -76,6 +86,10 @@ export const STRUCTURAL_DEFAULTS = {
       export_destination: "Export destination",
       route_drawn_to_destination: "Route drawn to destination",
       caption_10: "Product packaging and export preparation",
+      hover_verb: "Hover",
+      tap_verb: "Tap",
+      map_description:
+        "World map marking the regions SAM Group exports to: Türkiye, the countries around India, and Africa. Every destination is listed as text beneath the map.",
     },
     insights: {
       sam_group_insights: "SAM Group insights",
@@ -205,7 +219,18 @@ export type StructuralFields = Record<string, unknown>;
  */
 export const STRUCTURAL_IMAGES = {
   home: {
-    who_we_are: "Who we are photograph",
+    hero_shot_1: "Hero reel shot 1 (Base Oils)",
+    hero_shot_2: "Hero reel shot 2 (Engine Oils)",
+    hero_shot_3: "Hero reel shot 3 (Industrial)",
+    hero_shot_4: "Hero reel shot 4 (Marine)",
+    who_we_are: "Who we are photograph 1 (We produce)",
+    who_we_are_2: "Who we are photograph 2 (We formulate)",
+    who_we_are_3: "Who we are photograph 3 (We supply)",
+    industry_1: "Industries photograph 1 (Automotive & Transportation)",
+    industry_2: "Industries photograph 2 (Industrial Manufacturing)",
+    industry_3: "Industries photograph 3 (Lubricant Manufacturers)",
+    industry_4: "Industries photograph 4 (Petrochemical Industry)",
+    industry_5: "Industries photograph 5 (Packaging & Specialty Industries)",
     custom_formulation: "Customized solutions photograph",
     network: "Export network photograph",
   },

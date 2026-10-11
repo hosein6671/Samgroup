@@ -6,7 +6,6 @@ import "./flagship.css";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
-import { BootCurtain, PointerRing, ScrollProgress } from "./chrome/site-chrome";
 import { RevealEngine } from "./motion/reveal-engine";
 import { Advantages } from "./sections/advantages";
 import { CustomFormulation } from "./sections/custom-formulation";
@@ -90,9 +89,6 @@ export function HomeExperience({
 }): ReactNode {
   return (
     <div id="flagship-root" data-brand="flagship">
-      <BootCurtain />
-      <ScrollProgress />
-      <PointerRing />
       <RevealEngine />
 
       <SiteNav locale={locale} locales={locales} />

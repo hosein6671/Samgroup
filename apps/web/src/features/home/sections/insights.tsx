@@ -1,44 +1,54 @@
 import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
-import "../../blog/insights.css";
-
-import { InsightCard } from "@/features/blog/insight-card";
+import { PublishedDate } from "@/features/blog/published-date";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
+
+import { PhotoBrand } from "../branded-photo";
 
 import type { BlogPostListItemResponse } from "@sam-group/types";
 
 /**
- * 8 · Editorial insights — the workbook's "Latest News / Insights" segment.
+ * 8 · Insights — the newest article large, the next two small beside it.
  *
- * ── History: the articles were invented, then removed, then made real ───────
+ * The posts are the real ones: `app/[locale]/page.tsx` fetches the newest three published articles
+ * and hands them down as `recentPosts`, already resolved, so this stays a Server Component. Each
+ * post's photograph, category, date and title come from the blog Admin; the heading, lead and
+ * action come from the Home page's `insights` text slots.
  *
- * This section was originally a magazine well of entirely fabricated articles (a specific,
- * dated market claim attributed to nobody — the kind of invented fact CLAUDE.md §4 forbids
- * outright) and was cut down to a CTA-only heading for exactly that reason. It stayed CTA-only
- * for a while after that: `GET /blog/posts` existed and could have been wired in, but doing so
- * from this leaf component would have meant making it async, threading `locale` down from the
- * route, and adding a Suspense boundary — judged a homepage/blog integration, not a tiny reuse,
- * and out of scope for the gate that made the cut.
+ * **The lead article's text sits on its photograph.** A scrim runs from transparent to near-opaque
+ * ink behind the text, so any photograph an editor uploads keeps white text readable. The lead
+ * photograph carries the same SAM GROUP badge as the site's other photographs, in its top corner,
+ * clear of the text at the bottom; the small thumbnails stay plain.
  *
- * That integration is now done, at the route: `app/[locale]/page.tsx` fetches the newest
- * published posts (`findRecentPosts`, the same best-effort pattern `insights/[slug]/page.tsx`
- * uses for its "Recent articles" sidebar) and hands them down as `recentPosts`, already resolved
- * by the time this component runs — no fetch, no Suspense boundary, and no client JavaScript
- * needed here. Every card is `InsightCard`, the same component the real Insights index renders,
- * so a post looks identical whether it is read here or there.
- *
- * `recentPosts` empty — no posts published yet, or the blog service did not answer — renders the
- * CTA alone, same as before this integration existed. No placeholder card, no fabricated row.
+ * The layout is always the design's: the lead article on the left, the side column on the right.
+ * With fewer than three published articles the free space in the side column becomes one "Explore
+ * insights" card linking to the Insights page; none at all leaves the heading and its action, the
+ * same as before any article existed. No placeholder article, no fabricated row.
  */
-/**
- * `locale` is the route's own locale segment, threaded down from `HomeExperience`.
- *
- * The one action on this section is a structural route, and it was rendered raw — so from `/fa`
- * it left the reader's language to `middleware.ts` to guess. `ROUTES.insights` stays locale-less;
- * `localeHref` applies the prefix here, as it does in the chrome.
- */
+const SIDE_COUNT = 2;
+
+function articleHref(locale: string, post: BlogPostListItemResponse): string {
+  return localeHref(locale, `${ROUTES.insights}/${post.slug}`);
+}
+
+function Meta({
+  post,
+  locale,
+}: {
+  readonly post: BlogPostListItemResponse;
+  readonly locale: string;
+}): ReactNode {
+  return (
+    <p className="fs-ins-meta">
+      <b>{post.category.name}</b>
+      <PublishedDate iso={post.publishedAt} locale={locale} />
+    </p>
+  );
+}
+
 export function Insights({
   locale,
   editorial,
@@ -49,30 +59,75 @@ export function Insights({
   readonly recentPosts: readonly BlogPostListItemResponse[];
 }): ReactNode {
   const copy = structuralSection("home", "insights", editorial);
+  const [lead, ...rest] = recentPosts;
+  const side = rest.slice(0, SIDE_COUNT);
 
   return (
     <section className="fs-sec fs-insights" id="insights" data-surface="light">
       <div className="fs-wrap">
-        <div className="fs-ins-head fs-section-head fs-rv">
+        <div className="fs-ins-top">
           <div>
-            <div className="fs-eyebrow">{copy.text("sam_group_insights")}</div>
-            <h2 className="fs-d2" style={{ marginTop: 22, maxWidth: "20ch" }}>
-              {copy.text("practical_knowledge_for_better_product")}
-            </h2>
-            <p className="fs-lead fs-ins-lede">{copy.text("read_clear_guidance_on_product")}</p>
+            <p className="fs-sr">{copy.text("sam_group_insights")}</p>
+            <h2 className="fs-d2">{copy.text("practical_knowledge_for_better_product")}</h2>
+            <p className="fs-lead">{copy.text("read_clear_guidance_on_product")}</p>
           </div>
-
           <a href={localeHref(locale, ROUTES.insights)} className="fs-btn fs-btn--outline">
             {copy.text("explore_insights")}
             <Arrow />
           </a>
         </div>
 
-        {recentPosts.length > 0 && (
-          <div className="in-grid reveal-stagger">
-            {recentPosts.map((post) => (
-              <InsightCard key={post.id} post={post} locale={locale} />
-            ))}
+        {lead && (
+          <div className="fs-ins-grid">
+            <a className="fs-ins-lead" href={articleHref(locale, lead)}>
+              <div
+                className="fs-photo fs-ins-photo"
+                data-image={lead.featuredImage ? "true" : "false"}
+              >
+                {lead.featuredImage && (
+                  <Image
+                    src={lead.featuredImage.url}
+                    alt={lead.featuredImage.altText ?? ""}
+                    fill
+                    sizes="(max-width: 960px) calc(100vw - 40px), 58vw"
+                  />
+                )}
+                <PhotoBrand />
+                <div className="fs-ins-overlay">
+                  <Meta post={lead} locale={locale} />
+                  <h3>{lead.title}</h3>
+                </div>
+              </div>
+            </a>
+
+            <div className="fs-ins-side" data-posts={side.length}>
+              {side.map((post) => (
+                <a className="fs-ins-mini" href={articleHref(locale, post)} key={post.id}>
+                  {post.featuredImage && (
+                    <div className="fs-ins-thumb">
+                      <Image
+                        src={post.featuredImage.url}
+                        alt={post.featuredImage.altText ?? ""}
+                        fill
+                        sizes="(max-width: 960px) 38vw, 200px"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <Meta post={post} locale={locale} />
+                    <h3>{post.title}</h3>
+                  </div>
+                </a>
+              ))}
+              {/* Fewer than three articles: the free space becomes the way to the rest, never a
+                  placeholder article. */}
+              {side.length < SIDE_COUNT && (
+                <a className="fs-ins-more" href={localeHref(locale, ROUTES.insights)}>
+                  <span>{copy.text("explore_insights")}</span>
+                  <Arrow size={22} />
+                </a>
+              )}
+            </div>
           </div>
         )}
       </div>

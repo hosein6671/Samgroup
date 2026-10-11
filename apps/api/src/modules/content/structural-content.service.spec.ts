@@ -3,6 +3,10 @@ import { structuralLists } from "@sam-group/types/structural-lists";
 import { StructuralContentService } from "./structural-content.service";
 import { PayloadClient } from "./payload.client";
 const en = { code: "en", defaultCode: "en", isDefault: true };
+/** Every Home photograph slot, empty: the shape the projection always returns. */
+const emptySlots = Object.fromEntries(
+  Object.keys(structuralImageSlots("home")).map((k) => [k, null]),
+);
 describe("structural content publication boundary", () => {
   const findGlobal = jest.fn();
   const service = new StructuralContentService({ findGlobal } as unknown as PayloadClient);
@@ -53,9 +57,8 @@ describe("structural content publication boundary", () => {
     const result = await service.read("home", en);
     const content = result.response.content as { fields: Record<string, unknown> };
     expect(content.fields.images).toEqual({
+      ...emptySlots,
       who_we_are: { url: "/cms-media/who.webp", alt: "Plant floor", width: 1600, height: 900 },
-      custom_formulation: null,
-      network: null,
     });
     expect(JSON.stringify(result)).not.toContain("private-prefix");
   });
@@ -68,11 +71,7 @@ describe("structural content publication boundary", () => {
     const content = (await service.read("home", en)).response.content as {
       fields: Record<string, unknown>;
     };
-    expect(content.fields.images).toEqual({
-      who_we_are: null,
-      custom_formulation: null,
-      network: null,
-    });
+    expect(content.fields.images).toEqual(emptySlots);
   });
   it("does not expose drafts or incomplete records", async () => {
     findGlobal.mockResolvedValue({

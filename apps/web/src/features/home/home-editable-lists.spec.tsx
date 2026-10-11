@@ -1,5 +1,6 @@
+import { STRUCTURAL_IMAGES } from "@sam-group/types/structural-content";
 import { STRUCTURAL_LISTS } from "@sam-group/types/structural-lists";
-import type { StructuralFields } from "@sam-group/types";
+import type { BlogPostListItemResponse, StructuralFields } from "@sam-group/types";
 import { describe, expect, it, vi } from "vitest";
 
 import { structuralEditorDefaults } from "@/features/content/structural-copy";
@@ -9,6 +10,8 @@ import { CUSTOM_STEPS, FAMILIES, HERO_SPEC, HUBS, NETWORK_STATS } from "./home-d
 import { CustomFormulation } from "./sections/custom-formulation";
 import { Ecosystem } from "./sections/ecosystem";
 import { Hero } from "./sections/hero";
+import { Industries } from "./sections/industries";
+import { Insights } from "./sections/insights";
 import { Network } from "./sections/network";
 import { WhoWeAre } from "./sections/who-we-are";
 
@@ -97,9 +100,11 @@ describe("reordering, removing and emptying lists", () => {
     expect(html).toContain("/en/products/antifreeze-coolants");
   });
 
-  it("hides the hero facts panel when every fact is removed", () => {
+  it("hides the hero facts when every fact is removed, and keeps the rest of the player bar", () => {
+    expect(renderHtml(<Hero locale="en" />)).toContain("fs-cine-facts");
     const html = renderHtml(<Hero locale="en" editorial={editorial({ hero_facts: [] })} />);
-    expect(html).not.toContain("fs-hero-spec");
+    expect(html).not.toContain("fs-cine-facts");
+    expect(html).toContain("fs-cine-explore");
   });
 
   it("hides the stats row when every stat is removed", () => {
@@ -152,6 +157,8 @@ describe("photographs chosen in /admin", () => {
       ...editorial({}),
       images: {
         who_we_are: photo("Who alt"),
+        who_we_are_2: photo("Who alt 2"),
+        who_we_are_3: photo("Who alt 3"),
         custom_formulation: photo("Custom alt"),
         network: photo("Network alt"),
       },
@@ -165,9 +172,12 @@ describe("photographs chosen in /admin", () => {
     expect(html).toContain('alt="Who alt"');
     expect(html).toContain('alt="Custom alt"');
     expect(html).toContain('alt="Network alt"');
+    expect(html).toContain('alt="Who alt 3"');
     expect(html).not.toContain("story-product-portfolio");
-    expect(html).not.toContain("network-export-logistics");
+    expect(html).not.toContain("lab-refrigerator-compressor-oil");
     expect(html).not.toContain("journey-requirement-to-supply");
+    expect(html).not.toContain("network-export-logistics");
+    expect(html).not.toContain("customized-solutions-requirement-review");
   });
 
   it("falls back to the layout's alt when the Media record has none", () => {
@@ -187,7 +197,111 @@ describe("photographs chosen in /admin", () => {
 
   it("keeps the current picks in the admin form", () => {
     const form = structuralEditorDefaults("home", { images: { network: 5 } });
-    expect(form.images).toEqual({ who_we_are: null, custom_formulation: null, network: 5 });
+    expect(form.images).toMatchObject({ who_we_are: null, custom_formulation: null, network: 5 });
+    // Every slot the Home page declares is in the form, so a pick is never dropped on save.
+    expect(Object.keys(form.images as object).sort()).toEqual(
+      Object.keys(STRUCTURAL_IMAGES.home).sort(),
+    );
     expect(structuralEditorDefaults("header", {}).images).toBeUndefined();
+  });
+});
+
+describe("Insights: the newest article large, the next two small", () => {
+  const post = (n: number, image = true): BlogPostListItemResponse =>
+    ({
+      id: `post-${n}`,
+      title: `Article ${n}`,
+      slug: `article-${n}`,
+      publishedAt: "2026-09-16T00:00:00.000Z",
+      updatedAt: "2026-09-16T00:00:00.000Z",
+      category: { name: "Industry Insights", slug: "industry-insights" },
+      featuredImage: image ? { url: `/media/cms/post-${n}.webp`, altText: `Photo ${n}` } : null,
+    }) as BlogPostListItemResponse;
+
+  it("sets the lead article on its photograph, with its text over the scrim and the SAM GROUP badge", () => {
+    const html = renderHtml(<Insights locale="en" recentPosts={[post(1)]} />);
+    // The design's layout even with one article: the free side column becomes the way to the rest.
+    expect(html).toContain('class="fs-ins-side" data-posts="0"');
+    expect(html).toContain('class="fs-ins-more" href="/en/insights"');
+    expect(html).toContain(
+      '<div class="fs-ins-overlay"><p class="fs-ins-meta"><b>Industry Insights</b>',
+    );
+    expect(html).toContain("Article 1");
+    expect(html).toContain('href="/en/insights/article-1"');
+    // The badge sits in the photograph's top corner, before the text block at the bottom.
+    expect(html.match(/class="fs-photo-brand"/g)).toHaveLength(1);
+    expect(html.indexOf("fs-photo-brand")).toBeLessThan(html.indexOf("fs-ins-overlay"));
+  });
+
+  it("puts the next two beside it and never more", () => {
+    const html = renderHtml(
+      <Insights locale="en" recentPosts={[post(1), post(2), post(3), post(4)]} />,
+    );
+    expect(html.match(/class="fs-ins-mini"/g)).toHaveLength(2);
+    expect(html).not.toContain("fs-ins-more");
+    expect(html).not.toContain("Article 4");
+    // Only the lead photograph carries the badge; the small thumbnails stay plain.
+    expect(html.match(/class="fs-photo-brand"/g)).toHaveLength(1);
+  });
+
+  it("keeps the text readable when an article has no photograph", () => {
+    const html = renderHtml(
+      <Insights locale="en" recentPosts={[post(1, false), post(2, false)]} />,
+    );
+    expect(html).toContain('data-image="false"');
+    expect(html).toContain("Article 1");
+    expect(html).not.toContain("fs-ins-thumb");
+    // Two articles: one small row, and the card takes the second slot.
+    expect(html).toContain('data-posts="1"');
+    expect(html).toContain("fs-ins-more");
+  });
+
+  it("shows only the heading and its action when nothing is published", () => {
+    const html = renderHtml(<Insights locale="en" recentPosts={[]} />);
+    expect(html).not.toContain("fs-ins-grid");
+    expect(html).toContain('href="/en/insights"');
+  });
+});
+
+describe("the Concept 03 sections read their photographs and names from /admin", () => {
+  const photo = { url: "/media/cms/picked.webp", alt: "Picked alt", width: 1600, height: 900 };
+
+  it("plays the edited shot names and the picked shot photograph in the hero reel", () => {
+    const html = renderHtml(
+      <Hero
+        locale="en"
+        editorial={
+          {
+            ...editorial({ hero_shots: [{ source: "1", name: "Edited shot" }] }),
+            images: { hero_shot_2: photo },
+          } as unknown as StructuralFields
+        }
+      />,
+    );
+    // One shot left: the reel holds still, so no timeline is drawn, and its photograph is the pick.
+    expect(html).toContain("picked.webp");
+    expect(html).not.toContain("base-oils-lab-samples");
+    expect(html).not.toContain("fs-cine-reel-bars");
+  });
+
+  it("shows the default four-shot reel with its names when nothing is edited", () => {
+    const html = renderHtml(<Hero locale="en" />);
+    expect(html.match(/class="fs-cine-shot"/g)).toHaveLength(4);
+    expect(html).toContain("Base Oils");
+  });
+
+  it("uses the Who We Are and Industries photograph slots, each falling back on its own", () => {
+    const fields = {
+      ...editorial({}),
+      images: { who_we_are_2: photo, industry_3: photo },
+    } as unknown as StructuralFields;
+    const who = renderHtml(<WhoWeAre locale="en" editorial={fields} />);
+    expect(who).toContain("picked.webp");
+    expect(who).toContain("story-product-portfolio");
+    expect(who).not.toContain("lab-refrigerator-compressor-oil");
+    const industries = renderHtml(<Industries editorial={fields} />);
+    expect(industries).toContain("picked.webp");
+    expect(industries).not.toContain("lubricant-additives-lab-samples");
+    expect(industries.match(/class="fs-acc-item"/g)?.length).toBe(5);
   });
 });

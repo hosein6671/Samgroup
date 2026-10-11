@@ -69,13 +69,22 @@ const SPEED = 0.00085;
 /** Stage width below which the reference two-ring geometry can no longer clear the core. */
 const COMPACT_AT = 520;
 
+/** The words the visual itself shows, all editable in /admin (the Home page's `ecosystem` slots). */
+export type OrbitLabels = {
+  readonly portfolio: string;
+  readonly count: string;
+  readonly route: string;
+  readonly showDetails: string;
+};
+
 export type OrbitVisualProps = {
   readonly families: readonly Family[];
   readonly activeId: string;
   readonly onSelect: (id: string) => void;
+  readonly labels: OrbitLabels;
 };
 
-export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps): ReactNode {
+export function OrbitVisual({ families, activeId, onSelect, labels }: OrbitVisualProps): ReactNode {
   const wrapRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const ring0Ref = useRef<SVGCircleElement>(null);
@@ -248,9 +257,9 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
        * "The base stock" states what the centre is without classifying it.
        */}
       <div className="fs-core">
-        <span className="k">Product portfolio</span>
-        <span className="t">Six families</span>
-        <span className="s">One enquiry route</span>
+        <span className="k">{labels.portfolio}</span>
+        <span className="t">{labels.count}</span>
+        <span className="s">{labels.route}</span>
       </div>
 
       {families.map((f, i) => (
@@ -259,7 +268,7 @@ export function OrbitVisual({ families, activeId, onSelect }: OrbitVisualProps):
           type="button"
           className="fs-orbit-node"
           data-on={f.id === activeId || undefined}
-          aria-label={`${f.short} — show details`}
+          aria-label={`${f.short} — ${labels.showDetails}`}
           aria-pressed={f.id === activeId}
           ref={(el) => {
             nodeRefs.current[i] = el;

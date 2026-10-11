@@ -73,13 +73,15 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
    * asked. Re-evaluated live, so plugging in a mouse changes the wording rather than leaving
    * it lying.
    */
-  const [verb, setVerb] = useState("Hover");
+  const [coarse, setCoarse] = useState(false);
+  // The two verbs are editable in /admin (`hover_verb`, `tap_verb`); which one shows is the device's.
+  const verb = coarse ? copy.text("tap_verb") : copy.text("hover_verb");
   useEffect(() => {
-    const coarse = window.matchMedia("(pointer: coarse)");
-    const apply = (): void => setVerb(coarse.matches ? "Tap" : "Hover");
+    const query = window.matchMedia("(pointer: coarse)");
+    const apply = (): void => setCoarse(query.matches);
     apply();
-    coarse.addEventListener("change", apply);
-    return () => coarse.removeEventListener("change", apply);
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
   }, []);
 
   /*
@@ -322,7 +324,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
              * destinations are now the three regions the workbook's `Notes` sheet names, so the
              * label states what the map shows instead of apologising for it.
              */
-            aria-label="World map marking the regions SAM Group exports to: Türkiye, the countries around India, and Africa. Every destination is listed as text beneath the map."
+            aria-label={copy.text("map_description")}
             role="img"
           />
 

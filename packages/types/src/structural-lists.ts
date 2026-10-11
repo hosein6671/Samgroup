@@ -208,6 +208,12 @@ export const STRUCTURAL_LISTS = {
         output: "Delivered order",
       },
     ],
+    hero_shots: [
+      { source: "0", name: "Base Oils" },
+      { source: "1", name: "Engine Oils" },
+      { source: "2", name: "Industrial" },
+      { source: "3", name: "Marine" },
+    ],
     hero_facts: [
       {
         source: "0",

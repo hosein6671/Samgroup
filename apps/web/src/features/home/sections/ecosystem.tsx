@@ -10,7 +10,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, productFamilyByKey } from "@/features/site/site-routes";
 
-import { FAMILIES, FAMILY_SPEC_LABELS } from "../home-data";
+import { FAMILIES } from "../home-data";
 import { OrbitVisual } from "../visuals/orbit-visual";
 
 /**
@@ -82,7 +82,17 @@ export function Ecosystem({
 
         <div className="fs-eco-stage">
           <div className="fs-eco-canvas">
-            <OrbitVisual families={families} activeId={active} onSelect={setActive} />
+            <OrbitVisual
+              families={families}
+              activeId={active}
+              onSelect={setActive}
+              labels={{
+                portfolio: copy.text("portfolio_label"),
+                count: copy.text("families_count"),
+                route: copy.text("enquiry_route"),
+                showDetails: copy.text("show_details"),
+              }}
+            />
           </div>
 
           {/*
@@ -102,7 +112,11 @@ export function Ecosystem({
            */}
           <div className="fs-eco-side">
             {/* The tab strip is the non-moving route to the same content. */}
-            <div className="fs-eco-tabs" role="tablist" aria-label="Product families">
+            <div
+              className="fs-eco-tabs"
+              role="tablist"
+              aria-label={copy.text("families_tablist_label")}
+            >
               {families.map((f) => (
                 <button
                   key={f.id}
@@ -128,11 +142,11 @@ export function Ecosystem({
                   <p>{current.body}</p>
                   <ul className="fs-eco-specs">
                     <li>
-                      <span>{FAMILY_SPEC_LABELS.supplied}</span>
+                      <span>{copy.text("supplied_as")}</span>
                       <span>{current.supplied}</span>
                     </li>
                     <li>
-                      <span>{FAMILY_SPEC_LABELS.enquiry}</span>
+                      <span>{copy.text("enquiry_needs")}</span>
                       <span>{current.enquiry}</span>
                     </li>
                   </ul>
@@ -141,7 +155,7 @@ export function Ecosystem({
                       href={localeHref(locale, category.href)}
                       className="fs-btn fs-btn--glass"
                       style={{ marginTop: 24, minHeight: 46 }}
-                      aria-label={`View ${category.label}`}
+                      aria-label={`${copy.text("view_range")} ${category.label}`}
                     >
                       {copy.text("explore_this_range")}
                       <Arrow size={14} />

@@ -79,16 +79,20 @@ describe("the homepage body addresses every route in the reader's locale", () =>
   });
 
   it("addresses a recent post's card in this locale too, alongside the editorial action", () => {
+    // With one article the side column's free space carries a second way to the index.
     expect(hrefsIn(renderHtml(<Insights locale="fa" recentPosts={[RECENT_POST]} />))).toEqual([
       "/fa/insights",
       "/fa/insights/specification-first-sourcing",
+      "/fa/insights",
     ]);
   });
 
   it("sends the hero's two actions to Products and to Request a Quote", () => {
+    // The third link is the player bar's way into the page, an in-page fragment (see below).
     expect(hrefsIn(renderHtml(<Hero locale="fa" />))).toEqual([
       "/fa/products",
       "/fa/contact-us/request-a-quote",
+      "#who-we-are",
     ]);
   });
 
@@ -142,12 +146,12 @@ describe("the fixture stays locale-less", () => {
 
 describe("the same-page fragments survive, and still land somewhere", () => {
   /*
-   * `#partnership` was the body's only in-page action and it went with that section. Nothing
-   * replaced it: every action on the realigned page goes to another route, which is what makes the
-   * CTA flow legible after the closing section was removed.
+   * The only in-page action is the hero player bar's "Explore the SAM Group portfolio", which
+   * moves the reader down to Who We Are. A fragment needs no locale, and it must land on an id the
+   * page renders (the next test).
    */
-  it("emits no in-page fragment from the body", () => {
-    expect(hrefsIn(homeBody("fa")).filter((href) => href.startsWith("#"))).toEqual([]);
+  it("emits exactly one in-page fragment from the body: the hero's way into the page", () => {
+    expect(hrefsIn(homeBody("fa")).filter((href) => href.startsWith("#"))).toEqual(["#who-we-are"]);
   });
 
   it("renders an id for every fragment the body links to", () => {

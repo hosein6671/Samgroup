@@ -1498,6 +1498,14 @@ export interface Home {
     a_range_built_for_lubricant: string;
     family_0: string;
     explore_this_range: string;
+    portfolio_label: string;
+    families_count: string;
+    enquiry_route: string;
+    supplied_as: string;
+    enquiry_needs: string;
+    families_tablist_label: string;
+    show_details: string;
+    view_range: string;
   };
   advantages: {
     why_businesses_choose_sam_group: string;
@@ -1518,6 +1526,8 @@ export interface Home {
     step: string;
     primary_cta: string;
     secondary_cta: string;
+    input_label: string;
+    output_label: string;
   };
   network: {
     export_enquiry_and_logistics_planning: string;
@@ -1531,12 +1541,73 @@ export interface Home {
     export_destination: string;
     route_drawn_to_destination: string;
     caption_10: string;
+    hover_verb: string;
+    tap_verb: string;
+    map_description: string;
   };
   insights: {
     sam_group_insights: string;
     practical_knowledge_for_better_product: string;
     read_clear_guidance_on_product: string;
     explore_insights: string;
+  };
+  images?: {
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    hero_shot_1?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    hero_shot_2?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    hero_shot_3?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    hero_shot_4?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    who_we_are?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    who_we_are_2?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    who_we_are_3?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    industry_1?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    industry_2?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    industry_3?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    industry_4?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    industry_5?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    custom_formulation?: (number | null) | Media;
+    /**
+     * Optional. Empty keeps the built-in photograph.
+     */
+    network?: (number | null) | Media;
   };
   lists?: {
     who_we_are?:
@@ -1561,20 +1632,6 @@ export interface Home {
           title?: string | null;
           body?: string | null;
           id?: string | null;
-  images?: {
-    /**
-     * Optional. Empty keeps the built-in photograph.
-     */
-    who_we_are?: (number | null) | Media;
-    /**
-     * Optional. Empty keeps the built-in photograph.
-     */
-    custom_formulation?: (number | null) | Media;
-    /**
-     * Optional. Empty keeps the built-in photograph.
-     */
-    network?: (number | null) | Media;
-  };
         }[]
       | null;
     industries?:
@@ -1591,31 +1648,15 @@ export interface Home {
           n?: string | null;
           title?: string | null;
           body?: string | null;
+          input?: string | null;
+          output?: string | null;
           id?: string | null;
         }[]
       | null;
-  };
-  /**
-   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
-   */
-  seo?: {
-    /**
-     * Falls back to the page title.
-     */
-    metaTitle?: string | null;
-    /**
-     * Falls back to the page's own content. Aim for roughly 150–160 characters.
-     */
-    metaDescription?: string | null;
-    /**
-     * Override only. Leave empty unless this page deliberately points at another URL.
-     */
-    canonicalUrl?: string | null;
-    /**
-     * Falls back to the meta title.
-     */
-          input?: string | null;
-          output?: string | null;
+    hero_shots?:
+      | {
+          source: '0' | '1' | '2' | '3';
+          name?: string | null;
           id?: string | null;
         }[]
       | null;
@@ -1651,6 +1692,29 @@ export interface Home {
           source: '0' | '1' | '2';
           label?: string | null;
           value?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  /**
+   * Optional. Every field falls back to the page's own content when left empty — an empty title or description is never shipped.
+   */
+  seo?: {
+    /**
+     * Falls back to the page title.
+     */
+    metaTitle?: string | null;
+    /**
+     * Falls back to the page's own content. Aim for roughly 150–160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Override only. Leave empty unless this page deliberately points at another URL.
+     */
+    canonicalUrl?: string | null;
+    /**
+     * Falls back to the meta title.
+     */
     ogTitle?: string | null;
     /**
      * Falls back to the meta description.
@@ -2446,6 +2510,14 @@ export interface HomeSelect<T extends boolean = true> {
         a_range_built_for_lubricant?: T;
         family_0?: T;
         explore_this_range?: T;
+        portfolio_label?: T;
+        families_count?: T;
+        enquiry_route?: T;
+        supplied_as?: T;
+        enquiry_needs?: T;
+        families_tablist_label?: T;
+        show_details?: T;
+        view_range?: T;
       };
   advantages?:
     | T
@@ -2472,6 +2544,8 @@ export interface HomeSelect<T extends boolean = true> {
         step?: T;
         primary_cta?: T;
         secondary_cta?: T;
+        input_label?: T;
+        output_label?: T;
       };
   network?:
     | T
@@ -2487,6 +2561,9 @@ export interface HomeSelect<T extends boolean = true> {
         export_destination?: T;
         route_drawn_to_destination?: T;
         caption_10?: T;
+        hover_verb?: T;
+        tap_verb?: T;
+        map_description?: T;
       };
   insights?:
     | T
@@ -2495,6 +2572,24 @@ export interface HomeSelect<T extends boolean = true> {
         practical_knowledge_for_better_product?: T;
         read_clear_guidance_on_product?: T;
         explore_insights?: T;
+      };
+  images?:
+    | T
+    | {
+        hero_shot_1?: T;
+        hero_shot_2?: T;
+        hero_shot_3?: T;
+        hero_shot_4?: T;
+        who_we_are?: T;
+        who_we_are_2?: T;
+        who_we_are_3?: T;
+        industry_1?: T;
+        industry_2?: T;
+        industry_3?: T;
+        industry_4?: T;
+        industry_5?: T;
+        custom_formulation?: T;
+        network?: T;
       };
   lists?:
     | T
@@ -2534,17 +2629,54 @@ export interface HomeSelect<T extends boolean = true> {
         custom_steps?:
           | T
           | {
-  images?:
-    | T
-    | {
-        who_we_are?: T;
-        custom_formulation?: T;
-        network?: T;
-      };
               source?: T;
               n?: T;
               title?: T;
               body?: T;
+              input?: T;
+              output?: T;
+              id?: T;
+            };
+        hero_shots?:
+          | T
+          | {
+              source?: T;
+              name?: T;
+              id?: T;
+            };
+        hero_facts?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+        families?:
+          | T
+          | {
+              source?: T;
+              name?: T;
+              short?: T;
+              sub?: T;
+              body?: T;
+              supplied?: T;
+              enquiry?: T;
+              id?: T;
+            };
+        network_hubs?:
+          | T
+          | {
+              source?: T;
+              n?: T;
+              id?: T;
+            };
+        network_stats?:
+          | T
+          | {
+              source?: T;
+              label?: T;
+              value?: T;
               id?: T;
             };
       };
@@ -2583,43 +2715,6 @@ export interface ProductsLandingSelect<T extends boolean = true> {
         request_a_quote?: T;
         industrial_lubricant_containers_and_oil?: T;
         caption_6?: T;
-              input?: T;
-              output?: T;
-              id?: T;
-            };
-        hero_facts?:
-          | T
-          | {
-              source?: T;
-              label?: T;
-              value?: T;
-              id?: T;
-            };
-        families?:
-          | T
-          | {
-              source?: T;
-              name?: T;
-              short?: T;
-              sub?: T;
-              body?: T;
-              supplied?: T;
-              enquiry?: T;
-              id?: T;
-            };
-        network_hubs?:
-          | T
-          | {
-              source?: T;
-              n?: T;
-              id?: T;
-            };
-        network_stats?:
-          | T
-          | {
-              source?: T;
-              label?: T;
-              value?: T;
       };
   register?:
     | T

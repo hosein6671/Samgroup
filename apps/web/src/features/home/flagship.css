@@ -508,13 +508,6 @@
   padding-block: var(--fs-section-pad-y);
 }
 
-/* The twelve-column editorial grid, kept from the platform's layout philosophy. */
-.fs-grid12 {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(16px, 2.1vw, 32px);
-}
-
 /* Shared editorial heading geometry. Copy occupies seven tracks and the supporting statement or
    action occupies the trailing four, leaving one deliberate breathing track between them. */
 .fs-section-head {
@@ -551,36 +544,11 @@
 
 /* ============================================================================
    4 · REVEAL SYSTEM
-   Authored so the finished state is the *default* and JavaScript only removes the offset —
+   Authored so the finished state is the *default* and JavaScript only adds the motion —
    the reverse would leave the page blank for crawlers and for anyone without JS.
+   Sections assemble from above (motion/reveal-engine.tsx and the "assemble" rules at the end
+   of this file); .fs-rv / .fs-rv-l stay in the markup as plain hooks and hide nothing.
    ============================================================================ */
-
-.fs-rv,
-.fs-rv-l {
-  opacity: 1;
-  transform: none;
-}
-
-/* Only once the client observer has claimed the page do elements start hidden. */
-[data-reveal-armed="true"] .fs-rv {
-  opacity: 0;
-  transform: translateY(28px);
-  transition:
-    opacity var(--t-reveal-lg) var(--e-entrance),
-    transform var(--t-reveal-lg) var(--e-entrance);
-}
-[data-reveal-armed="true"] .fs-rv-l {
-  opacity: 0;
-  transform: translateY(14px);
-  transition:
-    opacity var(--t-reveal-sm) var(--e-entrance),
-    transform var(--t-reveal-sm) var(--e-entrance);
-}
-[data-reveal-armed="true"] .fs-rv.in,
-[data-reveal-armed="true"] .fs-rv-l.in {
-  opacity: 1;
-  transform: none;
-}
 
 /* Line-by-line display type. The mask is the overflow box; the span is what travels. */
 .fs-line-mask {
@@ -591,14 +559,6 @@
 }
 .fs-line-mask > span {
   display: block;
-}
-[data-reveal-armed="true"] .fs-line-mask > span {
-  transform: translateY(105%);
-  transition: transform var(--t-reveal-lg) var(--e-entrance);
-}
-[data-reveal-armed="true"] .in .fs-line-mask > span,
-[data-reveal-armed="true"] .fs-line-mask.in > span {
-  transform: none;
 }
 
 /* Schematic line-drawing. Length is measured on the client and set as --len. */
@@ -620,21 +580,6 @@
  */
 [data-reveal-armed="true"] .fs-icon.fs-draw :is(path, circle, line, rect) {
   transition-duration: 900ms;
-}
-
-/* ============================================================================
-   5 · CHROME — progress, nav, boot curtain, pointer ring
-   ============================================================================ */
-
-.fs-progress {
-  position: fixed;
-  top: 0;
-  inset-inline-start: 0;
-  height: 2px;
-  width: 0;
-  background: linear-gradient(90deg, var(--fs-gold), var(--fs-gold-2));
-  z-index: 120;
-  transition: width 90ms linear;
 }
 
 .fs-nav {
@@ -1256,80 +1201,6 @@
   padding-top: 8px;
 }
 
-.fs-curtain {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  background: var(--fs-ink);
-  display: grid;
-  place-items: center;
-  transition:
-    transform 900ms var(--e-entrance),
-    opacity 400ms 500ms linear;
-}
-.fs-curtain[data-lift="true"] {
-  transform: translateY(-101%);
-  opacity: 0.9;
-  pointer-events: none;
-}
-.fs-curtain-in {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-.fs-curtain-txt {
-  font-family: var(--font-display);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  font-weight: 500;
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: rgba(255, 255, 255, 0.72);
-  padding-inline-start: 0.42em;
-}
-.fs-curtain-bar {
-  display: block;
-  width: 132px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.14);
-  overflow: hidden;
-}
-.fs-curtain-bar b {
-  display: block;
-  height: 100%;
-  width: 0;
-  background: var(--fs-gold);
-  transition: width 220ms linear;
-}
-
-.fs-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(195, 154, 78, 0.75);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 190;
-  transform: translate(-50%, -50%);
-  transition:
-    width 260ms var(--e-entrance),
-    height 260ms var(--e-entrance),
-    background 260ms;
-  mix-blend-mode: difference;
-}
-.fs-ring[data-big="true"] {
-  width: 62px;
-  height: 62px;
-  background: rgba(195, 154, 78, 0.16);
-}
-@media (hover: none), (pointer: coarse) {
-  .fs-ring {
-    display: none;
-  }
-}
-
 /* ============================================================================
    6 · BUTTONS
    The flagship's pill buttons. Not the platform's Button primitive — its variants encode
@@ -1424,188 +1295,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-}
-
-/* ============================================================================
-   7 · HERO
-   ============================================================================ */
-
-.fs-hero {
-  position: relative;
-  min-height: 100svh;
-  background: var(--fs-ink);
-  color: #fff;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-.fs-hero canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-.fs-hero-veil {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(120% 90% at 78% 18%, rgba(18, 41, 110, 0.55), transparent 62%),
-    radial-gradient(90% 70% at 10% 90%, rgba(195, 154, 78, 0.13), transparent 60%),
-    linear-gradient(
-      to bottom,
-      rgba(3, 11, 31, 0.72) 0%,
-      rgba(3, 11, 31, 0.28) 38%,
-      rgba(3, 11, 31, 0.86) 92%
-    );
-}
-/*
- * `stretch`, not `flex-end`.
- *
- * The hero is `min-height: 100svh` and its copy is bottom-aligned, so with `flex-end` the grid was
- * only as tall as its own content and ALL the surplus viewport height collected into one dead band
- * above the eyebrow — measured at 348px on a 914px-tall viewport and 505px at 1080. Nothing could
- * be placed in it, because nothing in the grid could reach it.
- *
- * Stretching the grid to the full body height changes no position on its own: `align-items: end`
- * below still drops both columns to the bottom of their rows, so the copy sits exactly where it
- * did. What it buys is that `.fs-hero-side` can now opt into the full height and become a rail,
- * which is what the schematic needs to exist at all.
- */
-.fs-hero-body {
-  position: relative;
-  z-index: 3;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: stretch;
-  padding-block: 104px 0;
-}
-/*
- * `center`, not `end`.
- *
- * With the copy bottom-anchored and the rail full-height, the surplus viewport height collected
- * into two voids: 385px above the eyebrow on the left, and a 160px hole between the schematic and
- * the specification panel on the right. Centring both columns distributes that surplus to the top
- * and bottom of each, which is the composition the hero was drawn as — copy and rail reading as a
- * pair rather than as two things that happen to share a row.
- */
-.fs-hero-grid {
-  width: 100%;
-  align-items: center;
-}
-.fs-hero-copy {
-  grid-column: 1 / span 8;
-}
-/*
- * The right rail: schematic at the top, specification panel at the bottom, the surplus height
- * between them rather than above everything. `space-between` rather than a spacer element, so the
- * distribution is the layout's job and there is no empty node in the DOM to explain.
- */
-.fs-hero-side {
-  grid-column: 9 / span 4;
-  padding-bottom: 0;
-  align-self: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(28px, 4vh, 64px);
-}
-/*
- * The measure, and why it moved from 16ch.
- *
- * Each `.fs-line-mask` is one authored line and the reveal slides it up from behind its own
- * overflow box — a stagger that only reads as "line by line" while every mask holds exactly one
- * line. At 16ch (518px) the first line, "Base oils and lubricants.", wrapped: measured 128px tall
- * against 70px for its two siblings, so it rose as a two-line block while the others rose as one.
- * The animation was fighting the measure.
- *
- * 26ch fits the longest authored line on one row at every width from 1024 up, inside the copy
- * column's own 844px. Below 1024 the lines wrap and the stagger degrades to block-by-block, which
- * is the correct behaviour there — a phone cannot hold a 25-character line at display size.
- */
-.fs-hero h1 {
-  margin: 22px 0 0;
-  max-width: 26ch;
-  font-size: var(--fs-text-hero);
-  letter-spacing: var(--fs-text-hero--letter-spacing);
-  line-height: var(--fs-text-hero--line-height);
-}
-.fs-hero h1 em {
-  font-style: normal;
-  color: var(--fs-gold-2);
-}
-.fs-hero-lead {
-  margin: 26px 0 0;
-  color: rgba(238, 241, 246, 0.72);
-  max-width: 48ch;
-  font-size: var(--fs-text-lead);
-  letter-spacing: var(--fs-text-lead--letter-spacing);
-  font-weight: 300;
-  line-height: var(--fs-text-lead--line-height);
-}
-.fs-hero-cta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 38px;
-}
-.fs-hero-spec {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(20px);
-  padding: 22px 24px;
-}
-.fs-hero-spec h2 {
-  margin: 0 0 14px;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  text-transform: uppercase;
-  color: var(--fs-gold);
-  font-weight: 500;
-}
-.fs-spec-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 14px;
-  padding: 11px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-.fs-spec-row:first-of-type {
-  border-top: 0;
-}
-.fs-spec-row dt {
-  font-size: var(--fs-text-caption);
-  line-height: var(--fs-text-caption--line-height);
-  color: rgba(238, 241, 246, 0.6);
-}
-.fs-spec-row dd {
-  margin: 0;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-caption);
-  line-height: var(--fs-text-caption--line-height);
-  color: #fff;
-  letter-spacing: 0.04em;
-}
-
-/* The row label and its glyph are one unit; the figure stays hard against the opposite edge. */
-.fs-spec-row dt {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-/*
- * Steel, not gold. The panel's own `h2` is already gold and the hero spends gold three more times
- * — the headline's `em`, the primary button, the header's quote button. On the Flagship gold is
- * the INTERACTIVE colour, so three gold glyphs on three rows that do nothing would be three
- * promises the panel does not keep.
- */
-.fs-spec-row dt .fs-icon {
-  color: var(--color-text-tertiary);
 }
 
 /* ============================================================================
@@ -1746,13 +1435,6 @@
   }
 }
 
-/* Five across is a narrower column than four or three, so the industries carry less text per card
-   and a tighter inner rhythm rather than a smaller type size. */
-.fs-card--compact {
-  gap: 10px;
-  padding: clamp(20px, 1.9vw, 26px);
-}
-
 /* ============================================================================
    5b · ICONS  ·  the shared sizing contract for `features/site/icons.tsx`
    ============================================================================
@@ -1787,110 +1469,6 @@
  */
 [dir="rtl"] .fs-icon--dir {
   transform: scaleX(-1);
-}
-
-/* ============================================================================
-   5c · PRODUCT ROUTE SCHEMATIC  ·  the hero's right rail
-   ============================================================================
-   Five stages down the tall side column, in the blueprint register the manufacturing journey and
-   the ecosystem diagram already speak: hairline connectors, square node plates, a tabular index,
-   and a subject-matter glyph per stage. Steel and silver only — the hero already spends its gold
-   three times (the `em` in the headline, the primary button, the header's quote button), and a
-   fourth would stop gold meaning "act here".
-
-   Rendered by `visuals/product-route-schematic.tsx`, which records why this is DOM rather than
-   one `<svg viewBox>`: text inside a viewBox scales with the container and falls under the 12px
-   floor, which is the defect the journey's own illustrations still carry.
-   ============================================================================ */
-
-.fs-route {
-  display: grid;
-  gap: 18px;
-  align-content: start;
-}
-
-.fs-route-head {
-  margin: 0;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  text-transform: uppercase;
-  color: var(--color-text-tertiary);
-}
-
-.fs-route-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: clamp(14px, 1.5vh, 26px);
-}
-
-.fs-route-step {
-  position: relative;
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  align-items: center;
-  gap: 16px;
-}
-
-/*
- * The connector, drawn from each node down to the next rather than as one rule behind the list.
- * Per-step means the last node has no tail and the gap can stay fluid — a single absolutely
- * positioned spine would have to be re-measured every time the gap clamp resolves differently.
- */
-.fs-route-step:not(:last-child)::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 21px;
-  inset-block-start: 44px;
-  block-size: calc(100% - 44px + clamp(14px, 1.5vh, 26px));
-  inline-size: 1px;
-  background: linear-gradient(to bottom, rgba(199, 205, 214, 0.28), rgba(199, 205, 214, 0.08));
-}
-
-.fs-route-node {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  inline-size: 44px;
-  block-size: 44px;
-  border: 1px solid var(--color-border-hairline);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.045);
-  backdrop-filter: blur(20px);
-  color: var(--fs-silver);
-}
-
-.fs-route-copy {
-  display: grid;
-  gap: 3px;
-  min-inline-size: 0;
-}
-
-.fs-route-index {
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: var(--color-text-tertiary);
-}
-
-.fs-route-name {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: var(--fs-text-title);
-  line-height: var(--fs-text-title--line-height);
-  letter-spacing: var(--fs-text-title--letter-spacing);
-  color: #fff;
-}
-
-.fs-route-detail {
-  font-size: var(--fs-text-caption);
-  line-height: var(--fs-text-caption--line-height);
-  color: var(--color-text-secondary);
 }
 
 .fs-hero-stats {
@@ -1935,95 +1513,6 @@
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: rgba(238, 241, 246, 0.5);
-}
-.fs-scroll-hint {
-  position: absolute;
-  left: auto;
-  right: 18px;
-  top: 48%;
-  bottom: auto;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  transform: translateY(-50%);
-  writing-mode: vertical-rl;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  text-transform: uppercase;
-  /*
-   * The token, not `rgba(255, 255, 255, 0.45)`. That literal composited to **4.48:1** on
-   * `--fs-ink` — 0.02 short of the 4.5:1 WCAG 1.4.3 floor this 12px text has to clear, which is
-   * the kind of miss no eye catches and no reviewer can argue about. `--color-text-tertiary`
-   * resolves to #8d99ad in the midnight context and measures 6.81:1 on the same ground, and it is
-   * what this string actually is: tertiary text.
-   */
-  color: var(--color-text-tertiary);
-}
-.fs-scroll-hint i {
-  display: block;
-  width: 1px;
-  height: 52px;
-  background: linear-gradient(to bottom, transparent, var(--fs-gold));
-  animation: fs-drip 2.6s var(--e-io) infinite;
-}
-@keyframes fs-drip {
-  0% {
-    transform: scaleY(0);
-    transform-origin: top;
-  }
-  45% {
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-  55% {
-    transform: scaleY(1);
-    transform-origin: bottom;
-  }
-  100% {
-    transform: scaleY(0);
-    transform-origin: bottom;
-  }
-}
-
-/* Section 8 was the PLACEHOLDER-DATA NOTICE. `sections/demo-data-notice.tsx` is deleted — every
-   illustrative figure it disclaimed went with the sections that carried them — so its rules are
-   deleted too rather than left as dead weight. They were also the last off-palette gold on the
-   page: `rgba(201, 167, 92, …)` is the prototype's #C9A75C, two points off `--fs-gold`. */
-
-/* ============================================================================
-   9 · MANUFACTURING STORY
-   ============================================================================ */
-
-.fs-story {
-  background: #fff;
-}
-.fs-story-left {
-  grid-column: 1 / span 5;
-  position: sticky;
-  top: 130px;
-  align-self: start;
-}
-.fs-story-right {
-  grid-column: 7 / span 6;
-}
-.fs-story h2 {
-  margin: 24px 0 0;
-}
-/*
- * The emphasised line uses the darkened accent, not raw gold.
- *
- * Measured: `--fs-gold` (#C39A4E) on white is 2.61:1 — under the 3:1 floor large text has to
- * clear, so the prototype's own value fails here. `--color-text-accent` is the same hue taken
- * to #8A6A2A, which reads identically as "gold" beside the navy and passes. Gold on the *dark*
- * sections is untouched: it measures 6.7:1 there and never needed adjusting.
- */
-.fs-story h2 i {
-  font-style: normal;
-  color: var(--color-text-accent);
 }
 
 /* Photographs carry the exact supplied mark as a separate interface layer. This keeps the
@@ -2137,91 +1626,6 @@
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
   color: var(--color-text-secondary);
-}
-/* ---------------------------------------------------- Who We Are · the three claims
-   `.fs-story-meta`'s slot, holding sentences instead of counters. The Who We Are segment replaced
-   three figures — six families, a hundred products, five pathways — with three statements about
-   what SAM Group does, because the workbook gives credibility figures their own segment and this
-   one is about position, not scale. Same rule above it, same measure, no numbers. */
-/*
- * Three rows: a glyph plate, a label, and the claim.
- *
- * It was a two-column `<dl>` — a 128px label track against a sentence — which put the label and
- * the sentence on the same baseline and gave the eye nothing to travel down. Two things changed
- * and both are about the same problem:
- *
- *   1. **A glyph plate**, the same 38px construction the cards use one size up. It gives each row
- *      a fixed left edge, so the three claims read as a set rather than as three paragraphs.
- *   2. **A hairline between rows**, so the list has the ledger rhythm the rest of the page uses.
- *      The single rule above the list stays; it separates the list from the lead.
- *
- * The label sits above its claim rather than beside it. At 128px the track was wide enough for
- * "We formulate" and nothing else, so a fourth claim with a longer label would have forced the
- * whole column wider or wrapped alone.
- */
-.fs-who-list {
-  margin: 40px 0 0;
-  padding-top: 26px;
-  border-top: 1px solid rgba(6, 19, 70, 0.13);
-  display: grid;
-  max-width: 560px;
-}
-.fs-who-list > div {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  align-items: start;
-  gap: 3px 18px;
-  padding-block: 18px;
-}
-.fs-who-list > div + div {
-  border-top: 1px solid rgba(6, 19, 70, 0.09);
-}
-/*
- * 44px and a 20px glyph — the same plate the cards and the hero's route schematic use. It was 38px
- * around a 14px icon, which left the glyph adrift in its own box and made this the only plate size
- * on the page.
- */
-.fs-who-glyph {
-  grid-row: 1 / span 2;
-  display: grid;
-  place-items: center;
-  inline-size: 44px;
-  block-size: 44px;
-  margin-top: 1px;
-  border: 1px solid rgba(6, 19, 70, 0.13);
-  border-radius: 14px;
-  /* Steel, like every other non-interactive glyph on the page. The label beside it is already
-     accent gold, and this section spends gold three more times — the eyebrow, the heading's `i`,
-     and three labels. A gold glyph on each row would be six marks competing in one column. */
-  color: var(--color-text-tertiary);
-}
-.fs-who-list dt {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  text-transform: uppercase;
-  color: var(--color-text-accent);
-}
-/*
- * The index, in the page's own numbering vocabulary — the hero route, the customization steps and
- * the product families all count themselves this way. Tertiary rather than accent, so the number
- * orders the row without competing with the label it introduces.
- */
-.fs-who-index {
-  color: var(--color-text-tertiary);
-}
-.fs-who-list dd {
-  margin: 0;
-  font-size: var(--fs-text-body-sm);
-  line-height: var(--fs-text-body-sm--line-height);
-  color: var(--color-text-secondary);
-}
-.fs-who-cta {
-  margin-top: 34px;
 }
 
 .fs-panel-stack {
@@ -3508,277 +2912,212 @@
 }
 
 /* ============================================================================
-   14 · MANUFACTURING JOURNEY
-   Rebuilt from the approved `sam-group.html` reference. Full-viewport steps on a horizontal
-   track, ghost numerals, schematic artwork, a bottom progress rail and a step counter.
+   15 · EDITORIAL INSIGHTS
    ============================================================================ */
 
-.fs-journey {
-  position: relative;
+/*
+ * The newest published article large, the next two small beside it — all real posts from the blog.
+ * The lead article's text sits on its photograph over a scrim (transparent at the top, near-opaque
+ * ink behind the text), so any photograph keeps white text readable. The lead photograph carries
+ * the SAM GROUP badge in its top corner (clear of the text); the small thumbnails stay plain.
+ */
+.fs-insights {
   background: #fff;
 }
-/*
- * The section heading, above the sticky track. It scrolls away normally; its height is added to
- * the section's total in JS so the six steps still get exactly (n − 1) viewports of travel once
- * the track pins.
- */
-.fs-jrny-head {
-  padding-block: clamp(72px, 10vw, 130px) clamp(28px, 4vw, 52px);
-}
-.fs-jrny-intro {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  align-items: center;
-  gap: clamp(34px, 6vw, 92px);
-}
-.fs-jrny-head h2 {
-  margin-top: 22px;
-  /* Widened from the measure this heading carried when `.fs-d2` rendered at 74.9px. The type is
-     now 35.8px and `text-wrap: balance` distributes the lines, so a narrow `ch` cap only forces a
-     third line and splits a phrase across it — "Prepare the / shipment brief." was the worst of
-     them. */
-  max-inline-size: 22ch;
-  color: var(--fs-navy);
-}
-.fs-jrny-head-copy > p {
-  max-inline-size: 48ch;
-  margin: 26px 0 0;
-  font-size: var(--fs-text-lead);
-  letter-spacing: var(--fs-text-lead--letter-spacing);
-  font-weight: 300;
-  line-height: var(--fs-text-lead--line-height);
-  color: var(--color-text-secondary);
-}
-
-/*
- * The Custom Formulation segment's two actions.
- *
- * The workbook gives this segment the CTA "Request Custom Solution"; the second, quieter action to
- * Contact Us is here because the `Home Page` sheet has no final-CTA segment and the page's closing
- * section was removed. This is the last point on the page where a reader is holding a specific
- * requirement, so it is where the contact route belongs — not appended to the end as a block that
- * asks again for what the page has already asked for twice.
- */
-.fs-jrny-cta {
+.fs-ins-top {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: clamp(26px, 2.6vw, 36px);
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid var(--color-border-hairline);
 }
-
-.fs-jrny-photo {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid rgba(6, 19, 70, 0.13);
-  border-radius: var(--radius-lg);
-  background: var(--fs-ink);
-  box-shadow: 0 32px 70px -42px rgba(6, 19, 70, 0.55);
+.fs-ins-top .fs-lead {
+  max-width: 52ch;
+  margin: 18px 0 0;
 }
-.fs-jrny-photo::after {
+.fs-ins-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(24px, 3.2vw, 56px);
+  align-items: start;
+  margin-top: 48px;
+}
+.fs-ins-lead {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.fs-ins-photo {
+  aspect-ratio: 16 / 10;
+}
+/* No article photograph: the frame becomes an ink panel, and the text reads on it the same way. */
+.fs-ins-photo[data-image="false"] {
+  background: linear-gradient(160deg, var(--fs-navy), var(--fs-ink));
+}
+.fs-ins-photo::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 62%;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(3, 11, 31, 0.78), transparent 42%);
+  background: linear-gradient(
+    180deg,
+    rgba(3, 11, 31, 0) 0%,
+    rgba(3, 11, 31, 0.55) 38%,
+    rgba(3, 11, 31, 0.9) 100%
+  );
 }
-.fs-jrny-photo img {
-  object-fit: cover;
-}
-.fs-jrny-photo figcaption {
+.fs-ins-overlay {
   position: absolute;
+  inset-inline: clamp(20px, 2.4vw, 32px);
+  bottom: clamp(20px, 2.4vw, 30px);
   z-index: 2;
-  inset-inline: 22px;
-  inset-block-end: 18px;
+  color: #fff;
+}
+.fs-ins-overlay .fs-ins-meta {
+  color: rgba(238, 241, 246, 0.78);
+}
+.fs-ins-overlay .fs-ins-meta b {
+  color: var(--fs-gold-2);
+}
+.fs-ins-overlay h3 {
+  max-width: 30ch;
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
+  color: #fff;
+  transition: color var(--t-mid) ease;
+}
+.fs-ins-lead:hover h3 {
+  color: var(--fs-gold-2);
+}
+.fs-ins-lead:hover .fs-ins-photo > img,
+.fs-ins-mini:hover .fs-ins-thumb > img {
+  transform: scale(1.05);
+}
+.fs-ins-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
   font-family: var(--font-technical);
   font-size: var(--fs-text-technical);
   line-height: var(--fs-text-technical--line-height);
   letter-spacing: var(--fs-text-technical--letter-spacing);
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--color-text-tertiary);
 }
-
-.fs-jrny-sticky {
-  position: sticky;
-  top: 0;
-  block-size: 100svh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-.fs-jrny-track {
-  display: flex;
-  block-size: 100%;
-  will-change: transform;
-}
-
-/* One step per viewport: copy left, schematic right. */
-.fs-jstep {
-  inline-size: 100vw;
-  block-size: 100%;
-  flex: none;
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(24px, 4vw, 80px);
-  padding: 96px var(--fs-gutter);
-}
-.fs-jstep-no {
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
+.fs-ins-meta b {
+  font-weight: 500;
   color: var(--color-text-accent);
 }
-.fs-jstep h3 {
+.fs-ins-side {
+  display: grid;
+  align-content: start;
+  border-top: 1px solid var(--color-border-hairline);
+}
+/* The "Explore insights" card in the side column's free space: as tall as the rows it stands in
+   for, so the column still ends on the lead photograph's line when it is the only thing there. */
+.fs-ins-more {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 211px;
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--fs-paper);
+  color: var(--color-text-primary);
   font-family: var(--font-display);
   font-size: var(--fs-text-subheading);
-  font-weight: 600;
-  letter-spacing: var(--fs-text-subheading--letter-spacing);
   line-height: var(--fs-text-subheading--line-height);
-  margin: 20px 0 22px;
-  color: var(--fs-navy);
+  letter-spacing: var(--fs-text-subheading--letter-spacing);
+  text-decoration: none;
+  transition:
+    border-color var(--t-mid) ease,
+    background var(--t-mid) ease,
+    color var(--t-mid) ease;
 }
-.fs-jstep p {
-  color: var(--color-text-secondary);
-  font-weight: 300;
-  line-height: var(--fs-text-body--line-height);
-  font-size: var(--fs-text-body);
-  max-inline-size: 46ch;
-  margin: 0;
+/* Only the card: it stretches to the lead photograph's full height, so both columns end on one line. */
+.fs-ins-side[data-posts="0"] {
+  align-self: stretch;
+  grid-template-rows: 1fr;
+  border-top: 0;
 }
-/* The oversized numeral behind the copy. Depth without another voice competing. */
-.fs-jstep-ghost {
-  position: absolute;
-  inset-inline-start: calc(var(--fs-gutter) - 0.05em);
-  inset-block-start: 7%;
-  font-family: var(--font-display);
-  font-size: var(--fs-text-ghost);
-  font-weight: 700;
-  letter-spacing: -0.08em;
-  line-height: 0.8;
-  color: rgba(6, 19, 70, 0.045);
-  pointer-events: none;
-  user-select: none;
+.fs-ins-side[data-posts="0"] .fs-ins-more {
+  margin-top: 0;
+  min-height: 0;
 }
-.fs-jstep-art {
-  position: relative;
-  aspect-ratio: 4/3;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  border: 1px solid rgba(6, 19, 70, 0.13);
-  background: linear-gradient(150deg, rgba(16, 26, 44, 0.9), rgba(4, 6, 11, 0.94));
-}
-.fs-jstep-art svg {
-  position: absolute;
-  inset: 0;
-  inline-size: 100%;
-  block-size: 100%;
-}
-.fs-jstep-list {
-  margin-block-start: 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.fs-jstep-list span {
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: var(--color-text-secondary);
-  display: flex;
-  gap: 11px;
-  align-items: baseline;
-}
-.fs-jstep-list span::before {
-  content: "";
-  inline-size: 14px;
-  block-size: 1px;
-  background: var(--fs-gold);
-  flex: none;
-  transform: translateY(-3px);
-}
-
-.fs-jrny-progress {
-  position: absolute;
-  inset-inline: var(--fs-gutter);
-  inset-block-end: 38px;
-  block-size: 1px;
-  background: rgba(6, 19, 70, 0.13);
-  z-index: 5;
-}
-.fs-jrny-progress i {
-  display: block;
-  block-size: 100%;
-  inline-size: 0;
-  background: linear-gradient(90deg, var(--fs-gold), var(--fs-gold-2));
-}
-.fs-jrny-count {
-  position: absolute;
-  inset-inline-end: var(--fs-gutter);
-  inset-block-end: 52px;
-  font-family: var(--font-technical);
-  font-size: var(--fs-text-technical);
-  line-height: var(--fs-text-technical--line-height);
-  letter-spacing: var(--fs-text-technical--letter-spacing);
-  color: var(--color-text-secondary);
-  z-index: 5;
-}
-
-/*
- * Swipe mode — narrow screens and reduced motion.
- *
- * The pin is released and the track becomes a native horizontal scroller with snap points.
- * Pinning on a phone fights the address-bar resize and removes the only scrolling gesture the
- * visitor has; under reduced motion, nothing should travel under the reader unprompted.
- */
-.fs-journey[data-mode="swipe"] .fs-jrny-sticky {
-  position: static;
-  block-size: auto;
-  overflow: visible;
-}
-.fs-journey[data-mode="swipe"] .fs-jrny-track {
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  block-size: auto;
-}
-.fs-journey[data-mode="swipe"] .fs-jstep {
-  inline-size: 88vw;
-  block-size: auto;
-  scroll-snap-align: start;
-  grid-template-columns: minmax(0, 1fr);
-  padding: 64px var(--fs-gutter) 72px;
-  gap: 28px;
-}
-.fs-journey[data-mode="swipe"] .fs-jstep-ghost {
-  inset-block-start: 2%;
-}
-.fs-journey[data-mode="swipe"] .fs-jrny-progress,
-.fs-journey[data-mode="swipe"] .fs-jrny-count {
-  display: none;
-}
-
-/* ============================================================================
-   15 · EDITORIAL INSIGHTS
-   ============================================================================ */
-
-/*
- * The magazine well is gone with the five fabricated articles it laid out — the lead column, the
- * generated cover and its tag, the article headline and meta row, and the numbered secondary
- * stack. What remains is a heading, a lede and one link, so what remains here is the band and the
- * row that holds them.
- */
-.fs-insights {
+.fs-ins-more:hover {
+  border-color: rgba(138, 106, 42, 0.4);
   background: #fff;
+  color: var(--color-text-accent);
 }
-.fs-ins-lede {
-  margin: 20px 0 0;
-  max-width: 52ch;
-  color: var(--color-text-secondary);
+.fs-ins-more .fs-ar {
+  transition: transform 350ms ease;
+}
+.fs-ins-more:hover .fs-ar {
+  transform: translateX(4px);
+}
+.fs-ins-mini {
+  display: grid;
+  grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--color-border-hairline);
+  color: inherit;
+  text-decoration: none;
+}
+.fs-ins-mini:not(:has(.fs-ins-thumb)) {
+  grid-template-columns: 1fr;
+}
+.fs-ins-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-inset);
+}
+.fs-ins-thumb > img {
+  object-fit: cover;
+  transition: transform 1.4s var(--e-entrance);
+}
+.fs-ins-mini h3 {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-text-title);
+  line-height: var(--fs-text-title--line-height);
+  letter-spacing: var(--fs-text-title--letter-spacing);
+  transition: color var(--t-mid) ease;
+}
+.fs-ins-mini:hover h3 {
+  color: var(--color-text-accent);
+}
+@media (max-width: 960px) {
+  .fs-ins-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fs-ins-grid {
+    grid-template-columns: 1fr;
+  }
+  .fs-ins-photo {
+    aspect-ratio: 4 / 5;
+  }
+  .fs-ins-mini {
+    grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+    gap: 16px;
+    padding: 20px 0;
+  }
 }
 
 /* ============================================================================
@@ -4067,38 +3406,6 @@
    ============================================================================ */
 
 @media (max-width: 1180px) {
-  .fs-hero-copy {
-    grid-column: 1 / span 12;
-  }
-  /*
-   * The rail stops being a rail here and stacks under the copy, so it drops back to being a block
-   * that is exactly as tall as its content — `stretch` and `space-between` would otherwise leave a
-   * gap between the schematic and the panel proportional to whatever height the row happened to
-   * take. The schematic itself is hidden below (see `.fs-route`), so only the panel remains.
-   */
-  .fs-hero-side {
-    grid-column: 1 / span 12;
-    padding-bottom: 0;
-    margin-top: 34px;
-    align-self: end;
-    display: block;
-  }
-  /*
-   * A five-step vertical route stacked above the specification panel would push both calls to
-   * action below the fold at this width, and the hero has no dead band left to fill here — it is
-   * down to its 104px padding once the columns collapse. Hidden rather than compressed.
-   */
-  .fs-route {
-    display: none;
-  }
-  .fs-story-left {
-    grid-column: 1 / span 12;
-    position: static;
-  }
-  .fs-story-right {
-    grid-column: 1 / span 12;
-    margin-top: 40px;
-  }
   .fs-eco-stage {
     grid-template-columns: 1fr;
   }
@@ -4245,9 +3552,7 @@
   .fs-why-intro {
     grid-template-columns: 1fr;
   }
-  .fs-jrny-intro {
-    grid-template-columns: 1fr;
-  }
+
   .fs-nav-links {
     display: none;
   }
@@ -4265,9 +3570,6 @@
   }
   .fs-fgrid {
     grid-template-columns: 1fr;
-  }
-  .fs-scroll-hint {
-    display: none;
   }
 }
 
@@ -4304,9 +3606,6 @@
 }
 
 @media (max-width: 520px) {
-  .fs-hero-cta .fs-btn {
-    width: 100%;
-  }
   .fs-story-meta {
     gap: 10px;
   }
@@ -4404,18 +3703,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fs-curtain {
-    display: none;
-  }
   .fs-nav[data-hidden="true"] {
-    transform: none;
-  }
-  [data-reveal-armed="true"] .fs-rv,
-  [data-reveal-armed="true"] .fs-rv-l {
-    opacity: 1;
-    transform: none;
-  }
-  [data-reveal-armed="true"] .fs-line-mask > span {
     transform: none;
   }
   [data-reveal-armed="true"] .fs-draw :is(path, circle, line, rect) {
@@ -4434,5 +3722,1036 @@
   .fs-content-flow:hover,
   .fs-content-flow li:hover {
     transform: none;
+  }
+}
+
+/* ============================================================================
+   CONCEPT 03 SECTIONS: hero reel, Who We Are, Industries accordion, Customized
+   Solutions track, and the page-wide "assemble from above" reveal.
+   Colours come from the surface tokens, type from the --fs-text-* roles, and
+   every panel and photograph uses the one panel radius.
+   ============================================================================ */
+
+/* Visually hidden, still announced: the section labels Concept 03 keeps off screen. */
+.fs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* A plain text link with an arrow that nudges on hover; the underline stays put. */
+.fs-textlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid currentColor;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--t-mid) ease;
+}
+.fs-textlink:hover {
+  color: var(--color-text-accent);
+}
+.fs-textlink .fs-ar {
+  transition: transform 350ms ease;
+}
+.fs-textlink:hover .fs-ar {
+  transform: translateX(4px);
+}
+
+/* The caption-less photo plate (PhotoFrame): same frame and badge as .fs-branded-photo. */
+.fs-photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-panel);
+  background: #d9dde3;
+  isolation: isolate;
+}
+.fs-photo > img {
+  object-fit: cover;
+  transition: transform 1.4s var(--e-entrance);
+}
+.fs-photo .fs-photo-brand {
+  inset-block-start: 14px;
+  inset-inline-start: 14px;
+}
+
+/* ── 1 · Hero: the cinematic reel ─────────────────────────────────────────── */
+.fs-cine {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--fs-ink);
+  color: #fff;
+}
+.fs-cine-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  transform: scale(1.04);
+}
+/* Cinematic dissolve: the outgoing shot softens as it fades, the incoming one sharpens. */
+.fs-cine-shot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  filter: blur(10px);
+  transition:
+    opacity 1.8s ease,
+    filter 1.8s ease;
+}
+.fs-cine-shot[data-on="true"] {
+  opacity: 1;
+  filter: none;
+}
+/* One grade for every shot, so the sequence reads as a single film. */
+.fs-cine-shot img {
+  object-fit: cover;
+  object-position: 68% 56%;
+  transform-origin: var(--focus, 60% 55%);
+  filter: contrast(1.1) saturate(1.06) brightness(0.93);
+}
+.fs-cine-shot[data-on="true"] img {
+  animation: fs-cine-push 8.5s linear forwards;
+}
+@keyframes fs-cine-push {
+  from {
+    transform: scale(1.04);
+  }
+  to {
+    transform: scale(1.16) translate(var(--drift, -2% -1%));
+  }
+}
+/* Colour grade in the brand pair: navy in the shadows, gold in the highlights. */
+.fs-cine-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  mix-blend-mode: soft-light;
+  background: linear-gradient(
+    115deg,
+    rgba(0, 32, 80, 0.75) 0%,
+    rgba(0, 74, 128, 0.35) 42%,
+    rgba(227, 198, 137, 0.32) 78%,
+    rgba(195, 154, 78, 0.4) 100%
+  );
+}
+/* Lens depth of field: the edges fall out of focus, the bottles at the optical centre stay sharp. */
+.fs-cine-dof {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  backdrop-filter: blur(6px);
+  -webkit-mask-image: radial-gradient(58% 52% at 66% 58%, transparent 52%, #000 100%);
+  mask-image: radial-gradient(58% 52% at 66% 58%, transparent 52%, #000 100%);
+}
+.fs-cine-sweep {
+  position: absolute;
+  inset: -20% -40%;
+  z-index: 1;
+  mix-blend-mode: soft-light;
+  background: linear-gradient(
+    105deg,
+    transparent 42%,
+    rgba(255, 236, 190, 0.22) 50%,
+    transparent 58%
+  );
+  animation: fs-cine-sweep 12s ease-in-out infinite;
+}
+@keyframes fs-cine-sweep {
+  0% {
+    transform: translateX(-60%);
+  }
+  55%,
+  100% {
+    transform: translateX(60%);
+  }
+}
+.fs-cine-grain {
+  position: absolute;
+  inset: -50%;
+  z-index: 3;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: fs-cine-grain 0.9s steps(6) infinite;
+}
+@keyframes fs-cine-grain {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-3%, 2%);
+  }
+  40% {
+    transform: translate(2%, -3%);
+  }
+  60% {
+    transform: translate(-2%, -1%);
+  }
+  80% {
+    transform: translate(3%, 1%);
+  }
+}
+.fs-cine-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  box-shadow: inset 0 0 220px 60px rgba(3, 11, 31, 0.75);
+}
+/* Legibility: the copy side and the bar sit on ink, the bottles stay bright on the right. */
+.fs-cine-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background:
+    radial-gradient(52% 60% at 100% 100%, rgba(3, 11, 31, 0.9), rgba(3, 11, 31, 0) 72%),
+    linear-gradient(
+      90deg,
+      rgba(3, 11, 31, 0.96) 0%,
+      rgba(3, 11, 31, 0.84) 34%,
+      rgba(3, 11, 31, 0.25) 68%,
+      rgba(3, 11, 31, 0.1) 100%
+    ),
+    linear-gradient(0deg, rgba(3, 11, 31, 1) 0%, rgba(3, 11, 31, 0) 38%),
+    linear-gradient(180deg, rgba(3, 11, 31, 0.7) 0%, rgba(3, 11, 31, 0) 22%);
+}
+/* Letterbox bars: they open once the page is ready. */
+.fs-cine-lb {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 6;
+  height: 15vh;
+  background: var(--fs-ink);
+  pointer-events: none;
+  transition: transform 1.7s cubic-bezier(0.77, 0, 0.18, 1) 0.15s;
+}
+.fs-cine-lb--top {
+  top: 0;
+}
+.fs-cine-lb--bottom {
+  bottom: 0;
+}
+.fs-cine[data-ready="true"] .fs-cine-lb--top {
+  transform: translateY(-100%);
+}
+.fs-cine[data-ready="true"] .fs-cine-lb--bottom {
+  transform: translateY(100%);
+}
+.fs-cine-main {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  padding-block: 150px clamp(36px, 6vh, 72px);
+}
+.fs-cine-copy {
+  max-width: 720px;
+}
+.fs-cine-title {
+  margin: 22px 0 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--fs-text-hero);
+  line-height: var(--fs-text-hero--line-height);
+  letter-spacing: var(--fs-text-hero--letter-spacing);
+}
+.fs-cine-line {
+  display: block;
+  padding-bottom: 0.04em;
+  transition:
+    clip-path 1.2s var(--e-entrance),
+    transform 1.2s var(--e-entrance);
+}
+.fs-cine-line:nth-child(2) {
+  color: var(--color-text-secondary);
+  transition-delay: 0.12s;
+}
+.fs-cine-line:nth-child(3) {
+  color: var(--fs-gold-2);
+  transition-delay: 0.24s;
+}
+.fs-cine-lead {
+  max-width: 54ch;
+  margin: 28px 0 0;
+  font-size: var(--fs-text-lead);
+  line-height: var(--fs-text-lead--line-height);
+  color: var(--color-text-secondary);
+  transition:
+    opacity 1s 0.5s,
+    transform 1.2s 0.5s var(--e-entrance);
+}
+.fs-cine-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 34px;
+  transition:
+    opacity 1s 0.65s,
+    transform 1.2s 0.65s var(--e-entrance);
+}
+.fs-cine-eyebrow {
+  transition: opacity 1s 0.1s;
+}
+/* The player bar: facts, the shot timeline, and the way into the page. */
+.fs-cine-bar {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(0deg, rgba(3, 11, 31, 0.92), rgba(3, 11, 31, 0.6));
+  transition:
+    opacity 1s 0.9s,
+    transform 1.2s 0.9s var(--e-entrance);
+}
+.fs-cine-bar-in {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: clamp(24px, 3.2vw, 64px);
+  align-items: center;
+  padding-block: 20px 22px;
+}
+.fs-cine-bar-title {
+  margin: 0;
+  max-width: 12ch;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  line-height: 1.4;
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.fs-cine-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 52px);
+  margin: 0;
+}
+.fs-cine-facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.fs-cine-facts dd {
+  order: -1;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--fs-text-heading);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.fs-cine-facts dt {
+  max-width: 14ch;
+  font-size: var(--fs-text-body-sm);
+  line-height: 1.35;
+  color: var(--color-text-secondary);
+}
+.fs-cine-reel {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.fs-cine-reel-label {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--fs-gold-2);
+  animation: fs-cine-label 0.5s ease both;
+}
+@keyframes fs-cine-label {
+  from {
+    opacity: 0;
+  }
+}
+.fs-cine-reel-bars {
+  display: flex;
+  gap: 6px;
+}
+.fs-cine-reel-bars span {
+  position: relative;
+  width: 44px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.22);
+}
+.fs-cine-reel-bars i {
+  position: absolute;
+  inset: 0;
+  background: var(--fs-gold-2);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.fs-cine-reel-bars [data-state="on"] i {
+  animation: fs-cine-bar 6.5s linear forwards;
+}
+.fs-cine-reel-bars [data-state="done"] i {
+  transform: scaleX(1);
+}
+@keyframes fs-cine-bar {
+  to {
+    transform: scaleX(1);
+  }
+}
+.fs-cine-explore {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: #fff;
+  font-size: var(--fs-text-body-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    border-color var(--t-mid) ease,
+    color var(--t-mid) ease;
+}
+.fs-cine-explore:hover {
+  border-color: var(--fs-gold-2);
+  color: var(--fs-gold-2);
+}
+.fs-cine-explore-ar {
+  display: inline-flex;
+  transform: rotate(90deg);
+}
+/* The entrance: hidden only while scripting is available and the page is not yet ready, with a
+   failsafe so a page whose JavaScript never arrives still shows its hero. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .fs-cine:not([data-ready="true"]) .fs-cine-line {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(0.35em);
+  }
+  .fs-cine:not([data-ready="true"]) .fs-cine-lead,
+  .fs-cine:not([data-ready="true"]) .fs-cine-cta,
+  .fs-cine:not([data-ready="true"]) .fs-cine-bar {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  .fs-cine:not([data-ready="true"]) .fs-cine-eyebrow {
+    opacity: 0;
+  }
+  .fs-cine:not([data-ready="true"]) .fs-cine-line,
+  .fs-cine:not([data-ready="true"]) .fs-cine-lead,
+  .fs-cine:not([data-ready="true"]) .fs-cine-cta,
+  .fs-cine:not([data-ready="true"]) .fs-cine-eyebrow,
+  .fs-cine:not([data-ready="true"]) .fs-cine-bar {
+    animation: fs-cine-failsafe 0s 2.5s forwards;
+  }
+}
+@keyframes fs-cine-failsafe {
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+  }
+}
+.fs-cine[data-ready="true"] .fs-cine-line {
+  clip-path: inset(-5% 0 -15% 0);
+}
+@media (max-width: 1100px) {
+  .fs-cine-bar-in {
+    grid-template-columns: 1fr auto;
+  }
+  .fs-cine-bar-title,
+  .fs-cine-reel {
+    display: none;
+  }
+}
+@media (max-width: 960px) {
+  .fs-cine-main {
+    padding-top: 120px;
+  }
+  .fs-cine-bar-in {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .fs-cine-facts {
+    gap: 18px;
+  }
+  .fs-cine-lb {
+    display: none;
+  }
+  .fs-cine-bg::after {
+    background: linear-gradient(
+      0deg,
+      rgba(3, 11, 31, 1) 18%,
+      rgba(3, 11, 31, 0.72) 60%,
+      rgba(3, 11, 31, 0.45)
+    );
+  }
+}
+
+/* ── 2 · Who We Are ───────────────────────────────────────────────────────── */
+.fs-who2-top {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(32px, 5vw, 96px);
+  align-items: end;
+}
+.fs-who2-title {
+  max-width: 14ch;
+}
+.fs-who2-row {
+  display: grid;
+  grid-template-columns: 6fr 3fr 3fr;
+  gap: clamp(16px, 1.6vw, 28px);
+  margin-top: clamp(56px, 6vw, 96px);
+  align-items: start;
+}
+.fs-who2-row[data-count="2"] {
+  grid-template-columns: 1fr 1fr;
+}
+.fs-who2-row[data-count="1"] {
+  grid-template-columns: 1fr;
+}
+.fs-who2-cell {
+  margin: 0;
+}
+/* One shared photo height, so the three captions start on the same line. */
+.fs-who2-photo {
+  height: clamp(300px, 30vw, 440px);
+}
+.fs-who2-cell figcaption {
+  position: relative;
+  padding-top: 20px;
+}
+.fs-who2-cell figcaption::before,
+.fs-who2-cell figcaption::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  height: 1px;
+}
+.fs-who2-cell figcaption::before {
+  width: 100%;
+  background: var(--color-border-hairline);
+}
+.fs-who2-cell figcaption::after {
+  width: 0;
+  background: var(--fs-gold);
+  transition: width 0.9s var(--e-entrance);
+}
+.fs-who2-cell:hover figcaption::after {
+  width: 100%;
+}
+.fs-who2-cell:hover .fs-photo > img {
+  transform: scale(1.05);
+}
+.fs-who2-cell h3 {
+  margin: 18px 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+}
+.fs-who2-cell h3::first-letter {
+  text-transform: uppercase;
+}
+.fs-who2-cell p {
+  margin: 8px 0 0;
+  max-width: 40ch;
+  color: var(--color-text-secondary);
+}
+@media (max-width: 960px) {
+  .fs-who2-top,
+  .fs-who2-row,
+  .fs-who2-row[data-count] {
+    grid-template-columns: 1fr;
+  }
+  .fs-who2-photo {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* ── 6 · Industries: the photo accordion ──────────────────────────────────── */
+.fs-ind2-head {
+  max-width: 760px;
+}
+.fs-ind2-head .fs-lead {
+  margin-top: 18px;
+}
+.fs-acc {
+  display: flex;
+  gap: 10px;
+  height: 540px;
+  margin-top: 64px;
+}
+.fs-acc-item {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  color: #eef1f6;
+  cursor: pointer;
+  isolation: isolate;
+  transition: flex 1s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+.fs-acc-item[data-open="true"] {
+  flex: 2.4;
+}
+.fs-acc-item > img {
+  z-index: -2;
+  object-fit: cover;
+  transform: scale(1.08);
+  transition: transform 1.6s var(--e-entrance);
+}
+.fs-acc-item[data-open="true"] > img {
+  transform: scale(1);
+}
+.fs-acc-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    0deg,
+    rgba(3, 11, 31, 0.92) 12%,
+    rgba(3, 11, 31, 0.25) 60%,
+    rgba(3, 11, 31, 0.05)
+  );
+}
+.fs-acc-item:focus-visible {
+  outline: 2px solid var(--fs-gold);
+  outline-offset: 3px;
+}
+.fs-acc-item .fs-photo-brand {
+  inset-block-start: 14px;
+  inset-inline-start: 14px;
+}
+.fs-acc-copy {
+  position: absolute;
+  inset-inline: 24px;
+  bottom: 24px;
+}
+.fs-acc-copy h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-text-title);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.fs-acc-copy p {
+  display: grid;
+  grid-template-rows: 0fr;
+  max-width: 36ch;
+  margin: 0;
+  opacity: 0;
+  color: #a6b0c2;
+  transition:
+    opacity 0.4s,
+    grid-template-rows 0.8s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+.fs-acc-copy p > span {
+  overflow: hidden;
+  min-height: 0;
+  padding-top: 10px;
+}
+.fs-acc-item[data-open="true"] .fs-acc-copy p {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+@media (max-width: 960px) {
+  .fs-acc {
+    flex-direction: column;
+    height: auto;
+  }
+  .fs-acc-item {
+    flex: none;
+    min-height: 110px;
+    transition: min-height 0.8s cubic-bezier(0.22, 1.2, 0.36, 1);
+  }
+  .fs-acc-item[data-open="true"] {
+    flex: none;
+    min-height: 360px;
+  }
+}
+
+/* ── 7 · Customized Solutions: the pinned horizontal track ───────────────── */
+.fs-cf {
+  position: relative;
+  padding-top: var(--fs-section-pad-y);
+}
+.fs-cf-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 40px;
+  align-items: end;
+}
+.fs-cf-head .fs-lead {
+  max-width: 56ch;
+  margin-top: 18px;
+}
+.fs-cf-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.fs-hpin {
+  position: relative;
+}
+.fs-hstage {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(28px, 4vh, 48px);
+  overflow: hidden;
+}
+.fs-htrack {
+  display: flex;
+  align-items: stretch;
+  gap: clamp(14px, 1.4vw, 22px);
+  padding-inline: var(--fs-gutter);
+  will-change: transform;
+}
+.fs-htrack:focus-visible {
+  outline: 2px solid var(--fs-gold);
+  outline-offset: -2px;
+}
+.fs-hphoto {
+  flex: 0 0 min(46vw, 680px);
+  height: min(62vh, 560px);
+}
+.fs-hstep {
+  position: relative;
+  flex: 0 0 clamp(280px, 24vw, 360px);
+  height: min(62vh, 560px);
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--fs-paper);
+  transition:
+    background 0.5s,
+    border-color 0.5s,
+    box-shadow 0.5s;
+}
+.fs-hstep[data-lit="true"] {
+  border-color: rgba(138, 106, 42, 0.4);
+  background: #fff;
+  box-shadow: 0 28px 56px -40px rgba(6, 19, 70, 0.5);
+}
+.fs-hstep-glyph {
+  position: absolute;
+  top: 16%;
+  inset-inline-end: -18px;
+  z-index: -1;
+  width: clamp(150px, 11vw, 200px);
+  height: clamp(150px, 11vw, 200px);
+  color: rgba(6, 19, 70, 0.055);
+  transition:
+    color 0.7s,
+    transform 1.1s cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+.fs-hstep-glyph .fs-icon {
+  width: 100%;
+  height: 100%;
+}
+.fs-hstep[data-lit="true"] .fs-hstep-glyph {
+  color: rgba(195, 154, 78, 0.2);
+  transform: rotate(-8deg) scale(1.05);
+}
+.fs-hstep-n {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: var(--fs-text-display);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(6, 19, 70, 0.28);
+  transition:
+    color 0.5s,
+    -webkit-text-stroke-color 0.5s;
+}
+.fs-hstep[data-lit="true"] .fs-hstep-n {
+  color: var(--fs-gold);
+  -webkit-text-stroke-color: var(--fs-gold);
+}
+/* Every card shares one rhythm: number at the top, title at a fixed offset (not pushed by text
+   length), body under it, Input/Output on the bottom edge. */
+.fs-hstep h3 {
+  min-height: 1.22em;
+  margin: clamp(56px, 12vh, 120px) 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--fs-text-subheading);
+  line-height: var(--fs-text-subheading--line-height);
+  letter-spacing: -0.016em;
+}
+.fs-hstep p {
+  margin: 10px 0 0;
+  font-size: var(--fs-text-body-sm);
+  color: var(--color-text-secondary);
+}
+.fs-hstep dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: auto 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-hairline);
+}
+.fs-hstep dt {
+  font-size: var(--fs-text-caption);
+  color: var(--color-text-tertiary);
+}
+.fs-hstep dd {
+  min-height: 2.7em;
+  margin: 2px 0 0;
+  font-size: var(--fs-text-body-sm);
+  font-weight: 500;
+  line-height: 1.35;
+}
+.fs-hprog {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 20px;
+  align-items: center;
+  width: 100%;
+}
+.fs-hprog-meta {
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+.fs-hprog-line {
+  position: relative;
+  height: 1px;
+  background: var(--color-border-hairline);
+}
+.fs-hprog-line i {
+  position: absolute;
+  inset-inline-start: 0;
+  top: -1px;
+  width: 0;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #81b9e9, #004a80 45%, var(--fs-gold) 90%);
+}
+.fs-hprog-dots {
+  display: flex;
+  gap: 8px;
+}
+.fs-hprog-dots span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border-hairline);
+  border-radius: 50%;
+  font-family: var(--font-technical);
+  font-size: var(--fs-text-technical);
+  color: var(--color-text-tertiary);
+  transition:
+    background 0.4s,
+    color 0.4s,
+    border-color 0.4s;
+}
+.fs-hprog-dots span[data-on] {
+  border-color: var(--fs-gold);
+  background: var(--fs-gold);
+  color: #1a1204;
+}
+/* Narrow screens and reduced motion: a native swipe track, nothing pinned. */
+@media (max-width: 960px), (prefers-reduced-motion: reduce) {
+  .fs-hpin {
+    height: auto !important;
+  }
+  .fs-hstage {
+    position: relative;
+    height: auto;
+    padding: 40px 0 8px;
+  }
+  .fs-htrack {
+    transform: none !important;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline-start: var(--fs-gutter);
+    scrollbar-width: none;
+    padding-bottom: 12px;
+  }
+  .fs-htrack::-webkit-scrollbar {
+    display: none;
+  }
+  .fs-htrack > * {
+    scroll-snap-align: start;
+  }
+  .fs-hprog {
+    padding-bottom: var(--fs-section-pad-y);
+  }
+}
+@media (max-width: 960px) {
+  .fs-cf-head {
+    grid-template-columns: 1fr;
+  }
+  .fs-hphoto {
+    flex-basis: 84vw;
+    height: 56vw;
+  }
+  .fs-hstep {
+    flex-basis: 78vw;
+    height: auto;
+    min-height: 360px;
+  }
+  .fs-hprog {
+    grid-template-columns: 1fr;
+  }
+  .fs-hprog-dots {
+    display: none;
+  }
+}
+
+/* ── The page-wide reveal: each section assembles from above ─────────────── */
+/* Parts are marked by motion/reveal-engine.tsx only after hydration and only in sections the
+   reader has not reached, so the server HTML is always the finished page. */
+[data-assemble] [data-part] {
+  transition:
+    opacity 900ms var(--e-entrance),
+    transform 900ms var(--e-entrance),
+    clip-path 900ms var(--e-entrance);
+  transition-delay: calc(var(--part-i, 0) * 90ms);
+}
+[data-assemble="armed"] [data-part="text"] {
+  opacity: 0;
+  transform: translate3d(0, -22px, 0);
+}
+[data-assemble="armed"] [data-part="eyebrow"] {
+  opacity: 0;
+  transform: translate3d(0, -12px, 0);
+}
+/* Headings fall into place through their own mask, top line first. */
+[data-assemble="armed"] [data-part="heading"] {
+  opacity: 0;
+  transform: translate3d(0, -0.45em, 0);
+  clip-path: inset(0 0 100% 0);
+}
+[data-assemble="play"] [data-part="heading"] {
+  clip-path: inset(-0.12em -0.1em -0.28em -0.1em);
+}
+/* Photographs open from the top edge down, while the picture settles from a slight zoom. */
+[data-assemble="armed"] [data-part="photo"] {
+  clip-path: inset(0 0 100% 0 round var(--radius-panel));
+}
+[data-assemble="play"] [data-part="photo"] {
+  clip-path: inset(0 0 0 0 round var(--radius-panel));
+}
+[data-assemble] [data-part="photo"] > img {
+  transition: transform 1530ms var(--e-entrance);
+  transition-delay: calc(var(--part-i, 0) * 90ms);
+}
+[data-assemble="armed"] [data-part="photo"] > img {
+  transform: translate3d(0, -3%, 0) scale(1.14);
+}
+/* Cards, panels and steps are dealt onto the table from above, one after another. */
+[data-assemble="armed"] [data-part="item"] {
+  opacity: 0;
+  transform: translate3d(0, -34px, 0) scale(0.985);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-cine-shot,
+  .fs-cine-lb,
+  .fs-cine-line,
+  .fs-cine-lead,
+  .fs-cine-cta,
+  .fs-cine-bar {
+    transition: none !important;
+  }
+  .fs-cine-shot img,
+  .fs-cine-sweep,
+  .fs-cine-grain,
+  .fs-cine-reel-bars i {
+    animation: none !important;
+  }
+  .fs-cine-bg {
+    transform: none;
+  }
+  .fs-cine-lb,
+  .fs-cine-reel {
+    display: none;
+  }
+}
+
+/* Concept 03's own section heads: headings wrap at 20 characters and the lead reads at the regular
+   weight, as in the approved design (the shared .fs-d2 / .fs-lead stay untouched elsewhere). */
+:is(.fs-ind2-head, .fs-cf-head, .fs-ins-top) .fs-d2 {
+  max-width: 20ch;
+}
+:is(.fs-who2, .fs-ind2-head, .fs-cf-head, .fs-ins-top) .fs-lead {
+  font-weight: 400;
+}
+
+/* Right-to-left: the copy sits on the right, so the hero's legibility treatment mirrors with it.
+   The photograph itself is never flipped (it would mirror the labels on the bottles); only its
+   framing, the depth-of-field focus, the grade and the ink gradients change sides. */
+[dir="rtl"] .fs-cine-shot img {
+  object-position: 32% 56%;
+}
+[dir="rtl"] .fs-cine-grade {
+  background: linear-gradient(
+    245deg,
+    rgba(0, 32, 80, 0.75) 0%,
+    rgba(0, 74, 128, 0.35) 42%,
+    rgba(227, 198, 137, 0.32) 78%,
+    rgba(195, 154, 78, 0.4) 100%
+  );
+}
+[dir="rtl"] .fs-cine-dof {
+  -webkit-mask-image: radial-gradient(58% 52% at 34% 58%, transparent 52%, #000 100%);
+  mask-image: radial-gradient(58% 52% at 34% 58%, transparent 52%, #000 100%);
+}
+[dir="rtl"] .fs-cine-bg::after {
+  background:
+    radial-gradient(52% 60% at 0% 100%, rgba(3, 11, 31, 0.9), rgba(3, 11, 31, 0) 72%),
+    linear-gradient(
+      270deg,
+      rgba(3, 11, 31, 0.96) 0%,
+      rgba(3, 11, 31, 0.84) 34%,
+      rgba(3, 11, 31, 0.25) 68%,
+      rgba(3, 11, 31, 0.1) 100%
+    ),
+    linear-gradient(0deg, rgba(3, 11, 31, 1) 0%, rgba(3, 11, 31, 0) 38%),
+    linear-gradient(180deg, rgba(3, 11, 31, 0.7) 0%, rgba(3, 11, 31, 0) 22%);
+}
+@media (max-width: 960px) {
+  [dir="rtl"] .fs-cine-bg::after {
+    background: linear-gradient(
+      0deg,
+      rgba(3, 11, 31, 1) 18%,
+      rgba(3, 11, 31, 0.72) 60%,
+      rgba(3, 11, 31, 0.45)
+    );
   }
 }

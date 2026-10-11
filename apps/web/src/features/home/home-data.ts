@@ -84,34 +84,51 @@ export const HERO_SPEC: readonly Fact[] = [
 ];
 
 /**
- * The product route — the hero's schematic, as data. **Six stages.**
+ * The hero reel: four of the site's own lab photographs, played as one graded sequence.
  *
- * It ran five and the missing one was Quality control, which is not a detail: the workbook's
- * `EXPORT & LOGISTICS` sheet gives the supply chain as Production → **Quality Control** →
- * Packaging → … , and the `Home Page` sheet's advantages promise that products are tested and
- * evaluated before release. The route was drawing a product that went from blend to packaging
- * without either. It now sits where that sheet puts it — after the grade is set, before anything
- * is packed.
- *
- * The detail lines name no certificate, standard, licence or approval. They describe what a stage
- * *is* — a fraction, a package, a property, a shipping unit — and stop there. "Tested before
- * release" is the same claim the Why Choose segment already publishes, in fewer words; it names no
- * test, no method and no issuing body.
+ * The NAMES are editable in /admin (`hero_shots`) and so are the PHOTOGRAPHS (`hero_shot_1` to
+ * `hero_shot_4`); what stays here is the built-in photograph each slot falls back to, and the
+ * framing of its slow push-in: `focus` is the transform origin the camera pushes towards and
+ * `drift` is where the frame ends up. Presentational only.
  */
-export type RouteStep = {
-  readonly index: string;
+export type HeroShot = {
   readonly name: string;
-  readonly detail: string;
-  readonly icon: "base-stock" | "blend" | "grade" | "quality" | "packaging" | "destination";
+  /** The /admin photograph slot that replaces `src` when an editor picks one. */
+  readonly slot: "hero_shot_1" | "hero_shot_2" | "hero_shot_3" | "hero_shot_4";
+  readonly src: string;
+  readonly focus: string;
+  readonly drift: string;
 };
 
-export const HERO_ROUTE: readonly RouteStep[] = [
-  { index: "01", name: "Base stock", detail: "Refined base fractions", icon: "base-stock" },
-  { index: "02", name: "Blend", detail: "Additive package", icon: "blend" },
-  { index: "03", name: "Grade", detail: "Viscosity and properties", icon: "grade" },
-  { index: "04", name: "Quality control", detail: "Tested before release", icon: "quality" },
-  { index: "05", name: "Packaging", detail: "Bulk, flexitank, drum", icon: "packaging" },
-  { index: "06", name: "Destination", detail: "Port and shipping term", icon: "destination" },
+export const HERO_SHOTS: readonly HeroShot[] = [
+  {
+    name: "Base Oils",
+    slot: "hero_shot_1",
+    src: "/images/base-oils-lab-samples.webp",
+    focus: "62% 58%",
+    drift: "-3% -1%",
+  },
+  {
+    name: "Engine Oils",
+    slot: "hero_shot_2",
+    src: "/images/engine-oils-automotive-lab-samples.webp",
+    focus: "55% 50%",
+    drift: "2% -2%",
+  },
+  {
+    name: "Industrial",
+    slot: "hero_shot_3",
+    src: "/images/industrial-oils-lab-samples.webp",
+    focus: "60% 55%",
+    drift: "-2% 1%",
+  },
+  {
+    name: "Marine",
+    slot: "hero_shot_4",
+    src: "/images/marine-oils-lab-samples.webp",
+    focus: "50% 55%",
+    drift: "-3% -1%",
+  },
 ];
 
 /* --------------------------------------------------------- 2 · who we are */
@@ -125,30 +142,31 @@ export const HERO_ROUTE: readonly RouteStep[] = [
  * and repeating them here is exactly the duplication the owner asked to remove.
  */
 export type WhoWeAreClaim = {
-  readonly index: string;
-  readonly icon: "produce" | "formulate" | "supply";
   readonly term: string;
   readonly detail: string;
+  /** The built-in photograph; the editable one is the /admin slot named in `photo`. */
+  readonly src: string;
+  readonly photo: "who_we_are" | "who_we_are_2" | "who_we_are_3";
 };
 
 export const WHO_WE_ARE: readonly WhoWeAreClaim[] = [
   {
-    index: "01",
-    icon: "produce",
     term: "We produce",
     detail: "Base oils, engine oils, lubricants and additives — made, not bought in and resold.",
+    src: "/images/home/story-product-portfolio.webp",
+    photo: "who_we_are",
   },
   {
-    index: "02",
-    icon: "formulate",
     term: "We formulate",
     detail: "Products developed against a stated technical and commercial requirement.",
+    src: "/images/home/lab-refrigerator-compressor-oil.webp",
+    photo: "who_we_are_2",
   },
   {
-    index: "03",
-    icon: "supply",
     term: "We supply",
     detail: "Packaging and volumes arranged around the product and the route it travels.",
+    src: "/images/home/journey-requirement-to-supply.webp",
+    photo: "who_we_are_3",
   },
 ];
 
@@ -234,9 +252,6 @@ export type Family = {
   /** What an enquiry needs: the detail panel's "Enquiry needs" row. Editable in /admin. */
   readonly enquiry: string;
 };
-
-/** The detail panel's two row labels. The values are per family and editable in /admin. */
-export const FAMILY_SPEC_LABELS = { supplied: "Supplied as", enquiry: "Enquiry needs" } as const;
 
 export const FAMILIES: readonly Family[] = [
   {
@@ -380,36 +395,43 @@ export const ADVANTAGES: readonly Advantage[] = [
  * already does that, and repeating it here is the duplication the owner asked to remove.
  */
 export type Industry = {
-  readonly icon: "automotive" | "manufacturing" | "blenders" | "petrochemical" | "packaging";
   readonly name: string;
   readonly body: string;
+  /** The built-in photograph; the editable one is the /admin slot named in `photo`. */
+  readonly src: string;
+  readonly photo: "industry_1" | "industry_2" | "industry_3" | "industry_4" | "industry_5";
 };
 
 export const INDUSTRIES: readonly Industry[] = [
   {
-    icon: "automotive",
     name: "Automotive & Transportation",
     body: "Engine, transmission and driveline lubricants for vehicle fleets and workshops.",
+    src: "/images/engine-oils-automotive-lab-samples.webp",
+    photo: "industry_1",
   },
   {
-    icon: "manufacturing",
     name: "Industrial Manufacturing",
     body: "Hydraulic, gear and process fluids specified against plant duty cycles.",
+    src: "/images/industrial-oils-lab-samples.webp",
+    photo: "industry_2",
   },
   {
-    icon: "blenders",
     name: "Lubricant Manufacturers",
     body: "Base oils and additive components supplied as blending inputs.",
+    src: "/images/lubricant-additives-lab-samples.webp",
+    photo: "industry_3",
   },
   {
-    icon: "petrochemical",
     name: "Petrochemical Industry",
     body: "Petroleum-based products supplied into downstream processing and formulation.",
+    src: "/images/marine-oils-lab-samples.webp",
+    photo: "industry_4",
   },
   {
-    icon: "packaging",
     name: "Packaging & Specialty Industries",
     body: "Specialty grades and packaging formats for lower-volume, specific applications.",
+    src: "/images/antifreeze-coolants-lab-samples.webp",
+    photo: "industry_5",
   },
 ];
 
@@ -424,14 +446,9 @@ export const INDUSTRIES: readonly Industry[] = [
  * Produce, Deliver). **The owner chose six**, so the Customized Solutions sheet's sequence is the
  * one rendered — here and on that page — and the two surfaces cannot drift apart.
  *
- * `art` is a decorative schematic per step. Each is `aria-hidden` inside `.fs-jstep-art`.
- *
- * **They carry no text.** The illustrations these replaced embedded `<text font-size="8.5">`
- * labels in a 400-unit `viewBox`, which scales with the container: measured at 13.1px on desktop
- * and under 12px on a narrow column, they were the last text on the public site below the floor
- * (DESIGN_SYSTEM §7.1, ADR-022 §4.6), and they asked for `JetBrains Mono`, a family this
- * application does not load. Geometry only, in the Flagship's own steel and brass rather than the
- * prototype's off-palette blue.
+ * `icon` names the faint glyph behind each step card, drawn from the site's own icon set
+ * (`features/site/icons.tsx`) and `aria-hidden`. It carries no text: the step's number, title and
+ * copy are real text in the card.
  */
 export type Stage = {
   readonly n: string;
@@ -440,17 +457,9 @@ export type Stage = {
   /** The step's Input and Output rows. Plain strings so the /admin list can overlay them by name. */
   readonly input: string;
   readonly output: string;
-  readonly art: string;
+  /** The faint glyph behind the card, from the site's own icon set (features/site/icons.tsx). */
+  readonly icon: "search" | "formulation" | "sample" | "quality" | "manufacturer" | "supply";
 };
-
-const HAIRLINE = 'stroke="rgba(199,205,214,.22)"';
-const LINE = 'stroke="rgba(199,205,214,.5)" stroke-width="1.3"';
-const BRASS = 'stroke="rgba(195,154,78,.62)" stroke-width="1.3"';
-const NODE = 'fill="rgba(227,198,137,.75)"';
-const GRID = `<g ${HAIRLINE}><path d="M0 75h400M0 150h400M0 225h400M100 0v300M200 0v300M300 0v300"/></g>`;
-
-/** The two row labels under each step. The values are per step and editable in /admin. */
-export const STEP_FACT_LABELS = { input: "Input", output: "Output" } as const;
 
 export const CUSTOM_STEPS: readonly Stage[] = [
   {
@@ -459,7 +468,7 @@ export const CUSTOM_STEPS: readonly Stage[] = [
     body: "We start from the technical, commercial and application requirements behind the request — what the product has to do, where it has to do it, and on what terms.",
     input: "Application and duty",
     output: "Stated requirement",
-    art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><path d="M120 190V110h60v80M220 190v-50h60v50"/><path d="M90 190h220"/></g><g ${BRASS}><path d="M150 110V70M250 140v-40"/></g><g ${NODE}><circle cx="150" cy="70" r="4"/><circle cx="250" cy="100" r="4"/></g></svg>`,
+    icon: "search",
   },
   {
     n: "02",
@@ -467,7 +476,7 @@ export const CUSTOM_STEPS: readonly Stage[] = [
     body: "The technical team evaluates the requirement and either adapts an existing formulation or develops a new one to meet it.",
     input: "Stated requirement",
     output: "Candidate formulation",
-    art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><path d="M140 110l32-18 32 18v36l-32 18-32-18z"/><path d="M204 146l32-18 32 18v36l-32 18-32-18z"/><path d="M172 92V58M236 128V92l32-18"/></g><circle cx="205" cy="150" r="70" ${BRASS} stroke-dasharray="4 7"/><g ${NODE}><circle cx="172" cy="92" r="4"/><circle cx="236" cy="128" r="4"/><circle cx="268" cy="74" r="4"/></g></svg>`,
+    icon: "formulation",
   },
   {
     n: "03",
@@ -475,7 +484,7 @@ export const CUSTOM_STEPS: readonly Stage[] = [
     body: "The candidate product is tested and evaluated against the specification and performance criteria the requirement set out.",
     input: "Candidate formulation",
     output: "Measured result",
-    art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<path d="M20 220C80 214 110 182 160 152S250 92 300 80s60-8 80-6" ${LINE}/><path d="M20 244C80 240 110 214 160 190S250 136 300 124s60-6 80-4" ${BRASS} stroke-dasharray="5 8"/><g ${NODE}><circle cx="160" cy="152" r="5"/><circle cx="300" cy="80" r="5"/></g></svg>`,
+    icon: "sample",
   },
   {
     n: "04",
@@ -483,7 +492,7 @@ export const CUSTOM_STEPS: readonly Stage[] = [
     body: "Samples are reviewed and approved against the customer's own requirements before anything moves into production.",
     input: "Sample and result",
     output: "Customer approval",
-    art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><rect x="120" y="70" width="160" height="160" rx="14"/><path d="M120 118h160"/></g><g ${BRASS} stroke-linecap="round"><path d="M158 168l24 24 60-60"/></g><g ${NODE}><circle cx="146" cy="94" r="4"/></g></svg>`,
+    icon: "quality",
   },
   {
     n: "05",
@@ -491,7 +500,7 @@ export const CUSTOM_STEPS: readonly Stage[] = [
     body: "The approved product moves into controlled production, made to the formulation that was signed off rather than to a near equivalent.",
     input: "Approved formulation",
     output: "Produced batch",
-    art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><rect x="60" y="120" width="66" height="110" rx="10"/><rect x="150" y="92" width="66" height="138" rx="10"/><rect x="240" y="142" width="66" height="88" rx="10"/></g><g ${BRASS} stroke-dasharray="6 9"><path d="M126 160h24M216 160h24"/></g><path d="M40 230h320" ${HAIRLINE}/><g ${NODE}><circle cx="93" cy="136" r="4"/><circle cx="183" cy="108" r="4"/></g></svg>`,
+    icon: "manufacturer",
   },
   {
     n: "06",
@@ -499,7 +508,7 @@ export const CUSTOM_STEPS: readonly Stage[] = [
     body: "The finished product is packaged and delivered on the supply and logistics terms agreed with the requirement.",
     input: "Produced batch",
     output: "Delivered order",
-    art: `<svg viewBox="0 0 400 300" fill="none">${GRID}<g ${LINE}><rect x="60" y="150" width="90" height="70" rx="8"/><rect x="164" y="150" width="90" height="70" rx="8"/><path d="M60 178h90M164 178h90"/></g><path d="M262 190C300 190 316 138 356 122" ${BRASS} stroke-dasharray="5 8"/><g ${NODE}><circle cx="356" cy="122" r="6"/></g></svg>`,
+    icon: "supply",
   },
 ];
 
