@@ -4755,3 +4755,165 @@
     );
   }
 }
+
+/* ── Home page loader (Concept 03, option B): once per session, then it parts into the hero's
+   letterbox bars. html[data-loader] is decided before the first paint by preloader.tsx. ── */
+/* Shown only once the inline decision says so: without JavaScript, on a returning visit, and on a
+   client-side navigation back to the home page (where React never runs that script), it is absent. */
+.fs-loader {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+}
+html[data-loader="active"] .fs-loader {
+  display: block;
+}
+.fs-loader-half {
+  position: absolute;
+  inset-inline: 0;
+  height: 50.5vh;
+  background: var(--fs-ink);
+  transition:
+    height 1s cubic-bezier(0.77, 0, 0.18, 1),
+    transform 0.9s var(--e-entrance);
+}
+.fs-loader-half--top {
+  top: 0;
+}
+.fs-loader-half--bottom {
+  bottom: 0;
+}
+.fs-loader-in {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  transition: opacity 0.35s ease;
+}
+.fs-loader-txt {
+  /* Balances the trailing tracking so the wordmark sits centred under the mark. */
+  padding-inline-start: var(--fs-text-technical--letter-spacing);
+  font-family: var(--font-display);
+  font-size: var(--fs-text-technical);
+  line-height: var(--fs-text-technical--line-height);
+  font-weight: 500;
+  letter-spacing: var(--fs-text-technical--letter-spacing);
+  color: rgba(255, 255, 255, 0.72);
+}
+.fs-loader-bar {
+  display: block;
+  width: 132px;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.14);
+}
+.fs-loader-bar b {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--fs-gold);
+  transition: width 220ms linear;
+}
+/* Parting: the mark leaves, and the two halves become the hero's 15vh letterbox bars. */
+.fs-loader[data-state="part"] .fs-loader-in {
+  opacity: 0;
+}
+.fs-loader[data-state="part"] .fs-loader-half {
+  height: 15vh;
+}
+/* No letterbox on narrow screens: the halves slide away instead. */
+@media (max-width: 960px) {
+  .fs-loader[data-state="part"] .fs-loader-half {
+    height: 50.5vh;
+  }
+  .fs-loader[data-state="part"] .fs-loader-half--top {
+    transform: translateY(-100%);
+  }
+  .fs-loader[data-state="part"] .fs-loader-half--bottom {
+    transform: translateY(100%);
+  }
+}
+/* Never cover a page whose JavaScript did not arrive: no scripting, no loader; and a failsafe that
+   uncovers the page if the script that should lift the curtain never runs. */
+@media (scripting: none) {
+  .fs-loader {
+    display: none;
+  }
+}
+@keyframes fs-loader-failsafe {
+  to {
+    visibility: hidden;
+  }
+}
+.fs-loader {
+  animation: fs-loader-failsafe 0s 5s forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-loader {
+    display: none;
+  }
+}
+/* While the loader is up, the hero's own failsafe waits for it, so the headline is not revealed
+   behind the curtain before its entrance can play. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  html[data-loader="active"] .fs-cine:not([data-ready="true"]) .fs-cine-line,
+  html[data-loader="active"] .fs-cine:not([data-ready="true"]) .fs-cine-lead,
+  html[data-loader="active"] .fs-cine:not([data-ready="true"]) .fs-cine-cta,
+  html[data-loader="active"] .fs-cine:not([data-ready="true"]) .fs-cine-eyebrow,
+  html[data-loader="active"] .fs-cine:not([data-ready="true"]) .fs-cine-bar {
+    animation-delay: 5.5s;
+  }
+}
+
+/* ── Page transition (Concept 03, transition 1): ink comes down over the page, and once the next
+   page is in place it carries on down and leaves from the bottom. Movement only while covering or
+   revealing; back at rest the panel jumps, unseen, to its start above the page. ── */
+/* Mounted in the root layout, outside every page's [data-brand="flagship"] root (which paints its
+   own white surface), so the flagship ink is restated here rather than inherited. */
+.fs-pt {
+  --fs-pt-ink: #030b1f;
+  position: fixed;
+  inset: 0;
+  z-index: 290;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fs-pt[data-phase="cover"],
+.fs-pt[data-phase="reveal"] {
+  pointer-events: auto;
+}
+.fs-pt-panel {
+  position: absolute;
+  inset: 0;
+  background: var(--fs-pt-ink);
+  transform: translateY(-100%);
+}
+/* An even ease-in-out: a steep curve parks the panel, then throws most of the viewport past in a few
+   frames, which reads as the curtain jumping in rather than coming down. */
+.fs-pt[data-phase="cover"] .fs-pt-panel {
+  transform: translateY(0);
+  transition: transform 0.7s cubic-bezier(0.45, 0, 0.55, 1);
+}
+.fs-pt[data-phase="reveal"] .fs-pt-panel {
+  transform: translateY(100%);
+  transition: transform 0.8s cubic-bezier(0.45, 0, 0.55, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fs-pt {
+    display: none;
+  }
+}
+
+/* Photo parallax (features/site/smooth-scroll.tsx): the picture is slightly oversized and drifts
+   inside its frame. Individual `translate`/`scale` compose with the reveal and hover transforms
+   instead of replacing them. */
+html.fs-parallax .fs-photo > img,
+html.fs-parallax .fs-branded-photo > img {
+  scale: 1.14;
+  translate: 0 var(--fs-par, 0%);
+}

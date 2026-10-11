@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 
 import { Arrow } from "@/features/site/logo-mark";
 
+import { LOADER_DONE_EVENT } from "../chrome/preloader";
 import { Counter } from "../motion/counter";
 
 /** One shot of the reel, already resolved: the /admin photograph or the built-in one. */
@@ -54,14 +55,26 @@ export function HeroReel({
   // bandwidth with photographs that only appear 6.5 s later.
   const [warm, setWarm] = useState(false);
 
-  // Release the entrance (letterbox, headline lines, copy) one frame after mount, so the hidden
-  // state is painted first and the transition actually plays.
+  // Release the entrance (letterbox, headline lines, copy). When the loader is showing, the
+  // entrance waits for it to part into these same letterbox bars; otherwise it starts one frame
+  // after mount, so the hidden state is painted first and the transition actually plays.
   useEffect(() => {
-    const t = window.setTimeout(() => setReady(true), 60);
-    const w = window.setTimeout(() => setWarm(true), 2000);
+    const timers: number[] = [];
+    const start = (): void => {
+      setReady(true);
+      timers.push(window.setTimeout(() => setWarm(true), 2000));
+    };
+    const waiting = document.documentElement.dataset.loader === "active";
+    if (waiting) {
+      window.addEventListener(LOADER_DONE_EVENT, start, { once: true });
+      // Never hold the hero hostage to the loader: start regardless after its longest run.
+      timers.push(window.setTimeout(start, 4500));
+    } else {
+      timers.push(window.setTimeout(start, 60));
+    }
     return () => {
-      window.clearTimeout(t);
-      window.clearTimeout(w);
+      window.removeEventListener(LOADER_DONE_EVENT, start);
+      timers.forEach(window.clearTimeout);
     };
   }, []);
 

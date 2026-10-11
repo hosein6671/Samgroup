@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { JsonLd } from "@/features/seo/json-ld";
+import { PageTransition } from "@/features/site/page-transition";
+import { SmoothScroll } from "@/features/site/smooth-scroll";
 import { robotsMetadata } from "@/features/seo/indexing";
 import { siteJsonLd } from "@/features/seo/structured-data";
 import { siteUrl } from "@/features/seo/site";
@@ -124,7 +126,17 @@ export default async function LocaleLayout({
   if (!record) notFound();
 
   return (
-    <html lang={record.code} dir={record.direction} className={FONT_VARIABLES}>
+    /*
+     * `suppressHydrationWarning` covers this element's own attributes only, not its subtree: the home
+     * page loader's inline script sets `data-loader` on <html> before hydration, by design, so the
+     * first paint already knows whether the curtain shows (features/home/chrome/preloader.tsx).
+     */
+    <html
+      lang={record.code}
+      dir={record.direction}
+      className={FONT_VARIABLES}
+      suppressHydrationWarning
+    >
       <body>
         {/*
          * `Organization` + `WebSite`, once per page, for every route in the canonical tree
@@ -142,6 +154,10 @@ export default async function LocaleLayout({
         <HeaderContentProvider fields={(await publishedStructural("header", locale))?.fields ?? {}}>
           {children}
         </HeaderContentProvider>
+        {/* The curtain between public pages; this tree only, so the Admin Dashboard never has it. */}
+        <PageTransition />
+        {/* Inertial wheel scrolling, public pages only. */}
+        <SmoothScroll />
       </body>
     </html>
   );
