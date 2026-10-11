@@ -251,3 +251,22 @@ The logo uses the live `.fs-mark` crop.
 2. **Sam-blue's role.** Both concepts promote the existing sam-blue ramp from the logo into the generative layer. No token value changes; the `sam-blue-500` and logo mismatch is left alone, as previously agreed.
 3. **Reversed logo.** It is still pending from the owner. It matters most for 01.
 4. **Implementation scope.** This is a Frontend-area change to `apps/web/src/features/home/*` (sections, `flagship.css`, `motion/`, `visuals/`). Neither concept needs a new dependency: both use vanilla WebGL and Canvas through the existing `use-canvas.ts` pattern.
+
+---
+
+## Concept 03 · Motion: assemble from above
+
+**Files:** `concept-03-motion.html` (works from inside the repository) and `concept-03-motion-final.html` (standalone, photographs embedded). Concept 03 itself is unchanged; only the section reveals are replaced.
+
+**What changes.** Concept 03 had two reveal systems. Who We Are, Industries, Customized Solutions, Network and Insights used the *pour*, a clip that opens from the bottom up. Trust, Products and Why used the live site's rise from below. Both are replaced by one rule for every section: when the reader reaches it, **the section builds itself in reading order and every part comes down into place**.
+
+1. Eyebrow drops in.
+2. Heading falls into place through its own mask, top first.
+3. Lead and links drop in.
+4. Photographs open from the top edge down while the picture settles from a slight zoom; each caption follows its photo.
+5. Cards, panels, accordion panels and step cards are dealt in from above, one after another.
+6. Buttons and the progress line arrive last.
+
+**One timing system:** 0.9 s per part, the site's entrance easing, 90 ms between parts. A section starts when its top passes about 78% of the viewport and builds once. When it has finished, every element gets its own transitions back (card hovers, lit steps, the accordion). Reduced motion shows everything at once. Parts are found by role, so there is no per-section code. The hero keeps its cinematic opening.
+
+**Review controls (concept only):** *Replay this section* and *Slow ×3*, bottom left.
