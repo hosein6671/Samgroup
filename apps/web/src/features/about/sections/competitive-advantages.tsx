@@ -11,6 +11,7 @@ import { ANCHORS } from "../about-anchors";
 
 import type { AboutUsCompetitiveAdvantages, CompetitiveAdvantageIconKey } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * "Why Partner with SAM Group?" — six reasons a buyer deals with the producer directly.
@@ -63,7 +64,11 @@ export function AboutCompetitiveAdvantages({
             <p className="fs-eyebrow">Why partner with us</p>
             {advantages.heading !== null && <h2 className="fs-d2">{advantages.heading}</h2>}
           </div>
-          {advantages.lead !== null && <p className="fs-lead">{advantages.lead}</p>}
+          {advantages.lead !== null && (
+            <p className="fs-lead">
+              <RichText text={advantages.lead} />
+            </p>
+          )}
         </header>
 
         {/*
@@ -85,7 +90,9 @@ export function AboutCompetitiveAdvantages({
                   </span>
                   <span className="ab-commitment-body">
                     <b>{item.name}</b>
-                    <small>{item.note}</small>
+                    <small>
+                      <RichText text={item.note} />
+                    </small>
                   </span>
                 </li>
               );

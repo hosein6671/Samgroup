@@ -5,6 +5,7 @@ import { contentRouteHref } from "@/features/site/site-routes";
 
 import type { AboutUsHero, ContentFigure } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * The About Us hero — the page's `<h1>`, its lead, its two actions and its optional photograph.
@@ -43,7 +44,11 @@ export function AboutHero({
         <div className="ab-hero-copy reveal-fade-rise">
           {hero.eyebrow !== null && <p className="fs-eyebrow">{hero.eyebrow}</p>}
           <h1 className="fs-d1">{hero.title}</h1>
-          {hero.supportingText !== null && <p className="fs-lead">{hero.supportingText}</p>}
+          {hero.supportingText !== null && (
+            <p className="fs-lead">
+              <RichText text={hero.supportingText} />
+            </p>
+          )}
           {hasActions && (
             <div className="ab-hero-actions">
               {hero.primaryCta !== null && (

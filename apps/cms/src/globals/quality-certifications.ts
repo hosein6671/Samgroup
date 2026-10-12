@@ -3,6 +3,7 @@ import { ROUTE_OPTIONS, ctaField } from "../fields/cta";
 import { seoFields } from "../fields/seo";
 
 import type { Field, GlobalConfig, SelectFieldManyValidation } from "payload";
+import { richTextarea } from "../editor/rich-text-field";
 
 /**
  * `QualityCertifications` — the Quality & Certifications page's editorial content.
@@ -216,7 +217,7 @@ export const QualityCertifications: GlobalConfig = {
               "The page's H1. Required — a document with no heading is treated as unconfigured and is not served.",
           },
         },
-        { name: "supportingText", type: "textarea", localized: true },
+        { name: "supportingText", type: "textarea", ...richTextarea, localized: true },
         {
           name: "indexLabel",
           type: "text",
@@ -241,7 +242,7 @@ export const QualityCertifications: GlobalConfig = {
       fields: [
         { name: "eyebrow", type: "text", localized: true },
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         {
           name: "stages",
           type: "array",
@@ -263,6 +264,7 @@ export const QualityCertifications: GlobalConfig = {
         {
           name: "footnote",
           type: "textarea",
+          ...richTextarea,
           localized: true,
           admin: {
             description:
@@ -295,7 +297,7 @@ export const QualityCertifications: GlobalConfig = {
       fields: [
         { name: "eyebrow", type: "text", localized: true },
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         { name: "registerLabel", type: "text", localized: true },
         {
           name: "orderNote",
@@ -324,7 +326,7 @@ export const QualityCertifications: GlobalConfig = {
           },
           fields: [
             { name: "name", type: "text", required: true, localized: true },
-            { name: "why", type: "textarea", required: true, localized: true },
+            { name: "why", type: "textarea", ...richTextarea, required: true, localized: true },
           ],
         },
         ...laboratoryImageFields(),
@@ -354,8 +356,8 @@ export const QualityCertifications: GlobalConfig = {
               "The state, as words. It is rendered as text beside a decorative mark, never as a colour alone.",
           },
         },
-        { name: "statement", type: "textarea", localized: true },
-        { name: "note", type: "textarea", localized: true },
+        { name: "statement", type: "textarea", ...richTextarea, localized: true },
+        { name: "note", type: "textarea", ...richTextarea, localized: true },
       ],
     },
     {
@@ -369,7 +371,7 @@ export const QualityCertifications: GlobalConfig = {
       fields: [
         { name: "eyebrow", type: "text", localized: true },
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         { name: "registerLabel", type: "text", localized: true },
         {
           name: "documents",
@@ -391,6 +393,7 @@ export const QualityCertifications: GlobalConfig = {
         {
           name: "note",
           type: "textarea",
+          ...richTextarea,
           localized: true,
           admin: {
             description:
@@ -442,6 +445,7 @@ export const QualityCertifications: GlobalConfig = {
         {
           name: "limit",
           type: "textarea",
+          ...richTextarea,
           localized: true,
           admin: {
             description:
@@ -456,7 +460,7 @@ export const QualityCertifications: GlobalConfig = {
       fields: [
         { name: "eyebrow", type: "text", localized: true },
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         ctaField("primaryCta", "Primary action"),
         {
           name: "routes",

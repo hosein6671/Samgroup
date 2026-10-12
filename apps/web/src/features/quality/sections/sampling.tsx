@@ -6,6 +6,7 @@ import { ANCHORS } from "../quality-anchors";
 import type { ProductFamilyEntry } from "@/features/site/site-routes";
 import type { QualitySampling } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 6 · Sampling Policy — SITE_STRUCTURE §7's "samples issued at first stage for base oil and engine
@@ -93,7 +94,11 @@ export function QualitySamplingSection({
             ))}
           </ul>
 
-          {limit !== null && <p className="qc-sampling-limit">{limit}</p>}
+          {limit !== null && (
+            <p className="qc-sampling-limit">
+              <RichText text={limit} />
+            </p>
+          )}
         </div>
       </div>
     </section>

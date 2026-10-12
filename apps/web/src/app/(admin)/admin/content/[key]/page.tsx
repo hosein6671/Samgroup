@@ -13,6 +13,37 @@ import { apiGet } from "@/lib/api-client";
 import { ContentForm } from "@/features/admin/content/content-form";
 import type { EditorialMedia, EditorField } from "@/features/admin/content/content-form";
 import type { ReactNode } from "react";
+import { getActiveLocales } from "@/lib/locales";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
+
+/**
+ * Where an editor sees this content on the public site, in the default language (the one this
+ * editor writes). Header and footer appear on every page, so they open the home page; a content
+ * key with no page of its own opens nothing.
+ */
+const VIEW_PATHS: Record<string, string> = {
+  home: ROUTES.home,
+  header: ROUTES.home,
+  footer: ROUTES.home,
+  "about-us": ROUTES.aboutUs,
+  "customized-solutions": ROUTES.customizedSolutions,
+  "quality-certifications": ROUTES.qualityCertifications,
+  "contact-us": ROUTES.contactUs,
+  "export-logistics": ROUTES.exportLogistics,
+  "products-landing": ROUTES.products,
+  "faq-page": ROUTES.faq,
+};
+
+async function viewHref(key: string): Promise<string | undefined> {
+  const path = key.startsWith("category-")
+    ? `${ROUTES.products}/${encodeURIComponent(key.slice(9))}`
+    : key.startsWith("faq-")
+      ? ROUTES.faq
+      : VIEW_PATHS[key];
+  if (!path) return undefined;
+  const locale = (await getActiveLocales().catch(() => [])).find((item) => item.isDefault);
+  return locale ? localeHref(locale.code, path) : undefined;
+}
 export const dynamic = "force-dynamic";
 export default async function Page({
   params,
@@ -124,6 +155,7 @@ export default async function Page({
           schema={data.schema}
           initial={initial}
           media={media}
+          viewHref={await viewHref(key)}
         />
       ) : (
         <p className="ad-notice">The content could not be loaded. Please try again.</p>

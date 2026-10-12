@@ -10,6 +10,7 @@ import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { PhotoFrame } from "../branded-photo";
+import { RichText } from "@/features/site/rich-text";
 import { WHO_WE_ARE } from "../home-data";
 
 /**
@@ -28,7 +29,7 @@ export function WhoWeAre({
   editorial,
 }: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
   const copy = structuralSection("home", "who-we-are", editorial);
-  const claims = structuralList(editorial, "who_we_are", WHO_WE_ARE);
+  const claims = structuralList(editorial, "who_we_are", WHO_WE_ARE, { rich: ["detail"] });
 
   return (
     <section className="fs-sec fs-who2" id="who-we-are" data-surface="light">
@@ -41,7 +42,7 @@ export function WhoWeAre({
             </h2>
           </div>
           <div>
-            <p className="fs-lead">{copy.text("sam_group_produces_base_oils")}</p>
+            <p className="fs-lead">{copy.rich("sam_group_produces_base_oils")}</p>
             <a href={localeHref(locale, ROUTES.aboutUs)} className="fs-textlink">
               {copy.text("learn_more_about_sam_group")}
               <Arrow size={14} />
@@ -74,7 +75,9 @@ export function WhoWeAre({
                   />
                   <figcaption>
                     <h3>{claim.term}</h3>
-                    <p>{claim.detail}</p>
+                    <p>
+                      <RichText text={claim.detail} />
+                    </p>
                   </figcaption>
                 </figure>
               );

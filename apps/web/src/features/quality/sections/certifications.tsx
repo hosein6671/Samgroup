@@ -2,6 +2,7 @@ import { ANCHORS } from "../quality-anchors";
 
 import type { QualityCertificationsSection } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 4 · Certifications — SITE_STRUCTURE §7's `[TO CONFIRM]`, and the reason this page is described at
@@ -62,8 +63,16 @@ export function QualityCertifications({
           </div>
         )}
 
-        {statement !== null && <p className="qc-certs-statement">{statement}</p>}
-        {note !== null && <p className="qc-certs-note">{note}</p>}
+        {statement !== null && (
+          <p className="qc-certs-statement">
+            <RichText text={statement} />
+          </p>
+        )}
+        {note !== null && (
+          <p className="qc-certs-note">
+            <RichText text={note} />
+          </p>
+        )}
       </div>
     </section>
   );

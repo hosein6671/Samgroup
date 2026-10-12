@@ -21,6 +21,7 @@ import { Arrow } from "@/features/site/logo-mark";
 import { localeHref } from "@/features/site/site-routes";
 
 import { PhotoFrame } from "../branded-photo";
+import { RichText } from "@/features/site/rich-text";
 import { CUSTOM_CTA, CUSTOM_STEPS, type Stage } from "../home-data";
 
 const GLYPHS: Record<Stage["icon"], (props: IconProps) => ReactNode> = {
@@ -52,7 +53,7 @@ export function CustomFormulation({
   editorial,
 }: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
   const copy = structuralSection("home", "custom-formulation", editorial);
-  const steps = structuralList(editorial, "custom_steps", CUSTOM_STEPS);
+  const steps = structuralList(editorial, "custom_steps", CUSTOM_STEPS, { rich: ["body"] });
   const photo = structuralImage(
     editorial,
     "custom_formulation",
@@ -163,7 +164,7 @@ export function CustomFormulation({
         <div>
           <p className="fs-sr">{copy.text("customized_solutions")}</p>
           <h2 className="fs-d2">{copy.text("when_the_catalogue_is_only")}</h2>
-          <p className="fs-lead">{copy.text("where_a_standard_product_does")}</p>
+          <p className="fs-lead">{copy.rich("where_a_standard_product_does")}</p>
         </div>
         <div className="fs-cf-cta">
           <a href={localeHref(locale, CUSTOM_CTA.primary.href)} className="fs-btn fs-btn--gold">
@@ -204,7 +205,9 @@ export function CustomFormulation({
                     {step.n}
                   </span>
                   <h3>{step.title}</h3>
-                  <p>{step.body}</p>
+                  <p>
+                    <RichText text={step.body} />
+                  </p>
                   <dl>
                     <div>
                       <dt>{copy.text("input_label")}</dt>

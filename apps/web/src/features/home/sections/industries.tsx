@@ -1,6 +1,7 @@
 import {
   structuralImage,
   structuralList,
+  structuralListLinks,
   structuralSection,
   type StructuralFields,
 } from "@/features/content/structural-copy";
@@ -14,17 +15,28 @@ import { IndustriesAccordion } from "./industries-accordion";
  *
  * Five industries, five photographs; the open panel widens and shows its line of copy. Editable in
  * /admin: the head (`industries` text slots), each industry's name and line (`industries` list) and
- * each photograph (`industry_1` to `industry_5`). The photographs sit behind their own caption, so
+ * each photograph (`industry_1` to `industry_5`), and each industry's optional link (the `href` on
+ * its `industries` row — empty means the card is not a link). The photographs sit behind their own caption, so
  * their fallback alt is empty; an editor's Media alt is used when one is set.
  */
 export function Industries({
   editorial,
 }: { readonly editorial?: StructuralFields } = {}): ReactNode {
   const copy = structuralSection("home", "industries", editorial);
-  const items = structuralList(editorial, "industries", INDUSTRIES).map((item) => {
-    const photo = structuralImage(editorial, item.photo, "") ?? { src: item.src, alt: "" };
-    return { key: item.photo, name: item.name, body: item.body, src: photo.src, alt: photo.alt };
-  });
+  const links = structuralListLinks(editorial, "industries", INDUSTRIES.length);
+  const items = structuralList(editorial, "industries", INDUSTRIES, { rich: ["body"] }).map(
+    (item, i) => {
+      const photo = structuralImage(editorial, item.photo, "") ?? { src: item.src, alt: "" };
+      return {
+        key: item.photo,
+        name: item.name,
+        body: item.body,
+        src: photo.src,
+        alt: photo.alt,
+        href: links[i],
+      };
+    },
+  );
 
   return (
     <section className="fs-sec fs-ind2" id="industries" data-surface="midnight">
@@ -32,7 +44,7 @@ export function Industries({
         <div className="fs-ind2-head">
           <p className="fs-sr">{copy.text("industries_we_serve")}</p>
           <h2 className="fs-d2">{copy.text("where_these_products_go_to")}</h2>
-          <p className="fs-lead">{copy.text("the_same_catalogue_reaches_five")}</p>
+          <p className="fs-lead">{copy.rich("the_same_catalogue_reaches_five")}</p>
         </div>
         {items.length > 0 && <IndustriesAccordion items={items} />}
       </div>

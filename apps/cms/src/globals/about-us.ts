@@ -5,6 +5,7 @@ import { ROUTE_OPTIONS, ctaField } from "../fields/cta";
 import { seoFields } from "../fields/seo";
 
 import type { Field, GlobalConfig } from "payload";
+import { richTextarea, safeLinksRichText } from "../editor/rich-text-field";
 
 /**
  * `AboutUs` — the About Us page's editorial content, and the platform's first company Global.
@@ -149,7 +150,7 @@ export const AboutUs: GlobalConfig = {
               "The page's H1. Required — a document with no heading is treated as unconfigured and is not served.",
           },
         },
-        { name: "supportingText", type: "textarea", localized: true },
+        { name: "supportingText", type: "textarea", ...richTextarea, localized: true },
         ctaField("primaryCta", "Primary action"),
         ctaField("secondaryCta", "Secondary action"),
         ...imageFields(),
@@ -160,7 +161,7 @@ export const AboutUs: GlobalConfig = {
       type: "group",
       fields: [
         { name: "heading", type: "text", localized: true },
-        { name: "body", type: "richText", localized: true },
+        { name: "body", type: "richText", localized: true, ...safeLinksRichText },
         /*
          * The same virtual HTML rendition `Pages` uses, for the same reason: API_CONTRACT_FINAL.md
          * §4 makes Payload's rich-text AST an internal detail that must never reach the frontend,
@@ -181,7 +182,7 @@ export const AboutUs: GlobalConfig = {
           label: "Positioning statements",
           fields: [
             { name: "term", type: "text", required: true, localized: true },
-            { name: "note", type: "textarea", required: true, localized: true },
+            { name: "note", type: "textarea", ...richTextarea, required: true, localized: true },
           ],
         },
         ...imageFields(),
@@ -192,7 +193,7 @@ export const AboutUs: GlobalConfig = {
       type: "group",
       fields: [
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         {
           name: "items",
           type: "array",
@@ -202,6 +203,7 @@ export const AboutUs: GlobalConfig = {
             {
               name: "note",
               type: "textarea",
+              ...richTextarea,
               localized: true,
               admin: { description: "Optional one-sentence description." },
             },
@@ -227,14 +229,14 @@ export const AboutUs: GlobalConfig = {
       },
       fields: [
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         {
           name: "items",
           type: "array",
           label: "Reasons",
           fields: [
             { name: "name", type: "text", required: true, localized: true },
-            { name: "note", type: "textarea", required: true, localized: true },
+            { name: "note", type: "textarea", ...richTextarea, required: true, localized: true },
             {
               name: "icon",
               type: "select",
@@ -252,7 +254,7 @@ export const AboutUs: GlobalConfig = {
       fields: [
         { name: "eyebrow", type: "text", localized: true },
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         {
           name: "functions",
           type: "array",
@@ -263,7 +265,7 @@ export const AboutUs: GlobalConfig = {
           },
           fields: [
             { name: "name", type: "text", required: true, localized: true },
-            { name: "note", type: "textarea", required: true, localized: true },
+            { name: "note", type: "textarea", ...richTextarea, required: true, localized: true },
           ],
         },
         ...imageFields(),
@@ -274,7 +276,7 @@ export const AboutUs: GlobalConfig = {
       type: "group",
       fields: [
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         {
           name: "items",
           type: "array",
@@ -289,7 +291,7 @@ export const AboutUs: GlobalConfig = {
             },
           ],
         },
-        { name: "footnote", type: "textarea", localized: true },
+        { name: "footnote", type: "textarea", ...richTextarea, localized: true },
         ctaField("footnoteCta", "Footnote link"),
         ...imageFields(),
       ],
@@ -300,7 +302,7 @@ export const AboutUs: GlobalConfig = {
       fields: [
         { name: "eyebrow", type: "text", localized: true },
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         ctaField("primaryCta", "Primary action"),
         {
           name: "routes",

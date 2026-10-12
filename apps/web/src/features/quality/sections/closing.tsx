@@ -5,6 +5,7 @@ import { ANCHORS } from "../quality-anchors";
 
 import type { QualityClosing } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 7 · Final CTA — SITE_STRUCTURE §7's closing row.
@@ -50,7 +51,11 @@ export function QualityClosingSection({
         <div className="qc-close-copy reveal-fade-rise">
           {eyebrow !== null && <p className="fs-eyebrow">{eyebrow}</p>}
           {heading !== null && <h2 className="fs-d2">{heading}</h2>}
-          {lead !== null && <p className="fs-lead">{lead}</p>}
+          {lead !== null && (
+            <p className="fs-lead">
+              <RichText text={lead} />
+            </p>
+          )}
 
           {primaryCta !== null && (
             <p className="qc-close-primary">

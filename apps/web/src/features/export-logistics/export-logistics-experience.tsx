@@ -12,6 +12,7 @@ import "./export-logistics.css";
 import { Arrow, LogoMark } from "@/features/site/logo-mark";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
+import { RichText } from "@/features/site/rich-text";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 const BRIEF_FIELDS = [
@@ -75,7 +76,7 @@ export function ExportLogisticsExperience({
             <div className="el-hero-copy">
               <div className="fs-eyebrow">{copy.text("export_and_logistics")}</div>
               <h1 className="fs-d1">{copy.text("plan_the_product_and_the")}</h1>
-              <p className="fs-lead">{copy.text("a_useful_export_enquiry_combines")}</p>
+              <p className="fs-lead">{copy.rich("a_useful_export_enquiry_combines")}</p>
               <div className="el-actions">
                 <a className="fs-btn fs-btn--gold" href={localeHref(locale, ROUTES.requestQuote)}>
                   {copy.text("discuss_an_export_requirement")}
@@ -108,7 +109,7 @@ export function ExportLogisticsExperience({
             <div>
               <div className="fs-eyebrow">{copy.text("start_with_a_complete_brief")}</div>
               <h2 className="fs-d2">{copy.text("five_details_make_an_export")}</h2>
-              <p className="fs-lead">{copy.text("share_what_is_already_known")}</p>
+              <p className="fs-lead">{copy.rich("share_what_is_already_known")}</p>
             </div>
             <dl className="el-brief-list">
               {structuralList(editorial, "brief_fields", BRIEF_FIELDS).map(
@@ -132,18 +133,20 @@ export function ExportLogisticsExperience({
               eyebrow={copy.text("from_requirement_to_delivery")}
               title={copy.text("a_clear_path_from_enquiry")}
             >
-              {copy.text("the_sequence_keeps_technical_commercial")}
+              {copy.rich("the_sequence_keeps_technical_commercial")}
             </SectionHead>
             <ol className="el-route-list">
-              {structuralList(editorial, "delivery_steps", DELIVERY_STEPS).map(
-                ([title, body], index) => (
-                  <li key={title}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <h3>{title}</h3>
-                    <p>{body}</p>
-                  </li>
-                ),
-              )}
+              {structuralList(editorial, "delivery_steps", DELIVERY_STEPS, {
+                rich: ["description"],
+              }).map(([title, body], index) => (
+                <li key={title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{title}</h3>
+                  <p>
+                    <RichText text={body} />
+                  </p>
+                </li>
+              ))}
             </ol>
           </div>
         </section>
@@ -154,16 +157,20 @@ export function ExportLogisticsExperience({
               eyebrow={copy.text("flexible_shipping_and_packaging")}
               title={copy.text("packaging_selected_around_product_and")}
             >
-              {copy.text("available_formats_depend_on_the")}
+              {copy.rich("available_formats_depend_on_the")}
             </SectionHead>
             <div className="el-pack-grid">
-              {structuralList(editorial, "packaging", PACKAGING).map(([title, body]) => (
-                <article key={title}>
-                  <span aria-hidden="true" />
-                  <h3>{title}</h3>
-                  <p>{body}</p>
-                </article>
-              ))}
+              {structuralList(editorial, "packaging", PACKAGING, { rich: ["description"] }).map(
+                ([title, body]) => (
+                  <article key={title}>
+                    <span aria-hidden="true" />
+                    <h3>{title}</h3>
+                    <p>
+                      <RichText text={body} />
+                    </p>
+                  </article>
+                ),
+              )}
             </div>
           </div>
         </section>
@@ -173,15 +180,19 @@ export function ExportLogisticsExperience({
             <div className="el-terms-copy">
               <div className="fs-eyebrow">{copy.text("incoterms_and_commercial_scope")}</div>
               <h2 className="fs-d2">{copy.text("state_the_trade_term_early")}</h2>
-              <p className="fs-lead">{copy.text("indicate_exw_fob_cfr_cif")}</p>
+              <p className="fs-lead">{copy.rich("indicate_exw_fob_cfr_cif")}</p>
             </div>
             <dl className="el-term-list">
-              {structuralList(editorial, "incoterms", INCOTERMS).map(([term, meaning]) => (
-                <div key={term}>
-                  <dt>{term}</dt>
-                  <dd>{meaning}</dd>
-                </div>
-              ))}
+              {structuralList(editorial, "incoterms", INCOTERMS, { rich: ["description"] }).map(
+                ([term, meaning]) => (
+                  <div key={term}>
+                    <dt>{term}</dt>
+                    <dd>
+                      <RichText text={meaning} />
+                    </dd>
+                  </div>
+                ),
+              )}
             </dl>
           </div>
         </section>

@@ -4,6 +4,7 @@ import { ANCHORS } from "../quality-anchors";
 
 import type { ContentFigure, QualityLaboratory } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 3 · Laboratory Capability — SITE_STRUCTURE §7's test list.
@@ -62,7 +63,11 @@ export function QualityLaboratorySection({
               {/* Localized CMS copy, with no English fallback — see `sections/approach.tsx`. */}
               {eyebrow !== null && <p className="fs-eyebrow">{eyebrow}</p>}
               {heading !== null && <h2 className="fs-d2">{heading}</h2>}
-              {lead !== null && <p className="fs-lead">{lead}</p>}
+              {lead !== null && (
+                <p className="fs-lead">
+                  <RichText text={lead} />
+                </p>
+              )}
             </header>
           )}
 
@@ -107,7 +112,9 @@ export function QualityLaboratorySection({
               {unpublished.map((item) => (
                 <li key={item.name}>
                   <b>{item.name}</b>
-                  <span>{item.why}</span>
+                  <span>
+                    <RichText text={item.why} />
+                  </span>
                 </li>
               ))}
             </ul>

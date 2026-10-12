@@ -13,6 +13,7 @@ import {
 } from "@/features/site/icons";
 
 import { TRUST_INDICATORS, type Indicator } from "../home-data";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 3 · Company Statistics — rendered as **Trust Indicators**, with no statistics.
@@ -56,7 +57,7 @@ export function Trust({ editorial }: { readonly editorial?: StructuralFields } =
             <h2 className="fs-d2">{copy.text("what_buying_from_the_producer")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "34ch" }}>
-            {copy.text("four_things_that_follow_from")}
+            {copy.rich("four_things_that_follow_from")}
           </p>
         </div>
 
@@ -72,19 +73,23 @@ export function Trust({ editorial }: { readonly editorial?: StructuralFields } =
          * grid appeared as one block. Making the list the orchestration unit is what sequences it.
          */}
         <ul className="fs-cards fs-rv" data-columns="4">
-          {structuralList(editorial, "trust_indicators", TRUST_INDICATORS).map((item) => {
-            const Glyph = GLYPHS[item.icon];
+          {structuralList(editorial, "trust_indicators", TRUST_INDICATORS, { rich: ["body"] }).map(
+            (item) => {
+              const Glyph = GLYPHS[item.icon];
 
-            return (
-              <li className="fs-card fs-rv-l" key={item.title}>
-                <span className="fs-card-glyph">
-                  <Glyph size="lg" />
-                </span>
-                <h3 className="fs-card-title">{item.title}</h3>
-                <p className="fs-card-body">{item.body}</p>
-              </li>
-            );
-          })}
+              return (
+                <li className="fs-card fs-rv-l" key={item.title}>
+                  <span className="fs-card-glyph">
+                    <Glyph size="lg" />
+                  </span>
+                  <h3 className="fs-card-title">{item.title}</h3>
+                  <p className="fs-card-body">
+                    <RichText text={item.body} />
+                  </p>
+                </li>
+              );
+            },
+          )}
         </ul>
       </div>
     </section>

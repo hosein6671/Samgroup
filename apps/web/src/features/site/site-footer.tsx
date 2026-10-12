@@ -107,7 +107,7 @@ export async function SiteFooter({
              * deliberately not restated here: this is a footer, not the place to carry the one
              * approved fact.
              */}
-            <p style={{ maxWidth: "34ch" }}>{copy.text("description")}</p>
+            <p style={{ maxWidth: "34ch" }}>{copy.rich("description")}</p>
           </div>
 
           {columns.map((col) => (

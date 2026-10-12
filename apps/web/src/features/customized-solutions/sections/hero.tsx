@@ -6,6 +6,7 @@ import { ANCHORS } from "../solutions-anchors";
 
 import type { CustomizedSolutionsHero, CustomizedSolutionsProcess } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * The Customized Solutions hero — the page's `<h1>`, its lead, and its two actions.
@@ -40,7 +41,11 @@ export function SolutionsHero({
         <div className="cs-hero-copy reveal-fade-rise">
           {hero.eyebrow !== null && <p className="fs-eyebrow">{hero.eyebrow}</p>}
           <h1 className="fs-d1">{hero.title}</h1>
-          {hero.supportingText !== null && <p className="fs-lead">{hero.supportingText}</p>}
+          {hero.supportingText !== null && (
+            <p className="fs-lead">
+              <RichText text={hero.supportingText} />
+            </p>
+          )}
           {hasActions && (
             <div className="cs-hero-actions">
               {hero.requestCta !== null && (

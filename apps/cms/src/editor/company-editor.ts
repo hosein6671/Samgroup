@@ -12,6 +12,7 @@ import { AboutUs } from "../globals/about-us";
 import { CustomizedSolutions } from "../globals/customized-solutions";
 import { QualityCertifications } from "../globals/quality-certifications";
 import { ContactUs } from "../globals/contact-us";
+import { RequestAQuote, validRequestAQuote } from "../globals/request-a-quote";
 
 import { CATEGORY_KEYS, categoryTextFields } from "../collections/product-category-content";
 
@@ -21,6 +22,7 @@ const resources = [
   QualityCertifications,
   ContactUs,
   FaqPage,
+  RequestAQuote,
   ...StructuralPages,
 ];
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -51,8 +53,10 @@ type EditorField = {
   hasMany?: boolean;
   fields?: EditorField[];
   options?: { label: string; value: string }[];
+  description?: string;
+  rich?: boolean;
 };
-function editorFields(fields: Field[]): EditorField[] {
+export function editorFields(fields: Field[]): EditorField[] {
   return fields.flatMap((field) => {
     if (field.type === "tabs") return field.tabs.flatMap((tab) => editorFields(tab.fields));
     if (!("name" in field) || !field.name)
@@ -69,6 +73,9 @@ function editorFields(fields: Field[]): EditorField[] {
       label,
       type: field.type === "text" && field.hasMany ? "stringArray" : field.type,
     };
+    const description = (field as { admin?: { description?: unknown } }).admin?.description;
+    if (typeof description === "string") item.description = description;
+    if ((field as { custom?: { rich?: unknown } }).custom?.rich === true) item.rich = true;
     if (field.type === "upload") {
       if (field.relationTo !== "media") return [];
       item.type = "media";
@@ -224,6 +231,8 @@ export const companyEditor: Endpoint = {
       return reply({ error: "Check applications fields." }, 400);
     if (key === "faq-page" && !validFaqPage(fields))
       return reply({ error: "Check page content and SEO fields." }, 400);
+    if (key === "request-a-quote" && !validRequestAQuote(fields))
+      return reply({ error: "Check page content fields." }, 400);
     if (StructuralPages.some((page) => page.slug === key) && !validStructuralContent(key, fields))
       return reply({ error: "Check page fields." }, 400);
     const requestHash = createHash("sha256")

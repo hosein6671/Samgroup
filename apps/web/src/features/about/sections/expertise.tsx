@@ -12,6 +12,7 @@ import { ANCHORS } from "../about-anchors";
 
 import type { AboutUsExpertise, ExpertiseIconKey } from "@sam-group/types";
 import type { CSSProperties, ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * Our Expertise — a labelled capability flow, not a numbered register.
@@ -75,7 +76,11 @@ export function AboutExpertise({ expertise }: { readonly expertise: AboutUsExper
             <p className="fs-eyebrow">Our expertise</p>
             {expertise.heading !== null && <h2 className="fs-d2">{expertise.heading}</h2>}
           </div>
-          {expertise.lead !== null && <p className="fs-lead">{expertise.lead}</p>}
+          {expertise.lead !== null && (
+            <p className="fs-lead">
+              <RichText text={expertise.lead} />
+            </p>
+          )}
         </header>
 
         {expertise.items.length > 0 && (
@@ -93,7 +98,11 @@ export function AboutExpertise({ expertise }: { readonly expertise: AboutUsExper
                     {Glyph !== null && <Glyph size="lg" />}
                   </span>
                   <h3>{item.name}</h3>
-                  {item.note !== null && <p>{item.note}</p>}
+                  {item.note !== null && (
+                    <p>
+                      <RichText text={item.note} />
+                    </p>
+                  )}
                 </li>
               );
             })}

@@ -1,6 +1,8 @@
 import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
 
+import { editorialHrefKind } from "@sam-group/types/structural-lists";
+
 import type { Tokens } from "marked";
 
 /**
@@ -112,20 +114,33 @@ export function renderMarkdown(source: string): RenderedMarkdown {
   const html = sanitizeHtml(rawHtml, {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: {
-      a: ["href", "title"],
+      a: ["href", "title", "target", "rel"],
       img: ["src", "alt", "title"],
       h2: ["id"],
       h3: ["id"],
     },
-    allowedSchemes: ["https", "mailto"],
+    allowedSchemes: ["https", "mailto", "tel"],
     // No relative link ever needs http:// or a bare path treated as unsafe, and this is a
     // company blog, not a user-generated one — but the scheme allow-list above is the actual
     // guard; this only affects href/src values sanitize-html could not classify.
     allowProtocolRelative: false,
     transformTags: {
-      // Every outbound link opens in a new tab without handing the destination a `window.opener`
-      // it could use to navigate this tab (the classic reverse-tabnabbing vector).
-      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer", target: "_blank" }),
+      // Links follow the one rule every editor-typed address follows (`editorialHrefKind`): a page
+      // on this site opens in place, an https:// page elsewhere opens in a new tab without handing
+      // it a `window.opener` (reverse tabnabbing), and an address the rule refuses is no link at
+      // all. `target`/`rel` are only ever set here — never taken from the Markdown — and must be in
+      // `allowedAttributes` above, or sanitize-html strips them again after this transform.
+      a: (tagName, attribs) => {
+        const href = attribs.href ?? "";
+        const kind = editorialHrefKind(href);
+        if (kind === null)
+          return { tagName, attribs: attribs.title ? { title: attribs.title } : {} };
+        const kept: Record<string, string> = { href };
+        if (attribs.title) kept.title = attribs.title;
+        if (kind === "external")
+          Object.assign(kept, { target: "_blank", rel: "noopener noreferrer" });
+        return { tagName, attribs: kept };
+      },
     },
   });
 

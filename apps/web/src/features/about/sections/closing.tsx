@@ -5,6 +5,7 @@ import { ANCHORS } from "../about-anchors";
 
 import type { AboutUsClosing } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * The closing section — a distinct framed panel, not another plain midnight band.
@@ -34,7 +35,11 @@ export function AboutClosing({
             <div className="ab-close-copy reveal-fade-rise">
               {closing.eyebrow !== null && <p className="fs-eyebrow">{closing.eyebrow}</p>}
               {closing.heading !== null && <h2 className="fs-d2">{closing.heading}</h2>}
-              {closing.lead !== null && <p className="fs-lead">{closing.lead}</p>}
+              {closing.lead !== null && (
+                <p className="fs-lead">
+                  <RichText text={closing.lead} />
+                </p>
+              )}
               {closing.primaryCta !== null && (
                 <p className="ab-close-primary">
                   <a

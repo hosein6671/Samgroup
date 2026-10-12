@@ -11,6 +11,7 @@ import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, productFamilyByKey } from "@/features/site/site-routes";
 
 import { FAMILIES } from "../home-data";
+import { RichText } from "@/features/site/rich-text";
 import { OrbitVisual } from "../visuals/orbit-visual";
 
 /**
@@ -55,7 +56,10 @@ export function Ecosystem({
    * `families` list); id, key, code and orbit angle stay code-owned. Memoised on `editorial`
    * because OrbitVisual rebuilds its scene whenever the `families` reference changes.
    */
-  const families = useMemo(() => structuralList(editorial, "families", FAMILIES), [editorial]);
+  const families = useMemo(
+    () => structuralList(editorial, "families", FAMILIES, { rich: ["body"] }),
+    [editorial],
+  );
 
   const [active, setActive] = useState<string>(families[0]?.id ?? "base");
 
@@ -76,7 +80,7 @@ export function Ecosystem({
             <h2 className="fs-d2">{copy.text("six_families_and_one_route")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "38ch" }}>
-            {copy.text("a_range_built_for_lubricant")}
+            {copy.rich("a_range_built_for_lubricant")}
           </p>
         </div>
 
@@ -139,7 +143,9 @@ export function Ecosystem({
                     {index + 1} · {current.sub}
                   </div>
                   <h3>{current.name}</h3>
-                  <p>{current.body}</p>
+                  <p>
+                    <RichText text={current.body} />
+                  </p>
                   <ul className="fs-eco-specs">
                     <li>
                       <span>{copy.text("supplied_as")}</span>

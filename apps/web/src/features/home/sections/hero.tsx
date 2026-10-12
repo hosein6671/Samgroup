@@ -57,7 +57,7 @@ export function Hero({
           <span className="fs-cine-line">{copy.text("produced_not_traded")}</span>
           <span className="fs-cine-line">{copy.text("specified_with_you")}</span>
         </h1>
-        <p className="fs-cine-lead">{copy.text("sam_group_produces_and_supplies")}</p>
+        <p className="fs-cine-lead">{copy.rich("sam_group_produces_and_supplies")}</p>
         <div className="fs-cine-cta">
           <a href={localeHref(locale, ROUTES.products)} className="fs-btn fs-btn--gold">
             {copy.text("explore_our_products")}

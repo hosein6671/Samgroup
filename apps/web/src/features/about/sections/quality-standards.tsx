@@ -5,6 +5,7 @@ import { ANCHORS } from "../about-anchors";
 
 import type { AboutUsQualityStandards } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * Quality & Standards — a compact supporting section, not a fourth full-width argument.
@@ -44,7 +45,9 @@ export function AboutQualityStandards({
             <h2 className="fs-d3">{qualityStandards.heading}</h2>
           )}
           {qualityStandards.lead !== null && (
-            <p className="ab-quality-compact-lead">{qualityStandards.lead}</p>
+            <p className="ab-quality-compact-lead">
+              <RichText text={qualityStandards.lead} />
+            </p>
           )}
 
           {qualityStandards.items.length > 0 && (
@@ -58,7 +61,11 @@ export function AboutQualityStandards({
 
         {(footnote !== null || footnoteCta !== null) && (
           <div className="ab-quality-compact-action reveal-fade-rise">
-            {footnote !== null && <p className="ab-quality-compact-foot">{footnote}</p>}
+            {footnote !== null && (
+              <p className="ab-quality-compact-foot">
+                <RichText text={footnote} />
+              </p>
+            )}
             {footnoteCta !== null && (
               <a
                 href={contentRouteHref(locale, footnoteCta.route)}

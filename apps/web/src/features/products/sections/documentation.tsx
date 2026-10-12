@@ -9,6 +9,7 @@ import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { DOCUMENT_TIERS } from "../products-data";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 5 · Technical-data trust, and catalogue access.
@@ -57,24 +58,28 @@ export function Documentation({
           inside a panel, and the panel is the gate.
         */}
         <div className="pr-tiers">
-          {structuralList(editorial, "document_tiers", DOCUMENT_TIERS).map((tier) => (
-            <div className={`pr-tier pr-tier--${tier.kind} reveal-fade-rise`} key={tier.heading}>
-              <p className="fs-eyebrow">{tier.kind === "gated" ? "Qualified access" : "Open"}</p>
-              <h3>{tier.heading}</h3>
-              <p className="pr-tier-note">{tier.note}</p>
+          {structuralList(editorial, "document_tiers", DOCUMENT_TIERS, { rich: ["note"] }).map(
+            (tier) => (
+              <div className={`pr-tier pr-tier--${tier.kind} reveal-fade-rise`} key={tier.heading}>
+                <p className="fs-eyebrow">{tier.kind === "gated" ? "Qualified access" : "Open"}</p>
+                <h3>{tier.heading}</h3>
+                <p className="pr-tier-note">
+                  <RichText text={tier.note} />
+                </p>
 
-              <ul className="pr-doclist">
-                {(tier.kind === "gated" ? tier.items : tier.fields).map((item) => (
-                  <li key={item.label}>
-                    {item.label}
-                    <span>{item.meta}</span>
-                  </li>
-                ))}
-              </ul>
+                <ul className="pr-doclist">
+                  {(tier.kind === "gated" ? tier.items : tier.fields).map((item) => (
+                    <li key={item.label}>
+                      {item.label}
+                      <span>{item.meta}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              {tier.kind === "gated" && <CatalogueRoute locale={locale} />}
-            </div>
-          ))}
+                {tier.kind === "gated" && <CatalogueRoute locale={locale} />}
+              </div>
+            ),
+          )}
         </div>
       </div>
     </section>

@@ -15,6 +15,7 @@ import {
 } from "@/features/site/icons";
 
 import { ADVANTAGES, type Advantage } from "../home-data";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 5 · Why Choose Sam Group.
@@ -67,7 +68,7 @@ export function Advantages({
             <h2 className="fs-d2">{copy.text("six_reasons_buyers_work_with")}</h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "34ch" }}>
-            {copy.text("the_practical_differences_between_buying")}
+            {copy.rich("the_practical_differences_between_buying")}
           </p>
         </div>
 
@@ -83,7 +84,7 @@ export function Advantages({
          * grid appeared as one block. Making the list the orchestration unit is what sequences it.
          */}
         <ul className="fs-cards fs-rv" data-columns="3">
-          {structuralList(editorial, "advantages", ADVANTAGES).map((item) => {
+          {structuralList(editorial, "advantages", ADVANTAGES, { rich: ["body"] }).map((item) => {
             const Glyph = GLYPHS[item.icon];
 
             return (
@@ -92,7 +93,9 @@ export function Advantages({
                   <Glyph size="lg" />
                 </span>
                 <h3 className="fs-card-title">{item.title}</h3>
-                <p className="fs-card-body">{item.body}</p>
+                <p className="fs-card-body">
+                  <RichText text={item.body} />
+                </p>
               </li>
             );
           })}

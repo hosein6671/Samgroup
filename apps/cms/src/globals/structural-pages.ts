@@ -1,6 +1,14 @@
 import { STRUCTURAL_DEFAULTS, structuralImageSlots } from "@sam-group/types/structural-content";
 import { structuralLists } from "@sam-group/types/structural-lists";
-import { projectStructuralLists } from "@sam-group/types/structural-lists";
+import {
+  EDITORIAL_HREF_HINT,
+  inlineLinksValid,
+  projectStructuralLists,
+  structuralListFieldIsRich,
+  structuralSlotIsRich,
+  structuralListTakesLink,
+  validEditorialHref,
+} from "@sam-group/types/structural-lists";
 import type { Field, GlobalConfig } from "payload";
 import { editorOnly, publishedForService } from "../access";
 import { categorySeoFields, validCategorySeo } from "../editor/category-seo";
@@ -35,7 +43,11 @@ export function validStructuralContent(scope: string, value: Record<string, unkn
       return (
         Object.keys(data).every((key) => key in fields) &&
         Object.keys(fields).every(
-          (key) => typeof data[key] === "string" && !!data[key].trim() && data[key].length <= 4000,
+          (key) =>
+            typeof data[key] === "string" &&
+            !!data[key].trim() &&
+            data[key].length <= 4000 &&
+            inlineLinksValid(data[key]),
         )
       );
     }) &&
@@ -70,6 +82,33 @@ function imageGroup(slug: string): Field[] {
   ];
 }
 
+/**
+ * Marks a body-copy field (`STRUCTURAL_RICH_TEXT`): /admin edits it with the formatting toolbar,
+ * and the text it saves may hold **bold**, *italic* and [links](/en/…). Other fields are plain.
+ */
+const RICH = {
+  custom: { rich: true },
+  admin: { description: "Supports bold, italic and links." },
+} as const;
+
+/**
+ * The optional link on a row of a list that takes one (`STRUCTURAL_LIST_LINKS`). Per locale, since
+ * an address on this site carries its language segment. Empty means the item is not a link.
+ */
+const linkField: Field = {
+  name: "href",
+  label: "Link",
+  type: "text",
+  localized: true,
+  maxLength: 2000,
+  admin: { description: EDITORIAL_HREF_HINT },
+  validate: (value: unknown) =>
+    value === null ||
+    value === undefined ||
+    (typeof value === "string" && (!value.trim() || validEditorialHref(value.trim()))) ||
+    EDITORIAL_HREF_HINT,
+};
+
 export const StructuralPages: GlobalConfig[] = Object.entries(STRUCTURAL_DEFAULTS).map(
   ([slug, sections]) => ({
     slug,
@@ -88,6 +127,7 @@ export const StructuralPages: GlobalConfig[] = Object.entries(STRUCTURAL_DEFAULT
           localized: true,
           required: true,
           maxLength: 4000,
+          ...(structuralSlotIsRich(slug, name, key) ? RICH : {}),
         })),
       })),
       ...imageGroup(slug),
@@ -111,7 +151,14 @@ export const StructuralPages: GlobalConfig[] = Object.entries(STRUCTURAL_DEFAULT
             },
             ...Array.from(new Set(rows.flatMap((row) => Object.keys(row))))
               .filter((key) => key !== "source")
-              .map((name): Field => ({ name, type: "textarea", localized: true, maxLength: 4000 })),
+              .map((field): Field => ({
+                name: field,
+                type: "textarea",
+                localized: true,
+                maxLength: 4000,
+                ...(structuralListFieldIsRich(slug, name, field) ? RICH : {}),
+              })),
+            ...(structuralListTakesLink(slug, name) ? [linkField] : []),
           ],
         })),
       },

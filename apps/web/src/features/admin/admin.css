@@ -2817,7 +2817,7 @@
 }
 .ad-content-form textarea {
   width: 100%;
-  min-height: 140px;
+  min-height: 0;
   padding: 12px;
   border: 1px solid var(--color-platinum-300);
   border-radius: 6px;
@@ -2962,4 +2962,331 @@
 .ad-content-form textarea:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 3px;
+}
+
+/* --- the word-processor field (features/admin/editor/rich-field.tsx) -------------------------- */
+
+.ad-rich {
+  display: grid;
+  gap: 0;
+  margin-top: 8px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+  background: var(--color-surface-canvas);
+}
+.ad-rich-tabs {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+  padding: 6px 8px 0;
+}
+.ad-rich-tabs button {
+  padding: 4px 10px;
+  font: inherit;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ad-rich-tabs button[aria-selected="true"] {
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunken);
+  font-weight: 600;
+}
+.ad-rich-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--color-surface-canvas);
+  border-bottom: 1px solid var(--color-platinum-300);
+}
+.ad-rich-toolbar button {
+  min-width: 34px;
+  height: 32px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: var(--text-caption);
+  color: var(--color-text-primary);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ad-rich-toolbar button:hover {
+  background: var(--color-surface-sunken);
+}
+.ad-rich-toolbar button[aria-pressed="true"] {
+  background: var(--color-surface-sunken);
+  border-color: var(--color-border-strong);
+}
+.ad-rich-toolbar button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.ad-rich-sep {
+  width: 1px;
+  margin: 4px 4px;
+  background: var(--color-platinum-300);
+}
+.ad-rich-surface {
+  position: relative;
+}
+.ad-rich-input {
+  padding: 12px 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.ad-rich-input:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.ad-rich-input > * {
+  margin: 0 0 0.75em;
+}
+.ad-rich-input > *:last-child {
+  margin-bottom: 0;
+}
+.ad-rich-b {
+  font-weight: 700;
+}
+.ad-rich-i {
+  font-style: italic;
+}
+.ad-rich-link {
+  color: var(--color-accent-default);
+  text-decoration: underline;
+}
+.ad-rich-h2 {
+  font-size: var(--text-title);
+  line-height: 1.25;
+}
+.ad-rich-h3 {
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+.ad-rich-quote {
+  padding-inline-start: 14px;
+  color: var(--color-text-secondary);
+  border-inline-start: 3px solid var(--color-platinum-300);
+}
+.ad-rich-ul,
+.ad-rich-ol {
+  padding-inline-start: 1.4em;
+}
+.ad-rich-ul {
+  list-style: disc;
+}
+.ad-rich-ol {
+  list-style: decimal;
+}
+.ad-rich-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+/* The Markdown source view, and the field without JavaScript. */
+.ad-content-form .ad-rich textarea.ad-rich-source,
+.ad-rich textarea.ad-rich-source {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  font-family: var(--font-technical, ui-monospace, monospace);
+  font-size: var(--text-caption);
+  line-height: 1.6;
+  border: 0;
+  border-radius: 0 0 6px 6px;
+  resize: vertical;
+}
+/* The stored value while the visual view is on: still in the form, out of sight and reach. */
+.ad-rich textarea.ad-rich-store {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.ad-rich-note {
+  margin: 0;
+  padding: 6px 14px 8px;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-platinum-300);
+}
+
+/* --- the content editor's layout: a section menu, one section at a time, actions always in reach */
+
+.ad-content-form:has(.ad-content-layout) {
+  max-width: 1240px;
+}
+.ad-content-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.ad-content-nav {
+  position: sticky;
+  top: 16px;
+  /* Clears the sticky action bar, so the last entry is never hidden under it. */
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+}
+.ad-content-nav ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ad-content-nav button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: var(--text-caption);
+  line-height: 1.35;
+  text-align: start;
+  color: var(--color-text-secondary);
+  background: none;
+  border: 0;
+  border-inline-start: 2px solid transparent;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+.ad-content-nav button:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunken);
+}
+.ad-content-nav button[aria-current="true"] {
+  color: var(--color-text-primary);
+  font-weight: 600;
+  background: var(--color-surface-sunken);
+  border-inline-start-color: var(--color-accent-default);
+}
+.ad-content-nav button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+.ad-content-nav-all {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-platinum-300);
+}
+.ad-content-main > fieldset:first-child {
+  margin-top: 0;
+}
+
+/* A list: each item collapsed to one line — its title, and its photograph when it has one. */
+.ad-rows-tools {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.ad-row {
+  margin: 0 0 8px;
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 6px;
+  background: var(--color-surface-canvas);
+}
+.ad-row > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.ad-row > summary:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.ad-row[open] > summary {
+  border-bottom: 1px solid var(--color-platinum-300);
+}
+.ad-row-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ad-row-thumb {
+  flex: none;
+  width: 40px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.ad-row-body {
+  padding: 4px 14px 14px;
+}
+.ad-row-remove {
+  margin-top: 8px;
+}
+
+/* Save and publish stay on screen however far down the editor is. */
+.ad-content-form .ad-content-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  align-items: center;
+  margin-top: 24px;
+  padding: 12px 16px;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-platinum-300);
+  border-radius: 8px;
+  box-shadow: 0 -6px 18px rgba(6, 19, 70, 0.08);
+}
+.ad-content-actions [role="status"] {
+  margin: 0 0 0 auto;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+.ad-content-view {
+  font-size: var(--text-caption);
+}
+
+@media (max-width: 900px) {
+  .ad-content-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .ad-content-nav {
+    position: static;
+    max-height: none;
+    overflow-x: auto;
+  }
+  .ad-content-nav ul {
+    display: flex;
+    gap: 4px;
+  }
+  .ad-content-nav button {
+    white-space: nowrap;
+    border-inline-start: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 4px 4px 0 0;
+  }
+  .ad-content-nav button[aria-current="true"] {
+    border-bottom-color: var(--color-accent-default);
+  }
+  .ad-content-nav-all {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
 }

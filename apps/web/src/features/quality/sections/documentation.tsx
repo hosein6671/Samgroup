@@ -2,6 +2,7 @@ import { ANCHORS } from "../quality-anchors";
 
 import type { QualityDocumentation } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 5 · Documentation We Provide — SITE_STRUCTURE §7's "COA/TDS/SDS/Certificate of Origin/commercial
@@ -48,8 +49,16 @@ export function QualityDocumentationSection({
         <div className="qc-docs-copy reveal-fade-rise">
           {eyebrow !== null && <p className="fs-eyebrow">{eyebrow}</p>}
           {heading !== null && <h2 className="fs-d2">{heading}</h2>}
-          {lead !== null && <p className="fs-lead">{lead}</p>}
-          {note !== null && <p className="qc-docs-note">{note}</p>}
+          {lead !== null && (
+            <p className="fs-lead">
+              <RichText text={lead} />
+            </p>
+          )}
+          {note !== null && (
+            <p className="qc-docs-note">
+              <RichText text={note} />
+            </p>
+          )}
         </div>
 
         {documents.length > 0 && (

@@ -5,6 +5,7 @@ import { SectionFigure } from "./hero";
 
 import type { AboutUsTeam } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 export function AboutTeam({ team }: { readonly team: AboutUsTeam }): ReactNode {
   return (
@@ -14,7 +15,11 @@ export function AboutTeam({ team }: { readonly team: AboutUsTeam }): ReactNode {
         <header className="ab-team-head reveal-fade-rise">
           {team.eyebrow !== null && <p className="fs-eyebrow">{team.eyebrow}</p>}
           {team.heading !== null && <h2 className="fs-d2">{team.heading}</h2>}
-          {team.lead !== null && <p className="fs-lead">{team.lead}</p>}
+          {team.lead !== null && (
+            <p className="fs-lead">
+              <RichText text={team.lead} />
+            </p>
+          )}
         </header>
 
         {team.figure !== null && (
@@ -33,7 +38,9 @@ export function AboutTeam({ team }: { readonly team: AboutUsTeam }): ReactNode {
                 <span className="fs-tnum">{String(index + 1).padStart(2, "0")}</span>
                 <div>
                   <h3>{item.name}</h3>
-                  <p>{item.note}</p>
+                  <p>
+                    <RichText text={item.note} />
+                  </p>
                 </div>
               </li>
             ))}

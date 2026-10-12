@@ -101,6 +101,7 @@ export interface Config {
     'quality-certifications': QualityCertification;
     'contact-us': ContactUs;
     'faq-page': FaqPage;
+    'request-a-quote': RequestAQuote;
     home: Home;
     'products-landing': ProductsLanding;
     'export-logistics': ExportLogistic;
@@ -113,6 +114,7 @@ export interface Config {
     'quality-certifications': QualityCertificationsSelect<false> | QualityCertificationsSelect<true>;
     'contact-us': ContactUsSelect<false> | ContactUsSelect<true>;
     'faq-page': FaqPageSelect<false> | FaqPageSelect<true>;
+    'request-a-quote': RequestAQuoteSelect<false> | RequestAQuoteSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
     'products-landing': ProductsLandingSelect<false> | ProductsLandingSelect<true>;
     'export-logistics': ExportLogisticsSelect<false> | ExportLogisticsSelect<true>;
@@ -1463,6 +1465,27 @@ export interface FaqPage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "request-a-quote".
+ */
+export interface RequestAQuote {
+  id: number;
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  /**
+   * Optional. Not yet rendered anywhere — see this field's own note.
+   */
+  image?: (number | null) | Media;
+  /**
+   * Optional caption. Unused while `image` has no render slot.
+   */
+  imageCaption?: string | null;
+  _status?: ('draft' | 'published') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home".
  */
 export interface Home {
@@ -1472,6 +1495,9 @@ export interface Home {
     base_oils_and_lubricants: string;
     produced_not_traded: string;
     specified_with_you: string;
+    /**
+     * Supports bold, italic and links.
+     */
     sam_group_produces_and_supplies: string;
     explore_our_products: string;
     request_a_quotation: string;
@@ -1482,6 +1508,9 @@ export interface Home {
     who_we_are: string;
     a_manufacturer: string;
     not_a_trading_company: string;
+    /**
+     * Supports bold, italic and links.
+     */
     sam_group_produces_base_oils: string;
     learn_more_about_sam_group: string;
     industrial_lubricant_samples_and_packaging: string;
@@ -1490,11 +1519,17 @@ export interface Home {
   trust: {
     trust_indicators: string;
     what_buying_from_the_producer: string;
+    /**
+     * Supports bold, italic and links.
+     */
     four_things_that_follow_from: string;
   };
   ecosystem: {
     our_products: string;
     six_families_and_one_route: string;
+    /**
+     * Supports bold, italic and links.
+     */
     a_range_built_for_lubricant: string;
     family_0: string;
     explore_this_range: string;
@@ -1510,16 +1545,25 @@ export interface Home {
   advantages: {
     why_businesses_choose_sam_group: string;
     six_reasons_buyers_work_with: string;
+    /**
+     * Supports bold, italic and links.
+     */
     the_practical_differences_between_buying: string;
   };
   industries: {
     industries_we_serve: string;
     where_these_products_go_to: string;
+    /**
+     * Supports bold, italic and links.
+     */
     the_same_catalogue_reaches_five: string;
   };
   custom_formulation: {
     customized_solutions: string;
     when_the_catalogue_is_only: string;
+    /**
+     * Supports bold, italic and links.
+     */
     where_a_standard_product_does: string;
     oil_sample_review_beside_packaged: string;
     from_requirement_to_finished_product: string;
@@ -1532,6 +1576,9 @@ export interface Home {
   network: {
     export_enquiry_and_logistics_planning: string;
     define_the_product_prepare_the: string;
+    /**
+     * Supports bold, italic and links.
+     */
     bring_the_grade_required_quantity: string;
     a_destination_to_read_it: string;
     sealed_lubricant_drums_and_an: string;
@@ -1548,6 +1595,9 @@ export interface Home {
   insights: {
     sam_group_insights: string;
     practical_knowledge_for_better_product: string;
+    /**
+     * Supports bold, italic and links.
+     */
     read_clear_guidance_on_product: string;
     explore_insights: string;
   };
@@ -1614,6 +1664,9 @@ export interface Home {
       | {
           source: '0' | '1' | '2';
           term?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           detail?: string | null;
           id?: string | null;
         }[]
@@ -1622,6 +1675,9 @@ export interface Home {
       | {
           source: '0' | '1' | '2' | '3';
           title?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           body?: string | null;
           id?: string | null;
         }[]
@@ -1630,6 +1686,9 @@ export interface Home {
       | {
           source: '0' | '1' | '2' | '3' | '4' | '5';
           title?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           body?: string | null;
           id?: string | null;
         }[]
@@ -1638,7 +1697,14 @@ export interface Home {
       | {
           source: '0' | '1' | '2' | '3' | '4';
           name?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           body?: string | null;
+          /**
+           * A page on this site (/en/products/engine-oils), an https:// address, mailto: or tel:. Leave empty for no link.
+           */
+          href?: string | null;
           id?: string | null;
         }[]
       | null;
@@ -1647,6 +1713,9 @@ export interface Home {
           source: '0' | '1' | '2' | '3' | '4' | '5';
           n?: string | null;
           title?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           body?: string | null;
           input?: string | null;
           output?: string | null;
@@ -1674,6 +1743,9 @@ export interface Home {
           name?: string | null;
           short?: string | null;
           sub?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           body?: string | null;
           supplied?: string | null;
           enquiry?: string | null;
@@ -1755,6 +1827,9 @@ export interface ProductsLanding {
   hero: {
     products: string;
     find_the_product_define_the: string;
+    /**
+     * Supports bold, italic and links.
+     */
     browse_base_oils_additives_automotive: string;
     open_product_finder: string;
     request_a_quote: string;
@@ -1764,6 +1839,9 @@ export interface ProductsLanding {
   register: {
     the_range: string;
     start_with_the_product_family: string;
+    /**
+     * Supports bold, italic and links.
+     */
     each_family_brings_its_published: string;
     more_on_the_family_page: string;
     view_range: string;
@@ -1789,6 +1867,9 @@ export interface ProductsLanding {
   closing_cta: {
     next_step: string;
     cant_find_exactly_what_you: string;
+    /**
+     * Supports bold, italic and links.
+     */
     the_range_above_is_what: string;
     request_a_custom_solution: string;
     or_take_a_shorter_route: string;
@@ -1806,6 +1887,9 @@ export interface ProductsLanding {
       | {
           source: '0' | '1';
           heading?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           note?: string | null;
           id?: string | null;
         }[]
@@ -1878,6 +1962,9 @@ export interface ExportLogistic {
   page: {
     export_and_logistics: string;
     plan_the_product_and_the: string;
+    /**
+     * Supports bold, italic and links.
+     */
     a_useful_export_enquiry_combines: string;
     discuss_an_export_requirement: string;
     view_packaging_options: string;
@@ -1885,15 +1972,27 @@ export interface ExportLogistic {
     product_packaging_destination_trade_term: string;
     start_with_a_complete_brief: string;
     five_details_make_an_export: string;
+    /**
+     * Supports bold, italic and links.
+     */
     share_what_is_already_known: string;
     from_requirement_to_delivery: string;
     a_clear_path_from_enquiry: string;
+    /**
+     * Supports bold, italic and links.
+     */
     the_sequence_keeps_technical_commercial: string;
     flexible_shipping_and_packaging: string;
     packaging_selected_around_product_and: string;
+    /**
+     * Supports bold, italic and links.
+     */
     available_formats_depend_on_the: string;
     incoterms_and_commercial_scope: string;
     state_the_trade_term_early: string;
+    /**
+     * Supports bold, italic and links.
+     */
     indicate_exw_fob_cfr_cif: string;
     preparing_an_export_enquiry: string;
     send_the_grade_volume_packaging: string;
@@ -1913,6 +2012,9 @@ export interface ExportLogistic {
       | {
           source: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7';
           title?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           description?: string | null;
           id?: string | null;
         }[]
@@ -1921,6 +2023,9 @@ export interface ExportLogistic {
       | {
           source: '0' | '1' | '2' | '3' | '4' | '5';
           title?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           description?: string | null;
           id?: string | null;
         }[]
@@ -1929,6 +2034,9 @@ export interface ExportLogistic {
       | {
           source: '0' | '1' | '2' | '3';
           title?: string | null;
+          /**
+           * Supports bold, italic and links.
+           */
           description?: string | null;
           id?: string | null;
         }[]
@@ -2023,6 +2131,9 @@ export interface Footer {
   brand: {
     name: string;
     tagline: string;
+    /**
+     * Supports bold, italic and links.
+     */
     description: string;
     contactHeading: string;
     contactLabel: string;
@@ -2468,6 +2579,21 @@ export interface FaqPageSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "request-a-quote_select".
+ */
+export interface RequestAQuoteSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  lead?: T;
+  image?: T;
+  imageCaption?: T;
+  _status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home_select".
  */
 export interface HomeSelect<T extends boolean = true> {
@@ -2624,6 +2750,7 @@ export interface HomeSelect<T extends boolean = true> {
               source?: T;
               name?: T;
               body?: T;
+              href?: T;
               id?: T;
             };
         custom_steps?:

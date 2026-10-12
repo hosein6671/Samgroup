@@ -39,3 +39,24 @@ test("navigation rejects duplicate identities and arbitrary destinations", () =>
   fields.lists.navigation = [];
   assert.equal(validStructuralContent("header", fields), true);
 });
+test("industry cards take an optional, validated link and nothing else does", () => {
+  const lists = structuralLists("home") as Record<string, readonly Record<string, string>[]>;
+  const withIndustry = (href: unknown): Record<string, unknown> => ({
+    ...STRUCTURAL_DEFAULTS.home,
+    lists: {
+      ...lists,
+      industries: lists.industries!.map((row, i) => (i === 0 ? { ...row, href } : row)),
+    },
+  });
+  for (const ok of ["/en/products/engine-oils", "https://example.com/x", "", null, "tel:+98123"])
+    assert.equal(validStructuralContent("home", withIndustry(ok)), true, String(ok));
+  for (const bad of ["javascript:alert(1)", "http://example.com", "//evil.example", 42])
+    assert.equal(validStructuralContent("home", withIndustry(bad)), false, String(bad));
+  const field = StructuralPages.find((page) => page.slug === "home")!.fields.find(
+    (f) => "name" in f && f.name === "lists",
+  ) as { fields: { name: string; fields: { name: string }[] }[] };
+  const industries = field.fields.find((f) => f.name === "industries")!;
+  assert.ok(industries.fields.some((f) => f.name === "href"));
+  for (const other of field.fields.filter((f) => f.name !== "industries"))
+    assert.ok(!other.fields.some((f) => f.name === "href"), other.name);
+});

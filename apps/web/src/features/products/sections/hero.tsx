@@ -37,7 +37,7 @@ export function ProductsHero({
         <div className="pr-hero-copy reveal-fade-rise">
           <p className="fs-eyebrow">{copy.text("products")}</p>
           <h1 className="fs-d1">{copy.text("find_the_product_define_the")}</h1>
-          <p className="fs-lead">{copy.text("browse_base_oils_additives_automotive")}</p>
+          <p className="fs-lead">{copy.rich("browse_base_oils_additives_automotive")}</p>
 
           <div className="pr-hero-actions">
             <a href={localeHref(locale, ROUTES.productFinder)} className="fs-btn fs-btn--gold">

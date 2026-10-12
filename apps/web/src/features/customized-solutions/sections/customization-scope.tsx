@@ -1,5 +1,6 @@
 import type { CustomizedSolutionsCapability } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 export function CustomizationScope({
   capabilities,
@@ -23,7 +24,11 @@ export function CustomizationScope({
               <span>{String(index + 1).padStart(2, "0")}</span>
               <div>
                 <h3>{capability.title}</h3>
-                {capability.description !== null && <p>{capability.description}</p>}
+                {capability.description !== null && (
+                  <p>
+                    <RichText text={capability.description} />
+                  </p>
+                )}
               </div>
             </li>
           ))}

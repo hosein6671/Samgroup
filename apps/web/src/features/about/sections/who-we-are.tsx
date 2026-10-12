@@ -15,6 +15,7 @@ import { SectionFigure } from "./hero";
 
 import type { AboutUsWhoWeAre, ProductFamilyKey } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * A glyph for each of the six families, keyed by the family key — the same `Record<ProductFamilyKey,
@@ -107,7 +108,9 @@ export function AboutWhoWeAre({
                   {whoWeAre.positions.map((position) => (
                     <div className="ab-position" key={position.term}>
                       <dt>{position.term}</dt>
-                      <dd>{position.note}</dd>
+                      <dd>
+                        <RichText text={position.note} />
+                      </dd>
                     </div>
                   ))}
                 </dl>

@@ -69,7 +69,7 @@ export function Insights({
           <div>
             <p className="fs-sr">{copy.text("sam_group_insights")}</p>
             <h2 className="fs-d2">{copy.text("practical_knowledge_for_better_product")}</h2>
-            <p className="fs-lead">{copy.text("read_clear_guidance_on_product")}</p>
+            <p className="fs-lead">{copy.rich("read_clear_guidance_on_product")}</p>
           </div>
           <a href={localeHref(locale, ROUTES.insights)} className="fs-btn fs-btn--outline">
             {copy.text("explore_insights")}

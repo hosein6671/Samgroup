@@ -5,6 +5,7 @@ import { anchorCtaField, ctaField } from "../fields/cta";
 import { seoFields } from "../fields/seo";
 
 import type { GlobalConfig } from "payload";
+import { richTextarea, safeLinksRichText } from "../editor/rich-text-field";
 
 /**
  * `CustomizedSolutions` — the Customized Solutions page's editorial content.
@@ -86,7 +87,7 @@ export const CustomizedSolutions: GlobalConfig = {
               "The page's H1. Required — a document with no heading is treated as unconfigured and is not served.",
           },
         },
-        { name: "supportingText", type: "textarea", localized: true },
+        { name: "supportingText", type: "textarea", ...richTextarea, localized: true },
         anchorCtaField(
           "requestCta",
           "Request action",
@@ -100,7 +101,7 @@ export const CustomizedSolutions: GlobalConfig = {
       type: "group",
       fields: [
         { name: "heading", type: "text", localized: true },
-        { name: "body", type: "richText", localized: true },
+        { name: "body", type: "richText", localized: true, ...safeLinksRichText },
         /*
          * The same virtual HTML rendition `Pages` and `AboutUs` use: Payload's own converter, not a
          * second implementation of Lexical's node set inside `apps/api`, and `storeInDB: false` so
@@ -118,7 +119,7 @@ export const CustomizedSolutions: GlobalConfig = {
       type: "group",
       fields: [
         { name: "heading", type: "text", localized: true },
-        { name: "lead", type: "textarea", localized: true },
+        { name: "lead", type: "textarea", ...richTextarea, localized: true },
         {
           name: "steps",
           type: "array",
@@ -129,7 +130,7 @@ export const CustomizedSolutions: GlobalConfig = {
           },
           fields: [
             { name: "name", type: "text", required: true, localized: true },
-            { name: "description", type: "textarea", localized: true },
+            { name: "description", type: "textarea", ...richTextarea, localized: true },
           ],
         },
       ],
@@ -145,7 +146,7 @@ export const CustomizedSolutions: GlobalConfig = {
       },
       fields: [
         { name: "title", type: "text", required: true },
-        { name: "description", type: "textarea" },
+        { name: "description", type: "textarea", ...richTextarea },
       ],
     },
     /* The identical shared group `Pages` and `AboutUs` spread — one SEO contract, never restated. */

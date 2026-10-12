@@ -3,6 +3,7 @@ import { contentRouteHref } from "@/features/site/site-routes";
 
 import type { QualityApproach, QualityCertificationsHero } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 1 · Hero — SITE_STRUCTURE §7's 'Hero ("Quality You Can Verify")'.
@@ -53,7 +54,11 @@ export function QualityHero({
           {hero.eyebrow !== null && <p className="fs-eyebrow">{hero.eyebrow}</p>}
 
           <h1 className="fs-d1">{hero.title}</h1>
-          {hero.supportingText !== null && <p className="fs-lead">{hero.supportingText}</p>}
+          {hero.supportingText !== null && (
+            <p className="fs-lead">
+              <RichText text={hero.supportingText} />
+            </p>
+          )}
 
           {(hero.primaryCta !== null || hero.secondaryCta !== null) && (
             <div className="qc-hero-actions">

@@ -4355,6 +4355,48 @@
   line-height: 1.15;
   letter-spacing: -0.025em;
 }
+/* An industry with an editor link carries it on its title. Closed, the link ignores the pointer so
+   a tap opens the card instead of leaving the page; open, its ::after stretches over the whole card
+   (the copy sits 24px in from the card, and the card clips the overflow) so the card is the link. */
+.fs-acc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  pointer-events: none;
+}
+.fs-acc-link .fs-ar {
+  flex: none;
+  opacity: 0;
+  transition:
+    opacity 220ms var(--e-micro),
+    transform 220ms var(--e-micro);
+}
+.fs-acc-item[data-open="true"] .fs-acc-link {
+  pointer-events: auto;
+}
+.fs-acc-item[data-open="true"] .fs-acc-link .fs-ar {
+  opacity: 1;
+}
+.fs-acc-item[data-open="true"] .fs-acc-link:hover .fs-ar {
+  transform: translateX(4px);
+}
+[dir="rtl"] .fs-acc-link .fs-ar {
+  transform: scaleX(-1);
+}
+[dir="rtl"] .fs-acc-item[data-open="true"] .fs-acc-link:hover .fs-ar {
+  transform: scaleX(-1) translateX(4px);
+}
+.fs-acc-link::after {
+  content: "";
+  position: absolute;
+  inset: -100vh -24px -24px;
+}
+.fs-acc-link:focus-visible {
+  outline: 2px solid var(--fs-gold);
+  outline-offset: 4px;
+}
 .fs-acc-copy p {
   display: grid;
   grid-template-rows: 0fr;
@@ -4963,4 +5005,23 @@ html.fs-parallax .fs-photo > img,
 html.fs-parallax .fs-branded-photo > img {
   scale: 1.14;
   translate: 0 var(--fs-par, 0%);
+}
+
+/* A link an editor placed inside body copy (features/site/rich-text.tsx): the text's own colour,
+   underlined so it reads as a link on every surface, the underline taking the accent on hover. */
+.rt-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color 180ms ease;
+}
+.rt-link:hover {
+  text-decoration-color: var(--fs-gold);
+}
+.rt-link:focus-visible {
+  outline: 2px solid var(--fs-gold);
+  outline-offset: 2px;
+  border-radius: 2px;
 }

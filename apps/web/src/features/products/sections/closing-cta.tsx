@@ -122,7 +122,7 @@ export function ClosingCta({
         <div className="pr-close-copy reveal-fade-rise">
           <p className="fs-eyebrow">{copy.text("next_step")}</p>
           <h2 className="fs-d2">{copy.text("cant_find_exactly_what_you")}</h2>
-          <p className="fs-lead">{copy.text("the_range_above_is_what")}</p>
+          <p className="fs-lead">{copy.rich("the_range_above_is_what")}</p>
 
           <p className="pr-close-primary">
             <a

@@ -270,7 +270,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
             </h2>
           </div>
           <p className="fs-lead" style={{ maxWidth: "36ch" }}>
-            {copy.text("bring_the_grade_required_quantity")}{" "}
+            {copy.rich("bring_the_grade_required_quantity")}{" "}
             {/* Explicit space: JSX trims the whitespace before an expression, which ran the
                 sentences together as "sales map.Tap a hub". */}
             {verb} {copy.text("a_destination_to_read_it")}

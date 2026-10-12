@@ -2,6 +2,7 @@ import { ANCHORS } from "../solutions-anchors";
 
 import type { CustomizedSolutionsProcess } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * The customization process — the stages, in order.
@@ -30,7 +31,11 @@ export function CustomizationProcess({
             <p className="fs-eyebrow">Our customization process</p>
             {process.heading !== null && <h2 className="fs-d2">{process.heading}</h2>}
           </div>
-          {process.lead !== null && <p className="fs-lead">{process.lead}</p>}
+          {process.lead !== null && (
+            <p className="fs-lead">
+              <RichText text={process.lead} />
+            </p>
+          )}
         </header>
 
         {process.steps.length > 0 && (
@@ -43,7 +48,11 @@ export function CustomizationProcess({
                 </div>
                 <div className="cs-step-copy">
                   <h3 className="cs-step-name">{step.name}</h3>
-                  {step.description !== null && <p className="cs-step-note">{step.description}</p>}
+                  {step.description !== null && (
+                    <p className="cs-step-note">
+                      <RichText text={step.description} />
+                    </p>
+                  )}
                 </div>
                 {index < process.steps.length - 1 && (
                   <span className="cs-step-arrow" aria-hidden="true" />

@@ -2,6 +2,7 @@ import { ANCHORS } from "../quality-anchors";
 
 import type { QualityApproach } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { RichText } from "@/features/site/rich-text";
 
 /**
  * 2 · Our Quality Approach — SITE_STRUCTURE §7's "Incoming/In-Process/Outgoing testing stages".
@@ -46,7 +47,11 @@ export function QualityApproach({ approach }: { readonly approach: QualityApproa
           <header className="qc-approach-head reveal-fade-rise">
             {eyebrow !== null && <p className="fs-eyebrow">{eyebrow}</p>}
             {heading !== null && <h2 className="fs-d2">{heading}</h2>}
-            {lead !== null && <p className="fs-lead">{lead}</p>}
+            {lead !== null && (
+              <p className="fs-lead">
+                <RichText text={lead} />
+              </p>
+            )}
           </header>
         )}
 
@@ -62,7 +67,11 @@ export function QualityApproach({ approach }: { readonly approach: QualityApproa
           </ol>
         )}
 
-        {footnote !== null && <p className="qc-approach-foot reveal-fade-rise">{footnote}</p>}
+        {footnote !== null && (
+          <p className="qc-approach-foot reveal-fade-rise">
+            <RichText text={footnote} />
+          </p>
+        )}
       </div>
     </section>
   );

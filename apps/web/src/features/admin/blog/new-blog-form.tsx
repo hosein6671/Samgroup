@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { createBlogPost } from "./actions";
-import { MarkdownField } from "./markdown-field";
+import { RichField } from "../editor/rich-field";
 import type { ReactNode } from "react";
 
 export function NewBlogForm({
@@ -46,7 +46,14 @@ export function NewBlogForm({
       </label>
       <div>
         <label htmlFor="new-blog-content">Article content</label>
-        <MarkdownField id="new-blog-content" name="content" required rows={12} maxLength={100000} />
+        <RichField
+          id="new-blog-content"
+          name="content"
+          mode="document"
+          required
+          rows={12}
+          maxLength={100000}
+        />
       </div>
       <button disabled={pending}>{pending ? "Creating…" : "Create private draft"}</button>
       <p role="status" aria-live="polite">

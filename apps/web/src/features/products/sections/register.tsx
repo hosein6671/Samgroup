@@ -57,7 +57,7 @@ export function ProductRegister({
               {copy.text("start_with_the_product_family")}
             </h2>
           </div>
-          <p className="fs-lead">{copy.text("each_family_brings_its_published")}</p>
+          <p className="fs-lead">{copy.rich("each_family_brings_its_published")}</p>
         </header>
 
         <div className="pr-family-grid reveal-stagger">
