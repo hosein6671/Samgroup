@@ -32,15 +32,17 @@ export function editorialHrefKind(value: string): EditorialHrefKind | null {
   if (value.startsWith("#")) return /^#[A-Za-z0-9_-]+$/.test(value) ? "anchor" : null;
   if (/^mailto:[^@]+@[^@]+\.[^@]+$/i.test(value)) return "mailto";
   if (/^tel:\+?[0-9()-]{3,32}$/i.test(value)) return "tel";
-  if (/^https:\/\//i.test(value)) {
-    try {
-      const url = new URL(value);
-      return url.protocol === "https:" && url.hostname.includes(".") && !url.username
-        ? "external"
-        : null;
-    } catch {
-      return null;
-    }
+  // Parsed by pattern rather than `new URL`: this package is compiled with no DOM or Node types,
+  // so the global is not available to it. The authority must be a dotted hostname (letters,
+  // digits, hyphens), optionally with a port, and carry no `user:password@` part.
+  const https = /^https:\/\/([^/?#]+)(?:[/?#]|$)/i.exec(value);
+  if (https) {
+    const authority = https[1] ?? "";
+    return /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z][a-z0-9-]*[a-z0-9](?::\d{1,5})?$/i.test(
+      authority,
+    )
+      ? "external"
+      : null;
   }
   return null;
 }
