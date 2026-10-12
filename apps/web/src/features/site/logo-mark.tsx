@@ -1,6 +1,8 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 
+import { LOGO_MARK_DATA_URI } from "./logo-mark-inline";
+
 /**
  * The official Sam Group mark.
  *
@@ -50,9 +52,18 @@ export type LogoMarkProps = {
    * so it should not wait behind the lazy-loading queue.
    */
   readonly priority?: boolean;
+  /**
+   * Paint with the HTML itself, as a data URI of the same file: for the home page loader only,
+   * whose mark must not wait behind fonts and scripts on a slow connection.
+   */
+  readonly inline?: boolean;
 };
 
-export function LogoMark({ height = 30, priority = false }: LogoMarkProps): ReactNode {
+export function LogoMark({
+  height = 30,
+  priority = false,
+  inline = false,
+}: LogoMarkProps): ReactNode {
   const canvas = Math.round(height * CANVAS_SCALE);
 
   return (
@@ -65,7 +76,7 @@ export function LogoMark({ height = 30, priority = false }: LogoMarkProps): Reac
       style={{ "--mark-h-base": `${height}px` } as React.CSSProperties}
     >
       <Image
-        src="/brand/sam-group-mark-256.png"
+        src={inline ? LOGO_MARK_DATA_URI : "/brand/sam-group-mark-256.png"}
         // Empty alt by design: every placement sits beside the "SAM GROUP" wordmark in text,
         // and the link itself carries the accessible name. Alt text here would make a screen
         // reader announce the company twice on one control.

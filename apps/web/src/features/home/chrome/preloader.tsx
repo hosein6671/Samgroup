@@ -21,25 +21,33 @@ const MARK_MS = 700;
 const HARD_MS = 3200;
 /** How long the curtain takes to part into the letterbox bars (matches the CSS transition). */
 const PART_MS = 1000;
+/**
+ * When the page's JavaScript arrives this late (slow connection), the curtain has been up long
+ * enough: it parts at once. The CSS failsafe parts it by itself at 5 s if JavaScript is later still.
+ */
+const LATE_MS = 4200;
 
 /**
  * Runs during HTML parsing, before the first paint: it decides whether this visit shows the loader
  * at all, so a returning visitor (or reduced motion) never sees the curtain flash before React
- * hydrates. The decision lives on <html data-loader="active|skip|done">.
+ * hydrates. The decision lives on <html data-loader="active|skip|done">, and the moment it was made
+ * on `data-loader-t`: every timing below counts from when the curtain was first painted, not from
+ * when React hydrated, which on a slow connection can be seconds later.
  */
-const DECIDE = `(function(){var d=document.documentElement,s=null;try{s=sessionStorage.getItem(${JSON.stringify(SEEN_KEY)})}catch(e){s="1"}var r=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;d.setAttribute("data-loader",s||r?"skip":"active")})();`;
+const DECIDE = `(function(){var d=document.documentElement,s=null;try{s=sessionStorage.getItem(${JSON.stringify(SEEN_KEY)})}catch(e){s="1"}var r=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;d.setAttribute("data-loader",s||r?"skip":"active");d.setAttribute("data-loader-t",String(Math.round(performance.now())))})();`;
 
 /**
  * The home page loader (Concept 03, option B), shown once per browser session.
  *
- * The ink curtain carries the official mark, the wordmark and a gold progress hairline. When the
+ * The ink curtain carries the official mark, the wordmark and a gold progress hairline. The mark is
+ * inlined in the HTML and the hairline is driven by CSS, so both are live from the first paint,
+ * before any JavaScript has arrived. When the
  * page is ready it parts into two bars that become the hero's own letterbox, and the hero's
  * entrance takes over from there (`hero-reel.tsx` waits for {@link LOADER_DONE_EVENT}). Without
  * JavaScript the loader never covers the page (`@media (scripting: none)` and a CSS failsafe).
  */
 export function Preloader(): ReactNode {
   const [state, setState] = useState<"load" | "part" | "done">("load");
-  const fill = useRef<HTMLElement>(null);
   const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,20 +58,16 @@ export function Preloader(): ReactNode {
     }
 
     html.style.overflow = "hidden";
-    const started = performance.now();
+    const painted = Number(html.dataset.loaderT);
+    const started = Number.isFinite(painted) ? painted : performance.now();
+    const since = (): number => performance.now() - started;
     const timers: number[] = [];
-    let pct = 0;
     let finished = false;
-    const grow = window.setInterval(() => {
-      pct = Math.min(92, pct + 8 + Math.random() * 14);
-      if (fill.current) fill.current.style.width = `${pct}%`;
-    }, 110);
 
     const finish = (): void => {
       if (finished) return;
       finished = true;
-      window.clearInterval(grow);
-      if (fill.current) fill.current.style.width = "100%";
+      if (root.current) root.current.dataset.filled = "true";
       timers.push(
         window.setTimeout(() => {
           html.style.overflow = "";
@@ -91,7 +95,7 @@ export function Preloader(): ReactNode {
     const check = (): void => {
       if (!pageReady || markAt === null) return;
       const now = performance.now();
-      const wait = Math.max(240, MIN_MS - (now - started), MARK_MS - (now - markAt));
+      const wait = Math.max(240, MIN_MS - since(), MARK_MS - (now - markAt));
       timers.push(window.setTimeout(finish, wait));
     };
     const onPage = (): void => {
@@ -111,13 +115,13 @@ export function Preloader(): ReactNode {
       mark.addEventListener("load", onMark, { once: true });
       mark.addEventListener("error", onMark, { once: true });
     }
-    if (document.readyState === "complete") onPage();
+    if (since() >= LATE_MS) finish();
+    else if (document.readyState === "complete") onPage();
     else window.addEventListener("load", onPage, { once: true });
-    timers.push(window.setTimeout(onPage, MAX_MS));
-    timers.push(window.setTimeout(finish, HARD_MS));
+    timers.push(window.setTimeout(onPage, Math.max(0, MAX_MS - since())));
+    timers.push(window.setTimeout(finish, Math.max(0, HARD_MS - since())));
 
     return () => {
-      window.clearInterval(grow);
       timers.forEach(window.clearTimeout);
       window.removeEventListener("load", onPage);
       mark?.removeEventListener("load", onMark);
@@ -134,10 +138,10 @@ export function Preloader(): ReactNode {
           <span className="fs-loader-half fs-loader-half--top" />
           <span className="fs-loader-half fs-loader-half--bottom" />
           <div className="fs-loader-in">
-            <LogoMark height={38} priority />
+            <LogoMark height={38} inline />
             <span className="fs-loader-txt">SAM GROUP</span>
             <i className="fs-loader-bar">
-              <b ref={fill} />
+              <b />
             </i>
           </div>
         </div>

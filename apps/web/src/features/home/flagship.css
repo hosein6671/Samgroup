@@ -4812,12 +4812,24 @@ html[data-loader="active"] .fs-loader {
   overflow: hidden;
   background: rgba(255, 255, 255, 0.14);
 }
+/* The hairline fills by itself from the first paint (no JavaScript needed), easing toward 88%;
+   the script completes it when the page is ready. */
 .fs-loader-bar b {
   display: block;
   width: 0;
   height: 100%;
   background: var(--fs-gold);
   transition: width 220ms linear;
+  animation: fs-loader-fill 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.fs-loader[data-filled="true"] .fs-loader-bar b {
+  width: 100%;
+  animation: none;
+}
+@keyframes fs-loader-fill {
+  to {
+    width: 88%;
+  }
 }
 /* Parting: the mark leaves, and the two halves become the hero's 15vh letterbox bars. */
 .fs-loader[data-state="part"] .fs-loader-in {
@@ -4839,7 +4851,8 @@ html[data-loader="active"] .fs-loader {
   }
 }
 /* Never cover a page whose JavaScript did not arrive: no scripting, no loader; and a failsafe that
-   uncovers the page if the script that should lift the curtain never runs. */
+   parts the curtain by itself at 5 s — the same parting, not a cut — if the script that should do
+   it has not run yet (a slow connection), then removes it from view at 6 s. */
 @media (scripting: none) {
   .fs-loader {
     display: none;
@@ -4850,8 +4863,42 @@ html[data-loader="active"] .fs-loader {
     visibility: hidden;
   }
 }
+@keyframes fs-loader-failsafe-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fs-loader-failsafe-part {
+  to {
+    height: 15vh;
+  }
+}
+@keyframes fs-loader-failsafe-up {
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes fs-loader-failsafe-down {
+  to {
+    transform: translateY(100%);
+  }
+}
 .fs-loader {
-  animation: fs-loader-failsafe 0s 5s forwards;
+  animation: fs-loader-failsafe 0s 6s forwards;
+}
+.fs-loader-in {
+  animation: fs-loader-failsafe-out 0.35s ease 5s forwards;
+}
+.fs-loader-half {
+  animation: fs-loader-failsafe-part 1s cubic-bezier(0.77, 0, 0.18, 1) 5s forwards;
+}
+@media (max-width: 960px) {
+  .fs-loader-half--top {
+    animation-name: fs-loader-failsafe-up;
+  }
+  .fs-loader-half--bottom {
+    animation-name: fs-loader-failsafe-down;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .fs-loader {
