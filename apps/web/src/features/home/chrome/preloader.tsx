@@ -12,6 +12,13 @@ export const LOADER_DONE_EVENT = "sam:loader-done";
 /** Never shorter than this, so the mark registers; never longer than the cap, whatever the load. */
 const MIN_MS = 900;
 const MAX_MS = 2600;
+/** Once the mark has arrived it stays on screen at least this long, so it is never a flash. */
+const MARK_MS = 700;
+/**
+ * The cap when the mark itself is late: the loader never waits past this, so the hero (which
+ * starts on its own at 4.5 s) and the CSS failsafe (5 s) are never reached while it is up.
+ */
+const HARD_MS = 3200;
 /** How long the curtain takes to part into the letterbox bars (matches the CSS transition). */
 const PART_MS = 1000;
 
@@ -33,6 +40,7 @@ const DECIDE = `(function(){var d=document.documentElement,s=null;try{s=sessionS
 export function Preloader(): ReactNode {
   const [state, setState] = useState<"load" | "part" | "done">("load");
   const fill = useRef<HTMLElement>(null);
+  const root = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -76,17 +84,44 @@ export function Preloader(): ReactNode {
       );
     };
 
-    const afterMin = (): void => {
-      timers.push(window.setTimeout(finish, Math.max(240, MIN_MS - (performance.now() - started))));
+    // Two conditions before the curtain parts: the page is ready (or the cap has passed), and the
+    // mark has been on screen for a moment. The loader exists to show the mark, so it waits for it.
+    let pageReady = false;
+    let markAt: number | null = null;
+    const check = (): void => {
+      if (!pageReady || markAt === null) return;
+      const now = performance.now();
+      const wait = Math.max(240, MIN_MS - (now - started), MARK_MS - (now - markAt));
+      timers.push(window.setTimeout(finish, wait));
     };
-    if (document.readyState === "complete") afterMin();
-    else window.addEventListener("load", afterMin, { once: true });
-    timers.push(window.setTimeout(finish, MAX_MS));
+    const onPage = (): void => {
+      if (pageReady) return;
+      pageReady = true;
+      check();
+    };
+    const onMark = (): void => {
+      if (markAt !== null) return;
+      markAt = performance.now();
+      check();
+    };
+
+    const mark = root.current?.querySelector("img");
+    if (!mark || (mark.complete && mark.naturalWidth > 0)) onMark();
+    else {
+      mark.addEventListener("load", onMark, { once: true });
+      mark.addEventListener("error", onMark, { once: true });
+    }
+    if (document.readyState === "complete") onPage();
+    else window.addEventListener("load", onPage, { once: true });
+    timers.push(window.setTimeout(onPage, MAX_MS));
+    timers.push(window.setTimeout(finish, HARD_MS));
 
     return () => {
       window.clearInterval(grow);
       timers.forEach(window.clearTimeout);
-      window.removeEventListener("load", afterMin);
+      window.removeEventListener("load", onPage);
+      mark?.removeEventListener("load", onMark);
+      mark?.removeEventListener("error", onMark);
       html.style.overflow = "";
     };
   }, []);
@@ -95,7 +130,7 @@ export function Preloader(): ReactNode {
     <>
       <script dangerouslySetInnerHTML={{ __html: DECIDE }} />
       {state !== "done" && (
-        <div className="fs-loader" data-state={state} aria-hidden="true">
+        <div className="fs-loader" data-state={state} aria-hidden="true" ref={root}>
           <span className="fs-loader-half fs-loader-half--top" />
           <span className="fs-loader-half fs-loader-half--bottom" />
           <div className="fs-loader-in">

@@ -4,9 +4,18 @@ import type { ReactNode } from "react";
 /**
  * The official Sam Group mark.
  *
- * One component, one asset (`public/brand/sam-group-mark.png`), used by the navbar, the footer
- * and the boot curtain. The artwork is shipped exactly as supplied — not redrawn, not recoloured,
- * not re-encoded.
+ * One component, used by the navbar, the footer, the photo badges and the home page loader. The
+ * artwork is the supplied file — not redrawn, not recoloured, not filtered.
+ *
+ * ── Why a 256px copy, served as a plain file ────────────────────────────────
+ *
+ * The supplied master (`public/brand/sam-group-mark.png`) is 8000×8000 and 357 KB. Sent through
+ * the image optimizer, the first request for each size made the server shrink that master — 1.2 to
+ * 2.2 s on the VPS — which is longer than the loader is on screen, so the loader parted before its
+ * mark arrived. `sam-group-mark-256.png` is the same artwork resized (Lanczos, nothing else) to the
+ * largest size any placement needs: the biggest mark is 38px tall on a 70px canvas, so 256px covers
+ * screens up to ~3.6x. At 6 KB it is served as a static file, `unoptimized`, with no server work.
+ * The master stays in place for the Organization logo in structured data.
  *
  * ── Why there is a crop wrapper ─────────────────────────────────────────────
  *
@@ -56,7 +65,7 @@ export function LogoMark({ height = 30, priority = false }: LogoMarkProps): Reac
       style={{ "--mark-h-base": `${height}px` } as React.CSSProperties}
     >
       <Image
-        src="/brand/sam-group-mark.png"
+        src="/brand/sam-group-mark-256.png"
         // Empty alt by design: every placement sits beside the "SAM GROUP" wordmark in text,
         // and the link itself carries the accessible name. Alt text here would make a screen
         // reader announce the company twice on one control.
@@ -64,6 +73,7 @@ export function LogoMark({ height = 30, priority = false }: LogoMarkProps): Reac
         width={canvas}
         height={canvas}
         priority={priority}
+        unoptimized
         className="fs-mark__img"
       />
     </span>
