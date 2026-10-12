@@ -2,9 +2,28 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createTransport } from "nodemailer";
 
-import type { MailConfig } from "../../../config/configuration";
-import type { LeadNotification } from "./lead-notification.message";
+import type { MailConfig } from "../../config/configuration";
 import type { Transporter } from "nodemailer";
+
+/**
+ * One plain-text message. A lead notification (forms) and a security alert (audit) are both this
+ * shape; neither carries HTML, so no message can include an executable part.
+ */
+export type MailMessage = {
+  readonly subject: string;
+  readonly text: string;
+};
+
+/**
+ * Who a message is for. Each is a fixed mailbox from the environment, never an address taken from a
+ * request — so no caller can send mail anywhere the operator did not configure.
+ */
+export type MailRecipient = "lead" | "security";
+
+const RECIPIENT_VARIABLE: Record<MailRecipient, string> = {
+  lead: "LEAD_NOTIFICATION_TO",
+  security: "SECURITY_ALERT_TO",
+};
 
 /**
  * The only file in the platform that knows nodemailer exists.
@@ -54,7 +73,10 @@ export class MailTimeoutError extends Error {
  * place secrets must not appear. `SMTP_PASSWORD` as a *name* is safe to print; its value is never
  * read into this string, never interpolated into an error, and never compared in a message.
  */
-function describeIncompleteConfig(mail: MailConfig): string | undefined {
+function describeIncompleteConfig(
+  mail: MailConfig,
+  recipient: MailRecipient = "lead",
+): string | undefined {
   const missing: string[] = [];
 
   if (mail.smtpHost === "") {
@@ -69,8 +91,8 @@ function describeIncompleteConfig(mail: MailConfig): string | undefined {
     missing.push("MAIL_FROM");
   }
 
-  if (mail.leadNotificationTo === "") {
-    missing.push("LEAD_NOTIFICATION_TO");
+  if (recipientAddress(mail, recipient) === "") {
+    missing.push(RECIPIENT_VARIABLE[recipient]);
   }
 
   if (missing.length > 0) {
@@ -91,6 +113,10 @@ function describeIncompleteConfig(mail: MailConfig): string | undefined {
   }
 
   return undefined;
+}
+
+function recipientAddress(mail: MailConfig, recipient: MailRecipient): string {
+  return recipient === "lead" ? mail.leadNotificationTo : mail.securityAlertTo;
 }
 
 /**
@@ -134,8 +160,8 @@ export class SmtpMailer {
    * restarts is the only thing that changes behaviour — and so a test can vary configuration
    * without rebuilding the provider.
    */
-  isConfigured(): boolean {
-    return describeIncompleteConfig(this.mail()) === undefined;
+  isConfigured(recipient: MailRecipient = "lead"): boolean {
+    return describeIncompleteConfig(this.mail(), recipient) === undefined;
   }
 
   /**
@@ -143,8 +169,8 @@ export class SmtpMailer {
    *
    * Variable names only — see `describeIncompleteConfig`.
    */
-  configurationIssue(): string | undefined {
-    return describeIncompleteConfig(this.mail());
+  configurationIssue(recipient: MailRecipient = "lead"): string | undefined {
+    return describeIncompleteConfig(this.mail(), recipient);
   }
 
   /**
@@ -158,13 +184,13 @@ export class SmtpMailer {
    * @throws Error whatever nodemailer raises for a refused connection, a rejected credential, an
    *   unknown recipient, or a TLS failure.
    */
-  async send(notification: LeadNotification): Promise<void> {
+  async send(notification: MailMessage, recipient: MailRecipient = "lead"): Promise<void> {
     const mail = this.mail();
 
     await withTimeout(
       this.transport(mail).sendMail({
         from: mail.from,
-        to: mail.leadNotificationTo,
+        to: recipientAddress(mail, recipient),
         /*
          * CR and LF removed, and nothing else. No submitted value reaches the subject today — it is
          * built from a closed label map — but a header is the one field where a newline is an
@@ -211,6 +237,7 @@ export class SmtpMailer {
       smtpSecure: false,
       from: "",
       leadNotificationTo: "",
+      securityAlertTo: "",
     });
   }
 }

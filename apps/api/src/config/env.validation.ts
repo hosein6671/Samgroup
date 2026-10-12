@@ -319,6 +319,11 @@ class EnvironmentVariables {
   @IsString()
   LEAD_NOTIFICATION_TO?: string;
 
+  /** The owner's mailbox for security and admin-activity alerts. Never defaulted, like the above. */
+  @IsOptional()
+  @IsString()
+  SECURITY_ALERT_TO?: string;
+
   /**
    * Cloudflare Turnstile's **secret** key — a real secret, never logged and never returned.
    *

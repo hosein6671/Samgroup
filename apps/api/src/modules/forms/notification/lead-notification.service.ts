@@ -4,7 +4,7 @@ import {
   buildCustomFormulationNotification,
   buildInquiryNotification,
 } from "./lead-notification.message";
-import { SmtpMailer } from "./smtp.mailer";
+import { SmtpMailer } from "../../../common/mail/smtp.mailer";
 
 import type {
   CustomFormulationNotificationInput,

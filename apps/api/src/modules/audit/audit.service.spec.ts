@@ -1,10 +1,16 @@
 import { AuditService } from "./audit.service";
 import type { AuditEntry } from "./audit.service";
+
+/** The audit trail is under test here, not the owner's alerts. */
+const NO_ALERTS = { observe: () => undefined } as never;
 import type { PrismaService } from "../../prisma/prisma.service";
 describe("audit persistence", () => {
   it("projects only allowed metadata even when a caller supplies extra secrets", async () => {
     const create = jest.fn().mockResolvedValue({});
-    const service = new AuditService({ adminAuditEvent: { create } } as unknown as PrismaService);
+    const service = new AuditService(
+      { adminAuditEvent: { create } } as unknown as PrismaService,
+      NO_ALERTS,
+    );
     await service.append({
       event: "auth.login",
       outcome: "failure",
@@ -24,7 +30,10 @@ describe("audit persistence", () => {
   });
   it("propagates persistence failure so transactional callers can roll back", async () => {
     const create = jest.fn().mockRejectedValue(new Error("storage unavailable"));
-    const service = new AuditService({ adminAuditEvent: { create } } as unknown as PrismaService);
+    const service = new AuditService(
+      { adminAuditEvent: { create } } as unknown as PrismaService,
+      NO_ALERTS,
+    );
     await expect(service.append({ event: "user.created", outcome: "success" })).rejects.toThrow(
       "storage unavailable",
     );

@@ -37,12 +37,17 @@ async function bootstrap(): Promise<void> {
       if (event === null) return;
       // Authentication failures deliberately do not capture the supplied account identifier.
       void audit
-        .append({
-          event,
-          outcome: response.statusCode < 400 ? "success" : "failure",
-          actorId: request[AUTHENTICATED_USER]?.id,
-          httpStatus: response.statusCode,
-        })
+        .append(
+          {
+            event,
+            outcome: response.statusCode < 400 ? "success" : "failure",
+            actorId: request[AUTHENTICATED_USER]?.id,
+            httpStatus: response.statusCode,
+          },
+          undefined,
+          // For the owner's sign-in alert only; never stored (see AuditService.append).
+          { ip: request.ip },
+        )
         .catch(() => {
           // Operational signal only; never print the error, connection details or request.
           auditLogger.error("Security event persistence failed.");

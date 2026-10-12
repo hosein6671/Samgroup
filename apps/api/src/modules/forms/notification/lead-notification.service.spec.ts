@@ -2,7 +2,7 @@ import { Logger } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 
 import { LeadNotificationService } from "./lead-notification.service";
-import { MailTimeoutError, SmtpMailer } from "./smtp.mailer";
+import { MailTimeoutError, SmtpMailer } from "../../../common/mail/smtp.mailer";
 
 import type {
   CustomFormulationNotificationInput,

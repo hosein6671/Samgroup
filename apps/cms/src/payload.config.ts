@@ -13,6 +13,7 @@ import { buildConfig } from "payload";
 import { Media, mediaFileURL } from "./collections/media";
 import { EditorialEvents } from "./collections/editorial-events";
 import { companyEditor } from "./editor/company-editor";
+import { emailAdapter } from "./editor/mail";
 import { editorEvents } from "./editor/editor-events";
 import { mediaList, mediaUpload } from "./editor/media-list";
 import { ProductCategoryContent } from "./collections/product-category-content";
@@ -65,6 +66,8 @@ export default buildConfig({
     pool: { connectionString: cmsDatabaseUri() },
   }),
   editor: lexicalEditor(),
+  // The platform relay (SMTP_* / MAIL_FROM), when configured; otherwise Payload logs mail instead.
+  email: emailAdapter(),
   /*
    * Company pages are Globals with tailored schemas, never entries in a generic collection
    * (PAYLOAD_CONTENT_ARCHITECTURE.md decision 1). `AboutUs` was the first, `CustomizedSolutions` the

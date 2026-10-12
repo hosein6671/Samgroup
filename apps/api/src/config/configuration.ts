@@ -118,6 +118,11 @@ export type MailConfig = {
   from: string;
   /** The one internal mailbox lead notifications go to. No default exists and none may be added. */
   leadNotificationTo: string;
+  /**
+   * Where security and admin-activity alerts go (sign-ins, account changes, publishing, the daily
+   * summary). Like `leadNotificationTo`, never defaulted: unset means no alerts are sent.
+   */
+  securityAlertTo: string;
 };
 
 export default (): AppConfig => ({
@@ -146,6 +151,7 @@ export default (): AppConfig => ({
     smtpSecure: process.env.SMTP_SECURE?.trim() === "true",
     from: process.env.MAIL_FROM?.trim() ?? "",
     leadNotificationTo: process.env.LEAD_NOTIFICATION_TO?.trim() ?? "",
+    securityAlertTo: process.env.SECURITY_ALERT_TO?.trim() ?? "",
   },
   turnstile: {
     // Deliberately NOT trimmed, for the reason smtpPassword is not: silently altering a credential

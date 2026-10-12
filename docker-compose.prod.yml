@@ -59,6 +59,7 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-}
       MAIL_FROM: ${MAIL_FROM:-}
       LEAD_NOTIFICATION_TO: ${LEAD_NOTIFICATION_TO:-}
+      SECURITY_ALERT_TO: ${SECURITY_ALERT_TO:-}
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       PRODUCT_MEDIA_BUCKET: ${MINIO_PUBLIC_BUCKET}
       PRODUCT_MEDIA_ENDPOINT: http://minio:9000
@@ -129,6 +130,14 @@ services:
       CMS_MEDIA_REGION: ${CMS_MEDIA_REGION:-us-east-1}
       CMS_MEDIA_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       CMS_MEDIA_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      # The same relay as the API: Payload's own mail (password reset) and publish alerts.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      SECURITY_ALERT_TO: ${SECURITY_ALERT_TO:-}
     depends_on:
       postgres:
         condition: service_healthy

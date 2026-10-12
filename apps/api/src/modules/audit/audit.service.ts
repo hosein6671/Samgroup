@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import type { Prisma } from "../../prisma/generated/client";
+import { SecurityAlertService } from "./security-alert.service";
+import type { AlertContext } from "./security-alerts";
 
 export type AuditEventName =
   | "product.draft_saved"
@@ -48,8 +50,19 @@ export type AuditFilters = {
 
 @Injectable()
 export class AuditService {
-  constructor(private readonly prisma: PrismaService) {}
-  async append(entry: AuditEntry, transaction?: Prisma.TransactionClient): Promise<void> {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly alerts: SecurityAlertService,
+  ) {}
+  /**
+   * Records one event, then hands it to the owner's alerts. `context` (the request's address) is
+   * used only for the alert and is never stored — the trail keeps no IP addresses.
+   */
+  async append(
+    entry: AuditEntry,
+    transaction?: Prisma.TransactionClient,
+    context?: AlertContext,
+  ): Promise<void> {
     // Explicit projection: even an untyped caller cannot persist request bodies or secrets.
     await (transaction ?? this.prisma).adminAuditEvent.create({
       data: {
@@ -60,6 +73,7 @@ export class AuditService {
         httpStatus: entry.httpStatus,
       },
     });
+    this.alerts.observe(entry, context);
   }
   async list(
     page: number,

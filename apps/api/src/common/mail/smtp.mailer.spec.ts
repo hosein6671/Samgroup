@@ -5,7 +5,7 @@ import { createTransport } from "nodemailer";
 
 import { MAIL_TIMEOUT_MS, MailTimeoutError, SmtpMailer } from "./smtp.mailer";
 
-import type { MailConfig } from "../../../config/configuration";
+import type { MailConfig } from "../../config/configuration";
 
 jest.mock("nodemailer", () => ({ createTransport: jest.fn() }));
 
@@ -25,6 +25,7 @@ const COMPLETE: MailConfig = {
   smtpSecure: false,
   from: "SAM Group <noreply@example.invalid>",
   leadNotificationTo: "leads@example.invalid",
+  securityAlertTo: "owner@example.invalid",
 };
 
 type Harness = {

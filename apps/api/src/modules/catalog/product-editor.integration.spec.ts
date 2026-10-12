@@ -33,7 +33,11 @@ if (url && !/^\/sam_platform_disposable_[a-z0-9_]+$/.test(new URL(url).pathname)
     client = new PrismaClient({ adapter: new PrismaPg({ connectionString: url! }) });
     const prisma = client as unknown as PrismaService;
     seo = new SeoService(prisma, {} as ContentTranslationService);
-    service = new ProductEditorService(prisma, seo, new AuditService(prisma));
+    service = new ProductEditorService(
+      prisma,
+      seo,
+      new AuditService(prisma, { observe: () => undefined } as never),
+    );
     await client.locale.upsert({
       where: { code: "en" },
       update: {},

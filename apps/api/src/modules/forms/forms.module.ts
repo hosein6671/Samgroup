@@ -16,7 +16,7 @@ import {
   AdminInquiryWorkflowController,
 } from "./workflow/lead-workflow.controller";
 import { LeadWorkflowService } from "./workflow/lead-workflow.service";
-import { SmtpMailer } from "./notification/smtp.mailer";
+import { MailModule } from "../../common/mail/mail.module";
 import { TurnstileGuard } from "./turnstile/turnstile.guard";
 import { TurnstileVerifier } from "./turnstile/turnstile.verifier";
 
@@ -107,7 +107,7 @@ import { TurnstileVerifier } from "./turnstile/turnstile.verifier";
  * every line this feature logs.
  */
 @Module({
-  imports: [PrismaModule, CatalogModule, IdentityModule],
+  imports: [PrismaModule, CatalogModule, IdentityModule, MailModule],
   controllers: [
     InquiriesController,
     CustomFormulationRequestsController,
@@ -121,7 +121,6 @@ import { TurnstileVerifier } from "./turnstile/turnstile.verifier";
     CustomFormulationRequestsService,
     LeadNotificationService,
     LeadWorkflowService,
-    SmtpMailer,
     TurnstileVerifier,
     TurnstileGuard,
   ],

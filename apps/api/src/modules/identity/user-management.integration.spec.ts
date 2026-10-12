@@ -18,7 +18,11 @@ databaseSuite("user management with PostgreSQL", () => {
   beforeAll(() => {
     client = new PrismaClient({ adapter: new PrismaPg({ connectionString: url! }) });
     const prisma = client as unknown as PrismaService;
-    service = new UserManagementService(prisma, passwords, new AuditService(prisma));
+    service = new UserManagementService(
+      prisma,
+      passwords,
+      new AuditService(prisma, { observe: () => undefined } as never),
+    );
   });
   afterAll(async () => {
     await client.$disconnect();

@@ -50,7 +50,7 @@ test("a body-copy textarea refuses an unsafe link and keeps Payload's own checks
 });
 
 test("rich-text bodies refuse an unsafe link in Payload's link shape", () => {
-  const body = (url: string, linkType = "custom") => ({
+  const body = (url: string, linkType = "custom"): Record<string, unknown> => ({
     root: {
       type: "root",
       children: [
