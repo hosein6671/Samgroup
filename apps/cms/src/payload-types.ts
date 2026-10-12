@@ -101,7 +101,6 @@ export interface Config {
     'quality-certifications': QualityCertification;
     'contact-us': ContactUs;
     'faq-page': FaqPage;
-    'request-a-quote': RequestAQuote;
     home: Home;
     'products-landing': ProductsLanding;
     'export-logistics': ExportLogistic;
@@ -114,7 +113,6 @@ export interface Config {
     'quality-certifications': QualityCertificationsSelect<false> | QualityCertificationsSelect<true>;
     'contact-us': ContactUsSelect<false> | ContactUsSelect<true>;
     'faq-page': FaqPageSelect<false> | FaqPageSelect<true>;
-    'request-a-quote': RequestAQuoteSelect<false> | RequestAQuoteSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
     'products-landing': ProductsLandingSelect<false> | ProductsLandingSelect<true>;
     'export-logistics': ExportLogisticsSelect<false> | ExportLogisticsSelect<true>;
@@ -1465,27 +1463,6 @@ export interface FaqPage {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "request-a-quote".
- */
-export interface RequestAQuote {
-  id: number;
-  eyebrow: string;
-  heading: string;
-  lead: string;
-  /**
-   * Optional. Not yet rendered anywhere — see this field's own note.
-   */
-  image?: (number | null) | Media;
-  /**
-   * Optional caption. Unused while `image` has no render slot.
-   */
-  imageCaption?: string | null;
-  _status?: ('draft' | 'published') | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home".
  */
 export interface Home {
@@ -2572,21 +2549,6 @@ export interface FaqPageSelect<T extends boolean = true> {
         robotsFollow?: T;
         keywords?: T;
       };
-  _status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "request-a-quote_select".
- */
-export interface RequestAQuoteSelect<T extends boolean = true> {
-  eyebrow?: T;
-  heading?: T;
-  lead?: T;
-  image?: T;
-  imageCaption?: T;
   _status?: T;
   updatedAt?: T;
   createdAt?: T;
