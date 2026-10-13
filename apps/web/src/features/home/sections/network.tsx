@@ -9,7 +9,8 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { BrandedPhoto } from "../branded-photo";
-import { HQ, HUBS, LAND, NETWORK_STATS } from "../home-data";
+import { HQ, HUBS, NETWORK_STATS } from "../home-data";
+import { isLand } from "../world-land";
 import { useCanvas } from "../motion/use-canvas";
 
 /**
@@ -23,9 +24,9 @@ import { useCanvas } from "../motion/use-canvas";
  * `Notes` sheet names, drawn as six points. See `HUBS` in `home-data.ts`. Nothing on this map is
  * labelled "illustrative" any more, because nothing on it is.
  *
- * A dot-matrix world with animated lanes departing one complex. Continents are coarse polygons
- * rasterised by point-in-polygon at ~2° — so the dots visibly *are* the drawing's precision,
- * which is more honest than a traced coastline that is wrong at the third decimal.
+ * A dot-matrix world with animated lanes departing one complex. The land is Natural Earth's
+ * 1:110m coastline (`world-land.ts`, a 1° mask), sampled at ~2° — so the dots visibly *are* the
+ * map's precision, and the shapes are the world's, not a hand-drawn outline.
  *
  * Rendered to canvas rather than SVG because the dot count runs to a few thousand: as SVG that
  * is a few thousand DOM nodes and a layout the browser has to maintain, against one draw call
@@ -191,31 +192,11 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
           x: ((lon - LON0) / (LON1 - LON0)) * w,
           y: ((LAT1 - lat) / (LAT1 - LAT0)) * h,
         });
-        const inPoly = (
-          lon: number,
-          lat: number,
-          poly: readonly (readonly [number, number])[],
-        ): boolean => {
-          let c = false;
-          for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-            const a = poly[i];
-            const b = poly[j];
-            if (!a || !b) continue;
-            if (
-              a[1] > lat !== b[1] > lat &&
-              lon < ((b[0] - a[0]) * (lat - a[1])) / (b[1] - a[1]) + a[0]
-            ) {
-              c = !c;
-            }
-          }
-          return c;
-        };
-
         const step = w < 700 ? 2.2 : 1.9;
         const next: { x: number; y: number }[] = [];
         for (let lon = LON0; lon <= LON1; lon += step) {
           for (let lat = LAT0; lat <= LAT1; lat += step) {
-            if (LAND.some((poly) => inPoly(lon, lat, poly))) next.push(proj(lon, lat));
+            if (isLand(lon, lat)) next.push(proj(lon, lat));
           }
         }
         dots.current = next;
