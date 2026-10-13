@@ -1,11 +1,23 @@
+# Every long-running service keeps at most 3 × 10 MB of container log, rotated by Docker, so a busy
+# or noisy service (bots probing the site) can never fill the disk. `docker compose logs` still
+# shows the recent history.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
+    logging: *logging
     ports: []
 
   minio:
+    logging: *logging
     ports: []
 
   nginx:
+    logging: *logging
     ports:
       - "80:80"
       - "443:443"
@@ -41,6 +53,7 @@ services:
         condition: service_healthy
 
   api:
+    logging: *logging
     image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/api:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
     restart: unless-stopped
     environment:
@@ -88,6 +101,7 @@ services:
       start_period: 30s
 
   web:
+    logging: *logging
     image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/web:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
     restart: unless-stopped
     environment:
@@ -118,6 +132,7 @@ services:
       start_period: 30s
 
   cms:
+    logging: *logging
     image: ${SAM_IMAGE_PREFIX:?Set SAM_IMAGE_PREFIX}/cms:${SAM_IMAGE_TAG:?Set SAM_IMAGE_TAG}
     restart: unless-stopped
     environment:

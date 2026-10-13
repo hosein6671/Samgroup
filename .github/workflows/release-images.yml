@@ -146,3 +146,12 @@ jobs:
           tags: ghcr.io/${{ steps.release.outputs.owner }}/sam-group-platform/cms:${{ steps.release.outputs.sha }}
           cache-from: type=gha,scope=cms
           cache-to: type=gha,mode=max,scope=cms
+
+      # The release's compose files and deploy scripts, under the same SHA, for deploy/sync-config.sh.
+      - name: Build and push deploy bundle
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/apps/deploy-bundle.Dockerfile
+          push: true
+          tags: ghcr.io/${{ steps.release.outputs.owner }}/sam-group-platform/deploy:${{ steps.release.outputs.sha }}

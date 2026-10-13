@@ -136,10 +136,12 @@ services:
       # envsubst leaves an unset name as an empty string, and this variable
       # is not referenced by the templates local development actually loads.
       SAM_MAIL_HOSTNAME: ${MAIL_HOSTNAME:-}
-      SAM_WEB_UPSTREAM: ${WEB_UPSTREAM}
-      SAM_API_UPSTREAM: ${API_UPSTREAM}
-      SAM_CMS_UPSTREAM: ${CMS_UPSTREAM}
-      SAM_MINIO_UPSTREAM: ${MINIO_UPSTREAM}
+      # Blank by default: production sets all four in docker-compose.prod.yml, and local development
+      # sets them in .env. The default only stops compose warning about them on the server.
+      SAM_WEB_UPSTREAM: ${WEB_UPSTREAM:-}
+      SAM_API_UPSTREAM: ${API_UPSTREAM:-}
+      SAM_CMS_UPSTREAM: ${CMS_UPSTREAM:-}
+      SAM_MINIO_UPSTREAM: ${MINIO_UPSTREAM:-}
       SAM_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET}
       SAM_ROUNDCUBE_UPSTREAM: ${ROUNDCUBE_UPSTREAM:-}
     volumes:

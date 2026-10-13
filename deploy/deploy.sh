@@ -36,6 +36,10 @@ sh ./deploy/backup.sh
 
 export SAM_IMAGE_TAG="$new_tag"
 sh ./deploy/compose.sh pull api web cms
+# The compose files and deploy scripts of this release, from its deploy bundle image — so a new
+# environment variable or service setting arrives with the images that need it. Backs up what it
+# replaces (deploy/state/config/); never touches .env, nginx templates or the mail server files.
+sh ./deploy/sync-config.sh "$new_tag"
 sh ./deploy/compose.sh --profile operations run --rm platform-migrate
 sh ./deploy/compose.sh --profile operations run --rm cms-migrate
 if ! sh ./deploy/compose.sh up -d --remove-orphans --wait --wait-timeout 180; then
