@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { SeoFields } from "@sam-group/types";
 import { isIndexingEnabled } from "@/features/seo/indexing";
+import { translator } from "@/i18n/translate";
 import type { ProductCategoryContent } from "./category-contract";
 
 export function categoryMetadata(
@@ -32,7 +33,12 @@ export function categoryMetadata(
       description: ogDescription,
       url: canonical,
       locale,
-      images: [{ url: socialImage, alt: "SAM Group petroleum and lubricant product range" }],
+      images: [
+        {
+          url: socialImage,
+          alt: translator(locale)("SAM Group petroleum and lubricant product range"),
+        },
+      ],
     },
     twitter: {
       card: seo?.twitterCardType ?? "summary_large_image",

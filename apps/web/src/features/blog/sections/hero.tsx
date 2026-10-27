@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * The Insights index hero.
@@ -17,17 +18,20 @@ import type { ReactNode } from "react";
  *
  * A Server Component. No state, no JavaScript.
  */
-export function InsightsHero(): ReactNode {
+export function InsightsHero({ locale = "en" }: { readonly locale?: string } = {}): ReactNode {
+  const t = translator(locale);
   return (
     <section className="in-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap in-hero-inner">
-        <p className="fs-eyebrow">Insights</p>
+        <p className="fs-eyebrow">{t("Insights")}</p>
 
-        <h1 className="fs-d1 in-hero-title">Technical and industry writing</h1>
+        <h1 className="fs-d1 in-hero-title">{t("Technical and industry writing")}</h1>
 
-        <p className="fs-lead in-hero-lead">Articles published by SAM Group, newest first.</p>
+        <p className="fs-lead in-hero-lead">
+          {t("Articles published by SAM Group, newest first.")}
+        </p>
       </div>
     </section>
   );

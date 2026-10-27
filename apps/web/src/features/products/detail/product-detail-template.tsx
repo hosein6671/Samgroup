@@ -12,6 +12,7 @@ import "./product-detail.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
+import { translator } from "@/i18n/translate";
 
 import { ClosingCta } from "../sections/closing-cta";
 
@@ -87,7 +88,8 @@ export function ProductDetailTemplate({
    * a fallback to another grade's data). */
   readonly activeGradeParam: string | null;
 }): ReactNode {
-  const editorial = getProductDetailEditorial(product.category.slug);
+  const editorial = getProductDetailEditorial(product.category.slug, locale);
+  const t = translator(locale);
   const activeGrade = resolveActiveGrade(product.grades, activeGradeParam);
   const visibleSpecifications = specificationsForGrade(product.specifications, activeGrade);
   const canonicalPath = `/${locale}/products/${product.slug}`;
@@ -108,10 +110,12 @@ export function ProductDetailTemplate({
           <section className="fs-sec pd-overview" id="overview" data-surface="light">
             <div className="fs-wrap">
               <header className="pd-section-head reveal-fade-rise">
-                <p className="fs-eyebrow">Overview</p>
+                <p className="fs-eyebrow">{t("Overview")}</p>
                 <h2 className="fs-d2">{product.name}</h2>
               </header>
-              <p className="fs-lead pd-overview-body reveal-fade-rise">{product.description}</p>
+              <p className="fs-lead pd-overview-body reveal-fade-rise" dir="auto">
+                {product.description}
+              </p>
             </div>
           </section>
         )}
@@ -119,20 +123,22 @@ export function ProductDetailTemplate({
         {locale === "en" && product.editorial && (
           <>
             <ProductEditorialPoints
+              locale={locale}
               items={product.editorial.applications}
               id="applications"
-              title="Applications"
+              title={t("Applications")}
             />
             <ProductEditorialPoints
+              locale={locale}
               items={product.editorial.features}
               id="features"
-              title="Features"
+              title={t("Features")}
             />
           </>
         )}
-        <ProductSelectionGuide editorial={editorial} />
+        <ProductSelectionGuide editorial={editorial} locale={locale} />
 
-        <ProductStandards product={product} />
+        <ProductStandards product={product} locale={locale} />
 
         {product.grades.length > 1 && (
           <div className="fs-wrap pd-grade-selector-wrap">
@@ -140,17 +146,18 @@ export function ProductDetailTemplate({
               grades={product.grades}
               activeGrade={activeGrade}
               baseHref={canonicalPath}
+              locale={locale}
             />
           </div>
         )}
 
-        <ProductSpecifications specifications={visibleSpecifications} />
+        <ProductSpecifications specifications={visibleSpecifications} locale={locale} />
 
-        <ProductPackaging />
+        <ProductPackaging locale={locale} />
 
         <ProductTechnicalDocuments locale={locale} productSlug={product.slug} />
         {locale === "en" && product.editorial && (
-          <ProductEditorialFaq items={product.editorial.faq} />
+          <ProductEditorialFaq items={product.editorial.faq} locale={locale} />
         )}
 
         <ClosingCta locale={locale} productSlug={product.slug} />

@@ -4,6 +4,7 @@ import { Arrow } from "@/features/site/logo-mark";
 
 import { actionHref } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * 5 · Processing and quality — SITE_STRUCTURE §4 item 5.
@@ -31,6 +32,7 @@ import type { SectionProps } from "../category-section";
  */
 export function CategoryQuality({ content, locale }: SectionProps): ReactNode {
   const { quality } = content;
+  const t = translator(locale);
 
   return (
     /*
@@ -49,7 +51,7 @@ export function CategoryQuality({ content, locale }: SectionProps): ReactNode {
         <header className="pc-quality-head reveal-fade-rise">
           <div>
             <p className="fs-eyebrow">
-              {quality.namedProcess ? "Processing & quality" : "Quality & testing"}
+              {quality.namedProcess ? t("Processing & quality") : t("Quality & testing")}
             </p>
             <h2 className="fs-d2">{quality.heading}</h2>
           </div>
@@ -60,7 +62,7 @@ export function CategoryQuality({ content, locale }: SectionProps): ReactNode {
           <ol className="pc-stages reveal-stagger">
             {quality.stages.map((stage, i) => (
               <li className="pc-stage" key={stage.id}>
-                <span className="pc-stage-num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="pc-stage-num">{ordinal(locale, i + 1)}</span>
                 <div>
                   <h3 className="pc-stage-name">{stage.name}</h3>
                   <p className="pc-stage-note">{stage.summary}</p>
@@ -72,7 +74,7 @@ export function CategoryQuality({ content, locale }: SectionProps): ReactNode {
           <div className="pc-quality-side">
             {quality.namedProcess && (
               <div className="pc-named reveal-fade-rise">
-                <p className="fs-eyebrow">Named process</p>
+                <p className="fs-eyebrow">{t("Named process")}</p>
                 <p className="pc-named-name">{quality.namedProcess.name}</p>
                 <p className="pc-named-note">{quality.namedProcess.note}</p>
               </div>
@@ -80,8 +82,8 @@ export function CategoryQuality({ content, locale }: SectionProps): ReactNode {
 
             <div className="pc-tests reveal-fade-rise">
               <p className="pc-tests-head">
-                <span>Batch qualification</span>
-                <span>{String(quality.tests.length).padStart(2, "0")}</span>
+                <span>{t("Batch qualification")}</span>
+                <span>{ordinal(locale, quality.tests.length)}</span>
               </p>
 
               {/* Property names only. Methods are optional and unset — no approved document in

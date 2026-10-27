@@ -169,7 +169,7 @@ function rootLines(): Line[] {
 }
 
 function rtlLines(): Line[] {
-  const lines: Line[] = ["  /* provisional families — pending the RTL typeface decision */"];
+  const lines: Line[] = ["  /* families · Vazirmatn, see tokens/typography.ts */"];
   for (const [name, stack] of Object.entries(rtlFontFamilies)) {
     lines.push(decl(`--font-${name}`, stack));
   }
@@ -178,6 +178,10 @@ function rtlLines(): Line[] {
     if (role.rtlLineHeight !== undefined) {
       lines.push(decl(`--text-${name}--line-height`, role.rtlLineHeight));
     }
+  }
+  lines.push(section("tracking · positive or negative letter-spacing breaks cursive joining"));
+  for (const name of Object.keys(typeRoles)) {
+    lines.push(decl(`--text-${name}--letter-spacing`, "0"));
   }
   lines.push(section("directional transforms flip sign"));
   lines.push(decl("--motion-dir", motionSwitches.direction.rtl));

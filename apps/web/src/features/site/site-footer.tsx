@@ -7,6 +7,7 @@ import { getPrivacyPolicyHref } from "@/features/legal/privacy-policy";
 
 import { LogoMark } from "./logo-mark";
 import { ROUTES, footerColumnsFor, localeHref } from "./site-routes";
+import { formatCount, translator } from "@/i18n/translate";
 
 /**
  * The footer. A Server Component — there is nothing here that needs the client.
@@ -76,6 +77,7 @@ export async function SiteFooter({
   const columns = structuralList(editorial, "columns", defaults);
   const homeHref = localeHref(locale, ROUTES.home);
   const privacyPolicyHref = await getPrivacyPolicyHref(locale);
+  const t = translator(locale);
 
   return (
     <footer className="fs-footer" data-surface="midnight">
@@ -90,7 +92,7 @@ export async function SiteFooter({
             <Link
               href={homeHref}
               className="fs-logo"
-              aria-label="Sam Group — home"
+              aria-label={t("Sam Group — home")}
               style={{ marginBottom: 18 }}
             >
               <LogoMark height={28} />
@@ -140,7 +142,8 @@ export async function SiteFooter({
          */}
         <div className="fs-fbot">
           <span>
-            © {new Date().getFullYear()} {copy.text("name")} · {copy.text("rights")}
+            © {formatCount(locale, new Date().getFullYear())} {copy.text("name")} ·{" "}
+            {copy.text("rights")}
           </span>
           {privacyPolicyHref !== null && (
             <Link href={privacyPolicyHref} className="fs-flegal">

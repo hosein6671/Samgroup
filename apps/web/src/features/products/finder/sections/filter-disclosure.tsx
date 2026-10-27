@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { useT } from "@/i18n/i18n-provider";
 
 /** Native keyboard disclosure; viewport changes set the initial presentation. */
 export function FilterDisclosure({ children }: { readonly children: ReactNode }): ReactNode {
+  const t = useT();
   const ref = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     const viewport = window.matchMedia("(min-width: 651px)");
@@ -16,7 +18,7 @@ export function FilterDisclosure({ children }: { readonly children: ReactNode })
   }, []);
   return (
     <details ref={ref} className="pf-filterbox" open>
-      <summary>Refine your selection</summary>
+      <summary>{t("Refine your selection")}</summary>
       {children}
     </details>
   );

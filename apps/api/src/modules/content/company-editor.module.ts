@@ -40,6 +40,9 @@ import { Roles } from "../identity/decorators/roles.decorator";
 import { JwtAuthGuard } from "../identity/guards/jwt-auth.guard";
 import { RolesGuard } from "../identity/guards/roles.guard";
 import type { AuthenticatedUser } from "../identity/authenticated-user";
+import { LocaleQuery } from "../../common/locale/locale.query";
+import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
+import { LocaleResolutionService } from "../../common/locale/locale-resolution.service";
 
 const KEYS = [
   "home",
@@ -54,6 +57,11 @@ const KEYS = [
   "contact-us",
 ];
 export class ContentEditDto {
+  /**
+   * The locale being edited. Optional — absent edits the default locale, exactly as before — and
+   * resolved against the active `Locale` table by the controller, never trusted as given.
+   */
+  @IsOptional() @IsString() @MaxLength(16) locale?: string;
   @IsUUID() operationId!: string;
   @IsString() @MaxLength(100) revision!: string;
   @IsIn(["save-draft", "publish"]) action!: "save-draft" | "publish";
@@ -66,6 +74,7 @@ export class CompanyEditorService {
     key: string,
     actorId: string,
     edit?: ContentEditDto,
+    locale = "en",
   ): Promise<Record<string, unknown>> {
     if (
       !/^faq-[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key) &&
@@ -75,7 +84,7 @@ export class CompanyEditorService {
       throw new BadRequestException("Unknown content page.");
     const result = await this.send(
       `/api/editor/company/${key}`,
-      JSON.stringify({ ...edit, actorId, action: edit?.action ?? "read" }),
+      JSON.stringify({ ...edit, locale, actorId, action: edit?.action ?? "read" }),
     );
     if (typeof result.revision !== "string")
       throw new ServiceUnavailableException("Invalid content response.");
@@ -244,7 +253,10 @@ export class ContentEventsController {
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.CONTENT_MANAGER)
 export class CompanyEditorController {
-  constructor(private readonly editor: CompanyEditorService) {}
+  constructor(
+    private readonly editor: CompanyEditorService,
+    private readonly locales: LocaleResolutionService,
+  ) {}
   @Get("media/library")
   @Header("Cache-Control", "no-store")
   media(): Promise<Record<string, unknown>> {
@@ -264,24 +276,28 @@ export class CompanyEditorController {
   }
   @Get(":key")
   @Header("Cache-Control", "no-store")
-  read(
+  async read(
     @Param("key") key: string,
     @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: LocaleQuery,
   ): Promise<Record<string, unknown>> {
-    return this.editor.request(key, actor.id);
+    const locale = await this.locales.resolve(query.locale);
+    return this.editor.request(key, actor.id, undefined, locale.code);
   }
   @Patch(":key")
   @Header("Cache-Control", "no-store")
-  save(
+  async save(
     @Param("key") key: string,
     @CurrentUser() actor: AuthenticatedUser,
     @Body() edit: ContentEditDto,
   ): Promise<Record<string, unknown>> {
-    return this.editor.request(key, actor.id, edit);
+    const { locale: requested, ...rest } = edit;
+    const locale = await this.locales.resolve(requested);
+    return this.editor.request(key, actor.id, rest, locale.code);
   }
 }
 @Module({
-  imports: [IdentityModule],
+  imports: [IdentityModule, LocaleResolutionModule],
   controllers: [CompanyEditorController, ContentEventsController, FaqAdminController],
   providers: [CompanyEditorService],
 })

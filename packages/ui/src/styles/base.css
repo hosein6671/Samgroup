@@ -40,6 +40,19 @@
     border-radius: var(--radius-sm);
   }
 
+  /*
+   * RTL tracking floor. Positive or negative letter-spacing pulls Persian and Arabic letters
+   * apart and breaks cursive joining, and the page stylesheets carry literal values the tokens
+   * cannot reach. `!important` inside a layer outranks every normal declaration, layered or not,
+   * which is exactly the scope wanted: nothing on an RTL page may track, whatever set it.
+   * LTR pages are untouched.
+   */
+  [dir="rtl"] body *,
+  [dir="rtl"] body *::before,
+  [dir="rtl"] body *::after {
+    letter-spacing: 0 !important;
+  }
+
   /* Numerals in specification tables must align by column. */
   table {
     font-variant-numeric: tabular-nums;

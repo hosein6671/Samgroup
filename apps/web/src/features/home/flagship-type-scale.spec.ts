@@ -91,12 +91,30 @@ function resolve(expression: string, viewport: number): number {
   return Math.min(Math.max(Number(min), preferred), Number(max));
 }
 
-/** The `--fs-text-*` custom properties declared in `flagship.css`, by name. */
+/**
+ * The `--fs-text-*` custom properties declared in `flagship.css`, by name.
+ *
+ * The first declaration is the scale itself; the `[dir="rtl"]` block further down re-declares some
+ * sizes and leadings for Persian, and is read separately by `rtlTokens()`.
+ */
 function tokens(): Map<string, string> {
   const declared = new Map<string, string>();
   for (const match of stripComments(readFileSync(FLAGSHIP, "utf8")).matchAll(
     /(--fs-text-[a-z0-9-]+)\s*:\s*([^;]+);/g,
   )) {
+    if (!declared.has(match[1] as string)) {
+      declared.set(match[1] as string, (match[2] as string).replace(/\s+/g, " ").trim());
+    }
+  }
+  return declared;
+}
+
+/** The sizes the `[dir="rtl"]` flagship block re-declares for Persian. */
+function rtlTokens(): Map<string, string> {
+  const css = stripComments(readFileSync(FLAGSHIP, "utf8"));
+  const block = /\[dir="rtl"\] \[data-brand="flagship"\][^{]*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+  const declared = new Map<string, string>();
+  for (const match of block.matchAll(/(--fs-text-[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
     declared.set(match[1] as string, (match[2] as string).replace(/\s+/g, " ").trim());
   }
   return declared;
@@ -338,6 +356,47 @@ describe("fluid roles scale gradually between 320 and 1920", () => {
       expect(size(role, VIEWPORTS[i] as number)).toBeGreaterThan(
         size(role, VIEWPORTS[i - 1] as number) - 0.001,
       );
+    }
+  });
+});
+
+describe("the Persian (RTL) scale", () => {
+  const RTL = rtlTokens();
+
+  /*
+   * The Persian scale is set against Iranian brand sites, not derived from the Latin one (owner's
+   * call, 27 October 2026), so a Persian size may sit below its Latin role. What must hold: no
+   * Persian text under 14px, and the roles still descend in order at every width.
+   */
+  it("never sets Persian text below 14px", () => {
+    for (const [name, value] of RTL) {
+      if (/--(line-height|letter-spacing|font-weight)$/.test(name)) continue;
+      for (const viewport of VIEWPORTS) {
+        expect(resolve(value, viewport), `${name} at ${String(viewport)}`).toBeGreaterThanOrEqual(
+          14,
+        );
+      }
+    }
+  });
+
+  it("keeps the Persian roles in descending order at every width", () => {
+    const order = ["hero", "display", "heading", "subheading", "title", "lead", "body"];
+    for (const viewport of VIEWPORTS) {
+      const sizes = order.map((role) =>
+        resolve(RTL.get(`--fs-text-${role}`) ?? TOKENS.get(`--fs-text-${role}`) ?? "0px", viewport),
+      );
+      for (let i = 1; i < sizes.length; i += 1) {
+        expect(
+          sizes[i - 1],
+          `${order[i - 1] ?? ""} > ${order[i] ?? ""} at ${String(viewport)}`,
+        ).toBeGreaterThan(sizes[i] as number);
+      }
+    }
+  });
+
+  it("gives every heading role at least 1.45 leading", () => {
+    for (const role of ["hero", "display", "heading", "subheading"]) {
+      expect(Number(RTL.get(`--fs-text-${role}--line-height`))).toBeGreaterThanOrEqual(1.45);
     }
   });
 });

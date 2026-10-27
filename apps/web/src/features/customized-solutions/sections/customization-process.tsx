@@ -3,6 +3,7 @@ import { ANCHORS } from "../solutions-anchors";
 import type { CustomizedSolutionsProcess } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * The customization process — the stages, in order.
@@ -19,16 +20,19 @@ import { RichText } from "@/features/site/rich-text";
  */
 export function CustomizationProcess({
   process,
+  locale = "en",
 }: {
   readonly process: CustomizedSolutionsProcess;
+  readonly locale?: string;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec cs-process" id={ANCHORS.process} data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
       <div className="fs-wrap cs-process-inner">
         <header className="cs-process-head reveal-fade-rise">
           <div>
-            <p className="fs-eyebrow">Our customization process</p>
+            <p className="fs-eyebrow">{t("Our customization process")}</p>
             {process.heading !== null && <h2 className="fs-d2">{process.heading}</h2>}
           </div>
           {process.lead !== null && (
@@ -43,7 +47,7 @@ export function CustomizationProcess({
             {process.steps.map((step, index) => (
               <li className="cs-step" key={step.name}>
                 <div className="cs-step-topline">
-                  <span className="cs-step-num">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="cs-step-num">{ordinal(locale, index + 1)}</span>
                   <span className="cs-step-status" aria-hidden="true" />
                 </div>
                 <div className="cs-step-copy">

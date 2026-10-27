@@ -121,18 +121,19 @@ describe("icons support text, they do not replace it", () => {
   const feedback = readFileSync(join(__dirname, "..", "form-feedback.tsx"), "utf8");
 
   it("keeps the word beside Back and Continue", () => {
-    expect(shell).toMatch(/<BackIcon size="sm" \/>\s*\n\s*Back/);
-    expect(shell).toMatch(/Continue\s*\n\s*<ContinueIcon size="sm" \/>/);
+    // The word is the translated label (`t("Back")`), still written beside the icon.
+    expect(shell).toMatch(/<BackIcon size="sm" \/>\s*\n\s*\{t\("Back"\)\}/);
+    expect(shell).toMatch(/\{t\("Continue"\)\}\s*\n\s*<ContinueIcon size="sm" \/>/);
   });
 
   it("keeps the word beside Edit", () => {
-    expect(review).toMatch(/<EditIcon size="sm" \/>\s*\n\s*Edit/);
+    expect(review).toMatch(/<EditIcon size="sm" \/>\s*\n\s*\{t\("Edit"\)\}/);
   });
 
   it("keeps the message beside every status mark", () => {
-    expect(feedback).toMatch(/<FormSuccessIcon \/>\s*\n\s*\{SUCCESS_MESSAGE\}/);
-    expect(feedback).toMatch(/<FieldErrorIcon \/>\s*\n\s*\{issues\[0\]\}/);
-    expect(feedback).toMatch(/<FormErrorIcon \/>\s*\n\s*\{FAILURE_MESSAGE/);
+    expect(feedback).toMatch(/<FormSuccessIcon \/>\s*\n\s*\{t\(SUCCESS_MESSAGE\)\}/);
+    expect(feedback).toMatch(/<FieldErrorIcon \/>\s*\n\s*\{t\(issues\[0\]/);
+    expect(feedback).toMatch(/<FormErrorIcon \/>\s*\n\s*\{t\(FAILURE_MESSAGE/);
   });
 
   /*

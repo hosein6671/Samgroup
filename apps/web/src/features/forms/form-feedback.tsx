@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { FAILURE_MESSAGE, SUCCESS_MESSAGE, type SubmissionState } from "./submission-state";
 import { FieldErrorIcon, FormErrorIcon, FormSuccessIcon, SubmitIcon } from "./wizard/icons";
+import { useT } from "@/i18n/i18n-provider";
 
 /**
  * The parts of a submission form that are identical whichever form it is — the outcome banner, the
@@ -37,11 +38,12 @@ import { FieldErrorIcon, FormErrorIcon, FormSuccessIcon, SubmitIcon } from "./wi
  * goes stale when a field's message changes.
  */
 export function FormStatus({ state }: { readonly state: SubmissionState }): ReactNode {
+  const t = useT();
   if (state.status === "success") {
     return (
       <p className="fm-banner fm-banner--ok" role="status">
         <FormSuccessIcon />
-        {SUCCESS_MESSAGE}
+        {t(SUCCESS_MESSAGE)}
       </p>
     );
   }
@@ -50,7 +52,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
         <FormErrorIcon />
-        {FAILURE_MESSAGE.throttled}
+        {t(FAILURE_MESSAGE.throttled)}
       </p>
     );
   }
@@ -59,7 +61,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
         <FormErrorIcon />
-        {FAILURE_MESSAGE.unavailable}
+        {t(FAILURE_MESSAGE.unavailable)}
       </p>
     );
   }
@@ -68,7 +70,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
         <FormErrorIcon />
-        {FAILURE_MESSAGE.error}
+        {t(FAILURE_MESSAGE.error)}
       </p>
     );
   }
@@ -77,7 +79,7 @@ export function FormStatus({ state }: { readonly state: SubmissionState }): Reac
     return (
       <p className="fm-banner fm-banner--bad" role="alert">
         <FormErrorIcon />
-        {state.formError}
+        {t(state.formError)}
       </p>
     );
   }
@@ -101,6 +103,7 @@ export function FieldError({
   readonly id: string;
   readonly issues: readonly string[] | undefined;
 }): ReactNode {
+  const t = useT();
   if (issues === undefined || issues.length === 0) {
     return null;
   }
@@ -108,7 +111,7 @@ export function FieldError({
   return (
     <p className="fs-err" id={id}>
       <FieldErrorIcon />
-      {issues[0]}
+      {t(issues[0] ?? "")}
     </p>
   );
 }
@@ -145,6 +148,7 @@ export function SubmitButton({
   readonly describedBy?: string | undefined;
 }): ReactNode {
   const { pending } = useFormStatus();
+  const t = useT();
 
   return (
     <button
@@ -159,7 +163,7 @@ export function SubmitButton({
        * two claims about the same thing, one of which is now stale.
        */}
       {!pending && <SubmitIcon size="sm" />}
-      {pending ? pendingLabel : label}
+      {pending ? t(pendingLabel) : t(label)}
     </button>
   );
 }

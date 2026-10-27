@@ -3,6 +3,7 @@ import { ANCHORS } from "../quality-anchors";
 import type { QualityDocumentation } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { ordinal } from "@/i18n/translate";
 
 /**
  * 5 · Documentation We Provide — SITE_STRUCTURE §7's "COA/TDS/SDS/Certificate of Origin/commercial
@@ -36,8 +37,10 @@ import { RichText } from "@/features/site/rich-text";
  */
 export function QualityDocumentationSection({
   documentation,
+  locale = "en",
 }: {
   readonly documentation: QualityDocumentation;
+  readonly locale?: string;
 }): ReactNode {
   const { eyebrow, heading, lead, registerLabel, documents, note } = documentation;
 
@@ -66,14 +69,14 @@ export function QualityDocumentationSection({
             {registerLabel !== null && (
               <p className="qc-docs-head">
                 <span>{registerLabel}</span>
-                <span className="fs-tnum">{String(documents.length).padStart(2, "0")}</span>
+                <span className="fs-tnum">{ordinal(locale, documents.length)}</span>
               </p>
             )}
 
             <ol className="qc-doclist reveal-stagger">
               {documents.map((document, i) => (
                 <li className="qc-doc" key={document.name}>
-                  <span className="qc-doc-num fs-tnum">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="qc-doc-num fs-tnum">{ordinal(locale, i + 1)}</span>
 
                   <span className="qc-doc-body">
                     <b>{document.name}</b>

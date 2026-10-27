@@ -6,6 +6,7 @@ import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { actionHref } from "../../category-contract";
 import type { SectionProps } from "../../category-section";
+import { translator } from "@/i18n/translate";
 
 /**
  * v2 · Block 1 — compact image-led intro (Catalog Rail direction).
@@ -26,6 +27,7 @@ import type { SectionProps } from "../../category-section";
  */
 export function HeroV2({ content, family, locale }: SectionProps): ReactNode {
   const { hero } = content;
+  const t = translator(locale);
 
   return (
     <section className="pcv2-hero" data-surface="midnight">
@@ -46,8 +48,8 @@ export function HeroV2({ content, family, locale }: SectionProps): ReactNode {
         )}
 
         <div className="pcv2-hero-copy">
-          <nav className="pcv2-trail" aria-label="Breadcrumb">
-            <a href={localeHref(locale, ROUTES.products)}>Products</a>
+          <nav className="pcv2-trail" aria-label={t("Breadcrumb")}>
+            <a href={localeHref(locale, ROUTES.products)}>{t("Products")}</a>
             <span aria-hidden="true">/</span>
             <span aria-current="page">{family.name}</span>
           </nav>
@@ -71,7 +73,7 @@ export function HeroV2({ content, family, locale }: SectionProps): ReactNode {
 
           <p className="pcv2-hero-jump">
             <a href="#products">
-              See published products
+              {t("See published products")}
               <Arrow size={13} />
             </a>
           </p>

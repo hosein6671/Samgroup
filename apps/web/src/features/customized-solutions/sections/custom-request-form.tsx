@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import type { ReactNode } from "react";
 
 import { submitCustomFormulationRequest } from "@/features/forms/actions";
-import { ConsentLabel } from "@/features/forms/consent-label";
+import { ConsentLabel, PRIVACY_POLICY_PHRASE } from "@/features/forms/consent-label";
 import { TurnstileWidget } from "@/features/forms/turnstile-widget";
 import {
   FieldError,
@@ -20,6 +20,7 @@ import type { WizardStep } from "@/features/forms/wizard/wizard-steps";
 
 import { ANCHORS } from "../solutions-anchors";
 import { CONSENT_LEAD, REQUEST_GROUPS, type RequestField } from "../solutions-form";
+import { useT } from "@/i18n/i18n-provider";
 
 /**
  * 4 · Custom Product Request — SITE_STRUCTURE §5's `[FORM]`, and this page's terminal section.
@@ -67,6 +68,7 @@ export function CustomRequestForm({
     submitCustomFormulationRequest,
     IDLE,
   );
+  const t = useT();
 
   return (
     <section className="fs-sec cs-request" id={ANCHORS.request} data-surface="midnight">
@@ -74,11 +76,12 @@ export function CustomRequestForm({
 
       <div className="fs-wrap cs-request-inner">
         <header className="cs-request-head reveal-fade-rise">
-          <p className="fs-eyebrow">Custom product request</p>
-          <h2 className="fs-d3">State the requirement.</h2>
+          <p className="fs-eyebrow">{t("Custom product request")}</p>
+          <h2 className="fs-d3">{t("State the requirement.")}</h2>
           <p className="fs-lead">
-            The more of a specification that arrives with the request, the fewer rounds it takes to
-            get to a sample.
+            {t(
+              "The more of a specification that arrives with the request, the fewer rounds it takes to get to a sample.",
+            )}
           </p>
         </header>
 
@@ -94,7 +97,12 @@ export function CustomRequestForm({
                 <div className="pr-consent">
                   <input id="cs-consentGiven" name="consentGiven" type="checkbox" required />
                   <label htmlFor="cs-consentGiven">
-                    <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
+                    <ConsentLabel
+                      lead={t(CONSENT_LEAD)}
+                      privacyPolicyHref={privacyPolicyHref}
+                      policyPhrase={t(PRIVACY_POLICY_PHRASE)}
+                      newTabNote={t(" (opens in a new tab)")}
+                    />
                   </label>
                 </div>
                 <FieldError id="cs-consentGiven-error" issues={issuesFor(state, "consentGiven")} />
@@ -109,8 +117,8 @@ export function CustomRequestForm({
               <TurnstileWidget>
                 {({ blocked, describedBy }) => (
                   <SubmitButton
-                    label="Submit request"
-                    pendingLabel="Submitting…"
+                    label={t("Submit request")}
+                    pendingLabel={t("Submitting…")}
                     blocked={blocked}
                     describedBy={describedBy}
                   />
@@ -124,8 +132,8 @@ export function CustomRequestForm({
                   <p className="pr-inert cs-attachment-note">
                     <span aria-hidden="true">◇</span>
                     <span>
-                      <strong>Attachments are not available yet.</strong> Add the relevant
-                      specification details in the fields below.
+                      <strong>{t("Attachments are not available yet.")}</strong>{" "}
+                      {t("Add the relevant specification details in the fields below.")}
                     </span>
                   </p>
                 )}
@@ -229,14 +237,15 @@ function Field({
   const aria = invalidProps(state, field.name, errorId);
   /* Restored after a failed attempt; `undefined` before the first one. See `formKey`. */
   const restored = valueFor(state, field.name);
+  const t = useT();
 
   const label = (
     <label htmlFor={id}>
-      {field.label}
+      {t(field.label)}
       {field.required && (
         <>
           <span aria-hidden="true"> *</span>
-          <VisuallyHidden as="span"> (required)</VisuallyHidden>
+          <VisuallyHidden as="span">{t(" (required)")}</VisuallyHidden>
         </>
       )}
     </label>
@@ -273,7 +282,7 @@ function Field({
           required={field.required}
           {...aria}
         >
-          <option value="">Select</option>
+          <option value="">{t("Select")}</option>
           {field.options?.map((option) => (
             <option value={option} key={option}>
               {option}

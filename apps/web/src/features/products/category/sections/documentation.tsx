@@ -4,6 +4,7 @@ import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import type { SectionProps } from "../category-section";
+import { translator } from "@/i18n/translate";
 
 /**
  * 10 · Documentation — SITE_STRUCTURE §4 item 10.
@@ -37,6 +38,7 @@ import type { SectionProps } from "../category-section";
  */
 export function CategoryDocumentation({ content, locale }: SectionProps): ReactNode {
   const { documentation } = content;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pc-docs" id="documentation" data-surface="midnight">
@@ -44,7 +46,7 @@ export function CategoryDocumentation({ content, locale }: SectionProps): ReactN
 
       <div className="fs-wrap pc-docs-grid">
         <div className="pc-docs-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Documentation</p>
+          <p className="fs-eyebrow">{t("Documentation")}</p>
           <h2 className="fs-d2">{documentation.heading}</h2>
           <p className="fs-lead">{documentation.intro}</p>
         </div>
@@ -60,7 +62,7 @@ export function CategoryDocumentation({ content, locale }: SectionProps): ReactN
               </span>
 
               <span className="pc-doc-access">
-                {document.access === "open" ? "No form" : "Qualified"}
+                {document.access === "open" ? t("No form") : t("Qualified")}
               </span>
             </li>
           ))}
@@ -75,12 +77,12 @@ export function CategoryDocumentation({ content, locale }: SectionProps): ReactN
             </span>
 
             <span className="pc-doc-body">
-              <b>Catalogues</b>
+              <b>{t("Catalogues")}</b>
               <small>{documentation.note}</small>
             </span>
 
             <a className="pc-doc-link" href={localeHref(locale, ROUTES.documentation)}>
-              Open
+              {t("Open")}
               <Arrow size={13} />
             </a>
           </li>

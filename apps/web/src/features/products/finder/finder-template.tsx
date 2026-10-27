@@ -95,7 +95,7 @@ export function ProductFinderTemplate({
             <div className="pf-result-column">
               <ActiveFilters locale={locale} query={query} />
 
-              <Suspense fallback={<FinderResultsSkeleton />}>
+              <Suspense fallback={<FinderResultsSkeleton locale={locale} />}>
                 <FinderResults products={products} locale={locale} query={query} />
               </Suspense>
             </div>

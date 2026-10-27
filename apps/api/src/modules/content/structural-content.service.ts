@@ -34,10 +34,11 @@ export class StructuralContentService {
       response: { available: false as const, content: null },
       localeFallback: false,
     };
-    if (locale.code !== "en") return absent;
+    // Every active locale reads its own published fields, never a fallback: a locale whose
+    // record is incomplete is `absent`, and the page keeps its built-in copy in that language.
     const slots = Object.keys(structuralImageSlots(scope));
     const doc = await this.payload.findGlobal(scope, {
-      locale: "en",
+      locale: locale.code,
       "fallback-locale": "none",
       // Uploads arrive as bare ids at depth 0; only a scope with photographs pays for expansion.
       depth: slots.length > 0 ? "1" : "0",
@@ -66,7 +67,7 @@ export class StructuralContentService {
     return {
       response: {
         available: true,
-        content: { fields, ...(doc.seo ? { seo: normalizeSeo(doc.seo, "en", []) } : {}) },
+        content: { fields, ...(doc.seo ? { seo: normalizeSeo(doc.seo, locale.code, []) } : {}) },
       },
       localeFallback: false,
     };

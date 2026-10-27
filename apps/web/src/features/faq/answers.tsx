@@ -4,6 +4,7 @@ import { JsonLd } from "../seo/json-ld";
 import { localeHref } from "../site/site-routes";
 import { publishedFaq } from "./published-faq";
 import "./faq.css";
+import { translator } from "@/i18n/translate";
 
 export function Answers({ entries }: { entries: FaqEntry[] }): ReactNode {
   return (
@@ -42,15 +43,16 @@ export function FaqSchema({ entries }: { entries: FaqEntry[] }): ReactNode {
 export async function ContactFaq({ locale }: { locale: string }): Promise<ReactNode> {
   const entries = await publishedFaq(locale, { contact: "true" });
   if (!entries?.length) return null;
+  const t = translator(locale);
   return (
     <section className="fs-sec fq-contact" data-surface="light" id="faq">
       <div className="fs-wrap">
-        <p className="fs-eyebrow">Before you enquire</p>
-        <h2 className="fs-d2">A few useful answers.</h2>
+        <p className="fs-eyebrow">{t("Before you enquire")}</p>
+        <h2 className="fs-d2">{t("A few useful answers.")}</h2>
         <Answers entries={entries} />
         <FaqSchema entries={entries} />
         <a className="fs-btn" href={localeHref(locale, "/faq")}>
-          Browse all questions →
+          {t("Browse all questions →")}
         </a>
       </div>
     </section>

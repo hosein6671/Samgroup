@@ -528,6 +528,7 @@ export function ContentForm({
   resource = "company",
   media = [],
   viewHref,
+  locale,
 }: {
   pageKey: string;
   revision: string;
@@ -538,6 +539,8 @@ export function ContentForm({
   media?: EditorialMedia[];
   /** The public page this content appears on, opened from the action bar. */
   viewHref?: string;
+  /** The locale being edited; absent edits the default locale, as before. */
+  locale?: string;
 }): ReactNode {
   const [fields, setFields] = useState(initial);
   const [dirty, setDirty] = useState(false);
@@ -581,6 +584,7 @@ export function ContentForm({
     <form action={action} className="ad-user-form ad-content-form">
       <input type="hidden" name="key" value={pageKey} />
       <input type="hidden" name="resource" value={resource} />
+      {locale !== undefined && <input type="hidden" name="locale" value={locale} />}
       <input type="hidden" name="fields" value={JSON.stringify(fields)} />
       <div className={sections.length > 1 ? "ad-content-layout" : undefined}>
         {sections.length > 1 && (

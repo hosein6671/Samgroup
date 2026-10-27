@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { propertyGroups } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * 4 · Key specifications — SITE_STRUCTURE §4 item 4.
@@ -66,8 +67,9 @@ import type { SectionProps } from "../category-section";
  * lab data*. On a specification sheet those two must never look alike. Two tables, two axes, each
  * row appearing exactly once.
  */
-export function CategoryProperties({ content }: SectionProps): ReactNode {
+export function CategoryProperties({ content, locale }: SectionProps): ReactNode {
   const { properties } = content;
+  const t = translator(locale);
   const { labels } = properties;
   const groups = propertyGroups(content);
   const plural = groups.length > 1;
@@ -87,7 +89,7 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
       <div className="fs-wrap">
         <header className="pc-props-head reveal-fade-rise">
           <div>
-            <p className="fs-eyebrow">Key specifications</p>
+            <p className="fs-eyebrow">{t("Key specifications")}</p>
             <h2 className="fs-d2">{properties.heading}</h2>
           </div>
           <p className="fs-lead">{properties.intro}</p>
@@ -112,7 +114,7 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
               <div className="pc-props-group-head reveal-fade-rise">
                 <p className="pc-props-group-label">
                   {group.label}
-                  <span>{String(rows.length).padStart(2, "0")}</span>
+                  <span>{ordinal(locale, rows.length)}</span>
                 </p>
                 {group.note && <p className="pc-props-group-note">{group.note}</p>}
               </div>
@@ -126,10 +128,10 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
             <ol className="pc-axis reveal-stagger">
               {group.columns.map((column, i) => (
                 <li className="pc-axis-item" key={column.key}>
-                  <span className="pc-axis-num">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="pc-axis-num">{ordinal(locale, i + 1)}</span>
                   <span className="pc-axis-name">
                     {column.label}
-                    {column.unit && <em>{column.unit}</em>}
+                    {column.unit && <em dir="ltr">{column.unit}</em>}
                     {column.guidance && <small>{column.guidance}</small>}
                   </span>
                   {/* Only where an approved method exists. None does yet — see the note below. */}
@@ -161,13 +163,15 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
             {Object.keys(group.values).length > 0 ? (
               <div className="pc-table-frame reveal-mask-wipe">
                 <p className="pc-scroll-cue" aria-hidden="true">
-                  scroll <span>&rarr;</span>
+                  {t("scroll")} <span>&rarr;</span>
                 </p>
 
                 <div className="pc-table-scroll">
                   <table className="pc-table" aria-describedby="pc-props-pending">
                     <caption>
-                      {plural ? `${group.label} — typical properties` : labels.caption}
+                      {plural
+                        ? t("{group} — typical properties", { group: group.label })
+                        : labels.caption}
                     </caption>
 
                     <thead>
@@ -188,7 +192,7 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
                           <th scope="col" key={column.key}>
                             <span className="pc-th-name">
                               {column.label}
-                              {column.unit && <em>{column.unit}</em>}
+                              {column.unit && <em dir="ltr">{column.unit}</em>}
                             </span>
                             {column.method && <span className="pc-th-method">{column.method}</span>}
                           </th>
@@ -221,7 +225,7 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
                             if (value === undefined) {
                               return (
                                 <td key={column.key} data-pending="true">
-                                  <VisuallyHidden>Not published</VisuallyHidden>
+                                  <VisuallyHidden>{t("Not published")}</VisuallyHidden>
                                 </td>
                               );
                             }
@@ -238,11 +242,11 @@ export function CategoryProperties({ content }: SectionProps): ReactNode {
               </div>
             ) : (
               <div className="pc-data-route reveal-fade-rise" role="note">
-                <p className="fs-eyebrow">How values are confirmed</p>
+                <p className="fs-eyebrow">{t("How values are confirmed")}</p>
                 <p>
-                  Use the property set above to define the enquiry. Exact typical values and test
-                  methods are issued in the reviewed TDS for the selected grade; the supplied batch
-                  is then identified against its COA.
+                  {t(
+                    "Use the property set above to define the enquiry. Exact typical values and test methods are issued in the reviewed TDS for the selected grade; the supplied batch is then identified against its COA.",
+                  )}
                 </p>
               </div>
             )}

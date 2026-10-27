@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { apiGet } from "@/lib/api-client";
 import { absoluteUrl } from "@/features/seo/site";
 import { isIndexingEnabled } from "@/features/seo/indexing";
+import { contentText } from "@/i18n/localize-content";
 
 export const FAQ_PAGE_DEFAULTS = {
   eyebrow: "SAM Group · Questions & answers",
@@ -30,7 +31,6 @@ export type FaqPageData = {
   seo?: SeoFields;
 };
 export const getFaqPageContent = cache(async (locale: string): Promise<FaqPageData | null> => {
-  if (locale !== "en") return { fields: {} };
   const response = await apiGet<{ available: boolean; content: FaqPageData | null }>(
     "/content/globals/faq-page",
     { locale },
@@ -48,8 +48,9 @@ export function faqPageMetadata(
   filtered: boolean,
 ): Metadata {
   const seo = content?.seo;
-  const title = seo?.metaTitle || FAQ_PAGE_DEFAULTS.seo.metaTitle;
-  const description = seo?.metaDescription || FAQ_PAGE_DEFAULTS.seo.metaDescription;
+  const title = seo?.metaTitle || contentText(locale, FAQ_PAGE_DEFAULTS.seo.metaTitle);
+  const description =
+    seo?.metaDescription || contentText(locale, FAQ_PAGE_DEFAULTS.seo.metaDescription);
   const canonical = seo?.canonicalUrl || absoluteUrl(`/${locale}/faq`);
   const enabled = isIndexingEnabled() && content !== null;
   return {

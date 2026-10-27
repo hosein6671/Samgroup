@@ -27,6 +27,7 @@ import { QualitySamplingSection } from "./sections/sampling";
 
 import type { QualityCertificationsContent } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * The Quality & Certifications page.
@@ -117,22 +118,25 @@ export function QualityExperience({
         })}
       >
         {fallbackLocale !== null && (
-          <p className="qc-fallback-note" role="note">
-            This page has not been translated into this language. It is shown in the site&rsquo;s
-            default language.
+          <p className="qc-fallback-note" role="note" lang={locale} dir="auto">
+            {translator(locale)(
+              "This page has not been translated into this language. It is shown in the site’s default language.",
+            )}
           </p>
         )}
 
         <QualityHero hero={content.hero} approach={content.approach} locale={locale} />
-        {content.approach !== null && <QualityApproach approach={content.approach} />}
+        {content.approach !== null && (
+          <QualityApproach approach={content.approach} locale={locale} />
+        )}
         {content.laboratory !== null && (
-          <QualityLaboratorySection laboratory={content.laboratory} />
+          <QualityLaboratorySection laboratory={content.laboratory} locale={locale} />
         )}
         {content.certifications !== null && (
           <QualityCertifications certifications={content.certifications} />
         )}
         {content.documentation !== null && (
-          <QualityDocumentationSection documentation={content.documentation} />
+          <QualityDocumentationSection documentation={content.documentation} locale={locale} />
         )}
         {content.sampling !== null && (
           <QualitySamplingSection sampling={content.sampling} locale={locale} />

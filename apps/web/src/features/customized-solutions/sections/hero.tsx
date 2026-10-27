@@ -7,6 +7,7 @@ import { ANCHORS } from "../solutions-anchors";
 import type { CustomizedSolutionsHero, CustomizedSolutionsProcess } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { formatCount, translator } from "@/i18n/translate";
 
 /**
  * The Customized Solutions hero — the page's `<h1>`, its lead, and its two actions.
@@ -33,6 +34,7 @@ export function SolutionsHero({
   readonly locale: string;
 }): ReactNode {
   const hasActions = hero.requestCta !== null || hero.routeCta !== null;
+  const t = translator(locale);
 
   return (
     <section className="cs-hero" data-surface="midnight">
@@ -68,12 +70,16 @@ export function SolutionsHero({
         <div className="cs-hero-visual reveal-fade-rise">
           <BrandedPhoto
             src="/images/customized-solutions-requirement-review.webp"
-            alt="A technical and commercial team reviewing a lubricant requirement and product sample."
-            caption="APPLICATION · SPECIFICATION · QUANTITY · PACKAGING · DESTINATION"
+            alt={t(
+              "A technical and commercial team reviewing a lubricant requirement and product sample.",
+            )}
+            caption={t("APPLICATION · SPECIFICATION · QUANTITY · PACKAGING · DESTINATION")}
             className="cs-hero-photo"
             sizes="(max-width: 1180px) 100vw, 42vw"
           />
-          {process !== null && process.steps.length > 0 && <ProcessIndex steps={process.steps} />}
+          {process !== null && process.steps.length > 0 && (
+            <ProcessIndex steps={process.steps} locale={locale} />
+          )}
         </div>
       </div>
     </section>
@@ -86,17 +92,26 @@ export function SolutionsHero({
  * Its count is the list's own length rather than a stored number, and each row links to the process
  * section's anchor — structural, code-owned, exactly as the request anchor is.
  */
-function ProcessIndex({ steps }: { readonly steps: readonly { name: string }[] }): ReactNode {
+function ProcessIndex({
+  steps,
+  locale,
+}: {
+  readonly steps: readonly { name: string }[];
+  readonly locale: string;
+}): ReactNode {
+  const t = translator(locale);
   return (
     <aside className="cs-index reveal-fade-rise" aria-labelledby="cs-index-title">
       <p className="fs-eyebrow" id="cs-index-title">
-        The process
+        {t("The process")}
       </p>
       <p className="cs-index-note">
-        {steps.length} defined stages from requirement capture to supply confirmation.
+        {t("{count} defined stages from requirement capture to supply confirmation.", {
+          count: formatCount(locale, steps.length),
+        })}
       </p>
       <a className="cs-index-link" href={`#${ANCHORS.process}`}>
-        Review the complete path <Arrow size={14} />
+        {t("Review the complete path")} <Arrow size={14} />
       </a>
     </aside>
   );

@@ -15,6 +15,7 @@ import { AboutWhoWeAre } from "./sections/who-we-are";
 
 import type { AboutUsContent } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * The About Us page.
@@ -90,20 +91,23 @@ export function AboutExperience({
         })}
       >
         {fallbackLocale !== null && (
-          <p className="ab-fallback-note" role="note">
-            This page has not been translated into this language. It is shown in the site&rsquo;s
-            default language.
+          <p className="ab-fallback-note" role="note" lang={locale} dir="auto">
+            {translator(locale)(
+              "This page has not been translated into this language. It is shown in the site’s default language.",
+            )}
           </p>
         )}
 
         <AboutHero hero={content.hero} locale={locale} />
-        <AboutIndex content={content} />
+        <AboutIndex content={content} locale={locale} />
         {content.whoWeAre !== null && <AboutWhoWeAre whoWeAre={content.whoWeAre} locale={locale} />}
-        {content.expertise !== null && <AboutExpertise expertise={content.expertise} />}
-        {content.competitiveAdvantages !== null && (
-          <AboutCompetitiveAdvantages advantages={content.competitiveAdvantages} />
+        {content.expertise !== null && (
+          <AboutExpertise expertise={content.expertise} locale={locale} />
         )}
-        {content.team !== null && <AboutTeam team={content.team} />}
+        {content.competitiveAdvantages !== null && (
+          <AboutCompetitiveAdvantages advantages={content.competitiveAdvantages} locale={locale} />
+        )}
+        {content.team !== null && <AboutTeam team={content.team} locale={locale} />}
         {content.qualityStandards !== null && (
           <AboutQualityStandards qualityStandards={content.qualityStandards} locale={locale} />
         )}

@@ -10,6 +10,7 @@ import { ROUTES } from "@/features/site/site-routes";
 import { CustomRequestForm } from "./sections/custom-request-form";
 
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * What `/customized-solutions` renders when it has no editorial copy to render.
@@ -54,6 +55,7 @@ export function SolutionsUnavailable({
    */
   readonly privacyPolicyHref?: string | null;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -63,23 +65,28 @@ export function SolutionsUnavailable({
           <div className="fs-blueprint" aria-hidden="true" />
           <div className="fs-wrap cs-unavailable-inner">
             <p className="fs-eyebrow">
-              {reason === "service" ? "Description unavailable" : "Not published yet"}
+              {reason === "service" ? t("Description unavailable") : t("Not published yet")}
             </p>
             <h1 className="fs-d2">
               {reason === "service"
-                ? "This page's description cannot be shown right now."
-                : "This page's description has not been published yet."}
+                ? t("This page's description cannot be shown right now.")
+                : t("This page's description has not been published yet.")}
             </h1>
             <p className="fs-lead">
               {reason === "service"
-                ? "The service that holds this page's copy did not answer. This is a temporary service condition, not a statement that the service does not exist — please try again shortly."
-                : "The description of the custom formulation service is being prepared and has not been published."}{" "}
-              The request form below is unaffected, and a request sent through it reaches us as
-              normal.
+                ? t(
+                    "The service that holds this page's copy did not answer. This is a temporary service condition, not a statement that the service does not exist — please try again shortly.",
+                  )
+                : t(
+                    "The description of the custom formulation service is being prepared and has not been published.",
+                  )}{" "}
+              {t(
+                "The request form below is unaffected, and a request sent through it reaches us as normal.",
+              )}
             </p>
             <p className="cs-unavailable-actions">
               <a className="fs-btn fs-btn--glass" href={`/${locale}${ROUTES.products}`}>
-                See the standard range
+                {t("See the standard range")}
               </a>
             </p>
           </div>

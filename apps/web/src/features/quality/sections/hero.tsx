@@ -4,6 +4,7 @@ import { contentRouteHref } from "@/features/site/site-routes";
 import type { QualityApproach, QualityCertificationsHero } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { ordinal } from "@/i18n/translate";
 
 /**
  * 1 · Hero — SITE_STRUCTURE §7's 'Hero ("Quality You Can Verify")'.
@@ -102,14 +103,14 @@ export function QualityHero({
             {hero.indexLabel !== null && (
               <p className="qc-chain-head" id="qc-chain-title">
                 <span>{hero.indexLabel}</span>
-                <span className="fs-tnum">{String(stages.length).padStart(2, "0")}</span>
+                <span className="fs-tnum">{ordinal(locale, stages.length)}</span>
               </p>
             )}
 
             <ol className="qc-chain-list reveal-stagger">
               {stages.map((stage, i) => (
                 <li className="qc-chain-step" key={stage.name}>
-                  <span className="qc-chain-num fs-tnum">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="qc-chain-num fs-tnum">{ordinal(locale, i + 1)}</span>
                   <span className="qc-chain-body">
                     <b>{stage.name}</b>
                     <small>{stage.when}</small>

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { contentText, localizeContent } from "@/i18n/localize-content";
 import { ContactFaq } from "@/features/faq/answers";
 
 import type { Metadata } from "next";
@@ -69,14 +70,14 @@ export async function generateMetadata({
   const canonical = absoluteUrl(localePath(locale, ROUTES.contactUs));
 
   return {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: contentText(locale, TITLE),
+    description: contentText(locale, DESCRIPTION),
     alternates: structuralAlternates(locale, ROUTES.contactUs),
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: TITLE,
-      description: DESCRIPTION,
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
       url: canonical,
       locale,
       images: [
@@ -84,14 +85,17 @@ export async function generateMetadata({
           url: "/images/home/cta-technical-conversation.webp",
           width: 1672,
           height: 941,
-          alt: "A technical sales discussion about a petroleum product requirement",
+          alt: contentText(
+            locale,
+            "A technical sales discussion about a petroleum product requirement",
+          ),
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: TITLE,
-      description: DESCRIPTION,
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
       images: ["/images/home/cta-technical-conversation.webp"],
     },
   };
@@ -130,8 +134,8 @@ export default async function ContactUsPage({
     "@type": "ContactPage",
     "@id": `${absoluteUrl_}#contactpage`,
     url: absoluteUrl_,
-    name: TITLE,
-    description: DESCRIPTION,
+    name: contentText(locale, TITLE),
+    description: contentText(locale, DESCRIPTION),
     inLanguage: locale,
     about: { "@id": organizationId() },
   };
@@ -152,12 +156,15 @@ export default async function ContactUsPage({
         }
         locales={locales}
         locale={locale}
-        copy={inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general}
+        copy={localizeContent(
+          locale,
+          inquiryType === SAMPLE_INQUIRY_TYPE ? FORM_HEADINGS.sample : FORM_HEADINGS.general,
+        )}
         inquiryType={inquiryType}
         privacyPolicyHref={privacyPolicyHref}
         product={product}
         directory={
-          <Suspense fallback={<ContactDirectorySkeleton />}>
+          <Suspense fallback={<ContactDirectorySkeleton locale={locale} />}>
             <ContactDirectorySection locale={locale} />
           </Suspense>
         }

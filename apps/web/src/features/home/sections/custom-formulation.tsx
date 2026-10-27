@@ -23,6 +23,7 @@ import { localeHref } from "@/features/site/site-routes";
 import { PhotoFrame } from "../branded-photo";
 import { RichText } from "@/features/site/rich-text";
 import { CUSTOM_CTA, CUSTOM_STEPS, type Stage } from "../home-data";
+import { localDigits } from "@/i18n/translate";
 
 const GLYPHS: Record<Stage["icon"], (props: IconProps) => ReactNode> = {
   search: SearchIcon,
@@ -202,7 +203,7 @@ export function CustomFormulation({
                     <Glyph size="xl" />
                   </span>
                   <span className="fs-hstep-n fs-tnum" aria-hidden="true">
-                    {step.n}
+                    {localDigits(locale, step.n)}
                   </span>
                   <h3>{step.title}</h3>
                   <p>
@@ -231,7 +232,7 @@ export function CustomFormulation({
             </div>
             <div className="fs-hprog-dots" ref={dotsRef}>
               {steps.map((step) => (
-                <span key={step.n}>{step.n}</span>
+                <span key={step.n}>{localDigits(locale, step.n)}</span>
               ))}
             </div>
           </div>

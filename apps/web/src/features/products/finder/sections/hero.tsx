@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { ROUTES } from "@/features/site/site-routes";
+import { translator } from "@/i18n/translate";
 
 /**
  * The Product Finder hero — breadcrumb, title, and one neutral sentence about what the tool does.
@@ -38,27 +39,28 @@ export function FinderHero({
   readonly locale: string;
   readonly children?: ReactNode;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec pf-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
 
       <div className="fs-wrap pf-hero-inner">
-        <nav className="pf-crumbs" aria-label="Breadcrumb">
+        <nav className="pf-crumbs" aria-label={t("Breadcrumb")}>
           <ol>
             <li>
-              <a href={`/${locale}${ROUTES.products}`}>Products</a>
+              <a href={`/${locale}${ROUTES.products}`}>{t("Products")}</a>
             </li>
             {/* The current page: marked as such rather than linked to itself. */}
-            <li aria-current="page">Product Finder</li>
+            <li aria-current="page">{t("Product Finder")}</li>
           </ol>
         </nav>
 
-        <h1 className="fs-d1 pf-title">Product Finder</h1>
+        <h1 className="fs-d1 pf-title">{t("Product Finder")}</h1>
 
         <p className="fs-lead pf-lead">
-          Search by product name, grade, or public specification value, then narrow the published
-          range by product family, buyer segment, or product type. Every selection stays in the
-          address, ready to share, bookmark, or reopen.
+          {t(
+            "Search by product name, grade, or public specification value, then narrow the published range by product family, buyer segment, or product type. Every selection stays in the address, ready to share, bookmark, or reopen.",
+          )}
         </p>
         {children}
       </div>

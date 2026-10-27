@@ -2,6 +2,7 @@ import { ANCHORS } from "./about-anchors";
 
 import type { AboutUsContent } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { translator, ordinal } from "@/i18n/translate";
 
 type IndexItem = {
   readonly id: string;
@@ -15,19 +16,26 @@ type IndexItem = {
  * It is navigation, not a decorative stepper: entries only appear when the corresponding CMS
  * section exists, and every item points at the structural anchor already owned by this page.
  */
-export function AboutIndex({ content }: { readonly content: AboutUsContent }): ReactNode {
+export function AboutIndex({
+  content,
+  locale = "en",
+}: {
+  readonly content: AboutUsContent;
+  readonly locale?: string;
+}): ReactNode {
+  const t = translator(locale);
   const items: readonly IndexItem[] = [
-    { id: ANCHORS.whoWeAre, label: "Company profile", available: content.whoWeAre !== null },
-    { id: ANCHORS.expertise, label: "Capabilities", available: content.expertise !== null },
+    { id: ANCHORS.whoWeAre, label: t("Company profile"), available: content.whoWeAre !== null },
+    { id: ANCHORS.expertise, label: t("Capabilities"), available: content.expertise !== null },
     {
       id: ANCHORS.advantages,
-      label: "Why partner with us",
+      label: t("Why partner with us"),
       available: content.competitiveAdvantages !== null,
     },
-    { id: ANCHORS.team, label: "How we work", available: content.team !== null },
+    { id: ANCHORS.team, label: t("How we work"), available: content.team !== null },
     {
       id: ANCHORS.quality,
-      label: "Quality approach",
+      label: t("Quality approach"),
       available: content.qualityStandards !== null,
     },
   ];
@@ -36,14 +44,14 @@ export function AboutIndex({ content }: { readonly content: AboutUsContent }): R
   if (availableItems.length === 0) return null;
 
   return (
-    <nav className="ab-index" aria-label="About SAM Group sections">
+    <nav className="ab-index" aria-label={t("About SAM Group sections")}>
       <div className="fs-wrap ab-index-inner">
-        <p className="ab-index-label">Company dossier</p>
+        <p className="ab-index-label">{t("Company dossier")}</p>
         <ol>
           {availableItems.map((item, index) => (
             <li key={item.id}>
               <a href={`#${item.id}`}>
-                <span className="fs-tnum">{String(index + 1).padStart(2, "0")}</span>
+                <span className="fs-tnum">{ordinal(locale, index + 1)}</span>
                 <span>{item.label}</span>
               </a>
             </li>

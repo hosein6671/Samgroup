@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { SectionProps } from "../category-section";
+import { translator } from "@/i18n/translate";
 
 /**
  * 2 · Overview — SITE_STRUCTURE §4 item 2.
@@ -23,14 +24,15 @@ import type { SectionProps } from "../category-section";
  * documents are issued, and when a sample is available. The homepage fills a slot like this with
  * live telemetry; this page has no figure it is entitled to print, so it prints none.
  */
-export function CategoryOverview({ content }: SectionProps): ReactNode {
+export function CategoryOverview({ content, locale }: SectionProps): ReactNode {
   const { overview } = content;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pc-over" id="overview" data-surface="light">
       <div className="fs-wrap pc-over-grid">
         <div className="pc-over-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Overview</p>
+          <p className="fs-eyebrow">{t("Overview")}</p>
           <h2 className="fs-d2">{overview.heading}</h2>
 
           {overview.body.map((paragraph) => (

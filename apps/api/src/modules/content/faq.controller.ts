@@ -22,16 +22,19 @@ export type FaqItem = { entryKey: string; question: string; answer: string };
 export class FaqService {
   constructor(private readonly payload: PayloadClient) {}
   async list(query: FaqQuery, locale: string): Promise<{ items: FaqItem[]; total: number }> {
-    if (locale !== "en") return { items: [], total: 0 };
     const filters: Record<string, string> = {
       "where[_status][equals]": "published",
-      locale: "en",
+      // The locale's own question and answer, never a fallback to English.
+      locale,
       "fallback-locale": "none",
       depth: "0",
       sort: "sortOrder,entryKey",
       page: String(query.page),
       limit: String(query.limit),
     };
+    // Another locale lists only the entries translated into it. `question` and `answer` are
+    // localized and both required, so an entry with a question in this locale has an answer too.
+    if (locale !== "en") filters["where[question][exists]"] = "true";
     if (query.category) filters["where[topic][equals]"] = query.category;
     if (query.relatedCategory)
       filters["where[relatedCategoryKeys][contains]"] = query.relatedCategory;

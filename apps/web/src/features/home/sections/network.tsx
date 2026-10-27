@@ -12,6 +12,8 @@ import { BrandedPhoto } from "../branded-photo";
 import { HQ, HUBS, NETWORK_STATS } from "../home-data";
 import { isLand } from "../world-land";
 import { useCanvas } from "../motion/use-canvas";
+import { useLocale } from "@/i18n/i18n-provider";
+import { localDigits } from "@/i18n/translate";
 
 /**
  * 5 · Global export network.
@@ -55,6 +57,7 @@ const LAND_DOT = "rgba(152, 163, 180, 0.3)";
 
 export function Network({ editorial }: { readonly editorial?: StructuralFields } = {}): ReactNode {
   const copy = structuralSection("home", "network", editorial);
+  const locale = useLocale();
   /* Destination names and the stat row are editable in /admin; coordinates stay code-owned. */
   const hubs = structuralList(editorial, "network_hubs", HUBS);
   const stats = structuralList(editorial, "network_stats", NETWORK_STATS);
@@ -64,6 +67,13 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
   hoverRef.current = hover;
 
   const dots = useRef<{ x: number; y: number }[]>([]);
+  /*
+   * How hub labels are set, read once from the canvas's own computed style. A canvas resolves
+   * neither CSS custom properties in `ctx.font` (the old "var(--font-mono-src)" silently fell back
+   * to the system sans) nor the page direction for placement: in RTL `fillText` runs leftwards
+   * from x, so a label anchored 13px right of its hub was drawn back across the hub itself.
+   */
+  const labelStyle = useRef<{ rtl: boolean; font: string } | null>(null);
   const hubPx = useRef<{ x: number; y: number }[]>([]);
   const hqPx = useRef({ x: 0, y: 0 });
   const size = useRef({ w: 0, h: 0 });
@@ -163,9 +173,24 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
         ctx.stroke();
         // Labels only where there is room for them, or on the hovered hub.
         if (on || w > 900) {
-          ctx.font = "500 9.5px var(--font-mono-src), monospace";
+          if (!labelStyle.current) {
+            const cs = getComputedStyle(ctx.canvas);
+            const rtl = cs.direction === "rtl";
+            const family = cs.getPropertyValue("--font-technical").trim() || "monospace";
+            // Persian at 9.5px is unreadable; 12px keeps its dots legible on the map.
+            labelStyle.current = { rtl, font: `${rtl ? "400 12px" : "500 9.5px"} ${family}` };
+          }
+          const { rtl, font } = labelStyle.current;
+          ctx.font = font;
+          ctx.direction = rtl ? "rtl" : "ltr";
+          ctx.textAlign = "start";
           ctx.fillStyle = on ? "rgba(255,255,255,.95)" : "rgba(214,222,238,.42)";
-          ctx.fillText((hubs[i]?.n ?? "").toUpperCase(), hb.x + 13, hb.y + 3.5);
+          // The label sits on the reading side of its hub: right of it in LTR, left of it in RTL.
+          ctx.fillText(
+            (hubs[i]?.n ?? "").toUpperCase(),
+            rtl ? hb.x - 13 : hb.x + 13,
+            hb.y + (rtl ? 4 : 3.5),
+          );
         }
       });
 
@@ -279,7 +304,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
             <span className="fs-hud-chip" aria-live="polite">
               {hovered ? (
                 <>
-                  <b>{hovered.n}</b> · {hovered.lane}
+                  <b>{localDigits(locale, hovered.n)}</b> · {hovered.lane}
                 </>
               ) : (
                 <span>
@@ -330,7 +355,7 @@ export function Network({ editorial }: { readonly editorial?: StructuralFields }
           <div className="fs-globe-stats fs-rv">
             {stats.map((s, i) => (
               <div className="fs-gs" key={i}>
-                <b className="fs-tnum">{s.value}</b>
+                <b className="fs-tnum">{localDigits(locale, s.value)}</b>
                 <span>{s.label}</span>
               </div>
             ))}

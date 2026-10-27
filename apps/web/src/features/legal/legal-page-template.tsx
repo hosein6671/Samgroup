@@ -7,6 +7,7 @@ import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 
 import type { ContentPageResponse } from "@sam-group/types";
+import { translator } from "@/i18n/translate";
 
 /**
  * The shared shell for a canonical legal page — Privacy Policy today, and the three that follow it.
@@ -48,6 +49,7 @@ export function LegalPageTemplate({
   /** The API's `meta.localeFallback`, surfaced as a notice rather than hidden. */
   readonly localeFallback: boolean;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -68,7 +70,7 @@ export function LegalPageTemplate({
                */}
               {page.lastUpdatedDate !== null && (
                 <p className="lg-updated">
-                  Last updated{" "}
+                  {t("Last updated")}{" "}
                   <time dateTime={page.lastUpdatedDate}>
                     {new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
                       new Date(page.lastUpdatedDate),
@@ -91,8 +93,9 @@ export function LegalPageTemplate({
                */}
               {localeFallback && (
                 <p className="lg-fallback-note" role="note">
-                  This document has not been translated into this language. It is shown in the
-                  site&rsquo;s default language.
+                  {t(
+                    "This document has not been translated into this language. It is shown in the site’s default language.",
+                  )}
                 </p>
               )}
             </div>

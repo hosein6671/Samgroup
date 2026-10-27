@@ -258,6 +258,86 @@
 }
 
 /*
+ * RTL — Persian and Arabic.
+ *
+ * The token block above re-declares `--font-*` on `[data-brand="flagship"]`, an element INSIDE
+ * `<html>`, so it shadows the `[dir="rtl"]` families the design system declares on the root and
+ * every Persian page fell back to whatever Arabic-capable face the reader's system happened to
+ * have. The same three properties are re-declared here, scoped to RTL, with the stacks from
+ * `rtlFontFamilies` (packages/ui/src/tokens/typography.ts) — Shabnam first in all three, the
+ * technical register included, so Persian labels share one family with the rest of the page (see
+ * the comment there for why the monospace face no longer leads).
+ *
+ * Tracking is zeroed for the same reason the design system zeroes it: positive or negative
+ * letter-spacing pulls Persian letters apart and breaks cursive joining. The literal values in
+ * the page stylesheets are covered by the base layer rule in packages/ui/src/styles/base.css.
+ */
+[dir="rtl"] [data-brand="flagship"],
+[dir="rtl"][data-brand="flagship"] {
+  --font-display:
+    var(--font-fa-src), var(--font-body-src), var(--font-rtl-src), Vazirmatn, Tahoma, sans-serif;
+  --font-text:
+    var(--font-fa-src), var(--font-body-src), var(--font-rtl-src), Vazirmatn, Tahoma, sans-serif;
+  --font-technical:
+    var(--font-fa-src), var(--font-mono-src), var(--font-rtl-src), Vazirmatn, ui-monospace,
+    monospace;
+
+  --fs-text-hero--letter-spacing: 0;
+  --fs-text-display--letter-spacing: 0;
+  --fs-text-heading--letter-spacing: 0;
+  --fs-text-subheading--letter-spacing: 0;
+  --fs-text-title--letter-spacing: 0;
+  --fs-text-lead--letter-spacing: 0;
+  --fs-text-body--letter-spacing: 0;
+  --fs-text-body-sm--letter-spacing: 0;
+  --fs-text-caption--letter-spacing: 0;
+  --fs-text-technical--letter-spacing: 0;
+
+  /* Leading. Persian ascenders, descenders and dots need more than Latin, and the Latin
+     scale's 1.05 hero leading clips them. Values follow the design system's RTL leading. */
+  --fs-text-hero--line-height: 1.45;
+  --fs-text-display--line-height: 1.45;
+  --fs-text-heading--line-height: 1.5;
+  --fs-text-subheading--line-height: 1.55;
+  --fs-text-title--line-height: 1.5;
+  --fs-text-lead--line-height: 1.85;
+  --fs-text-body--line-height: 1.9;
+  --fs-text-body-sm--line-height: 1.85;
+  --fs-text-caption--line-height: 1.7;
+  --fs-text-technical--line-height: 1.6;
+
+  /* Size. The Latin scale's smallest steps are uppercase, tracked labels; Persian has no capitals
+     to carry them, and its letterforms sit smaller on the em than Latin at the same pixel size.
+     So the small steps grow by one to two pixels in RTL, and the reading sizes by one, while the
+     display sizes stay as they are.
+
+     Two pairs of steps are merged in RTL (the owner's call, 26 October 2026): technical and
+     caption were 14 and 14.5px, title and lead 20.8 and 20.1px at desktop — different enough to
+     measure, too close to read as a deliberate step, so the page looked set in near-misses. Each
+     pair now shares one size: eight steps instead of ten.
+
+     Every non-heading step was then taken down one notch (owner's call, 27 October 2026).
+
+     Then the whole scale was set against Iranian brand sites, measured at 1440px (owner's call,
+     27 October 2026): Behran Oil, Sepahan Oil, Snapp and Digikala read body copy at 14-16px,
+     keep large paragraphs rare, and set section titles at 24-33px in bold. The Latin scale's
+     36-56px light display type read as foreign and oversized in Persian, and a third of the
+     page sat in 19px lead paragraphs. Desktop values: hero 42, display 34, heading 28,
+     subheading 20, title 17, lead 16, body 15, small body and labels 14 (the Persian floor).
+     Headings carry the hierarchy by weight (bold) as well as size. */
+  --fs-text-technical: 14px;
+  --fs-text-caption: 14px;
+  --fs-text-body-sm: 14px;
+  --fs-text-body: 15px;
+  --fs-text-lead: 16px;
+  --fs-text-title: 17px;
+  --fs-text-subheading: clamp(18px, 16.6px + 0.25vw, 21px);
+  --fs-text-heading: clamp(22px, 20px + 0.55vw, 30px);
+  --fs-text-display: clamp(26px, 23px + 0.75vw, 36px);
+  --fs-text-hero: clamp(30px, 26px + 1.1vw, 44px);
+}
+
+/*
  * Light context. The prototype's light sections are pure white with navy text — colder and
  * higher-contrast than the platform's warm platinum, which is the intended character change.
  */
@@ -663,7 +743,9 @@
 .fs-mark__img {
   position: absolute;
   inset-block-start: 50%;
-  inset-inline-start: 50%;
+  /* Physical, not logical: the -50% translate below is physical too, so under dir="rtl" a
+     logical start edge would push the mark off its frame by its own width. */
+  left: 50%;
   transform: translate(-50%, -50%);
   /* Sized here rather than by the intrinsic attributes so the crop follows --mark-h. */
   block-size: calc(var(--mark-h, 28px) * var(--mark-canvas));
@@ -673,9 +755,6 @@
   max-width: none;
 }
 
-[dir="rtl"] .fs-mark__img {
-  transform: translate(50%, -50%);
-}
 /* The company name is one word-group and never breaks, at any width. */
 .fs-logo-txt {
   font-family: var(--font-display);
@@ -1267,12 +1346,7 @@
 .fs-btn:hover .fs-ar {
   transform: translateX(4px);
 }
-[dir="rtl"] .fs-btn .fs-ar {
-  transform: scaleX(-1);
-}
-[dir="rtl"] .fs-btn:hover .fs-ar {
-  transform: scaleX(-1) translateX(4px);
-}
+/* RTL mirroring of `.fs-ar` is global — see "RTL — arrows" further down. */
 
 .fs-tag {
   font-family: var(--font-technical);
@@ -1542,6 +1616,9 @@
     rgba(3, 11, 31, 0.64)
   );
 }
+/* The badge mirrors with the page (top-right in RTL), but its contents are the SAM GROUP lockup,
+   and a logo is never mirrored: the symbol stays before the wordmark in every language. In RTL
+   the two used to swap places (owner's report, 27 October 2026). */
 .fs-photo-brand {
   position: absolute;
   inset-block-start: 18px;
@@ -1557,6 +1634,11 @@
   color: #fff;
   background: rgba(3, 11, 31, 0.76);
   backdrop-filter: blur(12px);
+}
+/* Lockup order without touching `direction` (which would also flip the badge's own inline-start
+   back to the left): in an RTL row the symbol would lead on the right, so the row is reversed. */
+[dir="rtl"] .fs-photo-brand {
+  flex-direction: row-reverse;
 }
 .fs-photo-brand > span:last-child {
   font-family: var(--font-technical);
@@ -1870,7 +1952,9 @@
 
 .fs-core {
   position: absolute;
-  inset-inline-start: 50%;
+  /* Physical, like the orbit nodes the script places with `left`/`top`: the diagram is geometry,
+     not reading order, and a logical start edge would shift the core off-centre under RTL. */
+  left: 50%;
   inset-block-start: 50%;
   transform: translate(-50%, -50%);
   inline-size: 27%;
@@ -2002,6 +2086,12 @@
  * the uncapped 178px "Petroleum Products" pill cleared neither. Two lines make the pill about
  * 46px tall, so the touch target grows past the 44px AAA floor rather than shrinking.
  */
+/* On a phone the core is ~95px across: its three lines (label, title, route) are 150px tall, so
+   the circle stretched into an oval and, in Persian, the label rode up into the top node. The
+   compact core keeps the title alone; the section heading already names the portfolio. */
+.fs-orbit[data-compact="true"] .fs-core :is(.k, .s) {
+  display: none;
+}
 .fs-orbit[data-compact="true"] .fs-orbit-node {
   max-inline-size: 104px;
   white-space: normal;
@@ -3089,6 +3179,8 @@
 .fs-ins-thumb > img {
   object-fit: cover;
   transition: transform 1.4s var(--e-entrance);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .fs-ins-mini h3 {
   margin: 10px 0 0;
@@ -3700,6 +3792,11 @@
     white-space: normal;
     max-inline-size: min-content;
   }
+  /* The Persian line is two short words; stacking them one per line looks broken, not compact. */
+  [dir="rtl"] .fs-logo-sub {
+    white-space: nowrap;
+    max-inline-size: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3774,9 +3871,13 @@
   background: #d9dde3;
   isolation: isolate;
 }
+/* Zoomed photographs get their own compositor layer: scaled inside a rounded, clipped frame they
+   were re-rasterised every frame and shimmered on Windows. */
 .fs-photo > img {
   object-fit: cover;
   transition: transform 1.4s var(--e-entrance);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .fs-photo .fs-photo-brand {
   inset-block-start: 14px;
@@ -3807,10 +3908,8 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  filter: blur(10px);
-  transition:
-    opacity 1.8s ease,
-    filter 1.8s ease;
+  transition: opacity 1.8s ease;
+  will-change: opacity;
 }
 .fs-cine-shot[data-on="true"] {
   opacity: 1;
@@ -3822,17 +3921,13 @@
   object-position: 68% 56%;
   transform-origin: var(--focus, 60% 55%);
   filter: contrast(1.1) saturate(1.06) brightness(0.93);
-}
-.fs-cine-shot[data-on="true"] img {
-  animation: fs-cine-push 8.5s linear forwards;
-}
-@keyframes fs-cine-push {
-  from {
-    transform: scale(1.04);
-  }
-  to {
-    transform: scale(1.16) translate(var(--drift, -2% -1%));
-  }
+  /* The photographs hold still; shots change by the dissolve alone (owner's call, 27 October 2026).
+     A slow push was tried (scale 1.04 to 1.16, then 1.08) and read as a stutter in the middle of
+     every shot: the photograph sits under a soft-light grade, a backdrop-filter depth of field, a
+     blended light sweep and grain, and a moving photograph makes the browser recompute all of them
+     on every frame. A still one is composited once. The shot data's focus/drift values are kept
+     for a future push but are unused. */
+  transform: scale(1.04);
 }
 /* Colour grade in the brand pair: navy in the shadows, gold in the highlights. */
 .fs-cine-grade {
@@ -3868,7 +3963,9 @@
     rgba(255, 236, 190, 0.22) 50%,
     transparent 58%
   );
-  animation: fs-cine-sweep 12s ease-in-out infinite;
+  /* Held still (owner's call, 27 October 2026): a band moving across the photograph under a blend
+     mode read as the photograph itself shaking. */
+  display: none;
 }
 @keyframes fs-cine-sweep {
   0% {
@@ -3885,7 +3982,8 @@
   z-index: 3;
   opacity: 0.05;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  animation: fs-cine-grain 0.9s steps(6) infinite;
+  /* Static grain: animated, the noise jumped six times a second and the still photograph appeared
+     to tremble beneath it. */
 }
 @keyframes fs-cine-grain {
   0%,
@@ -4132,6 +4230,11 @@
   display: inline-flex;
   transform: rotate(90deg);
 }
+/* A downward arrow is vertical, so it does not mirror: the RTL flip of `.fs-ar` (applied before
+   this rotation) turned it upward on Persian pages. */
+[dir="rtl"] .fs-cine-explore-ar .fs-ar {
+  scale: none;
+}
 /* The entrance: hidden only while scripting is available and the page is not yet ready, with a
    failsafe so a page whose JavaScript never arrives still shows its hero. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
@@ -4308,7 +4411,10 @@
   color: #eef1f6;
   cursor: pointer;
   isolation: isolate;
-  transition: flex 1s cubic-bezier(0.22, 1.2, 0.36, 1);
+  /* No overshoot: with a spring curve (y1 1.2) the card grew past its width and settled back, and
+     the cover-fitted photograph inside was re-cropped on the way — a visible wobble at the end of
+     every open and close. */
+  transition: flex 1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .fs-acc-item[data-open="true"] {
   flex: 2.4;
@@ -4318,6 +4424,8 @@
   object-fit: cover;
   transform: scale(1.08);
   transition: transform 1.6s var(--e-entrance);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 .fs-acc-item[data-open="true"] > img {
   transform: scale(1);
@@ -4382,12 +4490,6 @@
 .fs-acc-item[data-open="true"] .fs-acc-link:hover .fs-ar {
   transform: translateX(4px);
 }
-[dir="rtl"] .fs-acc-link .fs-ar {
-  transform: scaleX(-1);
-}
-[dir="rtl"] .fs-acc-item[data-open="true"] .fs-acc-link:hover .fs-ar {
-  transform: scaleX(-1) translateX(4px);
-}
 .fs-acc-link::after {
   content: "";
   position: absolute;
@@ -4406,7 +4508,7 @@
   color: #a6b0c2;
   transition:
     opacity 0.4s,
-    grid-template-rows 0.8s cubic-bezier(0.22, 1.2, 0.36, 1);
+    grid-template-rows 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .fs-acc-copy p > span {
   overflow: hidden;
@@ -4419,6 +4521,14 @@
   transition-delay: 0.2s;
 }
 @media (max-width: 960px) {
+  /* A closed card is a 110px strip: the badge's 38px and the title's line could not both fit, and
+     the badge sat on the title in both languages. Only the open card shows it. */
+  .fs-acc-item .fs-photo-brand {
+    transition: opacity 0.4s;
+  }
+  .fs-acc-item:not([data-open="true"]) .fs-photo-brand {
+    opacity: 0;
+  }
   .fs-acc {
     flex-direction: column;
     height: auto;
@@ -4426,7 +4536,7 @@
   .fs-acc-item {
     flex: none;
     min-height: 110px;
-    transition: min-height 0.8s cubic-bezier(0.22, 1.2, 0.36, 1);
+    transition: min-height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .fs-acc-item[data-open="true"] {
     flex: none;
@@ -4731,7 +4841,11 @@
   .fs-cine-bar {
     transition: none !important;
   }
-  .fs-cine-shot img,
+  .fs-cine-shot img {
+    transform: none !important;
+    translate: none !important;
+    transition: none !important;
+  }
   .fs-cine-sweep,
   .fs-cine-grain,
   .fs-cine-reel-bars i {
@@ -5024,4 +5138,119 @@ html.fs-parallax .fs-branded-photo > img {
   outline: 2px solid var(--fs-gold);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* ============================================================================
+   RTL — arrows and Latin runs
+   ============================================================================ */
+
+/*
+ * Every `Arrow` points the way the reader moves. One rule, on the independent `scale` property, so
+ * it composes with the hover nudges rather than fighting them: a `transform: translateX(4px)` is
+ * applied inside the mirrored box and so travels forward in either direction, and the `translate`
+ * nudges some sections use are already written per direction. Before this rule only the arrows in
+ * buttons and the accordion were mirrored; the rest pointed backwards on `/fa` and `/ar`.
+ */
+/*
+ * Persian line breaking.
+ *
+ * The section headings are capped at 11-26ch, a measure written for short English titles. The
+ * Persian titles say the same thing in more letters, so under those caps a one-line English title
+ * became three or four Persian lines with a single word on the last. In RTL the caps are re-set in
+ * em (16em for a page title, 18em for a section title), which is the same visual measure for any
+ * text, and never wider than the column the heading sits in.
+ *
+ * `text-wrap: pretty` on running text keeps a lone word off the last line of a paragraph; headings
+ * already balance their lines. Both are progressive: a browser without them wraps as before.
+ */
+[dir="rtl"] main h1 {
+  max-width: min(100%, 16em) !important;
+  text-wrap: balance;
+}
+[dir="rtl"] main h2 {
+  max-width: min(100%, 18em) !important;
+  text-wrap: balance;
+}
+[dir="rtl"] main h3 {
+  text-wrap: balance;
+}
+[dir="rtl"] main :is(p, li, dd, dt, figcaption, blockquote, summary) {
+  text-wrap: pretty;
+}
+
+/* Short two-line labels set tight for Latin; Persian needs the extra leading for its dots. */
+[dir="rtl"] .fs-cine-facts dt,
+[dir="rtl"] .fs-hstep dd {
+  line-height: 1.6;
+}
+/* The industry card titles were set at Latin display leading (1.15): a 21px line box for an 18-21px
+   Persian line leaves no room for the dots under پ، ی and ب. Heading leading, as everywhere else. */
+[dir="rtl"] .fs-acc-copy h3 {
+  line-height: 1.45;
+}
+
+/*
+ * Persian weights: two, 400 and 700 (the owner's call, 26 October 2026).
+ *
+ * The Latin design runs on three — Light for display lines and big numerals, Regular for reading,
+ * Medium for labels, buttons and card titles. In Shabnam, Light's thin joins and dots fade on the
+ * dark photographs, and Medium sits too close to Regular to read as emphasis: a page of 300, 400
+ * and 500 looks like one weight set unevenly. So in RTL everything Light becomes Regular and
+ * everything Medium (and the one Semibold) becomes Bold. Hierarchy then comes from size and colour
+ * for the large type and from a clear weight jump for the small emphatic type. The Latin wordmark
+ * and the photo watermark keep their own weights: they are logo lettering, not text.
+ */
+[dir="rtl"]
+  :is(
+    .fs-lead,
+    .fs-cine-facts dd,
+    .fs-stat b,
+    .fs-story-meta b,
+    .fs-gauge-value,
+    .fs-gs b,
+    .fs-lcard b,
+    .fs-hstep-n
+  ) {
+  font-weight: 400;
+}
+[dir="rtl"]
+  :is(
+    .fs-eyebrow,
+    .fs-d4,
+    .fs-btn,
+    .fs-card-title,
+    .fs-gpanel h3,
+    .fs-core .t,
+    .fs-why-path strong,
+    .fs-content-flow strong,
+    .fs-hud-chip b,
+    .fs-ins-meta b,
+    .fs-cta-link b,
+    .fs-fcol h2,
+    .fs-textlink,
+    .fs-cine-explore,
+    .fs-hstep dd
+  ) {
+  font-weight: 700;
+}
+/* Persian headings are bold, as on Iranian brand sites (owner's call, 27 October 2026): every
+   page title, section title and card title, whatever weight its Latin role uses. */
+:is([dir="rtl"] [data-brand="flagship"], [dir="rtl"][data-brand="flagship"])
+  :is(h1, h2, h3, .fs-d1, .fs-d2, .fs-d3, .fs-cine-title) {
+  font-weight: 700;
+}
+
+[dir="rtl"] .fs-ar {
+  scale: -1 1;
+}
+
+/*
+ * Values that are Latin by nature — a specification value with its unit, a grade, a test method,
+ * a phone number, an e-mail address — are isolated left-to-right inside a right-to-left line, so
+ * "+98 21 …" never renders as "… 21 98+" and "mm²/s" never swaps sides with its number. The markup
+ * marks them with `dir="ltr"` (an isolate) or this class; the class is for places that cannot.
+ */
+[dir="rtl"] .ltr-run {
+  direction: ltr;
+  unicode-bidi: isolate;
 }

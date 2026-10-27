@@ -1,4 +1,5 @@
 import type { ProductCategoryContent } from "./category-contract";
+import { translator } from "@/i18n/translate";
 
 /** Same projection initializes the editor and overlays published narrative. */
 export function categoryEditorDefaults(content: ProductCategoryContent): Record<string, unknown> {
@@ -26,7 +27,9 @@ export function categoryEditorDefaults(content: ProductCategoryContent): Record<
 export function overlayCategoryEditorial(
   content: ProductCategoryContent,
   value: Record<string, unknown>,
+  locale = "en",
 ): ProductCategoryContent {
+  const t = translator(locale);
   const text = (key: string, fallback: string): string =>
     typeof value[key] === "string" && value[key].trim() ? value[key] : fallback;
   return {
@@ -37,8 +40,8 @@ export function overlayCategoryEditorial(
             Array.isArray(value.applicationNotes) && value.applicationNotes.length > 0
               ? {
                   mode: "editorial" as const,
-                  eyebrow: "Applications",
-                  heading: text("applicationsHeading", "Applications"),
+                  eyebrow: t("Applications"),
+                  heading: text("applicationsHeading", t("Applications")),
                   intro: text("applicationsIntro", ""),
                   notes: value.applicationNotes.filter(
                     (row): row is { title: string; description: string } =>

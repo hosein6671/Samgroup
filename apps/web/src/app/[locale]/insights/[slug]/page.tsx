@@ -14,6 +14,7 @@ import { getActiveLocales } from "@/lib/locales";
 import { getBlogPosts } from "@/lib/blog";
 
 import type { BlogPostListItemResponse } from "@sam-group/types";
+import { translator } from "@/i18n/translate";
 
 /**
  * The sidebar's "Recent articles" — up to 4 other published posts, current one excluded.
@@ -173,7 +174,7 @@ export default async function InsightPostPage({
         />
         <JsonLd
           data={breadcrumbJsonLd([
-            { name: "Insights", path: localePath(locale, ROUTES.insights) },
+            { name: translator(locale)("Insights"), path: localePath(locale, ROUTES.insights) },
             { name: result.record.title, path: articlePath(locale, result.record.slug) },
           ])}
         />

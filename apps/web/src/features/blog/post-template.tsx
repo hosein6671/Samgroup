@@ -14,6 +14,7 @@ import { PublishedDate } from "./published-date";
 import { renderMarkdown } from "./render-markdown";
 
 import type { BlogPostDetailResponse, BlogPostListItemResponse } from "@sam-group/types";
+import { formatCount, translator } from "@/i18n/translate";
 
 /**
  * The article template — one component, every post.
@@ -71,6 +72,7 @@ export function PostTemplate({
   readonly recentPosts: readonly BlogPostListItemResponse[];
 }): ReactNode {
   const { html, toc, readingMinutes } = renderMarkdown(post.content);
+  const t = translator(locale);
 
   return (
     <div data-brand="flagship">
@@ -82,10 +84,10 @@ export function PostTemplate({
             <div className="fs-blueprint" aria-hidden="true" />
 
             <div className="fs-wrap in-post-head-inner">
-              <nav className="in-crumbs" aria-label="Breadcrumb">
+              <nav className="in-crumbs" aria-label={t("Breadcrumb")}>
                 <ol>
                   <li>
-                    <a href={`/${locale}${ROUTES.insights}`}>Insights</a>
+                    <a href={`/${locale}${ROUTES.insights}`}>{t("Insights")}</a>
                   </li>
                   {/* The current page: marked as such rather than linked to itself. */}
                   <li aria-current="page">{post.title}</li>
@@ -105,15 +107,18 @@ export function PostTemplate({
                   {post.category.name}
                 </a>
                 <PublishedDate iso={post.publishedAt} locale={locale} className="in-post-date" />
-                <span className="in-post-reading-time">{readingMinutes} min read</span>
+                <span className="in-post-reading-time">
+                  {t("{minutes} min read", { minutes: formatCount(locale, readingMinutes) })}
+                </span>
               </p>
 
               <h1 className="fs-d1 in-post-title">{post.title}</h1>
 
               {localeFallback && (
                 <p className="in-fallback-note in-fallback-note--dark">
-                  This article is shown in the site&rsquo;s default language because it has not been
-                  translated yet.
+                  {t(
+                    "This article is shown in the site’s default language because it has not been translated yet.",
+                  )}
                 </p>
               )}
             </div>
@@ -151,7 +156,7 @@ export function PostTemplate({
                  * page that does not resolve is worse than a label that does not link.
                  */}
                 {post.tags.length > 0 && (
-                  <ul className="in-post-tags" aria-label="Tags">
+                  <ul className="in-post-tags" aria-label={t("Tags")}>
                     {post.tags.map((tag) => (
                       <li key={tag.slug}>{tag.name}</li>
                     ))}
@@ -160,7 +165,7 @@ export function PostTemplate({
 
                 <p className="in-post-back">
                   <a className="fs-btn fs-btn--outline" href={`/${locale}${ROUTES.insights}`}>
-                    All posts
+                    {t("All posts")}
                   </a>
                 </p>
               </div>

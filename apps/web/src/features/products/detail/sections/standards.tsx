@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 import type { ProductDetailResponse } from "@sam-group/types";
 
@@ -23,9 +24,12 @@ const GRADE_SYSTEM_LABEL: Record<string, string> = {
  */
 export function ProductStandards({
   product,
+  locale = "en",
 }: {
   readonly product: ProductDetailResponse;
+  readonly locale?: string;
 }): ReactNode {
+  const t = translator(locale);
   const gradeSystems = [
     ...new Set(
       product.grades
@@ -40,22 +44,22 @@ export function ProductStandards({
     <section className="fs-sec pd-standards" id="standards" data-surface="light">
       <div className="fs-wrap">
         <header className="pd-section-head reveal-fade-rise">
-          <p className="fs-eyebrow">Standards and classifications</p>
-          <h2 className="fs-d2">General technical classification</h2>
+          <p className="fs-eyebrow">{t("Standards and classifications")}</p>
+          <h2 className="fs-d2">{t("General technical classification")}</h2>
         </header>
 
         <dl className="pd-standards-list reveal-fade-rise">
           {product.productType !== null && (
             <div>
-              <dt>Product type</dt>
+              <dt>{t("Product type")}</dt>
               <dd>{product.productType.name}</dd>
             </div>
           )}
           {gradeSystems.length > 0 && (
             <div>
-              <dt>{gradeSystems.length === 1 ? "Grade system" : "Grade systems"}</dt>
+              <dt>{gradeSystems.length === 1 ? t("Grade system") : t("Grade systems")}</dt>
               <dd>
-                {gradeSystems.map((system) => GRADE_SYSTEM_LABEL[system] ?? system).join(", ")}
+                {gradeSystems.map((system) => GRADE_SYSTEM_LABEL[system] ?? system).join(t(", "))}
               </dd>
             </div>
           )}

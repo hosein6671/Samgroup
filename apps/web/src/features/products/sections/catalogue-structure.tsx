@@ -1,5 +1,6 @@
 import { structuralSection, type StructuralFields } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 import { Arrow } from "@/features/site/logo-mark";
 import {
@@ -80,8 +81,10 @@ const STAGES: readonly StructureStage[] = [
 
 export function CatalogueStructure({
   editorial,
-}: { readonly editorial?: StructuralFields } = {}): ReactNode {
+  locale = "en",
+}: { readonly editorial?: StructuralFields; readonly locale?: string } = {}): ReactNode {
   const copy = structuralSection("products-landing", "catalogue-structure", editorial);
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pr-struct" data-surface="midnight">
@@ -107,8 +110,8 @@ export function CatalogueStructure({
                   <div className="pr-struct-mark">
                     <stage.Icon size="lg" />
                   </div>
-                  <p className="pr-struct-label">{stage.label}</p>
-                  <p className="pr-struct-note">{stage.note}</p>
+                  <p className="pr-struct-label">{t(stage.label)}</p>
+                  <p className="pr-struct-note">{t(stage.note)}</p>
                 </li>
               );
 

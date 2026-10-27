@@ -107,6 +107,10 @@ export function OrbitVisual({ families, activeId, onSelect, labels }: OrbitVisua
     let raf = 0;
     let compact = false;
     let visible = false;
+    // Right-to-left pages mirror the diagram: the families then run counter-clockwise from the
+    // top, in the same right-to-left order as the tab strip beside it, and the rings turn the
+    // other way.
+    const mirror = getComputedStyle(wrap).direction === "rtl" ? -1 : 1;
 
     const layout = (): void => {
       const W = wrap.clientWidth;
@@ -138,7 +142,7 @@ export function OrbitVisual({ families, activeId, onSelect, labels }: OrbitVisua
         const outer = !compact && i % 2 === 1;
         const R = outer ? R1 : R0;
         const a = (f.angle * Math.PI) / 180 + (compact ? 0 : ang * (outer ? -1 : 1));
-        const x = cx + Math.cos(a) * R;
+        const x = cx + mirror * Math.cos(a) * R;
         const y = cy + Math.sin(a) * R * 0.94;
 
         const node = nodeRefs.current[i];

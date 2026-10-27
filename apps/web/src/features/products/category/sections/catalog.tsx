@@ -4,6 +4,7 @@ import { ProductCard } from "../../product-card";
 import { SEGMENTS, segmentName } from "../../segments-data";
 
 import type { ProductListResult } from "@/lib/products";
+import { formatCount, translator, ordinal } from "@/i18n/translate";
 
 /**
  * The published products of one Product Family — the first surface in `apps/web` to render the
@@ -91,9 +92,10 @@ function SegmentFilter({
   familySlug,
   activeSegment,
 }: Omit<CatalogProps, "products">): ReactNode {
+  const t = translator(locale);
   return (
-    <nav className="pl-filter" aria-label="Filter products by segment">
-      <p className="pl-filter-label">Segment</p>
+    <nav className="pl-filter" aria-label={t("Filter products by segment")}>
+      <p className="pl-filter-label">{t("Segment")}</p>
 
       <ul className="pl-filter-list">
         <li>
@@ -103,7 +105,7 @@ function SegmentFilter({
             data-active={activeSegment === null ? "true" : undefined}
             aria-current={activeSegment === null ? "true" : undefined}
           >
-            All
+            {t("All")}
           </a>
         </li>
 
@@ -115,7 +117,7 @@ function SegmentFilter({
               data-active={activeSegment === segment.slug ? "true" : undefined}
               aria-current={activeSegment === segment.slug ? "true" : undefined}
             >
-              {segment.name}
+              {t(segment.name)}
             </a>
           </li>
         ))}
@@ -133,10 +135,12 @@ function CatalogNotice({
   heading,
   body,
   reset,
+  resetLabel,
 }: {
   readonly heading: string;
   readonly body: string;
   readonly reset?: string;
+  readonly resetLabel?: string;
 }): ReactNode {
   return (
     <div className="pl-notice reveal-fade-rise">
@@ -144,7 +148,7 @@ function CatalogNotice({
       <p className="pl-notice-body">{body}</p>
       {reset !== undefined && (
         <a className="pl-notice-reset" href={reset}>
-          Show all products in this family
+          {resetLabel ?? "Show all products in this family"}
         </a>
       )}
     </div>
@@ -158,10 +162,12 @@ export async function CategoryCatalog({
   activeSegment,
 }: CatalogProps): Promise<ReactNode> {
   const result = await products;
+  const t = translator(locale);
 
   report(familySlug, result);
 
-  const activeName = activeSegment === null ? null : segmentName(activeSegment);
+  const segment = activeSegment === null ? null : segmentName(activeSegment);
+  const activeName = segment === null ? null : t(segment);
   const unfilteredHref = filterHref(locale, familySlug);
   const listed = result.ok ? result.products.length : 0;
 
@@ -181,15 +187,17 @@ export async function CategoryCatalog({
       <div className="fs-wrap">
         <header className="pl-head reveal-fade-rise">
           <div>
-            <p className="fs-eyebrow">Published products</p>
+            <p className="fs-eyebrow">{t("Published products")}</p>
             <h2 className="fs-d2">
-              {activeName === null ? "In this family" : `In this family · ${activeName}`}
+              {activeName === null
+                ? t("In this family")
+                : t("In this family · {segment}", { segment: activeName })}
             </h2>
           </div>
 
           <div className="pl-head-note">
             <p className="fs-lead">
-              The catalog entries held for this family, as the platform publishes them.
+              {t("The catalog entries held for this family, as the platform publishes them.")}
             </p>
             {/*
              * The "individual product pages are not published yet, so these entries are not links"
@@ -211,14 +219,18 @@ export async function CategoryCatalog({
         {result.ok && listed > 0 && (
           <>
             <p className="pl-count">
-              <span>{String(listed).padStart(2, "0")}</span>
-              {listed === 1 ? "product" : "products"}
+              <span>{ordinal(locale, listed)}</span>
+              {listed === 1 ? t("product") : t("products")}
               {/*
                * Only when the page genuinely does not hold the whole set. `limit` defaults to 20
                * server-side and no family approaches it today, so this is silent — but a list that
                * showed 20 of 40 without saying so would be a wrong count, not a short one.
                */}
-              {result.total > listed && <small>of {result.total} — first page only</small>}
+              {result.total > listed && (
+                <small>
+                  {t("of {total} — first page only", { total: formatCount(locale, result.total) })}
+                </small>
+              )}
             </p>
 
             <div className="pl-grid reveal-stagger">
@@ -236,13 +248,16 @@ export async function CategoryCatalog({
 
         {result.ok && listed === 0 && activeSegment !== null && (
           <CatalogNotice
-            heading="No products match this segment"
+            heading={t("No products match this segment")}
             body={
               activeName === null
-                ? "The catalog holds no product in this family for the requested segment."
-                : `The catalog holds no product in this family for ${activeName}.`
+                ? t("The catalog holds no product in this family for the requested segment.")
+                : t("The catalog holds no product in this family for {segment}.", {
+                    segment: activeName,
+                  })
             }
             reset={unfilteredHref}
+            resetLabel={t("Show all products in this family")}
           />
         )}
 
@@ -253,16 +268,21 @@ export async function CategoryCatalog({
          */}
         {!result.ok && result.reason === "unknown-filter" && result.field === "segment" && (
           <CatalogNotice
-            heading="That segment is not recognised"
-            body="The requested segment filter does not match a published segment, so no product list was returned."
+            heading={t("That segment is not recognised")}
+            body={t(
+              "The requested segment filter does not match a published segment, so no product list was returned.",
+            )}
             reset={unfilteredHref}
+            resetLabel={t("Show all products in this family")}
           />
         )}
 
         {!result.ok && (result.reason !== "unknown-filter" || result.field !== "segment") && (
           <CatalogNotice
-            heading="Product list unavailable"
-            body="The catalog service did not answer this request. Nothing else on this page is affected, and the list returns when the service does."
+            heading={t("Product list unavailable")}
+            body={t(
+              "The catalog service did not answer this request. Nothing else on this page is affected, and the list returns when the service does.",
+            )}
           />
         )}
       </div>
@@ -288,19 +308,20 @@ export function CategoryCatalogSkeleton({
   familySlug,
   activeSegment,
 }: Omit<CatalogProps, "products">): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec pl-sec" id="products" data-surface="light" aria-busy="true">
       <div className="fs-wrap">
         <header className="pl-head">
           <div>
-            <p className="fs-eyebrow">Published products</p>
-            <h2 className="fs-d2">In this family</h2>
+            <p className="fs-eyebrow">{t("Published products")}</p>
+            <h2 className="fs-d2">{t("In this family")}</h2>
           </div>
         </header>
 
         <SegmentFilter locale={locale} familySlug={familySlug} activeSegment={activeSegment} />
 
-        <p className="pl-count pl-count--pending">Loading the catalog…</p>
+        <p className="pl-count pl-count--pending">{t("Loading the catalog…")}</p>
 
         <div className="pl-grid" aria-hidden="true">
           {[0, 1, 2].map((index) => (

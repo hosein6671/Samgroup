@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { gradeSlug } from "../grade-selection";
+import { translator } from "@/i18n/translate";
 
 import type { ProductGradeSummaryResponse } from "@sam-group/types";
 
@@ -33,18 +34,21 @@ export function GradeSelector({
   grades,
   activeGrade,
   baseHref,
+  locale = "en",
 }: {
   readonly grades: readonly ProductGradeSummaryResponse[];
   readonly activeGrade: ProductGradeSummaryResponse | null;
   /** The product's own canonical path, e.g. `/en/products/base-oil-group-i` — grade links are
    * `${baseHref}?grade={slug}`, never a second route segment (ADR-007 §4 / ADR-010 §2). */
   readonly baseHref: string;
+  readonly locale?: string;
 }): ReactNode {
   if (grades.length < 2) return null;
+  const t = translator(locale);
 
   return (
-    <nav className="pd-grade-selector" aria-label="Select a grade">
-      <p className="pd-grade-selector-label">Grade</p>
+    <nav className="pd-grade-selector" aria-label={t("Select a grade")}>
+      <p className="pd-grade-selector-label">{t("Grade")}</p>
       <ul className="pd-grade-list">
         {grades.map((grade) => {
           const isActive = activeGrade?.id === grade.id;
@@ -57,7 +61,9 @@ export function GradeSelector({
                 aria-current={isActive ? "true" : undefined}
               >
                 {grade.label}
-                {!grade.hasApprovedData && <span className="pd-grade-pending">Under review</span>}
+                {!grade.hasApprovedData && (
+                  <span className="pd-grade-pending">{t("Under review")}</span>
+                )}
               </a>
             </li>
           );

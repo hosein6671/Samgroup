@@ -21,6 +21,8 @@
  * surface, blog included.
  */
 
+import { hasContentCatalog } from "@/i18n/content-catalogs";
+import { contentText, localizeContent } from "@/i18n/localize-content";
 import { apiGet } from "./api-client";
 
 import type { BlogPostDetailResponse, BlogPostListItemResponse } from "@sam-group/types";
@@ -158,7 +160,20 @@ export async function getBlogPosts(
     return { ok: false, reason: "api-error", status: 200 };
   }
 
-  const posts = result.data;
+  const served = result.data;
+  // Posts not yet written in this language: shown translated from the site's reviewed catalog
+  // where it covers them. A post whose title the catalog does not know stays in the default
+  // language, and keeps the fallback notice.
+  const translate = result.meta.localeFallback === true && hasContentCatalog(locale);
+  // A category is a short shared label: shown in the reader's language from the catalog even when
+  // the post itself has its own translation and the category row has none yet.
+  const posts = (translate ? localizeContent(locale, served) : served).map((post) => ({
+    ...post,
+    category: { ...post.category, name: contentText(locale, post.category.name) },
+  }));
+  const stillFallback = translate
+    ? posts.some((post, i) => post.title === served[i]?.title)
+    : result.meta.localeFallback === true;
 
   return {
     ok: true,
@@ -169,7 +184,7 @@ export async function getBlogPosts(
     total: result.meta.total ?? posts.length,
     page: result.meta.page ?? 1,
     limit: result.meta.limit ?? posts.length,
-    localeFallback: result.meta.localeFallback === true,
+    localeFallback: stillFallback,
   };
 }
 
@@ -276,5 +291,15 @@ export async function getBlogPostBySlug(slug: string, locale: string): Promise<B
     return { ok: false, reason: "api-error", status: 200 };
   }
 
-  return { ok: true, record: result.data, localeFallback: result.meta.localeFallback === true };
+  if (result.meta.localeFallback === true && hasContentCatalog(locale)) {
+    const record = localizeContent(locale, result.data);
+    const translated = record.title !== result.data.title && record.content !== result.data.content;
+    return { ok: true, record, localeFallback: !translated };
+  }
+
+  const record = {
+    ...result.data,
+    category: { ...result.data.category, name: contentText(locale, result.data.category.name) },
+  };
+  return { ok: true, record, localeFallback: result.meta.localeFallback === true };
 }

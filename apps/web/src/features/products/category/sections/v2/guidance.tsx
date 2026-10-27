@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { groupSubRanges, hasClassificationDetail } from "../../category-contract";
 import type { SectionProps } from "../../category-section";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * v2 · Block 3 (part 1) — compact selection guidance: Overview + the range.
@@ -51,15 +52,16 @@ import type { SectionProps } from "../../category-section";
  *
  * A Server Component. No `reveal-*` class — legible at rest.
  */
-export function Guidance({ content }: SectionProps): ReactNode {
+export function Guidance({ content, locale }: SectionProps): ReactNode {
   const { overview, range } = content;
+  const t = translator(locale);
   const asTable = hasClassificationDetail(content);
 
   return (
     <section className="fs-sec pcv2-guide" data-surface="light">
       <div className="fs-wrap pcv2-guide-inner">
         <div className="pcv2-guide-overview" id="overview">
-          <p className="fs-eyebrow">Overview</p>
+          <p className="fs-eyebrow">{t("Overview")}</p>
           <h2 className="fs-d3">{overview.heading}</h2>
 
           {overview.body.map((paragraph) => (
@@ -79,22 +81,28 @@ export function Guidance({ content }: SectionProps): ReactNode {
            * `.pcv2-guide-range` is plain block flow, so an empty inline child contributes nothing.
            */}
           <span id="range" aria-hidden="true" />
-          <p className="fs-eyebrow">How the range is organised</p>
+          <p className="fs-eyebrow">{t("How the range is organised")}</p>
           <h2 className="fs-d3">{range.heading}</h2>
           <p className="fs-lead pcv2-guide-para">{range.intro}</p>
           <p className="pcv2-guide-frame">
             {asTable
-              ? "Classification, not availability — the groups below are the classification system; the products currently in the catalogue are listed above."
-              : "This is how the range is organised. The products currently held in the catalogue are listed above."}
+              ? t(
+                  "Classification, not availability — the groups below are the classification system; the products currently in the catalogue are listed above.",
+                )
+              : t(
+                  "This is how the range is organised. The products currently held in the catalogue are listed above.",
+                )}
           </p>
 
           {range.classificationAxes && range.classificationAxes.length > 0 && (
             <p className="pcv2-axes">
-              <span className="pcv2-axes-label">Classified on</span>
+              <span className="pcv2-axes-label">{t("Classified on")}</span>
               {range.classificationAxes.join(" · ")}
               <span className="pcv2-axes-note">
                 {" "}
-                — axes only; boundary values belong to the standard, grade values to the data sheet.
+                {t(
+                  "— axes only; boundary values belong to the standard, grade values to the data sheet.",
+                )}
               </span>
             </p>
           )}
@@ -105,15 +113,16 @@ export function Guidance({ content }: SectionProps): ReactNode {
                 <table className="pcv2-cls-table">
                   <caption>
                     <VisuallyHidden>
-                      Base-oil classification groups, their place in the API base-stock
-                      classification, and the grade designations published for each.
+                      {t(
+                        "Base-oil classification groups, their place in the API base-stock classification, and the grade designations published for each.",
+                      )}
                     </VisuallyHidden>
                   </caption>
                   <thead>
                     <tr>
-                      <th scope="col">Group</th>
-                      <th scope="col">Classification</th>
-                      <th scope="col">Published grades</th>
+                      <th scope="col">{t("Group")}</th>
+                      <th scope="col">{t("Classification")}</th>
+                      <th scope="col">{t("Published grades")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -122,8 +131,8 @@ export function Guidance({ content }: SectionProps): ReactNode {
                         <th scope="row">{subRange.designation}</th>
                         {/* `data-label` drives the ::before caption when the table becomes a card
                             stack on narrow screens (category-v2.css). */}
-                        <td data-label="Classification">{subRange.qualifier ?? "—"}</td>
-                        <td data-label="Published grades">
+                        <td data-label={t("Classification")}>{subRange.qualifier ?? "—"}</td>
+                        <td data-label={t("Published grades")}>
                           {subRange.grades.length > 0
                             ? subRange.grades.map((grade) => grade.designation).join(" · ")
                             : "—"}
@@ -135,7 +144,7 @@ export function Guidance({ content }: SectionProps): ReactNode {
               </div>
 
               <div className="pcv2-cls-desc">
-                <p className="pcv2-cls-desc-label">Group descriptions</p>
+                <p className="pcv2-cls-desc-label">{t("Group descriptions")}</p>
                 {range.subRanges.map((subRange) => (
                   <details className="pcv2-cls-desc-item" key={subRange.id}>
                     <summary>{subRange.designation}</summary>
@@ -151,16 +160,14 @@ export function Guidance({ content }: SectionProps): ReactNode {
                   {group.axis && (
                     <p className="pcv2-seg-axis">
                       <span>{group.axis}</span>
-                      <span>{String(group.subRanges.length).padStart(2, "0")}</span>
+                      <span>{ordinal(locale, group.subRanges.length)}</span>
                     </p>
                   )}
 
                   <ol className="pcv2-seg-list" start={group.offset + 1}>
                     {group.subRanges.map((subRange, i) => (
                       <li className="pcv2-seg-item" id={`range-${subRange.id}`} key={subRange.id}>
-                        <p className="pcv2-seg-idx">
-                          {String(group.offset + i + 1).padStart(2, "0")}
-                        </p>
+                        <p className="pcv2-seg-idx">{ordinal(locale, group.offset + i + 1)}</p>
                         <div>
                           <h3 className="pcv2-seg-name">{subRange.designation}</h3>
                           <p className="pcv2-seg-summary">{subRange.summary}</p>

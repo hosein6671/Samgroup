@@ -39,8 +39,10 @@ export function HeroReel({
   barTitle,
   exploreLabel,
   exploreHref,
+  locale = "en",
   children,
 }: {
+  readonly locale?: string;
   readonly shots: readonly ReelShot[];
   readonly facts: readonly ReelFact[];
   readonly barTitle: string;
@@ -150,7 +152,7 @@ export function HeroReel({
                     <dt>{fact.label}</dt>
                     <dd className="fs-tnum">
                       {Number.isInteger(n) && String(n) === fact.value.trim() ? (
-                        <Counter value={n} />
+                        <Counter value={n} locale={locale} />
                       ) : (
                         fact.value
                       )}

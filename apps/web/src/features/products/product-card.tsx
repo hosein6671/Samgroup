@@ -126,7 +126,9 @@ export function ProductCard({
        * The full text stays in the document; only its rendered height is bounded.
        */}
       {product.description !== null && product.description !== "" && (
-        <p className="pl-card-summary">{product.description}</p>
+        <p className="pl-card-summary" dir="auto">
+          {product.description}
+        </p>
       )}
     </article>
   );

@@ -1,4 +1,5 @@
 import { structuralMetadata } from "@/features/content/structural-seo";
+import { contentText } from "@/i18n/localize-content";
 import { publishedStructural } from "@/features/content/published-structural";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -30,14 +31,14 @@ export async function generateMetadata({
    */
   const canonical = absoluteUrl(localePath(locale, ROUTES.exportLogistics));
   return {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: contentText(locale, TITLE),
+    description: contentText(locale, DESCRIPTION),
     alternates: structuralAlternates(locale, ROUTES.exportLogistics),
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: TITLE,
-      description: DESCRIPTION,
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
       url: canonical,
       locale,
       images: [
@@ -45,14 +46,17 @@ export async function generateMetadata({
           url: "/images/home/network-export-logistics.webp",
           width: 1672,
           height: 941,
-          alt: "SAM Group export and logistics planning for petroleum products",
+          alt: contentText(
+            locale,
+            "SAM Group export and logistics planning for petroleum products",
+          ),
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: TITLE,
-      description: DESCRIPTION,
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
       images: ["/images/home/network-export-logistics.webp"],
     },
   };
@@ -73,7 +77,14 @@ export default async function ExportLogisticsPage({
 
   return (
     <>
-      <JsonLd data={webPageJsonLd({ url, name: TITLE, description: DESCRIPTION, locale })} />
+      <JsonLd
+        data={webPageJsonLd({
+          url,
+          name: contentText(locale, TITLE),
+          description: contentText(locale, DESCRIPTION),
+          locale,
+        })}
+      />
       <ExportLogisticsExperience editorial={editorial?.fields} locale={locale} locales={locales} />
     </>
   );

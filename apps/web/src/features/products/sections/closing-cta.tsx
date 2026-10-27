@@ -5,10 +5,12 @@ import {
 } from "@/features/content/structural-copy";
 import type { ReactNode } from "react";
 
+import { builtInCopy } from "@/features/content/published-structural";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { CLOSING_ROUTES, type ClosingRoute } from "../products-data";
+import { ordinal } from "@/i18n/translate";
 
 /** Route ids resolved against the canonical table, so no path is retyped in this file. */
 const HREF: Record<ClosingRoute["id"], string> = {
@@ -114,7 +116,10 @@ export function ClosingCta({
   productSlug,
   editorial,
 }: ClosingCtaProps & { readonly editorial?: StructuralFields }): ReactNode {
-  const copy = structuralSection("products-landing", "closing-cta", editorial);
+  // The Family and Product Detail pages render this block without the landing page's published
+  // copy; they get the built-in copy in the reader's language rather than the English source.
+  const fields = editorial ?? builtInCopy("products-landing", locale);
+  const copy = structuralSection("products-landing", "closing-cta", fields);
 
   return (
     <section className="fs-sec pr-close" data-surface="light">
@@ -139,7 +144,7 @@ export function ClosingCta({
           <p className="pr-steps-head">
             <span>{copy.text("or_take_a_shorter_route")}</span>
             <span>
-              {String(structuralList(editorial, "closing_routes", CLOSING_ROUTES).length).padStart(
+              {String(structuralList(fields, "closing_routes", CLOSING_ROUTES).length).padStart(
                 2,
                 "0",
               )}
@@ -147,10 +152,10 @@ export function ClosingCta({
           </p>
 
           <ol className="pr-steps">
-            {structuralList(editorial, "closing_routes", CLOSING_ROUTES).map((route, i) => (
+            {structuralList(fields, "closing_routes", CLOSING_ROUTES).map((route, i) => (
               <li className="pr-step" key={route.id}>
                 <a href={hrefFor(route.id, locale, productSlug)}>
-                  <span className="pr-step-index">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="pr-step-index">{ordinal(locale, i + 1)}</span>
                   <span className="pr-step-body">
                     <b>{route.label}</b>
                     <small>{route.qualifier}</small>

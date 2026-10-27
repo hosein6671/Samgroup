@@ -5,6 +5,7 @@ import { ROUTES } from "@/features/site/site-routes";
 
 import type { TocEntry } from "./render-markdown";
 import type { BlogPostListItemResponse } from "@sam-group/types";
+import { translator } from "@/i18n/translate";
 
 /** One post's site-relative path — the same shape `articlePath` in the route builds. */
 function articleHref(locale: string, slug: string): string {
@@ -35,11 +36,12 @@ export function ArticleSidebar({
   readonly recentPosts: readonly BlogPostListItemResponse[];
   readonly locale: string;
 }): ReactNode {
+  const t = translator(locale);
   return (
-    <aside className="in-post-sidebar" aria-label="Article navigation">
+    <aside className="in-post-sidebar" aria-label={t("Article navigation")}>
       {toc.length > 0 && (
-        <nav className="in-post-toc" aria-label="On this page">
-          <h2 className="in-post-toc-title">On this page</h2>
+        <nav className="in-post-toc" aria-label={t("On this page")}>
+          <h2 className="in-post-toc-title">{t("On this page")}</h2>
           <ol>
             {toc.map((entry) => (
               <li key={entry.id} data-depth={entry.depth}>
@@ -52,7 +54,7 @@ export function ArticleSidebar({
 
       {recentPosts.length > 0 && (
         <div className="in-post-recent">
-          <h2 className="in-post-recent-title">Recent articles</h2>
+          <h2 className="in-post-recent-title">{t("Recent articles")}</h2>
           <ul>
             {recentPosts.map((recent) => (
               <li key={recent.id}>
@@ -64,12 +66,12 @@ export function ArticleSidebar({
       )}
 
       <div className="in-post-contact">
-        <h2 className="in-post-contact-title">Have a question?</h2>
+        <h2 className="in-post-contact-title">{t("Have a question?")}</h2>
         <p className="in-post-contact-body">
-          Talk to our team about product selection, specifications or a quote.
+          {t("Talk to our team about product selection, specifications or a quote.")}
         </p>
         <a className="fs-btn fs-btn--outline" href={localePath(locale, ROUTES.contactUs)}>
-          Talk to our team
+          {t("Talk to our team")}
         </a>
       </div>
     </aside>

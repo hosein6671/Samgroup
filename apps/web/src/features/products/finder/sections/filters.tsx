@@ -7,6 +7,12 @@ import { SEGMENTS } from "../../segments-data";
 import { NO_FILTERS, filterHref, finderHref, finderPath, hasFilters } from "../finder-query";
 
 import type { FinderQuery } from "../finder-query";
+import { translator, type Translate } from "@/i18n/translate";
+
+/** A display name in the page's language, or `undefined` when there is none. */
+function named(t: Translate, name: string | undefined): string | undefined {
+  return name === undefined ? undefined : t(name);
+}
 
 /**
  * The finder's search field, its three filter rows, and the control that clears them.
@@ -82,6 +88,7 @@ function FilterRow({
   options,
   activeSlug,
   hrefFor,
+  allLabel,
 }: {
   /** The short technical label in the index column. */
   readonly label: string;
@@ -92,6 +99,8 @@ function FilterRow({
   readonly activeSlug: string | null;
   /** The link for one value of this axis, or for clearing it when given `null`. */
   readonly hrefFor: (slug: string | null) => string;
+  /** The "All" chip's label, in the page's language. */
+  readonly allLabel: string;
 }): ReactNode {
   return (
     <nav className="pl-filter pf-filter" aria-label={legend}>
@@ -112,7 +121,7 @@ function FilterRow({
             data-active={activeSlug === null ? "true" : undefined}
             aria-current={activeSlug === null ? "true" : undefined}
           >
-            All
+            {allLabel}
           </Link>
         </li>
 
@@ -146,38 +155,41 @@ export function FinderFilters({
   readonly query: FinderQuery;
   readonly includeSearch?: boolean;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <div className="pf-filters">
       {includeSearch && <FinderSearch locale={locale} query={query} />}
       <div className="pf-family-select">
         <p className="pl-filter-label" id="pf-family-label">
-          Product family
+          {t("Product family")}
         </p>
         <details className="pf-family-dropdown" key={query.category ?? "all"}>
           <summary aria-labelledby="pf-family-label pf-family-value">
             <span id="pf-family-value">
-              {FAMILIES.find((family) => family.id === query.category)?.name ??
+              {named(t, FAMILIES.find((family) => family.id === query.category)?.name) ??
                 query.category ??
-                "All families"}
+                t("All families")}
             </span>
           </summary>
           <FilterRow
-            label="Family"
-            legend="Filter products by product family"
+            label={t("Family")}
+            legend={t("Filter products by product family")}
+            allLabel={t("All")}
             /*
              * `id` is the family's canonical default-locale `Category.slug` — the value that goes on
              * the wire as `?category=`. Taken from the registry, never derived from `name`.
              */
-            options={FAMILIES.map((family) => ({ slug: family.id, name: family.name }))}
+            options={FAMILIES.map((family) => ({ slug: family.id, name: t(family.name) }))}
             activeSlug={query.category}
             hrefFor={(slug) => filterHref(locale, query, { category: slug })}
           />
         </details>
       </div>
       <FilterRow
-        label="Segment"
-        legend="Filter products by segment"
-        options={SEGMENTS}
+        label={t("Segment")}
+        legend={t("Filter products by segment")}
+        allLabel={t("All")}
+        options={SEGMENTS.map((segment) => ({ ...segment, name: t(segment.name) }))}
         activeSlug={query.segment}
         hrefFor={(slug) => filterHref(locale, query, { segment: slug })}
       />
@@ -189,8 +201,9 @@ export function FinderFilters({
        * to reorder the bar around it.
        */}
       <FilterRow
-        label="Product type"
-        legend="Filter products by product type"
+        label={t("Product type")}
+        legend={t("Filter products by product type")}
+        allLabel={t("All")}
         options={PRODUCT_TYPES}
         activeSlug={query.productType}
         hrefFor={(slug) => filterHref(locale, query, { productType: slug })}
@@ -207,7 +220,7 @@ export function FinderFilters({
       {hasFilters(query) && (
         <p className="pf-reset">
           <Link scroll={false} prefetch={false} href={finderHref(locale, NO_FILTERS)}>
-            Clear search and filters
+            {t("Clear search and filters")}
           </Link>
         </p>
       )}
@@ -222,6 +235,7 @@ export function FinderSearch({
   readonly locale: string;
   readonly query: FinderQuery;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <form className="pf-search" action={finderPath(locale)} method="get" role="search">
       {/*
@@ -241,17 +255,17 @@ export function FinderSearch({
       {query.productType !== null && (
         <input type="hidden" name="productType" value={query.productType} />
       )}
-      <label htmlFor="product-search">Search the published catalogue</label>
+      <label htmlFor="product-search">{t("Search the published catalogue")}</label>
       <div className="pf-search-control">
         <input
           id="product-search"
           name="q"
           type="search"
           defaultValue={query.q ?? ""}
-          placeholder="Product name, grade, or specification"
+          placeholder={t("Product name, grade, or specification")}
           autoComplete="off"
         />
-        <button type="submit">Search</button>
+        <button type="submit">{t("Search")}</button>
       </div>
     </form>
   );

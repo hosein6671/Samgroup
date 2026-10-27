@@ -13,9 +13,9 @@ export class FaqPageService {
       response: { available: false as const, content: null },
       localeFallback: false,
     };
-    if (locale.code !== "en") return absent;
+    // Each locale reads only its own published fields; an untranslated locale is `absent`.
     const doc = await this.payload.findGlobal("faq-page", {
-      locale: "en",
+      locale: locale.code,
       "fallback-locale": "none",
       depth: "0",
     });
@@ -36,7 +36,7 @@ export class FaqPageService {
     return {
       response: {
         available: true,
-        content: { fields, ...(doc.seo ? { seo: normalizeSeo(doc.seo, "en", []) } : {}) },
+        content: { fields, ...(doc.seo ? { seo: normalizeSeo(doc.seo, locale.code, []) } : {}) },
       },
       localeFallback: false,
     };

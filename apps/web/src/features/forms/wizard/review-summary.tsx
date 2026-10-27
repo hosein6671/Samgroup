@@ -2,6 +2,7 @@ import { EditIcon } from "./icons";
 import { reviewEntries, type WizardStep } from "./wizard-steps";
 
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/i18n-provider";
 
 /**
  * The review step's summary — what is about to be sent, grouped by the step it came from.
@@ -42,6 +43,7 @@ export function ReviewSummary({
   readonly onEdit: (index: number) => void;
   readonly idPrefix: string;
 }): ReactNode {
+  const t = useT();
   if (form === null) return null;
 
   return (
@@ -57,26 +59,26 @@ export function ReviewSummary({
           <section className="fw-review-group" key={step.id} aria-labelledby={headingId}>
             <header className="fw-review-head">
               <h4 className="fw-review-title" id={headingId}>
-                {step.heading}
+                {t(step.heading)}
               </h4>
               <button type="button" className="fw-review-edit" onClick={() => onEdit(index)}>
                 <EditIcon size="sm" />
-                Edit
+                {t("Edit")}
                 {/*
                  * The step name is in the accessible name but not repeated visually — three
                  * buttons reading "Edit contact details", "Edit request details" would crowd a
                  * summary whose headings already say which is which.
                  */}
-                <span className="fw-sr-only"> {step.heading}</span>
+                <span className="fw-sr-only"> {t(step.heading)}</span>
               </button>
             </header>
 
             <dl className="fw-review-list">
               {entries.map((entry) => (
                 <div className="fw-review-row" key={entry.name}>
-                  <dt>{entry.label}</dt>
+                  <dt>{t(entry.label)}</dt>
                   <dd data-empty={entry.empty ? "true" : undefined}>
-                    {entry.empty ? "Not provided" : entry.value}
+                    {entry.empty ? t("Not provided") : entry.value}
                   </dd>
                 </div>
               ))}

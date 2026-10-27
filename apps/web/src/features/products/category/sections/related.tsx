@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
-import { FAMILIES } from "../../products-data";
+import { familiesFor } from "../../localized-data";
 import type { SectionProps } from "../category-section";
+import { translator } from "@/i18n/translate";
 
 /**
  * Related categories — the next-step navigation between the FAQ and the shared closing CTA.
@@ -26,15 +27,16 @@ import type { SectionProps } from "../category-section";
  * never miss a sibling.
  */
 export function CategoryRelated({ content, locale }: SectionProps): ReactNode {
-  const others = FAMILIES.filter((family) => family.id !== content.familyId);
+  const others = familiesFor(locale).filter((family) => family.id !== content.familyId);
+  const t = translator(locale);
 
   return (
     <section className="pc-related" data-surface="midnight">
       <div className="fs-wrap pc-related-inner">
         <div className="pc-related-head">
-          <p className="fs-eyebrow">The rest of the range</p>
+          <p className="fs-eyebrow">{t("The rest of the range")}</p>
           <a href={localeHref(locale, ROUTES.products)} className="pc-related-all">
-            All products
+            {t("All products")}
             <Arrow size={13} />
           </a>
         </div>

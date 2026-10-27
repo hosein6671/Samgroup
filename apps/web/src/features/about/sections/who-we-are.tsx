@@ -16,6 +16,7 @@ import { SectionFigure } from "./hero";
 import type { AboutUsWhoWeAre, ProductFamilyKey } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * A glyph for each of the six families, keyed by the family key — the same `Record<ProductFamilyKey,
@@ -66,6 +67,7 @@ export function AboutWhoWeAre({
   readonly locale: string;
 }): ReactNode {
   const familyCount = PRODUCT_CATEGORIES.length;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec ab-who" id={ANCHORS.whoWeAre} data-surface="light">
@@ -73,14 +75,12 @@ export function AboutWhoWeAre({
         {whoWeAre.heading !== null && (
           <header className="ab-who-head reveal-fade-rise">
             <div>
-              <p className="fs-eyebrow">Who we are</p>
+              <p className="fs-eyebrow">{t("Who we are")}</p>
               <h2 className="fs-d2">{whoWeAre.heading}</h2>
             </div>
             <p className="ab-who-tally">
-              <span className="ab-who-tally-num fs-tnum">
-                {String(familyCount).padStart(2, "0")}
-              </span>
-              <span className="ab-who-tally-label">Product families produced directly</span>
+              <span className="ab-who-tally-num fs-tnum">{ordinal(locale, familyCount)}</span>
+              <span className="ab-who-tally-label">{t("Product families produced directly")}</span>
             </p>
           </header>
         )}
@@ -103,7 +103,7 @@ export function AboutWhoWeAre({
              */}
             {whoWeAre.positions.length > 0 && (
               <div className="ab-who-positions-panel">
-                <p className="ab-who-positions-label">What this rests on</p>
+                <p className="ab-who-positions-label">{t("What this rests on")}</p>
                 <dl className="ab-positions reveal-stagger">
                   {whoWeAre.positions.map((position) => (
                     <div className="ab-position" key={position.term}>
@@ -125,8 +125,8 @@ export function AboutWhoWeAre({
 
             <nav className="ab-families reveal-fade-rise" aria-labelledby="ab-families-title">
               <p className="ab-families-head" id="ab-families-title">
-                <span>Product families</span>
-                <span className="fs-tnum">{String(familyCount).padStart(2, "0")}</span>
+                <span>{t("Product families")}</span>
+                <span className="fs-tnum">{ordinal(locale, familyCount)}</span>
               </p>
               <ul>
                 {PRODUCT_CATEGORIES.map((family) => {
@@ -137,7 +137,7 @@ export function AboutWhoWeAre({
                       <a href={`/${locale}${family.href}`}>
                         <span className="ab-families-item">
                           <Glyph size="md" />
-                          <span>{family.label}</span>
+                          <span>{t(family.label)}</span>
                         </span>
                         <Arrow size={13} />
                       </a>

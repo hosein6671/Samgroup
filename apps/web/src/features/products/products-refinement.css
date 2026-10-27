@@ -262,6 +262,9 @@
     font-size: var(--fs-text-heading) !important;
     line-height: 1.18 !important;
   }
+  [dir="rtl"] .pr-hero h1 {
+    line-height: 1.5 !important;
+  }
   .pr-reg-head h2 {
     font-size: var(--fs-text-subheading) !important;
   }

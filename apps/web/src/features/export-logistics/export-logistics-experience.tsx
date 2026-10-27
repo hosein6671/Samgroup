@@ -14,8 +14,10 @@ import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { RichText } from "@/features/site/rich-text";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
+import { hasContentCatalog } from "@/i18n/content-catalogs";
+import { ordinal } from "@/i18n/translate";
 
-const BRIEF_FIELDS = [
+export const BRIEF_FIELDS = [
   ["Product", "Product family, grade, or application"],
   ["Quantity", "Required volume or order estimate"],
   ["Packaging", "Preferred format or handling constraint"],
@@ -23,7 +25,7 @@ const BRIEF_FIELDS = [
   ["Trade term", "EXW, FOB, CFR, CIF, or not sure"],
 ] as const;
 
-const DELIVERY_STEPS = [
+export const DELIVERY_STEPS = [
   ["Identify", "Confirm the product family, grade, and intended application."],
   ["Review", "Check the available technical information and required documents."],
   ["Define", "Record quantity, packaging, destination, and handling requirements."],
@@ -34,7 +36,7 @@ const DELIVERY_STEPS = [
   ["Handover", "Provide the applicable shipment-document set."],
 ] as const;
 
-const PACKAGING = [
+export const PACKAGING = [
   ["Bulk", "For requirements assessed around tank and route compatibility."],
   ["Flexitank", "A containerised bulk option, subject to product and route review."],
   ["Drums", "A defined industrial format for palletised or container loading."],
@@ -43,7 +45,7 @@ const PACKAGING = [
   ["Retail packs", "Pack configuration assessed against product and market brief."],
 ] as const;
 
-const INCOTERMS = [
+export const INCOTERMS = [
   ["EXW", "Buyer arranges collection from the named place after the goods are made available."],
   ["FOB", "Seller delivers the goods on board at the named port of shipment."],
   [
@@ -60,7 +62,9 @@ export function ExportLogisticsExperience({
 }: SiteNavProps & { readonly editorial?: StructuralFields }): ReactNode {
   const copy = structuralSection("export-logistics", "page", editorial);
 
-  const isEnglishRoute = locale === "en";
+  // English, or a language whose built-in copy is translated: either way the page is shown in the
+  // reader's language. Only a locale with no translation falls back to English, and says so.
+  const isEnglishRoute = locale === "en" || hasContentCatalog(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -116,7 +120,7 @@ export function ExportLogisticsExperience({
                 ([term, detail], index) => (
                   <div key={term}>
                     <dt>
-                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <span>{ordinal(locale, index + 1)}</span>
                       {term}
                     </dt>
                     <dd>{detail}</dd>
@@ -140,7 +144,7 @@ export function ExportLogisticsExperience({
                 rich: ["description"],
               }).map(([title, body], index) => (
                 <li key={title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <span>{ordinal(locale, index + 1)}</span>
                   <h3>{title}</h3>
                   <p>
                     <RichText text={body} />

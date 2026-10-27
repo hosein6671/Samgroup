@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
+import { translator } from "@/i18n/translate";
 
 /**
  * What this section needs from the page rendering it.
@@ -59,6 +60,7 @@ export function ProductTechnicalDocuments({
   locale,
   productSlug,
 }: ProductTechnicalDocumentsProps): ReactNode {
+  const t = translator(locale);
   const documents = [
     {
       code: "TDS",
@@ -85,19 +87,20 @@ export function ProductTechnicalDocuments({
       <div className="fs-blueprint" aria-hidden="true" />
       <div className="fs-wrap pd-docs-inner">
         <header className="pd-section-head reveal-fade-rise">
-          <p className="fs-eyebrow">Technical documents</p>
-          <h2 className="fs-d2">Review the issued document, not an assumption.</h2>
+          <p className="fs-eyebrow">{t("Technical documents")}</p>
+          <h2 className="fs-d2">{t("Review the issued document, not an assumption.")}</h2>
           <p className="fs-lead">
-            Request the current document set for the product, market and batch context relevant to
-            your enquiry.
+            {t(
+              "Request the current document set for the product, market and batch context relevant to your enquiry.",
+            )}
           </p>
         </header>
         <div className="pd-document-grid reveal-stagger">
           {documents.map((document) => (
             <article key={document.code}>
               <span>{document.code}</span>
-              <h3>{document.title}</h3>
-              <p>{document.detail}</p>
+              <h3>{t(document.title)}</h3>
+              <p>{t(document.detail)}</p>
             </article>
           ))}
         </div>
@@ -110,7 +113,7 @@ export function ProductTechnicalDocuments({
         */}
         <p className="pd-docs-cta reveal-fade-rise">
           <a href={requestHref(locale, productSlug)} className="fs-btn fs-btn--glass">
-            Request technical documents
+            {t("Request technical documents")}
             <Arrow size={15} />
           </a>
         </p>

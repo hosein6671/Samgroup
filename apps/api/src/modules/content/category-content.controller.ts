@@ -39,11 +39,12 @@ export class CategoryContentService {
     locale: string,
   ): Promise<{ available: boolean; fields: Record<string, unknown>; seo?: SeoFields }> {
     if (!CATEGORY_CONTENT_KEYS.includes(key)) throw new BadRequestException("Unknown category.");
-    if (locale !== "en") return { available: false, fields: {} };
+    // Each locale reads only its own published fields (no fallback). A field not yet translated
+    // is simply absent, and the page keeps its built-in copy for it in that language.
     const result = await this.payload.find("product-category-content", {
       "where[categoryKey][equals]": key,
       "where[_status][equals]": "published",
-      locale: "en",
+      locale,
       "fallback-locale": "none",
       depth: "0",
       limit: "1",
@@ -72,7 +73,7 @@ export class CategoryContentService {
     return {
       available: true,
       fields,
-      ...(doc.seo ? { seo: normalizeSeo(doc.seo, "en", []) } : {}),
+      ...(doc.seo ? { seo: normalizeSeo(doc.seo, locale, []) } : {}),
     };
   }
   async sitemapPolicies(): Promise<Map<string, SeoFields>> {

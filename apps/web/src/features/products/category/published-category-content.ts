@@ -12,7 +12,8 @@ type PublishedCategoryData = {
 };
 export const getPublishedCategoryData = cache(
   async (key: string, locale: string): Promise<PublishedCategoryData | null> => {
-    if (locale !== "en") return { available: false, fields: {} };
+    // Every locale asks the CMS. A language with nothing published there gets
+    // `available: false` back and the page keeps its built-in copy, translated.
     const result = await apiGet<PublishedCategoryData>(
       `/content/product-categories/${encodeURIComponent(key)}`,
       { locale },
@@ -38,7 +39,7 @@ export async function publishedCategoryContent(
 ): Promise<ProductCategoryContent> {
   const data = await getPublishedCategoryData(content.familyId, locale);
   if (!data?.available) return content;
-  const result = overlayCategoryEditorial(content, data.fields);
+  const result = overlayCategoryEditorial(content, data.fields, locale);
   if (data.fields.useSharedFaq === true) {
     const faq = await sharedCategoryFaq(content.familyId, locale);
     if (faq !== null) return { ...result, faq };

@@ -9,8 +9,11 @@ import { localeHref } from "@/features/site/site-routes";
 import { getActiveLocales } from "@/lib/locales";
 
 import "@/features/home/flagship.css";
+import { localizeContent } from "@/i18n/localize-content";
+import { translator } from "@/i18n/translate";
 
 export const dynamic = "force-dynamic";
+/** The FAQ's topics: slug, then the English label the catalog translates. */
 const topics = [
   ["company", "About the Company"],
   ["products", "Products & Specifications"],
@@ -44,7 +47,8 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
     publishedFaq(locale, topic ? { category: topic[0] } : {}),
     getFaqPageContent(locale),
   ]);
-  const copy = { ...FAQ_PAGE_DEFAULTS, ...faqContent?.fields };
+  const copy = { ...localizeContent(locale, FAQ_PAGE_DEFAULTS), ...faqContent?.fields };
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -59,9 +63,9 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
         </section>
         <section className="fs-sec" data-surface="light">
           <div className="fs-wrap fq-layout">
-            <nav className="fq-topics" aria-label="Question topics">
+            <nav className="fq-topics" aria-label={t("Question topics")}>
               <a href={href} aria-current={!topic ? "page" : undefined}>
-                All questions
+                {t("All questions")}
               </a>
               {topics.map(([key, label]) => (
                 <a
@@ -69,12 +73,12 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
                   href={`${href}?topic=${key}`}
                   aria-current={topic?.[0] === key ? "page" : undefined}
                 >
-                  {label}
+                  {t(label)}
                 </a>
               ))}
             </nav>
             <div>
-              <h2 className="fs-d2">{topic?.[1] ?? copy.questionsHeading}</h2>
+              <h2 className="fs-d2">{topic ? t(topic[1]) : copy.questionsHeading}</h2>
               {entries?.length ? (
                 <>
                   <Answers entries={entries} />
@@ -83,8 +87,12 @@ export default async function FaqPage({ params, searchParams }: Props): Promise<
               ) : (
                 <p className="fs-lead">
                   {entries === null
-                    ? "Answers are temporarily unavailable. You can still send your question to our team."
-                    : "For questions in this section, contact our team with your product and supply requirements."}
+                    ? t(
+                        "Answers are temporarily unavailable. You can still send your question to our team.",
+                      )
+                    : t(
+                        "For questions in this section, contact our team with your product and supply requirements.",
+                      )}
                 </p>
               )}
               <aside className="fq-help">

@@ -377,7 +377,9 @@
 .pr-family-index {
   position: absolute;
   inset-block-start: 14px;
-  inset-inline-start: 14px;
+  /* The opposite corner from the SAM GROUP badge (`.fs-photo-brand`, inline-start), which it
+     used to sit on top of in every language. */
+  inset-inline-end: 14px;
   z-index: 2;
   padding: 6px 10px;
   border-radius: 999px;
@@ -618,9 +620,9 @@
   color: var(--color-text-tertiary);
 }
 
-[dir="rtl"] .pr-struct-connector {
-  transform: scaleX(-1);
-}
+/* No RTL mirror here: the `Arrow` inside is `.fs-ar`, which the global "RTL — arrows" rule in
+   flagship.css already flips. A second flip on the connector cancelled it, so on `/fa` the
+   arrows pointed against the reading direction. */
 
 /* ============================================================================
    3 · FINDER TEASER

@@ -43,8 +43,16 @@ describe("published shared FAQ", () => {
     findPage.mockRejectedValue(new Error("unavailable"));
     await expect(service.list(new FaqQuery(), "en")).rejects.toThrow("unavailable");
   });
-  it("leaves untranslated locales deferred", async () => {
+  it("lists only the entries translated into another locale, never English fallbacks", async () => {
+    findPage.mockResolvedValue({ docs: [], total: 0 });
     expect(await service.list(new FaqQuery(), "fa")).toEqual({ items: [], total: 0 });
-    expect(findPage).not.toHaveBeenCalled();
+    expect(findPage).toHaveBeenCalledWith(
+      "faq-entries",
+      expect.objectContaining({
+        locale: "fa",
+        "fallback-locale": "none",
+        "where[question][exists]": "true",
+      }),
+    );
   });
 });

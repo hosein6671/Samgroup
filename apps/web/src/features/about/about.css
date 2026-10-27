@@ -1563,3 +1563,8 @@
   line-height: var(--fs-text-caption--line-height);
   color: var(--color-text-secondary);
 }
+
+/* The Persian label beside the tally runs to four lines inside the Latin 12ch measure. */
+[dir="rtl"] .ab-who-tally-label {
+  max-width: 18ch;
+}

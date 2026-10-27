@@ -6,6 +6,7 @@ import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { actionHref, groupSubRanges } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { formatCount, translator, ordinal } from "@/i18n/translate";
 
 /**
  * 1 · Category hero — SITE_STRUCTURE §4 item 1.
@@ -31,6 +32,7 @@ import type { SectionProps } from "../category-section";
  */
 export function CategoryHero({ content, family, locale }: SectionProps): ReactNode {
   const { hero } = content;
+  const t = translator(locale);
 
   return (
     <section className="pc-hero" data-surface="midnight" data-photo={hero.image ? "true" : "false"}>
@@ -43,8 +45,8 @@ export function CategoryHero({ content, family, locale }: SectionProps): ReactNo
             Products is level 1, this category is level 2, and there is no level 3 — grades are
             sections inside this page, not routes (SITE_STRUCTURE §4).
           */}
-          <nav className="pc-trail" aria-label="Breadcrumb">
-            <a href={localeHref(locale, ROUTES.products)}>Products</a>
+          <nav className="pc-trail" aria-label={t("Breadcrumb")}>
+            <a href={localeHref(locale, ROUTES.products)}>{t("Products")}</a>
             <span aria-hidden="true">/</span>
             <span aria-current="page">{family.name}</span>
           </nav>
@@ -107,15 +109,16 @@ export function CategoryHero({ content, family, locale }: SectionProps): ReactNo
  * CSS only. Borders and pseudo-elements on tokenised colours; no SVG to keep in sync with the
  * data, no canvas, nothing added to the first-load JavaScript budget.
  */
-function GradeIndex({ content }: SectionProps): ReactNode {
+function GradeIndex({ content, locale }: SectionProps): ReactNode {
   const { range } = content;
+  const t = translator(locale);
   const groups = groupSubRanges(range);
   const grouped = groups.some((group) => group.axis !== undefined);
 
   return (
     <aside className="pc-index reveal-fade-rise" aria-labelledby="pc-index-title">
       <p className="fs-eyebrow" id="pc-index-title">
-        Range index
+        {t("Range index")}
       </p>
 
       {/*
@@ -128,8 +131,12 @@ function GradeIndex({ content }: SectionProps): ReactNode {
       */}
       <p className="pc-index-note">
         {grouped
-          ? `${range.subRanges.length} sub-ranges across ${groups.length} ${range.axisNoun ?? "dimensions"}.`
-          : `${range.subRanges.length} sub-ranges.`}
+          ? t("{count} sub-ranges across {groups} {noun}.", {
+              count: formatCount(locale, range.subRanges.length),
+              groups: formatCount(locale, groups.length),
+              noun: range.axisNoun ?? t("dimensions"),
+            })
+          : t("{count} sub-ranges.", { count: formatCount(locale, range.subRanges.length) })}
       </p>
 
       <ol className="pc-index-stack">
@@ -141,9 +148,7 @@ function GradeIndex({ content }: SectionProps): ReactNode {
               {group.subRanges.map((subRange, i) => (
                 <li className="pc-index-band" key={subRange.id}>
                   <a href={`#range-${subRange.id}`}>
-                    <span className="pc-index-num">
-                      {String(group.offset + i + 1).padStart(2, "0")}
-                    </span>
+                    <span className="pc-index-num">{ordinal(locale, group.offset + i + 1)}</span>
                     <span className="pc-index-name">{subRange.designation}</span>
                   </a>
 

@@ -77,4 +77,13 @@ export const FORM_HEADINGS = {
   },
 } as const;
 
-export type FormHeading = (typeof FORM_HEADINGS)[keyof typeof FORM_HEADINGS];
+/**
+ * Structural, not the `FORM_HEADINGS` literal union: the Request a Quote route can also supply this
+ * shape from the CMS (`RequestAQuoteContent`), whose strings are editor-entered and never match the
+ * hardcoded literals.
+ */
+export type FormHeading = {
+  readonly eyebrow: string;
+  readonly heading: string;
+  readonly lead: string;
+};

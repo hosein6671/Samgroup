@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { TechnicalDataPendingIcon } from "@/features/site/icons";
 
 import type { ProductSpecificationResponse } from "@sam-group/types";
+import { translator, type Translate } from "@/i18n/translate";
 
 /**
  * A `resultBasis` of `unspecified` is the column's own default — "no claim was made about what
@@ -41,29 +42,40 @@ const NOT_APPLICABLE = "Not applicable";
  */
 function SpecificationValue({
   specification,
+  t,
 }: {
   readonly specification: ProductSpecificationResponse;
+  readonly t: Translate;
 }): ReactNode {
-  const shapeLabel =
-    specification.valueType === null ? undefined : SHAPE_LABEL[specification.valueType];
+  const shape = specification.valueType === null ? undefined : SHAPE_LABEL[specification.valueType];
+  const shapeLabel = shape === undefined ? undefined : t(shape);
 
   return (
     <>
       {shapeLabel !== undefined && <span className="pd-value-shape">{shapeLabel}</span>}
-      {specification.value}
-      {specification.unit !== null && specification.unit !== "" && (
-        <span className="pd-unit">{specification.unit}</span>
-      )}
+      {/* The value and its unit read left to right in every locale: an isolate, never mirrored. */}
+      <span dir="ltr">
+        {specification.value}
+        {specification.unit !== null && specification.unit !== "" && (
+          <span className="pd-unit">{specification.unit}</span>
+        )}
+      </span>
     </>
   );
 }
 
 /** A table cell for a field this row may or may not carry — Grade, Basis, Method, Condition. */
-function OptionalCell({ children }: { readonly children: ReactNode | null }): ReactNode {
+function OptionalCell({
+  children,
+  t,
+}: {
+  readonly children: ReactNode | null;
+  readonly t: Translate;
+}): ReactNode {
   if (children === null) {
     return (
       <td data-empty="true">
-        <VisuallyHidden>{NOT_APPLICABLE}</VisuallyHidden>
+        <VisuallyHidden>{t(NOT_APPLICABLE)}</VisuallyHidden>
       </td>
     );
   }
@@ -75,16 +87,18 @@ function OptionalCell({ children }: { readonly children: ReactNode | null }): Re
 function OptionalRow({
   label,
   children,
+  t,
 }: {
   readonly label: string;
   readonly children: ReactNode | null;
+  readonly t: Translate;
 }): ReactNode {
   return (
     <div className="pd-spec-row">
-      <dt>{label}</dt>
+      <dt>{t(label)}</dt>
       {children === null ? (
         <dd data-empty="true">
-          <VisuallyHidden>{NOT_APPLICABLE}</VisuallyHidden>
+          <VisuallyHidden>{t(NOT_APPLICABLE)}</VisuallyHidden>
         </dd>
       ) : (
         <dd>{children}</dd>
@@ -93,22 +107,29 @@ function OptionalRow({
   );
 }
 
-function basisText(specification: ProductSpecificationResponse): ReactNode | null {
-  return BASIS_LABEL[specification.resultBasis] ?? null;
+function basisText(specification: ProductSpecificationResponse, t: Translate): ReactNode | null {
+  const label = BASIS_LABEL[specification.resultBasis];
+  return label === undefined ? null : t(label);
 }
 
 function gradeText(specification: ProductSpecificationResponse): ReactNode | null {
-  return specification.grade === null ? null : specification.grade.label;
+  return specification.grade === null ? null : <span dir="ltr">{specification.grade.label}</span>;
 }
 
 function methodText(specification: ProductSpecificationResponse): ReactNode | null {
-  return specification.method === null || specification.method === "" ? null : specification.method;
+  return specification.method === null || specification.method === "" ? null : (
+    <span dir="ltr">{specification.method}</span>
+  );
 }
 
-function conditionText(specification: ProductSpecificationResponse): ReactNode | null {
-  return specification.qualifier === null || specification.qualifier === ""
-    ? null
-    : specification.qualifier;
+function conditionText(
+  specification: ProductSpecificationResponse,
+  t: Translate,
+): ReactNode | null {
+  return specification.qualifier === null || specification.qualifier === "" ? null : (
+    // A test condition reads in its own direction — "@ 100 °C" must not mirror inside RTL text.
+    <span dir="auto">{t(specification.qualifier)}</span>
+  );
 }
 
 /**
@@ -133,17 +154,17 @@ const PENDING_STATUS = "Technical data is under review.";
  * PDF/download action — this is a status line, not a table with the data missing. See the doc
  * comment on `PENDING_STATUS` above for why this must never be reachable from an API failure.
  */
-function SpecificationsPending(): ReactNode {
+function SpecificationsPending({ t }: { readonly t: Translate }): ReactNode {
   return (
     <section className="fs-sec pd-specs pd-specs--pending" id="specifications" data-surface="light">
       <div className="fs-wrap">
         <header className="pd-section-head reveal-fade-rise">
-          <p className="fs-eyebrow">Specifications</p>
-          <h2 className="fs-d2">{PENDING_HEADING}</h2>
+          <p className="fs-eyebrow">{t("Specifications")}</p>
+          <h2 className="fs-d2">{t(PENDING_HEADING)}</h2>
         </header>
         <p className="pd-specs-pending reveal-fade-rise">
           <TechnicalDataPendingIcon size="lg" />
-          {PENDING_STATUS}
+          {t(PENDING_STATUS)}
         </p>
       </div>
     </section>
@@ -197,43 +218,51 @@ function SpecificationsPending(): ReactNode {
  */
 export function ProductSpecifications({
   specifications,
+  locale = "en",
 }: {
   readonly specifications: readonly ProductSpecificationResponse[];
+  readonly locale?: string;
 }): ReactNode {
-  if (specifications.length === 0) return <SpecificationsPending />;
+  /*
+   * Labels translate; values never do. A property name ("Viscosity, 40°C"), a result basis and a
+   * test condition are vocabulary and read in the page's language. The value, its unit, the grade
+   * and the test method are printed exactly as published, in every locale.
+   */
+  const t = translator(locale);
+  if (specifications.length === 0) return <SpecificationsPending t={t} />;
 
   return (
     <section className="fs-sec pd-specs" id="specifications" data-surface="light">
       <div className="fs-wrap">
         <header className="pd-section-head reveal-fade-rise">
-          <p className="fs-eyebrow">Specifications</p>
-          <h2 className="fs-d2">Published values</h2>
+          <p className="fs-eyebrow">{t("Specifications")}</p>
+          <h2 className="fs-d2">{t("Published values")}</h2>
         </header>
 
         <div className="pd-table-wrap reveal-fade-rise">
           <table className="pd-table">
-            <caption>Specification values as published for this product.</caption>
+            <caption>{t("Specification values as published for this product.")}</caption>
             <thead>
               <tr>
-                <th scope="col">Property</th>
-                <th scope="col">Grade</th>
-                <th scope="col">Value</th>
-                <th scope="col">Basis</th>
-                <th scope="col">Method</th>
-                <th scope="col">Condition</th>
+                <th scope="col">{t("Property")}</th>
+                <th scope="col">{t("Grade")}</th>
+                <th scope="col">{t("Value")}</th>
+                <th scope="col">{t("Basis")}</th>
+                <th scope="col">{t("Method")}</th>
+                <th scope="col">{t("Condition")}</th>
               </tr>
             </thead>
             <tbody>
               {specifications.map((specification) => (
                 <tr key={specification.id}>
-                  <th scope="row">{specification.key}</th>
-                  <OptionalCell>{gradeText(specification)}</OptionalCell>
+                  <th scope="row">{t(specification.key)}</th>
+                  <OptionalCell t={t}>{gradeText(specification)}</OptionalCell>
                   <td>
-                    <SpecificationValue specification={specification} />
+                    <SpecificationValue specification={specification} t={t} />
                   </td>
-                  <OptionalCell>{basisText(specification)}</OptionalCell>
-                  <OptionalCell>{methodText(specification)}</OptionalCell>
-                  <OptionalCell>{conditionText(specification)}</OptionalCell>
+                  <OptionalCell t={t}>{basisText(specification, t)}</OptionalCell>
+                  <OptionalCell t={t}>{methodText(specification)}</OptionalCell>
+                  <OptionalCell t={t}>{conditionText(specification, t)}</OptionalCell>
                 </tr>
               ))}
             </tbody>
@@ -251,19 +280,27 @@ export function ProductSpecifications({
             <li className="pd-spec-card" key={specification.id}>
               <dl>
                 <div className="pd-spec-row pd-spec-row--property">
-                  <dt>Property</dt>
-                  <dd>{specification.key}</dd>
+                  <dt>{t("Property")}</dt>
+                  <dd>{t(specification.key)}</dd>
                 </div>
-                <OptionalRow label="Grade">{gradeText(specification)}</OptionalRow>
+                <OptionalRow label="Grade" t={t}>
+                  {gradeText(specification)}
+                </OptionalRow>
                 <div className="pd-spec-row">
-                  <dt>Value</dt>
+                  <dt>{t("Value")}</dt>
                   <dd>
-                    <SpecificationValue specification={specification} />
+                    <SpecificationValue specification={specification} t={t} />
                   </dd>
                 </div>
-                <OptionalRow label="Basis">{basisText(specification)}</OptionalRow>
-                <OptionalRow label="Method">{methodText(specification)}</OptionalRow>
-                <OptionalRow label="Condition">{conditionText(specification)}</OptionalRow>
+                <OptionalRow label="Basis" t={t}>
+                  {basisText(specification, t)}
+                </OptionalRow>
+                <OptionalRow label="Method" t={t}>
+                  {methodText(specification)}
+                </OptionalRow>
+                <OptionalRow label="Condition" t={t}>
+                  {conditionText(specification, t)}
+                </OptionalRow>
               </dl>
             </li>
           ))}

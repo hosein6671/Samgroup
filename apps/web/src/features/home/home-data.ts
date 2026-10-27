@@ -106,28 +106,28 @@ export const HERO_SHOTS: readonly HeroShot[] = [
     slot: "hero_shot_1",
     src: "/images/base-oils-lab-samples.webp",
     focus: "62% 58%",
-    drift: "-3% -1%",
+    drift: "-1.5% -0.5%",
   },
   {
     name: "Engine Oils",
     slot: "hero_shot_2",
     src: "/images/engine-oils-automotive-lab-samples.webp",
     focus: "55% 50%",
-    drift: "2% -2%",
+    drift: "1% -1%",
   },
   {
     name: "Industrial",
     slot: "hero_shot_3",
     src: "/images/industrial-oils-lab-samples.webp",
     focus: "60% 55%",
-    drift: "-2% 1%",
+    drift: "-1% 0.5%",
   },
   {
     name: "Marine",
     slot: "hero_shot_4",
     src: "/images/marine-oils-lab-samples.webp",
     focus: "50% 55%",
-    drift: "-3% -1%",
+    drift: "-1.5% -0.5%",
   },
 ];
 

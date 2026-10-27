@@ -30,10 +30,15 @@ describe("published category narrative", () => {
     });
     expect(await service.read("base-oils", "en")).toEqual({ available: false, fields: {} });
   });
-  it("rejects unknown keys and leaves deferred locales alone", async () => {
+  it("rejects unknown keys and reads another locale without fallback", async () => {
     await expect(service.read("unknown", "en")).rejects.toThrow();
-    expect(await service.read("base-oils", "fa")).toEqual({ available: false, fields: {} });
     expect(find).not.toHaveBeenCalled();
+    find.mockResolvedValue({ docs: [] });
+    expect(await service.read("base-oils", "fa")).toEqual({ available: false, fields: {} });
+    expect(find).toHaveBeenCalledWith(
+      "product-category-content",
+      expect.objectContaining({ locale: "fa", "fallback-locale": "none" }),
+    );
   });
   it("does not turn upstream failure into empty content", async () => {
     find.mockRejectedValue(new Error("unavailable"));

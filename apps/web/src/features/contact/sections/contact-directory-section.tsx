@@ -5,6 +5,7 @@ import { ORGANIZATION_NAME, organizationId, siteOrigin } from "@/features/seo/si
 import { getContactUsContent } from "@/lib/content";
 
 import { ContactDirectory } from "./contact-directory";
+import { translator } from "@/i18n/translate";
 
 /**
  * The Contact Us directory, with its own data dependency — the boundary between a page that renders
@@ -68,7 +69,7 @@ export async function ContactDirectorySection({
             : `the platform API answered, but not with contact channels (HTTP ${String(result.status)})`),
     );
 
-    return <ContactDirectory content={null} unavailable />;
+    return <ContactDirectory content={null} unavailable locale={locale} />;
   }
 
   const content = result.content;
@@ -102,7 +103,7 @@ export async function ContactDirectorySection({
   return (
     <>
       <JsonLd data={organization} />
-      <ContactDirectory content={content} />
+      <ContactDirectory content={content} locale={locale} />
     </>
   );
 }
@@ -118,7 +119,10 @@ export async function ContactDirectorySection({
  * A skeleton that guessed at how many channels exist would flash a layout the real answer then
  * contradicts, so the placeholder rows are a fixed, neutral two.
  */
-export function ContactDirectorySkeleton(): ReactNode {
+export function ContactDirectorySkeleton({
+  locale = "en",
+}: { readonly locale?: string } = {}): ReactNode {
+  const t = translator(locale);
   return (
     <section
       className="ct-directory ct-directory--pending"
@@ -127,12 +131,12 @@ export function ContactDirectorySkeleton(): ReactNode {
     >
       <div className="fs-wrap ct-directory-inner">
         <header className="ct-directory-head">
-          <p className="fs-eyebrow">Direct contact</p>
+          <p className="fs-eyebrow">{t("Direct contact")}</p>
           <h2 id="contact-directory-title" className="fs-d3">
-            Reach the right team.
+            {t("Reach the right team.")}
           </h2>
           <p className="fs-lead" role="status">
-            Loading contact channels…
+            {t("Loading contact channels…")}
           </p>
         </header>
 

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 import { ROUTES } from "@/features/site/site-routes";
+import { translator } from "@/i18n/translate";
 
 import { ProductGallery } from "./gallery";
 
@@ -50,6 +51,7 @@ export function ProductHero({
    * page beneath the hero describes. */
   readonly activeGrade: ProductGradeSummaryResponse | null;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec pd-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -60,18 +62,19 @@ export function ProductHero({
             images={product.images}
             productName={product.name}
             familySlug={product.category.slug}
+            locale={locale}
           />
         </div>
 
         <div className="pd-hero-identity">
-          <nav className="pd-crumbs" aria-label="Breadcrumb">
+          <nav className="pd-crumbs" aria-label={t("Breadcrumb")}>
             <ol>
               <li>
-                <a href={`/${locale}${ROUTES.products}`}>Products</a>
+                <a href={`/${locale}${ROUTES.products}`}>{t("Products")}</a>
               </li>
               <li>
                 <a href={`/${locale}${ROUTES.products}/${product.category.slug}`}>
-                  {product.category.name}
+                  {t(product.category.name)}
                 </a>
               </li>
               <li aria-current="page">{product.name}</li>
@@ -81,7 +84,9 @@ export function ProductHero({
           <h1 className="fs-d1 pd-title">{product.name}</h1>
 
           {product.description !== null && product.description !== "" && (
-            <p className="fs-lead pd-lead">{product.description}</p>
+            <p className="fs-lead pd-lead" dir="auto">
+              {product.description}
+            </p>
           )}
 
           {(product.segments.length > 0 ||
@@ -89,10 +94,10 @@ export function ProductHero({
             activeGrade !== null) && (
             <dl className="pd-facts">
               <div>
-                <dt>Product family</dt>
+                <dt>{t("Product family")}</dt>
                 <dd>
                   <a href={`/${locale}${ROUTES.products}/${product.category.slug}`}>
-                    {product.category.name}
+                    {t(product.category.name)}
                     <Arrow size={12} />
                   </a>
                 </dd>
@@ -100,11 +105,11 @@ export function ProductHero({
 
               {product.segments.length > 0 && (
                 <div>
-                  <dt>{product.segments.length === 1 ? "Segment" : "Segments"}</dt>
+                  <dt>{product.segments.length === 1 ? t("Segment") : t("Segments")}</dt>
                   <dd>
                     <ul className="pd-segments">
                       {product.segments.map((segment) => (
-                        <li key={segment.slug}>{segment.name}</li>
+                        <li key={segment.slug}>{t(segment.name)}</li>
                       ))}
                     </ul>
                   </dd>
@@ -113,14 +118,14 @@ export function ProductHero({
 
               {product.productType !== null && (
                 <div>
-                  <dt>Product type</dt>
+                  <dt>{t("Product type")}</dt>
                   <dd>{product.productType.name}</dd>
                 </div>
               )}
 
               {activeGrade !== null && (
                 <div>
-                  <dt>Grade</dt>
+                  <dt>{t("Grade")}</dt>
                   <dd>{activeGrade.label}</dd>
                 </div>
               )}
@@ -129,8 +134,9 @@ export function ProductHero({
 
           {localeFallback && (
             <p className="pd-fallback-note">
-              Some details are shown in the site&rsquo;s default language because this product has
-              not been translated yet.
+              {t(
+                "Some details are shown in the site’s default language because this product has not been translated yet.",
+              )}
             </p>
           )}
         </div>

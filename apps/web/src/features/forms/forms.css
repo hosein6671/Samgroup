@@ -684,3 +684,15 @@
   align-items: flex-start;
   gap: 8px;
 }
+
+/*
+ * Addresses and numbers are typed left to right in every language. Under `dir="rtl"` an email
+ * typed into a right-to-left field reorders as it is typed ("@samgp.com" jumps to the front), so
+ * these fields run LTR; the text still sits against the field's reading-side edge.
+ */
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="url"] {
+  direction: ltr;
+  text-align: right;
+}

@@ -28,10 +28,25 @@ describe("company editor gateway", () => {
     global.fetch = fetchMock;
     await new CompanyEditorService(config).request("contact-us", "actor");
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      locale: "en",
       actorId: "actor",
       action: "read",
     });
     expect(fetchMock.mock.calls[0][1].headers["x-editor-secret"]).toBe("separate-editor-test-key");
+  });
+  it("forwards the resolved locale being edited", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ revision: "one", fields: {} }), { status: 200 }),
+      );
+    global.fetch = fetchMock;
+    await new CompanyEditorService(config).request("contact-us", "actor", undefined, "fa");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      locale: "fa",
+      actorId: "actor",
+      action: "read",
+    });
   });
   it("does not expose CMS errors or credentials", async () => {
     global.fetch = jest

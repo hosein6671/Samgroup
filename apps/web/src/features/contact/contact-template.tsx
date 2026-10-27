@@ -72,7 +72,7 @@ export function ContactTemplate({
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        <ContactHero />
+        <ContactHero locale={locale} />
         <ContactPathways locale={locale} />
         {directory}
 
@@ -82,6 +82,7 @@ export function ContactTemplate({
           lockInquiryType={lockInquiryType}
           privacyPolicyHref={privacyPolicyHref}
           product={product}
+          locale={locale}
         />
         {faq}
       </main>

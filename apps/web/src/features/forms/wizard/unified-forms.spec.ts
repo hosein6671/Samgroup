@@ -279,11 +279,15 @@ describe("the step indicator is semantic, not decorative", () => {
   });
 
   it("states total progress in words rather than leaving it to be counted", () => {
-    expect(indicator()).toMatch(/Step \{activeIndex \+ 1\} of \{total\}/);
+    expect(indicator()).toMatch(
+      /"Step \{current\} of \{total\}", \{\s*current: formatCount\(locale, activeIndex \+ 1\),\s*total: formatCount\(locale, total\),\s*\}/,
+    );
   });
 
   it("announces the completed state rather than only drawing it", () => {
-    expect(indicator()).toMatch(/state === "done" && <VisuallyHidden> completed<\/VisuallyHidden>/);
+    expect(indicator()).toMatch(
+      /state === "done" && <VisuallyHidden>\{t\(" completed"\)\}<\/VisuallyHidden>/,
+    );
   });
 
   it("makes an unreached step unavailable rather than silently inert", () => {

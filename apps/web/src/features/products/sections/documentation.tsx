@@ -8,8 +8,11 @@ import type { ReactNode } from "react";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
+import { contentText } from "@/i18n/localize-content";
+
 import { DOCUMENT_TIERS } from "../products-data";
 import { RichText } from "@/features/site/rich-text";
+import { translator } from "@/i18n/translate";
 
 /**
  * 5 · Technical-data trust, and catalogue access.
@@ -39,6 +42,7 @@ export function Documentation({
   editorial,
 }: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
   const copy = structuralSection("products-landing", "documentation", editorial);
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pr-docs" id="documentation" data-surface="midnight">
@@ -61,7 +65,9 @@ export function Documentation({
           {structuralList(editorial, "document_tiers", DOCUMENT_TIERS, { rich: ["note"] }).map(
             (tier) => (
               <div className={`pr-tier pr-tier--${tier.kind} reveal-fade-rise`} key={tier.heading}>
-                <p className="fs-eyebrow">{tier.kind === "gated" ? "Qualified access" : "Open"}</p>
+                <p className="fs-eyebrow">
+                  {tier.kind === "gated" ? t("Qualified access") : t("Open")}
+                </p>
                 <h3>{tier.heading}</h3>
                 <p className="pr-tier-note">
                   <RichText text={tier.note} />
@@ -70,8 +76,8 @@ export function Documentation({
                 <ul className="pr-doclist">
                   {(tier.kind === "gated" ? tier.items : tier.fields).map((item) => (
                     <li key={item.label}>
-                      {item.label}
-                      <span>{item.meta}</span>
+                      {contentText(locale, item.label)}
+                      <span>{contentText(locale, item.meta)}</span>
                     </li>
                   ))}
                 </ul>
@@ -90,14 +96,16 @@ export function Documentation({
  * The honest route to catalogue access until the dedicated DownloadRequest contract is shipped.
  */
 function CatalogueRoute({ locale }: { readonly locale: string }): ReactNode {
+  const t = translator(locale);
   return (
     <div className="pr-catalogue-route">
       <p>
-        Share your company, market, and product interest through the enquiry route. Catalogue access
-        can then be handled against a reviewable business request.
+        {t(
+          "Share your company, market, and product interest through the enquiry route. Catalogue access can then be handled against a reviewable business request.",
+        )}
       </p>
       <a href={localeHref(locale, ROUTES.contactUs)} className="fs-btn fs-btn--gold">
-        Request catalogue access
+        {t("Request catalogue access")}
         <Arrow size={15} />
       </a>
     </div>

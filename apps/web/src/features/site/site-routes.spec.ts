@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { ACTIVE_LOCALES, ACTIVE_LOCALE_CODES } from "@test/active-locales";
+import { translator } from "@/i18n/translate";
 
 import {
   FOOTER_COLUMNS,
@@ -137,10 +138,11 @@ describe("header addresses", () => {
     }
   });
 
-  it("keeps the family labels and keys exactly as the canonical table publishes them", () => {
+  it("keeps the family keys canonical, and labels them in the reader's language", () => {
     for (const code of ACTIVE_LOCALE_CODES) {
+      const t = translator(code);
       expect(productFamilyLinks(code).map((f) => [f.key, f.label])).toEqual(
-        PRODUCT_CATEGORIES.map((f) => [f.key, f.label]),
+        PRODUCT_CATEGORIES.map((f) => [f.key, t(f.label)]),
       );
     }
   });
@@ -383,7 +385,7 @@ describe("structuralPathOf", () => {
 
 describe("isNavHrefActive", () => {
   const activeLabels = (structuralPath: string): string[] =>
-    primaryNavLinks("fa", structuralPath)
+    primaryNavLinks("en", structuralPath)
       .filter((link) => link.current)
       .map((link) => link.label);
 

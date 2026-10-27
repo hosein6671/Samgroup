@@ -6,6 +6,7 @@ import { ANCHORS } from "../about-anchors";
 import type { AboutUsClosing } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * The closing section — a distinct framed panel, not another plain midnight band.
@@ -26,6 +27,7 @@ export function AboutClosing({
   readonly closing: AboutUsClosing;
   readonly locale: string;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec ab-close" id={ANCHORS.next} data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -59,8 +61,8 @@ export function AboutClosing({
                 aria-labelledby="ab-close-routes-title"
               >
                 <p className="ab-close-head" id="ab-close-routes-title">
-                  <span>Other ways to continue</span>
-                  <span className="fs-tnum">{String(closing.routes.length).padStart(2, "0")}</span>
+                  <span>{t("Other ways to continue")}</span>
+                  <span className="fs-tnum">{ordinal(locale, closing.routes.length)}</span>
                 </p>
                 <ul>
                   {closing.routes.map((route) => (

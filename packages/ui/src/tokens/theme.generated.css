@@ -259,10 +259,10 @@
 }
 
 [dir="rtl"] {
-  /* provisional families — pending the RTL typeface decision */
-  --font-display: system-ui, "Segoe UI", "Noto Naskh Arabic", Tahoma, sans-serif;
-  --font-text: system-ui, "Segoe UI", "Noto Naskh Arabic", Tahoma, sans-serif;
-  --font-technical: system-ui, "Segoe UI", "Noto Naskh Arabic", Tahoma, sans-serif;
+  /* families · Vazirmatn, see tokens/typography.ts */
+  --font-display: var(--font-fa-src), var(--font-body-src), var(--font-rtl-src), Vazirmatn, Tahoma, sans-serif;
+  --font-text: var(--font-fa-src), var(--font-body-src), var(--font-rtl-src), Vazirmatn, Tahoma, sans-serif;
+  --font-technical: var(--font-fa-src), var(--font-mono-src), var(--font-rtl-src), Vazirmatn, ui-monospace, monospace;
 
   /* leading · Persian and Arabic need more than Latin */
   --text-display-1--line-height: 1.15;
@@ -274,6 +274,17 @@
   --text-body--line-height: 1.85;
   --text-caption--line-height: 1.7;
   --text-technical--line-height: 1.5;
+
+  /* tracking · positive or negative letter-spacing breaks cursive joining */
+  --text-display-1--letter-spacing: 0;
+  --text-display-2--letter-spacing: 0;
+  --text-headline-1--letter-spacing: 0;
+  --text-headline-2--letter-spacing: 0;
+  --text-title--letter-spacing: 0;
+  --text-body-lead--letter-spacing: 0;
+  --text-body--letter-spacing: 0;
+  --text-caption--letter-spacing: 0;
+  --text-technical--letter-spacing: 0;
 
   /* directional transforms flip sign */
   --motion-dir: -1;

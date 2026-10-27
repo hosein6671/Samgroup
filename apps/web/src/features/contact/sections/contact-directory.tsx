@@ -7,6 +7,7 @@ import {
   PhoneChannelIcon,
   SocialChannelIcon,
 } from "@/features/site/icons";
+import { translator } from "@/i18n/translate";
 
 function phoneHref(value: string): string {
   return `tel:${value.replace(/[^+\d]/g, "")}`;
@@ -29,7 +30,19 @@ function ContactItem({
       <div className="ct-directory-text">
         <p className="ct-directory-label">{label}</p>
         <p className="ct-directory-value">
-          {href ? <a href={href}>{value}</a> : <address>{value}</address>}
+          {/*
+           * Each value keeps its own direction inside a right-to-left page. A phone number has no
+           * strong character for `dir="auto"` to read, so it is pinned left to right (otherwise
+           * "+98 21 …" renders as "… 21 98+"); an address, e-mail or label takes its direction from
+           * its first strong character, so a Persian postal address still reads right to left.
+           */}
+          {href ? (
+            <a href={href} dir={href.startsWith("tel:") ? "ltr" : "auto"}>
+              {value}
+            </a>
+          ) : (
+            <address dir="auto">{value}</address>
+          )}
         </p>
       </div>
     </li>
@@ -52,11 +65,14 @@ function ContactItem({
 export function ContactDirectory({
   content,
   unavailable = false,
+  locale = "en",
 }: {
   readonly content: ContactUsContent | null;
+  readonly locale?: string;
   /** True only when the API or the CMS failed to answer. Never true for an unpublished Global. */
   readonly unavailable?: boolean;
 }): ReactNode {
+  const t = translator(locale);
   if (content === null) {
     if (!unavailable) return null;
 
@@ -64,17 +80,18 @@ export function ContactDirectory({
       <section className="ct-directory" aria-labelledby="contact-directory-title">
         <div className="fs-wrap ct-directory-inner">
           <header className="ct-directory-head">
-            <p className="fs-eyebrow">Direct contact</p>
+            <p className="fs-eyebrow">{t("Direct contact")}</p>
             <h2 id="contact-directory-title" className="fs-d3">
-              Reach the right team.
+              {t("Reach the right team.")}
             </h2>
             {/*
              * States the condition and nothing else. It names no channel, promises no restoration
              * time, and points at the enquiry form below, which does not depend on the CMS.
              */}
             <p className="fs-lead" role="status">
-              Direct contact channels cannot be loaded right now. The enquiry form below still
-              reaches the team.
+              {t(
+                "Direct contact channels cannot be loaded right now. The enquiry form below still reaches the team.",
+              )}
             </p>
           </header>
         </div>
@@ -93,12 +110,14 @@ export function ContactDirectory({
     <section className="ct-directory" aria-labelledby="contact-directory-title">
       <div className="fs-wrap ct-directory-inner">
         <header className="ct-directory-head reveal-fade-rise">
-          <p className="fs-eyebrow">Direct contact</p>
+          <p className="fs-eyebrow">{t("Direct contact")}</p>
           <h2 id="contact-directory-title" className="fs-d3">
-            Reach the right team.
+            {t("Reach the right team.")}
           </h2>
           <p className="fs-lead">
-            Use a direct channel for general or sales enquiries, or send the structured form below.
+            {t(
+              "Use a direct channel for general or sales enquiries, or send the structured form below.",
+            )}
           </p>
         </header>
 
@@ -106,7 +125,7 @@ export function ContactDirectory({
           {content.mainPhone && (
             <ContactItem
               icon={<PhoneChannelIcon />}
-              label="Main phone"
+              label={t("Main phone")}
               value={content.mainPhone}
               href={phoneHref(content.mainPhone)}
             />
@@ -114,7 +133,7 @@ export function ContactDirectory({
           {content.salesPhone && (
             <ContactItem
               icon={<PhoneChannelIcon />}
-              label="Sales phone"
+              label={t("Sales phone")}
               value={content.salesPhone}
               href={phoneHref(content.salesPhone)}
             />
@@ -122,7 +141,7 @@ export function ContactDirectory({
           {content.generalEmail && (
             <ContactItem
               icon={<EmailChannelIcon />}
-              label="General email"
+              label={t("General email")}
               value={content.generalEmail}
               href={`mailto:${content.generalEmail}`}
             />
@@ -130,7 +149,7 @@ export function ContactDirectory({
           {content.salesEmail && (
             <ContactItem
               icon={<EmailChannelIcon />}
-              label="Sales email"
+              label={t("Sales email")}
               value={content.salesEmail}
               href={`mailto:${content.salesEmail}`}
             />
@@ -142,13 +161,17 @@ export function ContactDirectory({
                   key={label}
                   icon={<SocialChannelIcon />}
                   label={label}
-                  value={`Open ${label}`}
+                  value={t("Open {network}", { network: label })}
                   href={href}
                 />
               ),
           )}
           {content.address && (
-            <ContactItem icon={<AddressChannelIcon />} label="Address" value={content.address} />
+            <ContactItem
+              icon={<AddressChannelIcon />}
+              label={t("Address")}
+              value={content.address}
+            />
           )}
         </ul>
       </div>

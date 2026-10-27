@@ -4,8 +4,9 @@ import type { ReactNode } from "react";
 import { BrandedPhoto } from "@/features/home/branded-photo";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
+import { translator, ordinal } from "@/i18n/translate";
 
-import { FAMILIES } from "../products-data";
+import { familiesFor } from "../localized-data";
 
 /**
  * 1 · Products hero.
@@ -62,7 +63,7 @@ export function ProductsHero({
       </div>
 
       <div className="fs-wrap pr-hero-index">
-        <ProductArchitecture />
+        <ProductArchitecture locale={locale} />
       </div>
     </section>
   );
@@ -94,21 +95,24 @@ export function ProductsHero({
  * on tokenised colours — no SVG to keep in sync with the data, no canvas, no JavaScript, and
  * nothing added to the first-load budget.
  */
-function ProductArchitecture(): ReactNode {
+function ProductArchitecture({ locale }: { readonly locale: string }): ReactNode {
+  const t = translator(locale);
   return (
     <aside className="pr-arch reveal-fade-rise" aria-labelledby="pr-arch-title">
       <p className="fs-eyebrow" id="pr-arch-title">
-        Product architecture
+        {t("Product architecture")}
       </p>
 
-      <p className="pr-arch-note">Choose a family to review its range and available information.</p>
+      <p className="pr-arch-note">
+        {t("Choose a family to review its range and available information.")}
+      </p>
 
       <ol className="pr-arch-stem">
-        {FAMILIES.map((family, i) => (
+        {familiesFor(locale).map((family, i) => (
           <li className="pr-arch-branch" key={family.id}>
             <a href={`#family-${family.id}`}>
               <span className="pr-arch-code">
-                {String(i + 1).padStart(2, "0")} · {family.code}
+                {ordinal(locale, i + 1)} · {family.code}
               </span>
               <span className="pr-arch-name">{family.name}</span>
             </a>

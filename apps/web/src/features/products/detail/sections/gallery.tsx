@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { familyIconFor } from "@/features/site/icons";
+import { formatCount, translator } from "@/i18n/translate";
 
 import type { ProductImageResponse } from "@sam-group/types";
 
@@ -47,18 +48,25 @@ export function ProductGallery({
   images,
   productName,
   familySlug,
+  locale = "en",
 }: {
   readonly images: readonly ProductImageResponse[];
   /** Used only for accessible labelling — never printed into an `alt`. */
   readonly productName: string;
   readonly familySlug: string;
+  readonly locale?: string;
 }): ReactNode {
+  const t = translator(locale);
   if (images.length === 0)
-    return <FamilyFallback productName={productName} familySlug={familySlug} />;
+    return <FamilyFallback productName={productName} familySlug={familySlug} locale={locale} />;
 
   return (
     <div className="pd-gallery-media">
-      <div className="pd-gallery-stage" role="group" aria-label={`Images of ${productName}`}>
+      <div
+        className="pd-gallery-stage"
+        role="group"
+        aria-label={t("Images of {product}", { product: productName })}
+      >
         {images.map((image, index) => (
           <Image
             key={image.id}
@@ -80,7 +88,10 @@ export function ProductGallery({
               <a
                 className="pd-gallery-thumb"
                 href={`#pd-gallery-${image.id}`}
-                aria-label={`Show image ${String(index + 1)} of ${String(images.length)}`}
+                aria-label={t("Show image {index} of {count}", {
+                  index: formatCount(locale, index + 1),
+                  count: formatCount(locale, images.length),
+                })}
               >
                 <Image src={image.url} alt="" fill sizes="64px" loading="lazy" />
               </a>
@@ -102,9 +113,11 @@ export function ProductGallery({
 function FamilyFallback({
   productName,
   familySlug,
+  locale,
 }: {
   readonly productName: string;
   readonly familySlug: string;
+  readonly locale: string;
 }): ReactNode {
   const FamilyIcon = familyIconFor(familySlug);
 
@@ -112,7 +125,7 @@ function FamilyFallback({
     <div className="pd-gallery-fallback">
       {FamilyIcon && <FamilyIcon size="xl" />}
       <p>{productName}</p>
-      <span>Product image pending</span>
+      <span>{translator(locale)("Product image pending")}</span>
     </div>
   );
 }

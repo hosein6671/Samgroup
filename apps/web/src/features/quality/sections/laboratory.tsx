@@ -5,6 +5,7 @@ import { ANCHORS } from "../quality-anchors";
 import type { ContentFigure, QualityLaboratory } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { ordinal } from "@/i18n/translate";
 
 /**
  * 3 · Laboratory Capability — SITE_STRUCTURE §7's test list.
@@ -37,8 +38,10 @@ import { RichText } from "@/features/site/rich-text";
  */
 export function QualityLaboratorySection({
   laboratory,
+  locale = "en",
 }: {
   readonly laboratory: QualityLaboratory;
+  readonly locale?: string;
 }): ReactNode {
   const {
     eyebrow,
@@ -82,7 +85,7 @@ export function QualityLaboratorySection({
               <p className="qc-register-head">
                 <span>{registerLabel}</span>
                 <span className="fs-tnum">
-                  {String(properties.length).padStart(2, "0")}
+                  {ordinal(locale, properties.length)}
                   {orderNote !== null && ` · ${orderNote}`}
                 </span>
               </p>
@@ -91,7 +94,7 @@ export function QualityLaboratorySection({
             <ol className="qc-register-list">
               {properties.map((property, i) => (
                 <li className="qc-property" key={property.name}>
-                  <span className="qc-property-num fs-tnum">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="qc-property-num fs-tnum">{ordinal(locale, i + 1)}</span>
                   <span className="qc-property-name">{property.name}</span>
                 </li>
               ))}

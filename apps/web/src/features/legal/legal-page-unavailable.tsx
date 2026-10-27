@@ -6,6 +6,7 @@ import "./legal.css";
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
+import { translator } from "@/i18n/translate";
 
 /**
  * What a canonical legal route renders when the content path could not answer.
@@ -45,6 +46,7 @@ import { ROUTES } from "@/features/site/site-routes";
  * belongs with the SEO launch gate.
  */
 export function LegalPageUnavailable({ locale, locales }: SiteNavProps): ReactNode {
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -54,19 +56,21 @@ export function LegalPageUnavailable({ locale, locales }: SiteNavProps): ReactNo
           <div className="fs-blueprint" aria-hidden="true" />
 
           <div className="fs-wrap lg-unavailable-inner">
-            <p className="fs-eyebrow">Page unavailable</p>
+            <p className="fs-eyebrow">{t("Page unavailable")}</p>
 
-            <h1 className="fs-d2 lg-unavailable-title">This page cannot be shown right now.</h1>
+            <h1 className="fs-d2 lg-unavailable-title">
+              {t("This page cannot be shown right now.")}
+            </h1>
 
             <p className="fs-lead">
-              The service that holds this document did not answer. This is a temporary service
-              condition, not a statement that the document does not exist — please try again
-              shortly.
+              {t(
+                "The service that holds this document did not answer. This is a temporary service condition, not a statement that the document does not exist — please try again shortly.",
+              )}
             </p>
 
             <p>
               <a className="fs-btn fs-btn--glass" href={`/${locale}${ROUTES.home}`}>
-                Home
+                {t("Home")}
               </a>
             </p>
           </div>

@@ -58,9 +58,9 @@ export function InsightsTemplate({
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        <InsightsHero />
+        <InsightsHero locale={locale} />
 
-        <Suspense fallback={<InsightsListSkeleton />}>
+        <Suspense fallback={<InsightsListSkeleton locale={locale} />}>
           <InsightsList posts={posts} locale={locale} query={query} />
         </Suspense>
       </main>

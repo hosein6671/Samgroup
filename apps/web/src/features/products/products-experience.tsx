@@ -71,7 +71,7 @@ export function ProductsExperience({
       <main id="main-content">
         <ProductsHero editorial={editorial} locale={locale} />
         <ProductRegister editorial={editorial} locale={locale} />
-        <CatalogueStructure editorial={editorial} />
+        <CatalogueStructure editorial={editorial} locale={locale} />
         <FinderTeaser editorial={editorial} locale={locale} />
         <Documentation editorial={editorial} locale={locale} />
         <ClosingCta editorial={editorial} locale={locale} />

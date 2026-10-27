@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { contentText, localizeContent } from "@/i18n/localize-content";
 import type { ReactNode } from "react";
 
 import { FORM_HEADINGS } from "@/features/contact/contact-data";
@@ -35,18 +36,22 @@ export async function generateMetadata({
   const canonical = absoluteUrl(localePath(locale, ROUTES.requestQuote));
 
   return {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: contentText(locale, TITLE),
+    description: contentText(locale, DESCRIPTION),
     alternates: structuralAlternates(locale, ROUTES.requestQuote),
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: TITLE,
-      description: DESCRIPTION,
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
       url: canonical,
       locale,
     },
-    twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+    twitter: {
+      card: "summary_large_image",
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
+    },
   };
 }
 
@@ -81,6 +86,8 @@ export default async function RequestAQuotePage({
     getPrivacyPolicyHref(locale),
     resolveProductContext(single(query.product), locale),
   ]);
+  // The built-in heading copy, in the reader's language.
+  const copy = localizeContent(locale, FORM_HEADINGS.quote);
 
   /*
    * No `directory` is passed, and that is unchanged behaviour: this route's subject is one focused
@@ -92,15 +99,15 @@ export default async function RequestAQuotePage({
       <JsonLd
         data={webPageJsonLd({
           url: absoluteUrl(localePath(locale, ROUTES.requestQuote)),
-          name: TITLE,
-          description: DESCRIPTION,
+          name: contentText(locale, TITLE),
+          description: contentText(locale, DESCRIPTION),
           locale,
         })}
       />
       <ContactTemplate
         locales={locales}
         locale={locale}
-        copy={FORM_HEADINGS.quote}
+        copy={copy}
         inquiryType={QUOTE_INQUIRY_TYPE}
         lockInquiryType
         privacyPolicyHref={privacyPolicyHref}

@@ -48,6 +48,13 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     raw = form.get("fields"),
     action = form.get("action");
   const product = form.get("resource") === "product";
+  // The locale being edited. Validated by the API against the active `Locale` table; only shape is
+  // checked here so a malformed value never reaches it.
+  const rawLocale = form.get("locale");
+  const locale =
+    typeof rawLocale === "string" && /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/.test(rawLocale)
+      ? rawLocale
+      : undefined;
   const blog = form.get("resource") === "blog";
   if (
     typeof key !== "string" ||
@@ -83,7 +90,13 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     `/admin/${product ? "products" : blog ? "blog/posts" : "content"}/${encodeURIComponent(key)}`,
     product || blog
       ? { content: fields, action, revision: Number(previous.revision) }
-      : { fields, action, revision: previous.revision, operationId: previous.operationId },
+      : {
+          fields,
+          action,
+          revision: previous.revision,
+          operationId: previous.operationId,
+          ...(locale !== undefined ? { locale } : {}),
+        },
     { accessToken },
   );
   if (!result.ok)
@@ -133,7 +146,15 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
       revalidatePath("/admin/blog/posts");
       revalidatePath("/sitemap.xml");
     } else if (!product && !blog && !key.startsWith("faq-"))
-      revalidatePath(key.startsWith("category-") ? `/en/products/${key.slice(9)}` : `/en/${key}`);
+      revalidatePath(
+        key.startsWith("category-")
+          ? `/${locale ?? "en"}/products/${key.slice(9)}`
+          : `/${locale ?? "en"}/${key}`,
+      );
+    if (locale !== undefined && locale !== "en") {
+      // Another language's pages: every route under it can show what was just published.
+      revalidatePath(`/${locale}`, "layout");
+    }
   }
   return {
     message:

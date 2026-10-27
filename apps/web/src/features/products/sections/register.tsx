@@ -5,9 +5,10 @@ import { BrandedPhoto } from "@/features/home/branded-photo";
 import { familyIconFor } from "@/features/site/icons";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref } from "@/features/site/site-routes";
+import { formatCount, ordinal } from "@/i18n/translate";
 
-import { getCategoryContent } from "../category/data";
-import { FAMILIES } from "../products-data";
+import { categoryContentFor, familiesFor } from "../localized-data";
+import { isolateLatin } from "@/i18n/bidi";
 
 /**
  * 2 · The register — the six product families, image-led.
@@ -61,8 +62,8 @@ export function ProductRegister({
         </header>
 
         <div className="pr-family-grid reveal-stagger">
-          {FAMILIES.map((family, i) => {
-            const image = getCategoryContent(family.id)?.hero.image;
+          {familiesFor(locale).map((family, i) => {
+            const image = categoryContentFor(family.id, locale)?.hero.image;
             const FamilyIcon = familyIconFor(family.id);
             const preview = family.ranges.slice(0, RANGE_PREVIEW_COUNT);
             const more = family.ranges.length - preview.length;
@@ -84,7 +85,7 @@ export function ProductRegister({
                     </div>
                   )}
                   <span className="pr-family-index">
-                    {String(i + 1).padStart(2, "0")} · {family.code}
+                    {ordinal(locale, i + 1)} · {family.code}
                   </span>
                 </div>
 
@@ -100,11 +101,11 @@ export function ProductRegister({
 
                   <ul className="pr-family-ranges">
                     {preview.map((range) => (
-                      <li key={range}>{range}</li>
+                      <li key={range}>{isolateLatin(range)}</li>
                     ))}
                     {more > 0 && (
                       <li className="pr-family-more">
-                        +{more} {copy.text("more_on_the_family_page")}
+                        +{formatCount(locale, more)} {copy.text("more_on_the_family_page")}
                       </li>
                     )}
                   </ul>

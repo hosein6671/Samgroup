@@ -13,6 +13,7 @@ import { ANCHORS } from "../about-anchors";
 import type { AboutUsExpertise, ExpertiseIconKey } from "@sam-group/types";
 import type { CSSProperties, ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator } from "@/i18n/translate";
 
 /**
  * Our Expertise — a labelled capability flow, not a numbered register.
@@ -66,14 +67,21 @@ const GLYPHS: Record<ExpertiseIconKey, (props: { readonly size: "lg" }) => React
   processing: BaseOilProcessingIcon,
 };
 
-export function AboutExpertise({ expertise }: { readonly expertise: AboutUsExpertise }): ReactNode {
+export function AboutExpertise({
+  expertise,
+  locale = "en",
+}: {
+  readonly expertise: AboutUsExpertise;
+  readonly locale?: string;
+}): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec ab-expertise" id={ANCHORS.expertise} data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
       <div className="fs-wrap ab-expertise-inner">
         <header className="ab-expertise-head reveal-fade-rise">
           <div>
-            <p className="fs-eyebrow">Our expertise</p>
+            <p className="fs-eyebrow">{t("Our expertise")}</p>
             {expertise.heading !== null && <h2 className="fs-d2">{expertise.heading}</h2>}
           </div>
           {expertise.lead !== null && (
@@ -86,7 +94,7 @@ export function AboutExpertise({ expertise }: { readonly expertise: AboutUsExper
         {expertise.items.length > 0 && (
           <ol
             className="ab-exp-flow reveal-stagger"
-            aria-label="Areas of expertise"
+            aria-label={t("Areas of expertise")}
             style={{ "--exp-count": expertise.items.length } as CSSProperties}
           >
             {expertise.items.map((item) => {

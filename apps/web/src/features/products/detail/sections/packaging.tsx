@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 import { INCOTERMS, SUPPLY_FORMATS } from "../../category/data/defaults";
 
@@ -15,30 +16,32 @@ import { INCOTERMS, SUPPLY_FORMATS } from "../../category/data/defaults";
  * to one grade's supply remains a quotation-time confirmation, stated as such rather than
  * implied as a settled fact about this specific product.
  */
-export function ProductPackaging(): ReactNode {
+export function ProductPackaging({ locale = "en" }: { readonly locale?: string } = {}): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec pd-packaging" id="packaging" data-surface="light">
       <div className="fs-wrap">
         <header className="pd-section-head reveal-fade-rise">
-          <p className="fs-eyebrow">Packaging</p>
-          <h2 className="fs-d2">Packaging and delivery terms</h2>
+          <p className="fs-eyebrow">{t("Packaging")}</p>
+          <h2 className="fs-d2">{t("Packaging and delivery terms")}</h2>
           <p className="fs-lead">
-            Available combinations, minimum quantity and lead time are confirmed for the selected
-            grade and destination when a quotation is requested.
+            {t(
+              "Available combinations, minimum quantity and lead time are confirmed for the selected grade and destination when a quotation is requested.",
+            )}
           </p>
         </header>
 
         <div className="pd-packaging-grid reveal-fade-rise">
           <div>
-            <p className="pd-packaging-heading">Supply formats</p>
+            <p className="pd-packaging-heading">{t("Supply formats")}</p>
             <ul>
               {SUPPLY_FORMATS.map((format) => (
-                <li key={format}>{format}</li>
+                <li key={format}>{t(format)}</li>
               ))}
             </ul>
           </div>
           <div>
-            <p className="pd-packaging-heading">Incoterms</p>
+            <p className="pd-packaging-heading">{t("Incoterms")}</p>
             <ul>
               {INCOTERMS.map((term) => (
                 <li key={term}>{term}</li>

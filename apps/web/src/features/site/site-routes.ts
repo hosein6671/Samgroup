@@ -17,6 +17,8 @@
  * prefix rule is two places for `/en/en/products` to come from.
  */
 
+import { translator } from "@/i18n/translate";
+
 import type { ContentRouteKey, LocaleResponse, ProductFamilyKey } from "@sam-group/types";
 
 export const ROUTES = {
@@ -369,8 +371,10 @@ export function primaryNavLinks(
   locale: string,
   structuralPath: string,
 ): readonly ResolvedNavLink[] {
+  const t = translator(locale);
+
   return PRIMARY_NAV.map((item) => ({
-    label: item.label,
+    label: t(item.label),
     href: localeHref(locale, item.href),
     current: isNavHrefActive(structuralPath, item.href),
     ...(item.mega === true ? { mega: item.mega } : {}),
@@ -381,9 +385,11 @@ export function primaryNavLinks(
 export function productFamilyLinks(
   locale: string,
 ): readonly { readonly key: ProductFamilyKey; readonly label: string; readonly href: string }[] {
+  const t = translator(locale);
+
   return PRODUCT_CATEGORIES.map((family) => ({
     key: family.key,
-    label: family.label,
+    label: t(family.label),
     href: localeHref(locale, family.href),
   }));
 }
@@ -393,11 +399,13 @@ export function footerColumnsFor(locale: string): readonly {
   readonly heading: string;
   readonly links: readonly { readonly href: string; readonly label: string }[];
 }[] {
+  const t = translator(locale);
+
   return FOOTER_COLUMNS.map((column) => ({
-    heading: column.heading,
+    heading: t(column.heading),
     links: column.links.map((link) => ({
       href: localeHref(locale, link.href),
-      label: link.label,
+      label: t(link.label),
     })),
   }));
 }

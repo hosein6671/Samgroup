@@ -41,7 +41,13 @@ import type { ReactNode } from "react";
 export function ConsentLabel({
   lead,
   privacyPolicyHref,
+  policyPhrase = PRIVACY_POLICY_PHRASE,
+  newTabNote = " (opens in a new tab)",
 }: {
+  /** The policy link's words, already in the page's language. */
+  readonly policyPhrase?: string;
+  /** The screen-reader note on the link, already in the page's language. */
+  readonly newTabNote?: string;
   /**
    * The form-specific opening of the sentence, ending immediately before the policy is named and
    * without trailing punctuation — e.g. "I agree to be contacted about this enquiry and accept
@@ -52,7 +58,7 @@ export function ConsentLabel({
   readonly privacyPolicyHref: string | null;
 }): ReactNode {
   if (privacyPolicyHref === null) {
-    return <>{`${lead} ${PRIVACY_POLICY_PHRASE}.`}</>;
+    return <>{`${lead} ${policyPhrase}.`}</>;
   }
 
   return (
@@ -64,8 +70,8 @@ export function ConsentLabel({
         target="_blank"
         rel="noopener noreferrer"
       >
-        {PRIVACY_POLICY_PHRASE}
-        <VisuallyHidden as="span"> (opens in a new tab)</VisuallyHidden>
+        {policyPhrase}
+        <VisuallyHidden as="span">{newTabNote}</VisuallyHidden>
       </Link>
       .
     </>

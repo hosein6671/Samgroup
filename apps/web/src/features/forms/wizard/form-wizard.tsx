@@ -17,6 +17,7 @@ import {
 
 import type { SubmissionState } from "../submission-state";
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/i18n-provider";
 
 /**
  * The shared three-step shell behind every public customer-inquiry form.
@@ -96,6 +97,7 @@ export function FormWizard({
    */
   readonly submitSlot: ReactNode;
 }): ReactNode {
+  const t = useT();
   const [activeIndex, setActiveIndex] = useState(0);
   const [furthestIndex, setFurthestIndex] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
@@ -275,7 +277,7 @@ export function FormWizard({
                 headingRefs.current[index] = node;
               }}
             >
-              {step.heading}
+              {t(step.heading)}
             </h3>
 
             <div className="fm-grid">{children(step, index)}</div>
@@ -296,7 +298,7 @@ export function FormWizard({
               headingRefs.current[steps.length] = node;
             }}
           >
-            {REVIEW_STEP_HEADING}
+            {t(REVIEW_STEP_HEADING)}
           </h3>
 
           {/*
@@ -330,12 +332,12 @@ export function FormWizard({
           {activeIndex > 0 && (
             <button type="button" className="fs-btn fs-btn--glass" onClick={goBack}>
               <BackIcon size="sm" />
-              Back
+              {t("Back")}
             </button>
           )}
           {!onReview && (
             <button type="button" className="fs-btn fs-btn--gold" onClick={advance}>
-              Continue
+              {t("Continue")}
               <ContinueIcon size="sm" />
             </button>
           )}

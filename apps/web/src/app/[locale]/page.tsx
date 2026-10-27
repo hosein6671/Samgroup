@@ -1,4 +1,5 @@
 import { structuralMetadata } from "@/features/content/structural-seo";
+import { contentText } from "@/i18n/localize-content";
 import { publishedStructural } from "@/features/content/published-structural";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -53,14 +54,14 @@ export async function generateMetadata({
   const canonical = `/${locale}`;
 
   return {
-    title: HOME_TITLE,
-    description: HOME_DESCRIPTION,
+    title: contentText(locale, HOME_TITLE),
+    description: contentText(locale, HOME_DESCRIPTION),
     alternates: { canonical },
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: HOME_TITLE,
-      description: HOME_DESCRIPTION,
+      title: contentText(locale, HOME_TITLE),
+      description: contentText(locale, HOME_DESCRIPTION),
       url: canonical,
       locale,
       images: [
@@ -68,14 +69,14 @@ export async function generateMetadata({
           url: "/images/home/journey-requirement-to-supply.webp",
           width: 1672,
           height: 941,
-          alt: "SAM Group petroleum product review and supply planning",
+          alt: contentText(locale, "SAM Group petroleum product review and supply planning"),
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: HOME_TITLE,
-      description: HOME_DESCRIPTION,
+      title: contentText(locale, HOME_TITLE),
+      description: contentText(locale, HOME_DESCRIPTION),
       images: ["/images/home/journey-requirement-to-supply.webp"],
     },
   };

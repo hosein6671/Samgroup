@@ -18,6 +18,7 @@ import "./category-v2.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
+import { translator } from "@/i18n/translate";
 
 import type { ProductListResult } from "@/lib/products";
 
@@ -119,7 +120,7 @@ export function ProductCategoryTemplateV2({
 
         <div className="pcv2-shell" data-surface="light">
           <div className="pcv2-col">
-            <Suspense fallback={<CategoryCatalogV2Skeleton />}>
+            <Suspense fallback={<CategoryCatalogV2Skeleton locale={locale} />}>
               <CategoryCatalogV2 {...catalog} products={products} />
               <CatalogMoreLink {...catalog} products={products} />
             </Suspense>
@@ -132,7 +133,7 @@ export function ProductCategoryTemplateV2({
         <CategoryProperties {...props} />
 
         <div className="pcv2-appsproc">
-          <ProcessMedia content={content} />
+          <ProcessMedia content={content} locale={locale} />
           <CategoryApplications {...props} />
           <CategoryQuality {...props} />
         </div>
@@ -164,7 +165,13 @@ export function ProductCategoryTemplateV2({
  * show the placeholder; swapping it for an image later is a one-line fixture change with no
  * layout change.
  */
-function ProcessMedia({ content }: { readonly content: ProductCategoryContent }): ReactNode {
+function ProcessMedia({
+  content,
+  locale,
+}: {
+  readonly content: ProductCategoryContent;
+  readonly locale: string;
+}): ReactNode {
   const { processImage } = content;
 
   return (
@@ -185,7 +192,7 @@ function ProcessMedia({ content }: { readonly content: ProductCategoryContent })
         ) : (
           <>
             <span className="pcv2-proc-frame media-slot-empty" aria-hidden="true" />
-            <figcaption>Image placeholder</figcaption>
+            <figcaption>{translator(locale)("Image placeholder")}</figcaption>
           </>
         )}
       </figure>

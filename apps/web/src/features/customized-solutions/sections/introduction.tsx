@@ -1,5 +1,6 @@
 import type { CustomizedSolutionsIntroduction } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * The introduction — the page's positioning, as prose.
@@ -15,14 +16,17 @@ import type { ReactNode } from "react";
  */
 export function SolutionsIntroduction({
   introduction,
+  locale = "en",
 }: {
   readonly introduction: CustomizedSolutionsIntroduction;
+  readonly locale?: string;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec cs-intro" data-surface="light">
       <div className="fs-wrap cs-intro-grid">
         <header className="cs-intro-head reveal-fade-rise">
-          <p className="fs-eyebrow">Introduction</p>
+          <p className="fs-eyebrow">{t("Introduction")}</p>
           {introduction.heading !== null && <h2 className="fs-d2">{introduction.heading}</h2>}
         </header>
         {introduction.bodyHtml !== "" && (

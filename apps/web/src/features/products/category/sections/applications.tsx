@@ -3,13 +3,14 @@ import type { ReactNode } from "react";
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref } from "@/features/site/site-routes";
 
-import { FAMILIES } from "../../products-data";
+import { familiesFor } from "../../localized-data";
 import {
   subRangesOnAxis,
   type DownstreamApplications,
   type SelectionApplications,
 } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { formatCount, ordinal, translator } from "@/i18n/translate";
 
 /**
  * 6 · Applications — SITE_STRUCTURE §4 item 6.
@@ -82,6 +83,7 @@ import type { SectionProps } from "../category-section";
 export function CategoryApplications({ content, family, locale }: SectionProps): ReactNode {
   const { applications, industries } = content;
   if (!applications) return null;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pc-apps" id="applications" data-surface="light">
@@ -106,12 +108,12 @@ export function CategoryApplications({ content, family, locale }: SectionProps):
         ) : applications.mode === "downstream" ? (
           <Manifold applications={applications} family={family} locale={locale} />
         ) : (
-          <SelectionSequence applications={applications} content={content} />
+          <SelectionSequence applications={applications} content={content} locale={locale} />
         )}
 
         {industries && industries.length > 0 && (
           <div className="pc-industries reveal-fade-rise">
-            <p className="fs-eyebrow">Industries served</p>
+            <p className="fs-eyebrow">{t("Industries served")}</p>
             <ul className="pc-industry-list">
               {industries.map((industry) => (
                 <li key={industry.id}>
@@ -138,6 +140,8 @@ function Manifold({
   /** Passed down rather than re-derived — the branches address real Family pages. */
   readonly locale: SectionProps["locale"];
 }): ReactNode {
+  const t = translator(locale);
+  const families = familiesFor(locale);
   return (
     <div className="pc-flow">
       {/*
@@ -145,17 +149,19 @@ function Manifold({
         restated — so the head of the trunk cannot disagree with the page's own heading.
       */}
       <div className="pc-flow-source reveal-fade-rise">
-        <p className="fs-eyebrow">Input</p>
+        <p className="fs-eyebrow">{t("Input")}</p>
         <p className="pc-flow-code">{family.code}</p>
         <p className="pc-flow-name">{family.name}</p>
         <p className="pc-flow-note">
-          One input, {applications.entries.length} published destinations.
+          {t("One input, {count} published destinations.", {
+            count: formatCount(locale, applications.entries.length),
+          })}
         </p>
       </div>
 
       <ol className="pc-flow-branches reveal-stagger">
         {applications.entries.map((entry) => {
-          const destination = FAMILIES.find((f) => f.id === entry.familyId);
+          const destination = families.find((f) => f.id === entry.familyId);
           if (!destination) return null;
 
           return (
@@ -200,9 +206,11 @@ function Manifold({
 function SelectionSequence({
   applications,
   content,
+  locale,
 }: {
   readonly applications: SelectionApplications;
   readonly content: SectionProps["content"];
+  readonly locale: string;
 }): ReactNode {
   return (
     <ol className="pc-gates reveal-stagger">
@@ -211,7 +219,7 @@ function SelectionSequence({
 
         return (
           <li className="pc-gate" key={step.id}>
-            <p className="pc-gate-num">{String(i + 1).padStart(2, "0")}</p>
+            <p className="pc-gate-num">{ordinal(locale, i + 1)}</p>
             <h3 className="pc-gate-axis">{step.axis}</h3>
             <p className="pc-gate-note">{step.note}</p>
 

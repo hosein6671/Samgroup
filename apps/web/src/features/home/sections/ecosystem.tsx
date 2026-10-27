@@ -9,6 +9,7 @@ import { useMemo, useState, type ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, productFamilyByKey } from "@/features/site/site-routes";
+import { formatCount } from "@/i18n/translate";
 
 import { FAMILIES } from "../home-data";
 import { RichText } from "@/features/site/rich-text";
@@ -139,8 +140,10 @@ export function Ecosystem({
               {current && (
                 <>
                   <div className="k">
-                    {copy.text("family_0")}
-                    {index + 1} · {current.sub}
+                    {/* "Family 0" + "1" reads "Family 01"; the number is set in the page's own digits. */}
+                    {copy.text("family_0").replace(/[0۰]$/, "")}
+                    {formatCount(locale, index + 1).padStart(2, formatCount(locale, 0))} ·{" "}
+                    {current.sub}
                   </div>
                   <h3>{current.name}</h3>
                   <p>
@@ -161,7 +164,7 @@ export function Ecosystem({
                       href={localeHref(locale, category.href)}
                       className="fs-btn fs-btn--glass"
                       style={{ marginTop: 24, minHeight: 46 }}
-                      aria-label={`${copy.text("view_range")} ${category.label}`}
+                      aria-label={`${copy.text("view_range")} ${current.name}`}
                     >
                       {copy.text("explore_this_range")}
                       <Arrow size={14} />

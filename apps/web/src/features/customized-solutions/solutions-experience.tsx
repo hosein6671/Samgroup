@@ -23,6 +23,7 @@ import { SolutionsIntroduction } from "./sections/introduction";
 
 import type { CustomizedSolutionsContent } from "@sam-group/types";
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * The Customized Solutions page.
@@ -102,20 +103,23 @@ export function SolutionsExperience({
         })}
       >
         {fallbackLocale !== null && (
-          <p className="cs-fallback-note" role="note">
-            This page has not been translated into this language. It is shown in the site&rsquo;s
-            default language.
+          <p className="cs-fallback-note" role="note" lang={locale} dir="auto">
+            {translator(locale)(
+              "This page has not been translated into this language. It is shown in the site’s default language.",
+            )}
           </p>
         )}
 
         <SolutionsHero hero={content.hero} process={content.process} locale={locale} />
         {content.introduction !== null && (
-          <SolutionsIntroduction introduction={content.introduction} />
+          <SolutionsIntroduction introduction={content.introduction} locale={locale} />
         )}
         {content.capabilities.length > 0 && (
-          <CustomizationScope capabilities={content.capabilities} />
+          <CustomizationScope capabilities={content.capabilities} locale={locale} />
         )}
-        {content.process !== null && <CustomizationProcess process={content.process} />}
+        {content.process !== null && (
+          <CustomizationProcess process={content.process} locale={locale} />
+        )}
         <CustomRequestForm privacyPolicyHref={privacyPolicyHref} />
       </main>
 

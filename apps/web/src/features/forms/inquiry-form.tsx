@@ -5,13 +5,14 @@ import { useActionState } from "react";
 import type { ReactNode } from "react";
 
 import { submitInquiry } from "./actions";
-import { ConsentLabel } from "./consent-label";
+import { ConsentLabel, PRIVACY_POLICY_PHRASE } from "./consent-label";
 import { TurnstileWidget } from "./turnstile-widget";
 import { FieldError, SubmitButton, invalidProps, issuesFor, valueFor } from "./form-feedback";
 import { INQUIRY_INCOTERMS, INQUIRY_TYPE_OPTIONS } from "./inquiry-vocabulary";
 import { IDLE, type SubmissionState } from "./submission-state";
 import { FormWizard } from "./wizard/form-wizard";
 import type { WizardStep } from "./wizard/wizard-steps";
+import { useT } from "@/i18n/i18n-provider";
 
 /**
  * The Inquiry form — one component behind General Contact, Request a Quote and Request a Sample.
@@ -85,14 +86,15 @@ export function InquiryForm({
 }): ReactNode {
   const [state, action] = useActionState<SubmissionState, FormData>(submitInquiry, IDLE);
   const compact = variant === "compact";
+  const t = useT();
 
   return (
     <>
       {product !== null && (
         <p className="fm-context">
-          <span>This enquiry references</span>
+          <span>{t("This enquiry references")}</span>
           <b>{product.name}</b>
-          <a href={product.href}>View the product</a>
+          <a href={product.href}>{t("View the product")}</a>
         </p>
       )}
 
@@ -118,7 +120,12 @@ export function InquiryForm({
             <div className="fm-consent">
               <input id="inq-consent" name="consentGiven" type="checkbox" required />
               <label htmlFor="inq-consent">
-                <ConsentLabel lead={CONSENT_LEAD} privacyPolicyHref={privacyPolicyHref} />
+                <ConsentLabel
+                  lead={t(CONSENT_LEAD)}
+                  privacyPolicyHref={privacyPolicyHref}
+                  policyPhrase={t(PRIVACY_POLICY_PHRASE)}
+                  newTabNote={t(" (opens in a new tab)")}
+                />
               </label>
             </div>
             <FieldError id="inq-consent-error" issues={issuesFor(state, "consentGiven")} />
@@ -135,12 +142,12 @@ export function InquiryForm({
             {({ blocked, describedBy }) => (
               <div className="fm-actions">
                 <SubmitButton
-                  label="Send enquiry"
-                  pendingLabel="Sending…"
+                  label={t("Send enquiry")}
+                  pendingLabel={t("Sending…")}
                   blocked={blocked}
                   describedBy={describedBy}
                 />
-                <p className="fm-required-note">Fields marked required must be completed.</p>
+                <p className="fm-required-note">{t("Fields marked required must be completed.")}</p>
               </div>
             )}
           </TurnstileWidget>
@@ -199,7 +206,7 @@ export function InquiryForm({
               {!lockInquiryType && (
                 <div className="fs-field">
                   <label htmlFor="inq-inquiryType">
-                    Enquiry type
+                    {t("Enquiry type")}
                     <Required />
                   </label>
                   <select
@@ -211,7 +218,7 @@ export function InquiryForm({
                   >
                     {INQUIRY_TYPE_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.label}
+                        {t(option.label)}
                       </option>
                     ))}
                   </select>
@@ -236,16 +243,16 @@ export function InquiryForm({
                   />
 
                   <div className="fs-field">
-                    <label htmlFor="inq-preferredIncoterm">Preferred Incoterm</label>
+                    <label htmlFor="inq-preferredIncoterm">{t("Preferred Incoterm")}</label>
                     <select
                       id="inq-preferredIncoterm"
                       name="preferredIncoterm"
                       defaultValue={valueFor(state, "preferredIncoterm") ?? ""}
                     >
-                      <option value="">Select</option>
+                      <option value="">{t("Select")}</option>
                       {INQUIRY_INCOTERMS.map((incoterm) => (
                         <option key={incoterm} value={incoterm}>
-                          {incoterm}
+                          {t(incoterm)}
                         </option>
                       ))}
                     </select>
@@ -258,7 +265,7 @@ export function InquiryForm({
               )}
 
               <div className="fs-field fm-field--wide">
-                <label htmlFor="inq-message">Product requirement</label>
+                <label htmlFor="inq-message">{t("Product requirement")}</label>
                 <textarea
                   id="inq-message"
                   name="message"
@@ -350,10 +357,11 @@ const CONSENT_LEAD = "I agree to be contacted about this enquiry and accept the"
  * `custom-request-form.tsx` already uses, through the same primitive.
  */
 function Required(): ReactNode {
+  const t = useT();
   return (
     <>
       <span aria-hidden="true"> *</span>
-      <VisuallyHidden as="span"> (required)</VisuallyHidden>
+      <VisuallyHidden as="span">{t(" (required)")}</VisuallyHidden>
     </>
   );
 }
@@ -378,11 +386,12 @@ function Field({
 }): ReactNode {
   const id = `inq-${name}`;
   const errorId = `${id}-error`;
+  const t = useT();
 
   return (
     <div className={wide ? "fs-field fm-field--wide" : "fs-field"}>
       <label htmlFor={id}>
-        {label}
+        {t(label)}
         {required && <Required />}
       </label>
       <input

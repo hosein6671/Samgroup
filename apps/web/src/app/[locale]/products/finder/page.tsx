@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { contentText } from "@/i18n/localize-content";
 import type { ReactNode } from "react";
 
 import { ProductFinderTemplate } from "@/features/products/finder/finder-template";
@@ -85,18 +86,22 @@ export async function generateMetadata({
   const canonical = `/${locale}/products/finder`;
 
   return {
-    title: FINDER_TITLE,
-    description: FINDER_DESCRIPTION,
+    title: contentText(locale, FINDER_TITLE),
+    description: contentText(locale, FINDER_DESCRIPTION),
     alternates: { canonical },
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: FINDER_TITLE,
-      description: FINDER_DESCRIPTION,
+      title: contentText(locale, FINDER_TITLE),
+      description: contentText(locale, FINDER_DESCRIPTION),
       url: canonical,
       locale,
     },
-    twitter: { card: "summary", title: FINDER_TITLE, description: FINDER_DESCRIPTION },
+    twitter: {
+      card: "summary",
+      title: contentText(locale, FINDER_TITLE),
+      description: contentText(locale, FINDER_DESCRIPTION),
+    },
   };
 }
 

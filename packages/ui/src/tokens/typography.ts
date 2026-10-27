@@ -16,16 +16,27 @@ export const fontFamilies = {
 } as const;
 
 /**
- * PROVISIONAL — the RTL typeface pairing is the one open i18n decision (D-6, and
- * docs/i18n/INTERNATIONALIZATION_STRATEGY.md "Remaining Decisions"). Inter has no Arabic or
- * Persian coverage, so fa/ar must not inherit the Latin stack — it renders as tofu.
- * Until the pairing is signed off these fall back to whatever Arabic-capable face the system
- * provides, which is legible but is not a brand decision and must not be treated as one.
+ * RTL families — Shabnam first, the Persian face the project owner chose on 26 October 2026,
+ * self-hosted through `next/font/local` (`apps/web/src/app/fonts.ts`) as `--font-fa-src` with
+ * `preload: false`, so a Latin-only page never downloads it.
+ *
+ * Shabnam carries four weights and its own Latin (from Roboto), so an English word, grade or brand
+ * name inside a Persian sentence stays in the same family. The stack continues with the Latin body
+ * face and then Vazirmatn (`--font-rtl-src`) only as fallbacks.
+ *
+ * The technical stack is Shabnam first too. It used to put the monospace face first so grades and
+ * units matched the English page, but a Persian label then took its spaces from the monospace face
+ * (word gaps more than twice Shabnam's), and on Windows next/font's metric fallback for that face —
+ * the reader's local Arial, which has Arabic-script glyphs — set whole Persian labels in Arial at
+ * 135%. Persian labels, eyebrows and dates are now one family with the rest of the page; Shabnam's
+ * Latin and digits (Roboto's, tabular by default) still keep specification columns aligned.
  */
 export const rtlFontFamilies = {
-  display: 'system-ui, "Segoe UI", "Noto Naskh Arabic", Tahoma, sans-serif',
-  text: 'system-ui, "Segoe UI", "Noto Naskh Arabic", Tahoma, sans-serif',
-  technical: 'system-ui, "Segoe UI", "Noto Naskh Arabic", Tahoma, sans-serif',
+  display:
+    "var(--font-fa-src), var(--font-body-src), var(--font-rtl-src), Vazirmatn, Tahoma, sans-serif",
+  text: "var(--font-fa-src), var(--font-body-src), var(--font-rtl-src), Vazirmatn, Tahoma, sans-serif",
+  technical:
+    "var(--font-fa-src), var(--font-mono-src), var(--font-rtl-src), Vazirmatn, ui-monospace, monospace",
 } as const;
 
 export type TypeRole = {

@@ -17,6 +17,7 @@ import {
 import type { TurnstileMount, TurnstileStatus, TurnstileWindow } from "./turnstile";
 import { ChallengeErrorIcon } from "./wizard/icons";
 import type { ReactNode } from "react";
+import { useT } from "@/i18n/i18n-provider";
 
 /**
  * The Cloudflare Turnstile challenge, as it appears inside a submission form.
@@ -186,6 +187,7 @@ function TurnstileGate({
   readonly production: boolean;
   readonly children: (gate: TurnstileGateState) => ReactNode;
 }): ReactNode {
+  const t = useT();
   const [status, setStatus] = useState<TurnstileStatus>(() =>
     turnstileInitialStatus(siteKey, production),
   );
@@ -285,14 +287,15 @@ function TurnstileGate({
            * can wait out, without becoming the only thing that says so.
            */}
           {notice.role === "alert" && <ChallengeErrorIcon />}
-          {notice.text}
+          {t(notice.text)}
         </p>
       )}
 
       <noscript>
         <p className="fm-turnstile-note">
-          This form requires JavaScript to verify your submission. Please enable it, or contact us
-          by email instead.
+          {t(
+            "This form requires JavaScript to verify your submission. Please enable it, or contact us by email instead.",
+          )}
         </p>
       </noscript>
 

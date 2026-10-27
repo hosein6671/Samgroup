@@ -4,6 +4,7 @@ import { ProductCard } from "../../../product-card";
 import { segmentName } from "../../../segments-data";
 
 import type { ProductListResult } from "@/lib/products";
+import { formatCount, translator, ordinal } from "@/i18n/translate";
 
 /**
  * v2 · Block 2 — the published products of this Family, directly beneath the hero.
@@ -70,10 +71,12 @@ function CatalogNoticeV2({
   heading,
   body,
   reset,
+  resetLabel,
 }: {
   readonly heading: string;
   readonly body: string;
   readonly reset?: string;
+  readonly resetLabel?: string;
 }): ReactNode {
   return (
     <div className="pl-notice">
@@ -81,7 +84,7 @@ function CatalogNoticeV2({
       <p className="pl-notice-body">{body}</p>
       {reset !== undefined && (
         <a className="pl-notice-reset" href={reset}>
-          Show all products in this family
+          {resetLabel ?? "Show all products in this family"}
         </a>
       )}
     </div>
@@ -96,8 +99,10 @@ export async function CategoryCatalogV2({
 }: CatalogV2Props): Promise<ReactNode> {
   const result = await products;
   reportUnavailable(familySlug, result);
+  const t = translator(locale);
 
-  const activeName = activeSegment === null ? null : segmentName(activeSegment);
+  const segment = activeSegment === null ? null : segmentName(activeSegment);
+  const activeName = segment === null ? null : t(segment);
   const reset = unfilteredHref(locale, familySlug);
   const listed = result.ok ? result.products.length : 0;
 
@@ -108,17 +113,17 @@ export async function CategoryCatalogV2({
     <section className="fs-sec pcv2-browse" id="products" data-surface="light">
       <div className="fs-wrap">
         <header className="pcv2-browse-head">
-          <p className="fs-eyebrow">In the catalogue</p>
-          <h2 className="fs-d2">Published products</h2>
+          <p className="fs-eyebrow">{t("In the catalogue")}</p>
+          <h2 className="fs-d2">{t("Published products")}</h2>
         </header>
 
         {activeSegment !== null && (
           <div className="pcv2-filterbar">
             <p>
-              Filtered by segment: <b>{activeName ?? activeSegment}</b>
+              {t("Filtered by segment:")} <b>{activeName ?? activeSegment}</b>
             </p>
             <a className="pcv2-filter-reset" href={reset}>
-              Clear filter
+              {t("Clear filter")}
             </a>
           </div>
         )}
@@ -126,13 +131,19 @@ export async function CategoryCatalogV2({
         {result.ok && listed > 0 && (
           <>
             <p className="pl-count">
-              <span>{String(listed).padStart(2, "0")}</span>
-              {listed === 1 ? "product" : "products"}
-              {result.total > listed && <small>of {result.total} — first page only</small>}
+              <span>{ordinal(locale, listed)}</span>
+              {listed === 1 ? t("product") : t("products")}
+              {result.total > listed && (
+                <small>
+                  {t("of {total} — first page only", { total: formatCount(locale, result.total) })}
+                </small>
+              )}
             </p>
 
             {activeSegment === null && result.total <= listed && (
-              <p className="pcv2-browse-all">Showing every published product in this family.</p>
+              <p className="pcv2-browse-all">
+                {t("Showing every published product in this family.")}
+              </p>
             )}
 
             <div className="pl-grid">
@@ -150,28 +161,36 @@ export async function CategoryCatalogV2({
 
         {result.ok && listed === 0 && activeSegment !== null && (
           <CatalogNoticeV2
-            heading="No products match this segment"
+            heading={t("No products match this segment")}
             body={
               activeName === null
-                ? "The catalogue holds no product in this family for the requested segment."
-                : `The catalogue holds no product in this family for ${activeName}.`
+                ? t("The catalogue holds no product in this family for the requested segment.")
+                : t("The catalogue holds no product in this family for {segment}.", {
+                    segment: activeName,
+                  })
             }
             reset={reset}
+            resetLabel={t("Show all products in this family")}
           />
         )}
 
         {!result.ok && result.reason === "unknown-filter" && result.field === "segment" && (
           <CatalogNoticeV2
-            heading="That segment is not recognised"
-            body="The requested segment filter does not match a published segment, so no product list was returned."
+            heading={t("That segment is not recognised")}
+            body={t(
+              "The requested segment filter does not match a published segment, so no product list was returned.",
+            )}
             reset={reset}
+            resetLabel={t("Show all products in this family")}
           />
         )}
 
         {!result.ok && (result.reason !== "unknown-filter" || result.field !== "segment") && (
           <CatalogNoticeV2
-            heading="Product list unavailable"
-            body="The catalogue service did not answer this request. Nothing else on this page is affected, and the list returns when the service does."
+            heading={t("Product list unavailable")}
+            body={t(
+              "The catalogue service did not answer this request. Nothing else on this page is affected, and the list returns when the service does.",
+            )}
           />
         )}
       </div>
@@ -186,16 +205,21 @@ export async function CategoryCatalogV2({
  * the section frame. No Segment filter (this block does not render one), so it is a plainer
  * skeleton than the shared `CategoryCatalogSkeleton`.
  */
-export function CategoryCatalogV2Skeleton(): ReactNode {
+export function CategoryCatalogV2Skeleton({
+  locale = "en",
+}: {
+  readonly locale?: string;
+}): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec pcv2-browse" id="products" data-surface="light" aria-busy="true">
       <div className="fs-wrap">
         <header className="pcv2-browse-head">
-          <p className="fs-eyebrow">In the catalogue</p>
-          <h2 className="fs-d2">Published products</h2>
+          <p className="fs-eyebrow">{t("In the catalogue")}</p>
+          <h2 className="fs-d2">{t("Published products")}</h2>
         </header>
 
-        <p className="pl-count pl-count--pending">Loading the catalogue…</p>
+        <p className="pl-count pl-count--pending">{t("Loading the catalogue…")}</p>
 
         <div className="pl-grid" aria-hidden="true">
           {[0, 1, 2].map((index) => (

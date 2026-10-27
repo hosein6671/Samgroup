@@ -5,6 +5,7 @@ import { insightsHref, FIRST_PAGE } from "../insights-query";
 
 import type { InsightsQuery } from "../insights-query";
 import type { BlogPostListResult } from "@/lib/blog";
+import { formatCount, translator, ordinal } from "@/i18n/translate";
 
 /**
  * The Insights index's post list — the only thing on this page that depends on the blog service.
@@ -112,20 +113,24 @@ function Pager({
 
   const hasPrevious = query.page > FIRST_PAGE;
   const hasNext = query.page < pages;
+  const t = translator(locale);
 
   return (
-    <nav className="in-pager" aria-label="Pagination">
+    <nav className="in-pager" aria-label={t("Pagination")}>
       {hasPrevious && (
         <a
           className="in-pager-link"
           href={insightsHref(locale, { ...query, page: query.page - 1 })}
         >
-          Newer posts
+          {t("Newer posts")}
         </a>
       )}
 
       <p className="in-pager-position">
-        Page {String(query.page)} of {String(pages)}
+        {t("Page {page} of {last}", {
+          page: formatCount(locale, query.page),
+          last: formatCount(locale, pages),
+        })}
       </p>
 
       {hasNext && (
@@ -133,7 +138,7 @@ function Pager({
           className="in-pager-link"
           href={insightsHref(locale, { ...query, page: query.page + 1 })}
         >
-          Older posts
+          {t("Older posts")}
         </a>
       )}
     </nav>
@@ -154,6 +159,7 @@ export async function InsightsList({
   query,
 }: InsightsListProps): Promise<ReactNode> {
   const result = await posts;
+  const t = translator(locale);
 
   report(query, result);
 
@@ -177,9 +183,13 @@ export async function InsightsList({
         {result.ok && listed > 0 && (
           <>
             <p className="in-count">
-              <span>{String(result.total).padStart(2, "0")}</span>
-              {result.total === 1 ? "post" : "posts"}
-              {result.total > listed && <small>showing {listed} on this page</small>}
+              <span>{ordinal(locale, result.total)}</span>
+              {result.total === 1 ? t("post") : t("posts")}
+              {result.total > listed && (
+                <small>
+                  {t("showing {count} on this page", { count: formatCount(locale, listed) })}
+                </small>
+              )}
             </p>
 
             {/*
@@ -191,8 +201,9 @@ export async function InsightsList({
              */}
             {result.localeFallback && (
               <p className="in-fallback-note">
-                Some entries are shown in the site&rsquo;s default language because they have not
-                been translated yet.
+                {t(
+                  "Some entries are shown in the site’s default language because they have not been translated yet.",
+                )}
               </p>
             )}
 
@@ -218,26 +229,28 @@ export async function InsightsList({
          */}
         {result.ok && listed === 0 && query.page > FIRST_PAGE && (
           <ListNotice
-            heading="No posts on this page"
-            body="This page is past the end of the list."
+            heading={t("No posts on this page")}
+            body={t("This page is past the end of the list.")}
             reset={insightsHref(locale, { ...query, page: FIRST_PAGE })}
-            resetLabel="Back to the first page"
+            resetLabel={t("Back to the first page")}
           />
         )}
 
         {result.ok && listed === 0 && query.page === FIRST_PAGE && filtered && (
           <ListNotice
-            heading="No posts in this category"
-            body="The blog holds no published post in the requested category."
+            heading={t("No posts in this category")}
+            body={t("The blog holds no published post in the requested category.")}
             reset={unfilteredHref}
-            resetLabel="Show all posts"
+            resetLabel={t("Show all posts")}
           />
         )}
 
         {result.ok && listed === 0 && query.page === FIRST_PAGE && !filtered && (
           <ListNotice
-            heading="No posts published yet"
-            body="Nothing has been published here yet. This page will list articles as they are published."
+            heading={t("No posts published yet")}
+            body={t(
+              "Nothing has been published here yet. This page will list articles as they are published.",
+            )}
           />
         )}
 
@@ -246,10 +259,12 @@ export async function InsightsList({
          */}
         {!result.ok && result.reason === "unknown-filter" && result.field === "category" && (
           <ListNotice
-            heading="That category is not recognised"
-            body="The requested category does not match a published category, so no posts were returned."
+            heading={t("That category is not recognised")}
+            body={t(
+              "The requested category does not match a published category, so no posts were returned.",
+            )}
             reset={unfilteredHref}
-            resetLabel="Show all posts"
+            resetLabel={t("Show all posts")}
           />
         )}
 
@@ -261,8 +276,10 @@ export async function InsightsList({
          */}
         {!result.ok && (result.reason !== "unknown-filter" || result.field !== "category") && (
           <ListNotice
-            heading="Posts unavailable"
-            body="The service that holds these articles did not answer this request. This is a temporary service condition, not a statement that nothing has been published — please try again shortly."
+            heading={t("Posts unavailable")}
+            body={t(
+              "The service that holds these articles did not answer this request. This is a temporary service condition, not a statement that nothing has been published — please try again shortly.",
+            )}
           />
         )}
       </div>
@@ -281,11 +298,12 @@ export async function InsightsList({
  * Deliberately **no titles, no dates, no count and no fabricated rows**: a skeleton that guessed at
  * content would be inventing editorial data for the duration of a request.
  */
-export function InsightsListSkeleton(): ReactNode {
+export function InsightsListSkeleton({ locale = "en" }: { readonly locale?: string }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec in-list" data-surface="light" aria-busy="true">
       <div className="fs-wrap">
-        <p className="in-count in-count--pending">Loading posts…</p>
+        <p className="in-count in-count--pending">{t("Loading posts…")}</p>
 
         <div className="in-grid" aria-hidden="true">
           {[0, 1, 2].map((index) => (

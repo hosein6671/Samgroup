@@ -1,4 +1,5 @@
 import { Arrow } from "@/features/site/logo-mark";
+import { translator, ordinal } from "@/i18n/translate";
 import { productFamilyByKey } from "@/features/site/site-routes";
 
 import { ANCHORS } from "../quality-anchors";
@@ -74,7 +75,7 @@ export function QualitySamplingSection({
           {familiesLabel !== null && (
             <p className="qc-sampling-label">
               <span>{familiesLabel}</span>
-              <span className="fs-tnum">{String(resolved.length).padStart(2, "0")}</span>
+              <span className="fs-tnum">{ordinal(locale, resolved.length)}</span>
             </p>
           )}
 
@@ -87,7 +88,7 @@ export function QualitySamplingSection({
                   announces and the name a reader sees are the same string (WCAG 2.5.3).
                 */}
                 <a href={`/${locale}${family.href}`}>
-                  <span>{family.label}</span>
+                  <span>{translator(locale)(family.label)}</span>
                   <Arrow size={14} />
                 </a>
               </li>

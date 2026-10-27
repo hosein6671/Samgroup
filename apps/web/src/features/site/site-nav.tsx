@@ -29,6 +29,8 @@ import {
   structuralPathOf,
 } from "./site-routes";
 
+import { useT } from "@/i18n/i18n-provider";
+
 import type { LocaleResponse } from "@sam-group/types";
 
 /**
@@ -106,6 +108,7 @@ export type SiteNavProps = {
 };
 
 export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
+  const t = useT();
   const editorial = useHeaderContent();
   const copy = structuralSection("header", "brand", editorial);
   const ref = useRef<HTMLElement>(null);
@@ -251,7 +254,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
         <Link
           href={localeHref(locale, ROUTES.home)}
           className="fs-logo"
-          aria-label="Sam Group — home"
+          aria-label={t("Sam Group — home")}
         >
           <LogoMark height={28} priority />
           <span>
@@ -260,7 +263,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
           </span>
         </Link>
 
-        <nav className="fs-nav-links" aria-label="Primary">
+        <nav className="fs-nav-links" aria-label={t("Primary")}>
           {primary.map((item) =>
             item.mega ? (
               <div
@@ -364,7 +367,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
               className="fs-lang-btn"
               aria-expanded={lang}
               aria-controls={langId}
-              aria-label={`Language: ${locale.toUpperCase()}`}
+              aria-label={t("Language: {code}", { code: locale.toUpperCase() })}
               onClick={() => setLang((v) => !v)}
             >
               <svg
@@ -410,7 +413,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
             ref={burgerRef}
             aria-expanded={drawer}
             aria-controls={drawerId}
-            aria-label={drawer ? "Close menu" : "Open menu"}
+            aria-label={drawer ? t("Close menu") : t("Open menu")}
             onClick={() => (drawer ? closeDrawer() : setDrawer(true))}
           >
             <span data-open={drawer || undefined} />
@@ -420,7 +423,7 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
 
       {/* Mobile drawer */}
       <div className="fs-drawer" id={drawerId} ref={drawerRef} data-open={drawer || undefined}>
-        <nav className="fs-drawer-nav" aria-label="Mobile">
+        <nav className="fs-drawer-nav" aria-label={t("Mobile")}>
           {primary.map((item) =>
             item.mega ? (
               <div className="fs-drawer-group" key={item.href}>

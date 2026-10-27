@@ -1,4 +1,5 @@
 import { structuralMetadata } from "@/features/content/structural-seo";
+import { contentText } from "@/i18n/localize-content";
 import { publishedStructural } from "@/features/content/published-structural";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -75,22 +76,27 @@ export async function generateMetadata({
   const canonical = `/${locale}/products`;
 
   return {
-    title: PRODUCTS_TITLE,
-    description: PRODUCTS_DESCRIPTION,
+    title: contentText(locale, PRODUCTS_TITLE),
+    description: contentText(locale, PRODUCTS_DESCRIPTION),
     alternates: { canonical },
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: PRODUCTS_TITLE,
-      description: PRODUCTS_DESCRIPTION,
-      images: [{ url: PRODUCTS_IMAGE, alt: "SAM Group petroleum and lubricant product portfolio" }],
+      title: contentText(locale, PRODUCTS_TITLE),
+      description: contentText(locale, PRODUCTS_DESCRIPTION),
+      images: [
+        {
+          url: PRODUCTS_IMAGE,
+          alt: contentText(locale, "SAM Group petroleum and lubricant product portfolio"),
+        },
+      ],
       url: canonical,
       locale,
     },
     twitter: {
       card: "summary_large_image",
-      title: PRODUCTS_TITLE,
-      description: PRODUCTS_DESCRIPTION,
+      title: contentText(locale, PRODUCTS_TITLE),
+      description: contentText(locale, PRODUCTS_DESCRIPTION),
       images: [PRODUCTS_IMAGE],
     },
   };
@@ -121,8 +127,8 @@ export default async function ProductsPage({
     "@type": "CollectionPage",
     "@id": `${pageUrl}#collectionpage`,
     url: pageUrl,
-    name: PRODUCTS_TITLE,
-    description: PRODUCTS_DESCRIPTION,
+    name: contentText(locale, PRODUCTS_TITLE),
+    description: contentText(locale, PRODUCTS_DESCRIPTION),
     inLanguage: locale,
     mainEntity: {
       "@type": "ItemList",

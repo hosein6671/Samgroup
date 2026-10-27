@@ -14,6 +14,7 @@ import { QualityCertifications } from "../globals/quality-certifications";
 import { ContactUs } from "../globals/contact-us";
 
 import { CATEGORY_KEYS, categoryTextFields } from "../collections/product-category-content";
+import { CMS_DEFAULT_LOCALE, CMS_LOCALE_CODES, type CmsLocaleCode } from "../localization";
 
 const resources = [
   AboutUs,
@@ -124,6 +125,13 @@ export const companyEditor: Endpoint = {
     }
     if (typeof body.actorId !== "string" || !uuid.test(body.actorId))
       return reply({ error: "Invalid actor" }, 400);
+    // The locale being read or edited. Absent means the default locale, exactly as before; any
+    // other value must be one of Payload's configured locales (the NestJS API has already resolved
+    // it against the active `Locale` table).
+    const locale = body.locale === undefined ? CMS_DEFAULT_LOCALE : body.locale;
+    if (typeof locale !== "string" || !(CMS_LOCALE_CODES as readonly string[]).includes(locale))
+      return reply({ error: "Invalid locale" }, 400);
+    const editLocale = locale as CmsLocaleCode;
     const slug = config.slug as
       | "about-us"
       | "customized-solutions"
@@ -142,7 +150,7 @@ export const companyEditor: Endpoint = {
           where: { entryKey: { equals: faqKey } },
           limit: 1,
           draft: true,
-          locale: "en",
+          locale: editLocale,
           fallbackLocale: false,
           depth: 0,
           overrideAccess: true,
@@ -157,7 +165,7 @@ export const companyEditor: Endpoint = {
           collection: "product-category-content",
           where: { categoryKey: { equals: categoryKey } },
           limit: 1,
-          locale: "en",
+          locale: editLocale,
           fallbackLocale: false,
           draft: true,
           depth: 0,
@@ -169,7 +177,7 @@ export const companyEditor: Endpoint = {
       return {
         ...(await req.payload.findGlobal({
           slug,
-          locale: "en",
+          locale: editLocale,
           fallbackLocale: false,
           draft: true,
           depth: 0,
@@ -199,7 +207,8 @@ export const companyEditor: Endpoint = {
       return reply({ error: "Invalid edit" }, 400);
     if (
       Object.keys(body).some(
-        (key) => !["actorId", "operationId", "revision", "action", "fields"].includes(key),
+        (key) =>
+          !["actorId", "operationId", "revision", "action", "fields", "locale"].includes(key),
       )
     )
       return reply({ error: "Unknown request field" }, 400);
@@ -258,7 +267,7 @@ export const companyEditor: Endpoint = {
         return reply({ error: "Content changed. Reload before saving." }, 409);
       }
       const options = {
-        locale: "en" as const,
+        locale: editLocale,
         overrideAccess: true,
         depth: 0,
         draft: body.action === "save-draft",
@@ -309,7 +318,9 @@ export const companyEditor: Endpoint = {
         data: {
           operationId: body.operationId,
           actorId: body.actorId,
-          resource: slug,
+          // The default locale keeps its bare resource name, so existing history reads unchanged;
+          // another locale's edit is recorded as `slug:locale`.
+          resource: editLocale === CMS_DEFAULT_LOCALE ? slug : `${slug}:${editLocale}`,
           action: body.action as "save-draft" | "publish",
           requestHash,
           revision,

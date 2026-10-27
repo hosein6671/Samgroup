@@ -8,6 +8,7 @@ import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { Arrow } from "@/features/site/logo-mark";
 import { ROUTES } from "@/features/site/site-routes";
+import { translator } from "@/i18n/translate";
 
 /**
  * What `/{locale}/products/{slug}` renders when the catalog service could not answer.
@@ -47,6 +48,7 @@ import { ROUTES } from "@/features/site/site-routes";
  * which is when the status code starts to mean something to anyone.
  */
 export function ProductUnavailable({ locale, locales }: SiteNavProps): ReactNode {
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -56,23 +58,25 @@ export function ProductUnavailable({ locale, locales }: SiteNavProps): ReactNode
           <div className="fs-blueprint" aria-hidden="true" />
 
           <div className="fs-wrap pd-unavailable-inner">
-            <p className="fs-eyebrow">Catalog unavailable</p>
+            <p className="fs-eyebrow">{t("Catalog unavailable")}</p>
 
-            <h1 className="fs-d2 pd-unavailable-title">This product cannot be shown right now.</h1>
+            <h1 className="fs-d2 pd-unavailable-title">
+              {t("This product cannot be shown right now.")}
+            </h1>
 
             <p className="fs-lead pd-unavailable-lead">
-              The catalog service did not answer, so we cannot confirm the details of this product.
-              This is a temporary service condition, not a statement that the product does not exist
-              — please try again shortly.
+              {t(
+                "The catalog service did not answer, so we cannot confirm the details of this product. This is a temporary service condition, not a statement that the product does not exist — please try again shortly.",
+              )}
             </p>
 
             <div className="pd-unavailable-routes">
               <a className="fs-btn fs-btn--gold" href={`/${locale}${ROUTES.products}`}>
-                All products
+                {t("All products")}
                 <Arrow size={13} />
               </a>
               <a className="fs-btn fs-btn--glass" href={`/${locale}${ROUTES.contactUs}`}>
-                Contact us
+                {t("Contact us")}
               </a>
             </div>
           </div>

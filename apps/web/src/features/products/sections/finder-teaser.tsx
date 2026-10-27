@@ -10,6 +10,7 @@ import { SearchIcon } from "@/features/site/icons";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { FINDER_FACETS } from "../products-data";
+import { ordinal } from "@/i18n/translate";
 
 /**
  * 3 · Product Finder teaser.
@@ -31,10 +32,18 @@ import { FINDER_FACETS } from "../products-data";
  * when a facet is added. English conjunction only; this is fixed proof copy, and the real page
  * will get this sentence from the CMS in each locale rather than assembling it in code.
  */
-function facetSentence(editorial?: StructuralFields): string {
+function facetSentence(locale: string, editorial?: StructuralFields): string {
   const names = structuralList(editorial, "finder_facets", FINDER_FACETS).map((facet) =>
-    facet.name.toLowerCase(),
+    facet.name.toLocaleLowerCase(locale),
   );
+  // English keeps its established "a, b and c"; another language joins in its own grammar.
+  if (locale !== "en") {
+    try {
+      return new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(names);
+    } catch {
+      // An engine without the locale's list data falls through to the English join.
+    }
+  }
   const last = names.at(-1);
   if (names.length < 2 || last === undefined) return names.join("");
   return `${names.slice(0, -1).join(", ")} and ${last}`;
@@ -60,7 +69,7 @@ export function FinderTeaser({
               and the picture beside it cannot describe different tools. */}
           <p className="fs-lead">
             {copy.text("narrow_the_published_range_by")}
-            {facetSentence(editorial)}
+            {facetSentence(locale, editorial)}
             {copy.text("_or_search_directly_by")}
           </p>
 
@@ -94,7 +103,7 @@ export function FinderTeaser({
 
           {structuralList(editorial, "finder_facets", FINDER_FACETS).map((facet, i) => (
             <div className="pr-matrix-row" key={facet.name}>
-              <span className="pr-matrix-index">{String(i + 1).padStart(2, "0")}</span>
+              <span className="pr-matrix-index">{ordinal(locale, i + 1)}</span>
               <span className="pr-matrix-name">{facet.name}</span>
               <span className="pr-matrix-vals">
                 {facet.sample.map((value) => (

@@ -16,6 +16,8 @@ import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { absoluteUrl } from "@/features/seo/site";
 import { getProductsByCategory } from "@/lib/products";
 import { getActiveLocales } from "@/lib/locales";
+import { categoryContentFor } from "@/features/products/localized-data";
+import { translator } from "@/i18n/translate";
 
 function isJsonLdObject(value: unknown): value is JsonLdObject {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
@@ -128,7 +130,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, slug } = await params;
 
-  const content = getCategoryContent(slug);
+  const content = categoryContentFor(slug, locale);
   if (content) {
     const published = await getPublishedCategoryData(slug, locale);
     return categoryMetadata(content, locale, published?.seo, published === null);
@@ -159,7 +161,8 @@ export async function generateMetadata({
   const product = result.record;
   const seo = product.seo;
   const canonical = seo.canonicalUrl ?? `/${locale}/products/${product.slug}`;
-  const editorialImage = getProductDetailEditorial(product.category.slug).image;
+  const editorialImage = getProductDetailEditorial(product.category.slug, locale).image;
+  const t = translator(locale);
   const ogImage = seo.socialImage ?? {
     url: editorialImage.src,
     alt: editorialImage.alt,
@@ -171,7 +174,10 @@ export async function generateMetadata({
   const description =
     seo.metaDescription ??
     product.description ??
-    `Review ${product.name} within the ${product.category.name} range and prepare a product-specific supply enquiry with SAM Group.`;
+    t(
+      "Review {product} within the {family} range and prepare a product-specific supply enquiry with SAM Group.",
+      { product: product.name, family: product.category.name },
+    );
 
   return {
     title,
@@ -377,7 +383,8 @@ export default async function ProductFamilyPage({
     const product = result.record;
     const canonical = `/${locale}/products/${product.slug}`;
     const pageUrl = absoluteUrl(canonical);
-    const editorial = getProductDetailEditorial(product.category.slug);
+    const editorial = getProductDetailEditorial(product.category.slug, locale);
+    const t = translator(locale);
     const generatedSchema: JsonLdObject = {
       "@context": "https://schema.org",
       "@graph": [
@@ -389,7 +396,10 @@ export default async function ProductFamilyPage({
           description:
             product.seo.metaDescription ??
             product.description ??
-            `${product.name} in the ${product.category.name} product family.`,
+            t("{product} in the {family} product family.", {
+              product: product.name,
+              family: product.category.name,
+            }),
           category: product.category.name,
           brand: { "@type": "Brand", name: "SAM Group" },
           image: absoluteUrl(product.images[0]?.url ?? editorial.image.src),
@@ -409,7 +419,7 @@ export default async function ProductFamilyPage({
             {
               "@type": "ListItem",
               position: 1,
-              name: "Products",
+              name: t("Products"),
               item: absoluteUrl(`/${locale}/products`),
             },
             {

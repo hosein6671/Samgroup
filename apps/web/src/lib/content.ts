@@ -21,6 +21,8 @@
  * call site.
  */
 
+import { hasContentCatalog } from "@/i18n/content-catalogs";
+import { localizeContent } from "@/i18n/localize-content";
 import { apiGet } from "./api-client";
 
 import type {
@@ -259,7 +261,17 @@ async function getContentGlobal<T>(
     return { ok: false, reason: "api-error", status: 200 };
   }
 
-  return { ok: true, content, localeFallback: result.meta.localeFallback === true };
+  const localeFallback = result.meta.localeFallback === true;
+
+  // The CMS holds no copy in this language yet and served the default-language text. Where the
+  // site ships a reviewed catalog for the language, that text is shown translated instead of in
+  // English — the same catalog the built-in copy uses, so an editor's later translation in the CMS
+  // still wins the moment it exists.
+  if (localeFallback && hasContentCatalog(locale)) {
+    return { ok: true, content: localizeContent(locale, content), localeFallback: false };
+  }
+
+  return { ok: true, content, localeFallback };
 }
 
 /** The About Us page's content, from `GET /api/v1/content/globals/about-us`. */

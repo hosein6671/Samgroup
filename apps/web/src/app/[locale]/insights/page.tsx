@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { contentText } from "@/i18n/localize-content";
 import type { ReactNode } from "react";
 
 import { InsightsTemplate } from "@/features/blog/insights-template";
@@ -48,18 +49,22 @@ export async function generateMetadata({
   const { locale } = await params;
 
   return {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: contentText(locale, TITLE),
+    description: contentText(locale, DESCRIPTION),
     alternates: structuralAlternates(locale, ROUTES.insights),
     openGraph: {
       type: "website",
       siteName: "SAM Group",
-      title: TITLE,
-      description: DESCRIPTION,
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
       url: absoluteUrl(localePath(locale, ROUTES.insights)),
       locale,
     },
-    twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+    twitter: {
+      card: "summary_large_image",
+      title: contentText(locale, TITLE),
+      description: contentText(locale, DESCRIPTION),
+    },
   };
 }
 
@@ -105,8 +110,8 @@ export default async function InsightsPage({
       <JsonLd
         data={collectionPageJsonLd({
           url: absoluteUrl(localePath(locale, ROUTES.insights)),
-          name: TITLE,
-          description: DESCRIPTION,
+          name: contentText(locale, TITLE),
+          description: contentText(locale, DESCRIPTION),
           locale,
         })}
       />

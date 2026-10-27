@@ -43,6 +43,32 @@ test("unknown fields cannot reach a content write", async () => {
     else process.env.PAYLOAD_EDITOR_SECRET = before;
   }
 });
+test("only a configured locale can be read or edited", async () => {
+  const before = process.env.PAYLOAD_EDITOR_SECRET;
+  process.env.PAYLOAD_EDITOR_SECRET = secret;
+  try {
+    const actorId = "36c8ab45-62ca-421a-98a3-96c39d704099";
+    for (const locale of ["xx", "", 7, null]) {
+      const response = await companyEditor.handler(request({ action: "read", actorId, locale }));
+      assert.equal(response.status, 400);
+    }
+    let readLocale: unknown;
+    const req = request({ action: "read", actorId, locale: "fa" });
+    req.payload = {
+      findGlobal: async (options: { locale: unknown; fallbackLocale: unknown }) => {
+        readLocale = options.locale;
+        assert.equal(options.fallbackLocale, false);
+        return { updatedAt: "r1" };
+      },
+    } as unknown as PayloadRequest["payload"];
+    const response = await companyEditor.handler(req);
+    assert.equal(response.status, 200);
+    assert.equal(readLocale, "fa");
+  } finally {
+    if (before === undefined) delete process.env.PAYLOAD_EDITOR_SECRET;
+    else process.env.PAYLOAD_EDITOR_SECRET = before;
+  }
+});
 test("editorial receipts cannot be changed through collection access", () => {
   for (const key of ["create", "read", "update", "delete"] as const) {
     const access = EditorialEvents.access?.[key];

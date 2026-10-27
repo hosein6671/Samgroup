@@ -4,6 +4,7 @@ import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import type { ProductListResult } from "@/lib/products";
+import { formatCount, translator } from "@/i18n/translate";
 
 /**
  * v2 · "See all N products" — the path to the rest of a large catalogue.
@@ -57,7 +58,9 @@ export async function CatalogMoreLink({
   return (
     <p className="pcv2-more">
       <a href={href}>
-        See all {result.total} products in the Product Finder
+        {translator(locale)("See all {total} products in the Product Finder", {
+          total: formatCount(locale, result.total),
+        })}
         <Arrow size={14} />
       </a>
     </p>

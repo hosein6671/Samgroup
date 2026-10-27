@@ -359,7 +359,8 @@
 
 .ct-brief li {
   position: relative;
-  padding: 13px 0 13px 20px;
+  padding-block: 13px;
+  padding-inline: 20px 0;
   border-bottom: 1px solid var(--color-border-hairline);
   color: var(--color-text-primary);
   font-size: var(--fs-text-body-sm);

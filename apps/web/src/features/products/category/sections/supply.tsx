@@ -4,6 +4,7 @@ import { Arrow } from "@/features/site/logo-mark";
 
 import { actionHref } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * 8 · Packaging and supply — SITE_STRUCTURE §4 item 8.
@@ -23,6 +24,7 @@ import type { SectionProps } from "../category-section";
  */
 export function CategorySupply({ content, locale }: SectionProps): ReactNode {
   const { supply } = content;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pc-supply" id="supply" data-surface="light">
@@ -30,13 +32,13 @@ export function CategorySupply({ content, locale }: SectionProps): ReactNode {
 
       <div className="fs-wrap pc-supply-grid">
         <div className="pc-supply-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Packaging &amp; supply</p>
+          <p className="fs-eyebrow">{t("Packaging & supply")}</p>
           <h2 className="fs-d2">{supply.heading}</h2>
           <p className="fs-lead">{supply.intro}</p>
 
           <ul className="pc-formats">
             {supply.formats.map((format) => (
-              <li key={format}>{format}</li>
+              <li key={format}>{t(format)}</li>
             ))}
           </ul>
 
@@ -52,22 +54,23 @@ export function CategorySupply({ content, locale }: SectionProps): ReactNode {
 
         <div className="pc-incoterms reveal-fade-rise">
           <p className="pc-incoterms-head">
-            <span>Quoted against</span>
-            <span>{String(supply.incoterms.length).padStart(2, "0")}</span>
+            <span>{t("Quoted against")}</span>
+            <span>{ordinal(locale, supply.incoterms.length)}</span>
           </p>
 
           <ol className="pc-incoterm-list">
             {supply.incoterms.map((term, i) => (
               <li className="pc-incoterm" key={term} style={{ "--pc-rung": i } as CSSProperties}>
-                <span className="pc-incoterm-num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="pc-incoterm-num">{ordinal(locale, i + 1)}</span>
                 <b>{term}</b>
               </li>
             ))}
           </ol>
 
           <p className="pc-incoterms-foot">
-            Increasing seller responsibility, top to bottom. Which one applies is settled in the
-            quotation, not here.
+            {t(
+              "Increasing seller responsibility, top to bottom. Which one applies is settled in the quotation, not here.",
+            )}
           </p>
         </div>
       </div>

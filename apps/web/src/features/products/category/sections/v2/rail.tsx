@@ -8,6 +8,7 @@ import {
   type ProductCategoryContent,
 } from "../../category-contract";
 import type { SectionProps } from "../../category-section";
+import { translator, type Translate } from "@/i18n/translate";
 
 /**
  * v2 · The Catalog Rail — a sticky companion beside the browse-and-select zone.
@@ -36,29 +37,33 @@ import type { SectionProps } from "../../category-section";
  * A Server Component. No `reveal-*` class.
  */
 
-function jumpTargets(content: ProductCategoryContent): { href: string; label: string }[] {
+function jumpTargets(
+  content: ProductCategoryContent,
+  t: Translate,
+): { href: string; label: string }[] {
   return [
-    { href: "#products", label: "Published products" },
+    { href: "#products", label: t("Published products") },
     {
       href: "#classification",
-      label: hasClassificationDetail(content) ? "Classification" : "The range",
+      label: hasClassificationDetail(content) ? t("Classification") : t("The range"),
     },
-    { href: "#specifications", label: "Key specifications" },
+    { href: "#specifications", label: t("Key specifications") },
     content.applications
-      ? { href: "#applications", label: "Applications & process" }
-      : { href: "#quality", label: "Quality" },
-    { href: "#supply", label: "Packaging & supply" },
-    { href: "#documentation", label: "Documentation" },
+      ? { href: "#applications", label: t("Applications & process") }
+      : { href: "#quality", label: t("Quality") },
+    { href: "#supply", label: t("Packaging & supply") },
+    { href: "#documentation", label: t("Documentation") },
   ];
 }
 
 export function CatalogRail({ content, locale }: SectionProps): ReactNode {
   const { overview, hero } = content;
+  const t = translator(locale);
 
   return (
-    <aside className="pcv2-rail" aria-label="Family summary and quick links">
+    <aside className="pcv2-rail" aria-label={t("Family summary and quick links")}>
       <div className="pcv2-rail-in">
-        <p className="fs-eyebrow">At a glance</p>
+        <p className="fs-eyebrow">{t("At a glance")}</p>
 
         <dl className="pcv2-rail-facts">
           {overview.markers.map((marker) => (
@@ -79,10 +84,10 @@ export function CatalogRail({ content, locale }: SectionProps): ReactNode {
           </a>
         </div>
 
-        <nav className="pcv2-rail-jump" aria-label="On this page">
-          <p className="pcv2-rail-jump-label">On this page</p>
+        <nav className="pcv2-rail-jump" aria-label={t("On this page")}>
+          <p className="pcv2-rail-jump-label">{t("On this page")}</p>
           <ul>
-            {jumpTargets(content).map((target) => (
+            {jumpTargets(content, t).map((target) => (
               <li key={target.href}>
                 <a href={target.href}>{target.label}</a>
               </li>

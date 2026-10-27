@@ -6,6 +6,7 @@ import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { ROUTES } from "@/features/site/site-routes";
 
 import type { ReactNode } from "react";
+import { translator } from "@/i18n/translate";
 
 /**
  * What `/about-us` renders when it has no content to render.
@@ -38,6 +39,7 @@ export function AboutUnavailable({
   readonly locales: SiteNavProps["locales"];
   readonly reason: "not-configured" | "service";
 }): ReactNode {
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -47,24 +49,28 @@ export function AboutUnavailable({
           <div className="fs-blueprint" aria-hidden="true" />
           <div className="fs-wrap ab-unavailable-inner">
             <p className="fs-eyebrow">
-              {reason === "service" ? "Page unavailable" : "Not published yet"}
+              {reason === "service" ? t("Page unavailable") : t("Not published yet")}
             </p>
             <h1 className="fs-d2">
               {reason === "service"
-                ? "This page cannot be shown right now."
-                : "This page has not been published yet."}
+                ? t("This page cannot be shown right now.")
+                : t("This page has not been published yet.")}
             </h1>
             <p className="fs-lead">
               {reason === "service"
-                ? "The service that holds this page did not answer. This is a temporary service condition, not a statement that the page does not exist — please try again shortly."
-                : "The About Us page is being prepared and has not been published. Nothing has been removed, and the product range and contact routes below are unaffected."}
+                ? t(
+                    "The service that holds this page did not answer. This is a temporary service condition, not a statement that the page does not exist — please try again shortly.",
+                  )
+                : t(
+                    "The About Us page is being prepared and has not been published. Nothing has been removed, and the product range and contact routes below are unaffected.",
+                  )}
             </p>
             <p className="ab-unavailable-actions">
               <a className="fs-btn fs-btn--gold" href={`/${locale}${ROUTES.products}`}>
-                See the product range
+                {t("See the product range")}
               </a>
               <a className="fs-btn fs-btn--glass" href={`/${locale}${ROUTES.contactUs}`}>
-                Contact us
+                {t("Contact us")}
               </a>
             </p>
           </div>

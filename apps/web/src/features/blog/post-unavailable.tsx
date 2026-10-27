@@ -7,6 +7,7 @@ import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
 import { Arrow } from "@/features/site/logo-mark";
 import { ROUTES } from "@/features/site/site-routes";
+import { translator } from "@/i18n/translate";
 
 /**
  * What `/{locale}/insights/{slug}` renders when the blog service could not answer.
@@ -40,6 +41,7 @@ import { ROUTES } from "@/features/site/site-routes";
  * belongs with the SEO launch gate.
  */
 export function PostUnavailable({ locale, locales }: SiteNavProps): ReactNode {
+  const t = translator(locale);
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
@@ -49,23 +51,25 @@ export function PostUnavailable({ locale, locales }: SiteNavProps): ReactNode {
           <div className="fs-blueprint" aria-hidden="true" />
 
           <div className="fs-wrap in-unavailable-inner">
-            <p className="fs-eyebrow">Insights unavailable</p>
+            <p className="fs-eyebrow">{t("Insights unavailable")}</p>
 
-            <h1 className="fs-d2 in-unavailable-title">This article cannot be shown right now.</h1>
+            <h1 className="fs-d2 in-unavailable-title">
+              {t("This article cannot be shown right now.")}
+            </h1>
 
             <p className="fs-lead in-unavailable-lead">
-              The service that holds our articles did not answer, so we cannot show this one. This
-              is a temporary service condition, not a statement that the article does not exist —
-              please try again shortly.
+              {t(
+                "The service that holds our articles did not answer, so we cannot show this one. This is a temporary service condition, not a statement that the article does not exist — please try again shortly.",
+              )}
             </p>
 
             <div className="in-unavailable-routes">
               <a className="fs-btn fs-btn--gold" href={`/${locale}${ROUTES.insights}`}>
-                All posts
+                {t("All posts")}
                 <Arrow size={13} />
               </a>
               <a className="fs-btn fs-btn--glass" href={`/${locale}${ROUTES.contactUs}`}>
-                Contact us
+                {t("Contact us")}
               </a>
             </div>
           </div>

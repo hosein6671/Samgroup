@@ -3,6 +3,7 @@ import { ANCHORS } from "../quality-anchors";
 import type { QualityApproach } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { ordinal } from "@/i18n/translate";
 
 /**
  * 2 · Our Quality Approach — SITE_STRUCTURE §7's "Incoming/In-Process/Outgoing testing stages".
@@ -37,7 +38,13 @@ import { RichText } from "@/features/site/rich-text";
  * reverting to English is precisely the behaviour that was removed. The heading below it is
  * unaffected either way, so the hierarchy does not move.
  */
-export function QualityApproach({ approach }: { readonly approach: QualityApproach }): ReactNode {
+export function QualityApproach({
+  approach,
+  locale = "en",
+}: {
+  readonly approach: QualityApproach;
+  readonly locale?: string;
+}): ReactNode {
   const { eyebrow, heading, lead, stages, footnote } = approach;
 
   return (
@@ -59,7 +66,7 @@ export function QualityApproach({ approach }: { readonly approach: QualityApproa
           <ol className="qc-stages reveal-stagger">
             {stages.map((stage, i) => (
               <li className="qc-stage" key={stage.name}>
-                <span className="qc-stage-num fs-tnum">{String(i + 1).padStart(2, "0")}</span>
+                <span className="qc-stage-num fs-tnum">{ordinal(locale, i + 1)}</span>
                 <h3 className="qc-stage-name">{stage.name}</h3>
                 <p className="qc-stage-when">{stage.when}</p>
               </li>

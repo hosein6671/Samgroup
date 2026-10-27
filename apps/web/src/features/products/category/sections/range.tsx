@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { groupSubRanges } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * 3 · Product range — SITE_STRUCTURE §4 item 3.
@@ -61,8 +62,9 @@ import type { SectionProps } from "../category-section";
  * A Server Component. Every entry is static and the reveal is the design system's scroll-driven
  * CSS. No JavaScript.
  */
-export function CategoryRangeSection({ content }: SectionProps): ReactNode {
+export function CategoryRangeSection({ content, locale }: SectionProps): ReactNode {
   const { range } = content;
+  const t = translator(locale);
   const groups = groupSubRanges(range);
 
   return (
@@ -72,7 +74,7 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
       <div className="fs-wrap">
         <header className="pc-range-head reveal-fade-rise">
           <div>
-            <p className="fs-eyebrow">Product range</p>
+            <p className="fs-eyebrow">{t("Product range")}</p>
             <h2 className="fs-d2">{range.heading}</h2>
           </div>
           <p className="fs-lead">{range.intro}</p>
@@ -80,18 +82,19 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
 
         {range.classificationAxes && range.classificationAxes.length > 0 && (
           <div className="pc-axes reveal-fade-rise">
-            <p className="pc-axes-label">Classified on</p>
+            <p className="pc-axes-label">{t("Classified on")}</p>
             <ul className="pc-axes-list">
               {range.classificationAxes.map((axis, i) => (
                 <li key={axis}>
-                  <span>{String(i + 1).padStart(2, "0")}</span>
+                  <span>{ordinal(locale, i + 1)}</span>
                   {axis}
                 </li>
               ))}
             </ul>
             <p className="pc-axes-note">
-              Axes only — the boundary values belong to the standard, and the values for a given
-              grade belong to its data sheet.
+              {t(
+                "Axes only — the boundary values belong to the standard, and the values for a given grade belong to its data sheet.",
+              )}
             </p>
           </div>
         )}
@@ -102,7 +105,7 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
               {group.axis && (
                 <p className="pc-sub-axis reveal-fade-rise">
                   <span>{group.axis}</span>
-                  <span>{String(group.subRanges.length).padStart(2, "0")}</span>
+                  <span>{ordinal(locale, group.subRanges.length)}</span>
                 </p>
               )}
 
@@ -110,7 +113,7 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
                 {group.subRanges.map((subRange, i) => (
                   <article className="pc-sub" id={`range-${subRange.id}`} key={subRange.id}>
                     {/* Continuous across groups, so this number and the hero index agree. */}
-                    <p className="pc-sub-index">{String(group.offset + i + 1).padStart(2, "0")}</p>
+                    <p className="pc-sub-index">{ordinal(locale, group.offset + i + 1)}</p>
 
                     <div className="pc-sub-identity">
                       <h3 className="pc-sub-title">{subRange.designation}</h3>
@@ -135,8 +138,8 @@ export function CategoryRangeSection({ content }: SectionProps): ReactNode {
                       {subRange.grades.length > 0 && (
                         <div className="pc-grade-block">
                           <p className="pc-grade-label">
-                            Published grades
-                            <span>{String(subRange.grades.length).padStart(2, "0")}</span>
+                            {t("Published grades")}
+                            <span>{ordinal(locale, subRange.grades.length)}</span>
                           </p>
 
                           <ul className="pc-grades">

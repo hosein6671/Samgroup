@@ -47,6 +47,7 @@ export function Hero({
       barTitle={copy.text("portfolio_at_a_glance")}
       exploreLabel={copy.text("explore_the_sam_group_portfolio")}
       exploreHref="#who-we-are"
+      locale={locale}
     >
       <div className="fs-cine-copy">
         <p className="fs-eyebrow fs-cine-eyebrow">

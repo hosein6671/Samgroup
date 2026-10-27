@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { contentText } from "@/i18n/localize-content";
+import { translator } from "@/i18n/translate";
 
 import { ACTIVE_LOCALE_CODES } from "@test/active-locales";
 import { accessibleName, findLinks, findTags, textOf } from "@test/element-tree";
@@ -82,7 +84,7 @@ describe("SiteFooter", () => {
   it("sends the brand mark to the locale's home page, not to `#top`", async () => {
     for (const code of ACTIVE_LOCALE_CODES) {
       const brand = findLinks(await render(code)).find(
-        (link) => accessibleName(link) === "Sam Group — home",
+        (link) => accessibleName(link) === translator(code)("Sam Group — home"),
       );
 
       expect(brand).toBeDefined();
@@ -183,7 +185,7 @@ describe("the Privacy Policy link", () => {
       );
 
       expect(link).toBeDefined();
-      expect(accessibleName(link!)).toBe("Privacy Policy");
+      expect(accessibleName(link!), code).toBe(contentText(code, "Privacy Policy"));
     }
   });
 

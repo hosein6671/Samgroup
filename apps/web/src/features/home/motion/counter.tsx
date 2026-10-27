@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { formatCount } from "@/i18n/translate";
+
 /**
  * A figure that counts up once, when it is first seen.
  *
@@ -16,8 +18,11 @@ export function Counter({
   value,
   suffix = "",
   className,
+  locale = "en",
 }: {
   readonly value: number;
+  /** Digits follow the page language — Persian digits on `/fa`. */
+  readonly locale?: string;
   readonly suffix?: string;
   readonly className?: string;
 }): ReactNode {
@@ -57,7 +62,7 @@ export function Counter({
 
   return (
     <b ref={ref} className={className}>
-      {display >= 1000 ? display.toLocaleString("en-US") : display}
+      {formatCount(locale, display, display >= 1000)}
       {suffix}
     </b>
   );

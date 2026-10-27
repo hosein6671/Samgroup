@@ -11,6 +11,9 @@ import { robotsMetadata } from "@/features/seo/indexing";
 import { siteJsonLd } from "@/features/seo/structured-data";
 import { siteUrl } from "@/features/seo/site";
 import { getActiveLocales, getLocaleByCode } from "@/lib/locales";
+import { uiCatalog } from "@/i18n/catalogs";
+import { I18nProvider } from "@/i18n/i18n-provider";
+import { translator } from "@/i18n/translate";
 
 import { FONT_VARIABLES } from "../fonts";
 
@@ -125,6 +128,8 @@ export default async function LocaleLayout({
    */
   if (!record) notFound();
 
+  const t = translator(record.code);
+
   return (
     /*
      * `suppressHydrationWarning` covers this element's own attributes only, not its subtree: the home
@@ -149,11 +154,16 @@ export default async function LocaleLayout({
         <JsonLd data={siteJsonLd(record.code)} />
         {/* Same skip link the single root layout carried; `HomeExperience` supplies the target. */}
         <a className="skip-link" href="#main-content">
-          Skip to content
+          {t("Skip to content")}
         </a>
-        <HeaderContentProvider fields={(await publishedStructural("header", locale))?.fields ?? {}}>
-          {children}
-        </HeaderContentProvider>
+        {/* The active locale's UI chrome catalog, for client components (`useT`). */}
+        <I18nProvider catalog={uiCatalog(record.code)} locale={record.code}>
+          <HeaderContentProvider
+            fields={(await publishedStructural("header", locale))?.fields ?? {}}
+          >
+            {children}
+          </HeaderContentProvider>
+        </I18nProvider>
         {/* The curtain between public pages; this tree only, so the Admin Dashboard never has it. */}
         <PageTransition />
         {/* Inertial wheel scrolling, public pages only. */}

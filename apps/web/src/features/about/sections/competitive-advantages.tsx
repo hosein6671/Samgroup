@@ -12,6 +12,7 @@ import { ANCHORS } from "../about-anchors";
 import type { AboutUsCompetitiveAdvantages, CompetitiveAdvantageIconKey } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator } from "@/i18n/translate";
 
 /**
  * "Why Partner with SAM Group?" — six reasons a buyer deals with the producer directly.
@@ -42,9 +43,12 @@ const GLYPHS: Record<CompetitiveAdvantageIconKey, (props: { readonly size: "lg" 
 
 export function AboutCompetitiveAdvantages({
   advantages,
+  locale = "en",
 }: {
   readonly advantages: AboutUsCompetitiveAdvantages;
+  readonly locale?: string;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec ab-adv" id={ANCHORS.advantages} data-surface="light">
       <div className="fs-wrap ab-adv-inner">
@@ -61,7 +65,7 @@ export function AboutCompetitiveAdvantages({
           data-lead={advantages.lead === null ? "no" : "yes"}
         >
           <div>
-            <p className="fs-eyebrow">Why partner with us</p>
+            <p className="fs-eyebrow">{t("Why partner with us")}</p>
             {advantages.heading !== null && <h2 className="fs-d2">{advantages.heading}</h2>}
           </div>
           {advantages.lead !== null && (

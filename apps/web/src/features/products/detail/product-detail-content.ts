@@ -1,3 +1,5 @@
+import { localizeContent } from "@/i18n/localize-content";
+
 export type ProductDetailEditorial = {
   readonly image: { readonly src: string; readonly alt: string; readonly caption: string };
   readonly selection: {
@@ -201,6 +203,13 @@ const EDITORIAL_BY_FAMILY: Readonly<Record<string, ProductDetailEditorial>> = {
   },
 };
 
-export function getProductDetailEditorial(familySlug: string): ProductDetailEditorial {
-  return EDITORIAL_BY_FAMILY[familySlug] ?? EDITORIAL_BY_FAMILY["industrial-oils-lubricants"]!;
+export function getProductDetailEditorial(
+  familySlug: string,
+  locale = "en",
+): ProductDetailEditorial {
+  const editorial =
+    EDITORIAL_BY_FAMILY[familySlug] ?? EDITORIAL_BY_FAMILY["industrial-oils-lubricants"]!;
+  // English is the source text, returned as the same object; any other locale reads the copy
+  // through the content catalog.
+  return locale === "en" ? editorial : localizeContent(locale, editorial);
 }

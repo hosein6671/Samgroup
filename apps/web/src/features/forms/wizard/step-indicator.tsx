@@ -4,6 +4,8 @@ import { StepCompleteIcon } from "./icons";
 import { REVIEW_STEP_LABEL, type WizardStep } from "./wizard-steps";
 
 import type { ReactNode } from "react";
+import { useLocale, useT } from "@/i18n/i18n-provider";
+import { formatCount, ordinal } from "@/i18n/translate";
 
 /**
  * The shared step indicator.
@@ -52,17 +54,19 @@ export function StepIndicator({
   readonly onNavigate: (index: number) => void;
   readonly idPrefix: string;
 }): ReactNode {
+  const t = useT();
+  const locale = useLocale();
   /* The review step is appended here rather than stored, so no form has to declare it. */
   const entries = [
-    ...steps.map((step) => ({ id: step.id, label: step.label })),
-    { id: "review", label: REVIEW_STEP_LABEL },
+    ...steps.map((step) => ({ id: step.id, label: t(step.label) })),
+    { id: "review", label: t(REVIEW_STEP_LABEL) },
   ];
 
   const total = entries.length;
   const activeLabel = entries[activeIndex]?.label ?? "";
 
   return (
-    <nav className="fw-progress" aria-label="Form progress">
+    <nav className="fw-progress" aria-label={t("Form progress")}>
       {/*
        * The progress sentence, and the element that announces a step change.
        *
@@ -72,7 +76,10 @@ export function StepIndicator({
        */}
       <p className="fw-progress-count" aria-live="polite">
         <span className="fs-tnum">
-          Step {activeIndex + 1} of {total}
+          {t("Step {current} of {total}", {
+            current: formatCount(locale, activeIndex + 1),
+            total: formatCount(locale, total),
+          })}
         </span>
         <span className="fw-progress-current">{activeLabel}</span>
       </p>
@@ -102,14 +109,10 @@ export function StepIndicator({
                  * progress sentence says "Step 2 of 3", and the list is ordered.
                  */}
                 <span className="fw-progress-num fs-tnum" aria-hidden="true">
-                  {state === "done" ? (
-                    <StepCompleteIcon size="sm" />
-                  ) : (
-                    String(index + 1).padStart(2, "0")
-                  )}
+                  {state === "done" ? <StepCompleteIcon size="sm" /> : ordinal(locale, index + 1)}
                 </span>
                 <span className="fw-progress-label">{entry.label}</span>
-                {state === "done" && <VisuallyHidden> completed</VisuallyHidden>}
+                {state === "done" && <VisuallyHidden>{t(" completed")}</VisuallyHidden>}
               </button>
             </li>
           );

@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { contentText } from "@/i18n/localize-content";
 
 import { QualityExperience } from "@/features/quality/quality-experience";
 import { QualityUnavailable } from "@/features/quality/quality-unavailable";
@@ -99,7 +100,7 @@ export async function generateMetadata({
    */
   const alternates = structuralAlternates(locale, ROUTES.qualityCertifications);
 
-  if (!result.ok) return { title: QUALITY_TITLE, alternates };
+  if (!result.ok) return { title: contentText(locale, QUALITY_TITLE), alternates };
 
   const { hero, seo } = result.content;
 

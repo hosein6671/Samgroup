@@ -10,8 +10,9 @@ import { getCategoryBySlug } from "@/lib/catalog";
 import { getLocaleByCode } from "@/lib/locales";
 
 import { FAMILIES } from "../products-data";
+import { familiesFor } from "../localized-data";
 
-import { getCategoryContent } from "./data";
+import { categoryContentFor } from "../localized-data";
 
 import type { ProductCategoryContent } from "./category-contract";
 import type { ProductFamily } from "../products-data";
@@ -94,11 +95,12 @@ export async function resolveCategoryPage(
   slug: string,
   locale: string,
 ): Promise<ResolvedCategoryPage | null> {
-  const fixture = getCategoryContent(slug);
+  const fixture = categoryContentFor(slug, locale);
   if (!fixture) return null;
   const content = await publishedCategoryContent(fixture, locale);
 
-  const family = FAMILIES.find((entry) => entry.id === content.familyId);
+  const family = familiesFor(locale).find((entry) => entry.id === content.familyId);
+  const sourceName = FAMILIES.find((entry) => entry.id === content.familyId)?.name;
   if (!family) {
     throw new Error(`No product family "${content.familyId}" in products-data.ts`);
   }
@@ -170,7 +172,13 @@ export async function resolveCategoryPage(
      * untouched, `id` above all: it is the canonical identifier, it is already guarded at module
      * load, and a value the network could rewrite would not be an identifier.
      */
-    family: { ...family, name: result.record.name },
+    // The API's name wins when it says something other than the built-in English name — a real
+    // translation or an edited name. When it only echoes the English (no translation row yet),
+    // the page keeps the family name in its own language.
+    family: {
+      ...family,
+      name: result.record.name !== sourceName ? result.record.name : family.name,
+    },
     source: "api",
   };
 }

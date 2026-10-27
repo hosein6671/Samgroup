@@ -8,6 +8,7 @@ import { FIRST_PAGE, NO_FILTERS, hasFilters, finderHref, pageHref } from "../fin
 
 import type { FinderQuery } from "../finder-query";
 import type { ProductListResult } from "@/lib/products";
+import { formatCount, translator, type Translate, ordinal } from "@/i18n/translate";
 
 /**
  * The finder's result list — the only thing on this page that depends on the catalog service.
@@ -59,6 +60,11 @@ import type { ProductListResult } from "@/lib/products";
  */
 function familyName(slug: string): string | null {
   return FAMILIES.find((family) => family.id === slug)?.name ?? null;
+}
+
+/** A filter's display name, in the page's language — the finder's own vocabulary, not content. */
+function named(t: Translate, name: string | null): string | null {
+  return name === null ? null : t(name);
 }
 
 /**
@@ -139,20 +145,22 @@ function ResultNotice({
  * ADR-008 §4 for the Segment, ADR-020 §1 for the Product Type). When that leaves nothing named at
  * all, the sentence says so generically rather than inventing a subject.
  */
-function selectionSentence(query: FinderQuery): string {
-  const named = [
-    query.category === null ? null : familyName(query.category),
-    query.segment === null ? null : segmentName(query.segment),
+function selectionSentence(t: Translate, query: FinderQuery): string {
+  const names = [
+    query.category === null ? null : named(t, familyName(query.category)),
+    query.segment === null ? null : named(t, segmentName(query.segment)),
     query.productType === null ? null : productTypeName(query.productType),
   ].filter((name): name is string => name !== null);
 
-  const selection = named.join(" in ");
+  const selection = names.join(t(" in "));
 
   if (query.q !== null) {
-    return selection === "" ? "the requested search" : `the search within ${selection}`;
+    return selection === ""
+      ? t("the requested search")
+      : t("the search within {selection}", { selection });
   }
 
-  return selection === "" ? "the requested filters" : selection;
+  return selection === "" ? t("the requested filters") : selection;
 }
 
 /**
@@ -212,40 +220,44 @@ function Pagination({
 }): ReactNode {
   const hasPrevious = page > FIRST_PAGE;
   const hasNext = page < lastPage;
+  const t = translator(locale);
 
   return (
-    <nav className="pf-pages" aria-label="Product list pages">
+    <nav className="pf-pages" aria-label={t("Product list pages")}>
       {hasPrevious ? (
         <a
           className="pf-page-step"
           rel="prev"
-          aria-label="Previous page"
+          aria-label={t("Previous page")}
           href={pageHref(locale, query, page - 1)}
         >
-          Previous
+          {t("Previous")}
         </a>
       ) : (
         <span className="pf-page-step" aria-disabled="true">
-          Previous
+          {t("Previous")}
         </span>
       )}
 
       <p className="pf-page-at">
-        Page {page} of {lastPage}
+        {t("Page {page} of {last}", {
+          page: formatCount(locale, page),
+          last: formatCount(locale, lastPage),
+        })}
       </p>
 
       {hasNext ? (
         <a
           className="pf-page-step"
           rel="next"
-          aria-label="Next page"
+          aria-label={t("Next page")}
           href={pageHref(locale, query, page + 1)}
         >
-          Next
+          {t("Next")}
         </a>
       ) : (
         <span className="pf-page-step" aria-disabled="true">
-          Next
+          {t("Next")}
         </span>
       )}
     </nav>
@@ -262,6 +274,7 @@ type ResultsProps = {
 
 export async function FinderResults({ products, locale, query }: ResultsProps): Promise<ReactNode> {
   const result = await products;
+  const t = translator(locale);
 
   report(query, result);
 
@@ -292,8 +305,8 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
       {result.ok && listed > 0 && (
         <>
           <p className="pl-count">
-            <span>{String(result.total).padStart(2, "0")}</span>
-            {result.total === 1 ? "product" : "products"}
+            <span>{ordinal(locale, result.total)}</span>
+            {result.total === 1 ? t("product") : t("products")}
             {/*
              * Only when this page genuinely does not hold the whole set — and stated as the WINDOW
              * rather than as a prefix. This line read "showing the first 20" before there were
@@ -303,7 +316,12 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
             {/* One interpolated string rather than three children, so the range is one text node
                 and cannot be broken across a line by whitespace the JSX introduced. */}
             {result.total > listed && (
-              <small>{`showing ${String(firstOnPage)}–${String(firstOnPage + listed - 1)}`}</small>
+              <small>
+                {t("showing {first}–{last}", {
+                  first: formatCount(locale, firstOnPage),
+                  last: formatCount(locale, firstOnPage + listed - 1),
+                })}
+              </small>
             )}
           </p>
 
@@ -349,26 +367,39 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
        */}
       {result.ok && listed === 0 && outOfRange && (
         <ResultNotice
-          heading="That page does not exist"
-          body={`This selection holds ${String(result.total)} ${result.total === 1 ? "product" : "products"} across ${String(lastPage)} ${lastPage === 1 ? "page" : "pages"}, so there is no page ${String(page)} to show.`}
+          heading={t("That page does not exist")}
+          body={t(
+            "This selection holds {total} {products} across {pages} {pageWord}, so there is no page {page} to show.",
+            {
+              total: formatCount(locale, result.total),
+              products: result.total === 1 ? t("product") : t("products"),
+              pages: formatCount(locale, lastPage),
+              pageWord: lastPage === 1 ? t("page") : t("pages"),
+              page: formatCount(locale, page),
+            },
+          )}
           reset={pageHref(locale, query, FIRST_PAGE)}
-          resetLabel="Go to the first page"
+          resetLabel={t("Go to the first page")}
         />
       )}
 
       {result.ok && listed === 0 && !outOfRange && filtered && (
         <ResultNotice
-          heading="No products match this search"
-          body={`The catalog holds no published product for ${selectionSentence(query)}.`}
+          heading={t("No products match this search")}
+          body={t("The catalog holds no published product for {selection}.", {
+            selection: selectionSentence(t, query),
+          })}
           reset={unfilteredHref}
-          resetLabel="Clear search and filters"
+          resetLabel={t("Clear search and filters")}
         />
       )}
 
       {result.ok && listed === 0 && !outOfRange && !filtered && (
         <ResultNotice
-          heading="No products published yet"
-          body="The catalog holds no published products. The six product families and what each one covers are on the Products pages."
+          heading={t("No products published yet")}
+          body={t(
+            "The catalog holds no published products. The six product families and what each one covers are on the Products pages.",
+          )}
         />
       )}
 
@@ -381,28 +412,34 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
        */}
       {!result.ok && result.reason === "unknown-filter" && result.field === "category" && (
         <ResultNotice
-          heading="That product family is not recognised"
-          body="The requested product family does not match a published family, so no product list was returned."
+          heading={t("That product family is not recognised")}
+          body={t(
+            "The requested product family does not match a published family, so no product list was returned.",
+          )}
           reset={finderHref(locale, { ...query, category: null })}
-          resetLabel="Clear the family filter"
+          resetLabel={t("Clear the family filter")}
         />
       )}
 
       {!result.ok && result.reason === "unknown-filter" && result.field === "segment" && (
         <ResultNotice
-          heading="That segment is not recognised"
-          body="The requested segment does not match a published segment, so no product list was returned."
+          heading={t("That segment is not recognised")}
+          body={t(
+            "The requested segment does not match a published segment, so no product list was returned.",
+          )}
           reset={finderHref(locale, { ...query, segment: null })}
-          resetLabel="Clear the segment filter"
+          resetLabel={t("Clear the segment filter")}
         />
       )}
 
       {!result.ok && result.reason === "unknown-filter" && result.field === "productType" && (
         <ResultNotice
-          heading="That product type is not recognised"
-          body="The requested product type does not match a published type, so no product list was returned."
+          heading={t("That product type is not recognised")}
+          body={t(
+            "The requested product type does not match a published type, so no product list was returned.",
+          )}
           reset={finderHref(locale, { ...query, productType: null })}
-          resetLabel="Clear the product type filter"
+          resetLabel={t("Clear the product type filter")}
         />
       )}
 
@@ -417,8 +454,10 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
             result.field !== "segment" &&
             result.field !== "productType")) && (
           <ResultNotice
-            heading="Product list unavailable"
-            body="The catalog service did not answer this request. No products can be listed until it does; the filters above are unaffected."
+            heading={t("Product list unavailable")}
+            body={t(
+              "The catalog service did not answer this request. No products can be listed until it does; the filters above are unaffected.",
+            )}
           />
         )}
     </div>
@@ -437,10 +476,11 @@ export async function FinderResults({ products, locale, query }: ResultsProps): 
  * Deliberately **no product names, no count and no fabricated rows**: a skeleton that guessed at
  * content would be inventing catalog data for the duration of a request.
  */
-export function FinderResultsSkeleton(): ReactNode {
+export function FinderResultsSkeleton({ locale = "en" }: { readonly locale?: string }): ReactNode {
+  const t = translator(locale);
   return (
     <div className="pf-results" aria-busy="true">
-      <p className="pl-count pl-count--pending">Loading the catalog…</p>
+      <p className="pl-count pl-count--pending">{t("Loading the catalog…")}</p>
 
       <div className="pl-grid" aria-hidden="true">
         {[0, 1, 2].map((index) => (

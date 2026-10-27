@@ -6,6 +6,7 @@ import { ANCHORS } from "../about-anchors";
 import type { AboutUsQualityStandards } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator } from "@/i18n/translate";
 
 /**
  * Quality & Standards — a compact supporting section, not a fourth full-width argument.
@@ -35,12 +36,13 @@ export function AboutQualityStandards({
   readonly locale: string;
 }): ReactNode {
   const { footnote, footnoteCta } = qualityStandards;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec ab-quality" id={ANCHORS.quality} data-surface="light">
       <div className="fs-wrap ab-quality-compact">
         <div className="ab-quality-compact-copy reveal-fade-rise">
-          <p className="fs-eyebrow">Quality &amp; standards</p>
+          <p className="fs-eyebrow">{t("Quality & standards")}</p>
           {qualityStandards.heading !== null && (
             <h2 className="fs-d3">{qualityStandards.heading}</h2>
           )}

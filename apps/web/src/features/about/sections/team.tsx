@@ -6,8 +6,15 @@ import { SectionFigure } from "./hero";
 import type { AboutUsTeam } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { ordinal } from "@/i18n/translate";
 
-export function AboutTeam({ team }: { readonly team: AboutUsTeam }): ReactNode {
+export function AboutTeam({
+  team,
+  locale = "en",
+}: {
+  readonly team: AboutUsTeam;
+  readonly locale?: string;
+}): ReactNode {
   return (
     <section className="fs-sec ab-team" id={ANCHORS.team} data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -35,7 +42,7 @@ export function AboutTeam({ team }: { readonly team: AboutUsTeam }): ReactNode {
           <ol className="ab-team-functions reveal-stagger">
             {team.functions.map((item, index) => (
               <li key={item.name}>
-                <span className="fs-tnum">{String(index + 1).padStart(2, "0")}</span>
+                <span className="fs-tnum">{ordinal(locale, index + 1)}</span>
                 <div>
                   <h3>{item.name}</h3>
                   <p>

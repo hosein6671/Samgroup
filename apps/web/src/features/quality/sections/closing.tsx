@@ -6,6 +6,7 @@ import { ANCHORS } from "../quality-anchors";
 import type { QualityClosing } from "@sam-group/types";
 import type { ReactNode } from "react";
 import { RichText } from "@/features/site/rich-text";
+import { translator, ordinal } from "@/i18n/translate";
 
 /**
  * 7 · Final CTA — SITE_STRUCTURE §7's closing row.
@@ -42,6 +43,7 @@ export function QualityClosingSection({
   readonly locale: string;
 }): ReactNode {
   const { eyebrow, heading, lead, primaryCta, routes } = closing;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec qc-close" id={ANCHORS.next} data-surface="midnight">
@@ -70,8 +72,8 @@ export function QualityClosingSection({
         {routes.length > 0 && (
           <nav className="qc-close-routes reveal-fade-rise" aria-labelledby="qc-close-routes-title">
             <p className="qc-close-head" id="qc-close-routes-title">
-              <span>Or take another route</span>
-              <span className="fs-tnum">{String(routes.length).padStart(2, "0")}</span>
+              <span>{t("Or take another route")}</span>
+              <span className="fs-tnum">{ordinal(locale, routes.length)}</span>
             </p>
 
             <ul>

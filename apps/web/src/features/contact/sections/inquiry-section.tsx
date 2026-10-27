@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { InquiryForm, type ProductContext } from "@/features/forms/inquiry-form";
 
 import { ANCHORS, type FormHeading } from "../contact-data";
+import { translator } from "@/i18n/translate";
 
 /**
  * 2 · The inquiry form, in its panel.
@@ -22,6 +23,7 @@ export function InquirySection({
   lockInquiryType = false,
   privacyPolicyHref = null,
   product = null,
+  locale = "en",
 }: {
   readonly copy: FormHeading;
   readonly inquiryType: string;
@@ -32,7 +34,9 @@ export function InquirySection({
    */
   readonly privacyPolicyHref?: string | null;
   readonly product?: ProductContext | null;
+  readonly locale?: string;
 }): ReactNode {
+  const t = translator(locale);
   return (
     <section className="fs-sec ct-form" id={ANCHORS.form} data-surface="light">
       <div className="fs-wrap ct-form-inner">
@@ -45,15 +49,15 @@ export function InquirySection({
 
           <aside className="ct-brief" aria-labelledby="ct-brief-title">
             <p className="ct-brief-label" id="ct-brief-title">
-              Useful details
+              {t("Useful details")}
             </p>
             <ul>
-              <li>Product, grade, or application</li>
-              <li>Required quantity and packaging</li>
-              <li>Destination country or port</li>
-              <li>Specification or preferred Incoterm</li>
+              <li>{t("Product, grade, or application")}</li>
+              <li>{t("Required quantity and packaging")}</li>
+              <li>{t("Destination country or port")}</li>
+              <li>{t("Specification or preferred Incoterm")}</li>
             </ul>
-            <p>Share only what is known. Missing details can be clarified during review.</p>
+            <p>{t("Share only what is known. Missing details can be clarified during review.")}</p>
           </aside>
         </div>
 

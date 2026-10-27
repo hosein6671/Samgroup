@@ -83,12 +83,16 @@ describe("structural content publication boundary", () => {
     findGlobal.mockResolvedValue({ _status: "published" });
     expect((await service.read("home", en)).response.available).toBe(false);
   });
-  it("does not claim an English fallback is translated", async () => {
+  it("reads another locale's own fields and never an English fallback", async () => {
+    findGlobal.mockResolvedValue({ _status: "published" });
     expect(
       (await service.read("home", { code: "fa", defaultCode: "en", isDefault: false })).response
         .available,
     ).toBe(false);
-    expect(findGlobal).not.toHaveBeenCalled();
+    expect(findGlobal).toHaveBeenCalledWith(
+      "home",
+      expect.objectContaining({ locale: "fa", "fallback-locale": "none" }),
+    );
   });
   it("preserves infrastructure failures", async () => {
     findGlobal.mockRejectedValue(new Error("unavailable"));

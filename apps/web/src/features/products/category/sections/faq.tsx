@@ -4,6 +4,7 @@ import { Arrow } from "@/features/site/logo-mark";
 
 import { actionHref } from "../category-contract";
 import type { SectionProps } from "../category-section";
+import { translator } from "@/i18n/translate";
 
 /**
  * 11 · FAQ — SITE_STRUCTURE §4 item 11.
@@ -34,15 +35,18 @@ import type { SectionProps } from "../category-section";
 export function CategoryFaq({ content, locale }: SectionProps): ReactNode {
   const { faq } = content;
   if (faq.length === 0) return null;
+  const t = translator(locale);
 
   return (
     <section className="fs-sec pc-faq" id="faq" data-surface="light">
       <div className="fs-wrap pc-faq-grid">
         <header className="pc-faq-head reveal-fade-rise">
-          <p className="fs-eyebrow">Questions</p>
-          <h2 className="fs-d2">Asked before an enquiry.</h2>
+          <p className="fs-eyebrow">{t("Questions")}</p>
+          <h2 className="fs-d2">{t("Asked before an enquiry.")}</h2>
           <p className="fs-small pc-faq-note">
-            Find answers to common questions before discussing your requirements with our team.
+            {t(
+              "Find answers to common questions before discussing your requirements with our team.",
+            )}
           </p>
         </header>
 

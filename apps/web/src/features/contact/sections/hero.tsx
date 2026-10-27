@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 
 import { Arrow, LogoMark } from "@/features/site/logo-mark";
 
-import { ANCHORS, INTRO } from "../contact-data";
+import { ANCHORS, INTRO as SOURCE_INTRO } from "../contact-data";
+import { translator } from "@/i18n/translate";
 
 /**
  * 1 · Contact hero.
@@ -15,7 +16,13 @@ import { ANCHORS, INTRO } from "../contact-data";
  *
  * A Server Component. No state, no JavaScript.
  */
-export function ContactHero(): ReactNode {
+export function ContactHero({ locale = "en" }: { readonly locale?: string } = {}): ReactNode {
+  const t = translator(locale);
+  const INTRO = {
+    eyebrow: t(SOURCE_INTRO.eyebrow),
+    heading: t(SOURCE_INTRO.heading),
+    lead: t(SOURCE_INTRO.lead),
+  };
   return (
     <section className="ct-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -28,7 +35,7 @@ export function ContactHero(): ReactNode {
 
           <p className="ct-hero-action">
             <a href={`#${ANCHORS.form}`} className="fs-btn fs-btn--gold">
-              Open the enquiry form
+              {t("Open the enquiry form")}
               <Arrow size={15} />
             </a>
           </p>
@@ -37,7 +44,7 @@ export function ContactHero(): ReactNode {
         <figure className="ct-hero-media">
           <Image
             src="/images/home/cta-technical-conversation.webp"
-            alt="Technical sales discussion about a petroleum product requirement"
+            alt={t("Technical sales discussion about a petroleum product requirement")}
             fill
             priority
             sizes="(max-width: 900px) calc(100vw - 40px), 42vw"
@@ -47,8 +54,8 @@ export function ContactHero(): ReactNode {
             <span>SAM GROUP</span>
           </span>
           <figcaption>
-            <span>One enquiry route</span>
-            Product · quote · sample · documentation
+            <span>{t("One enquiry route")}</span>
+            {t("Product · quote · sample · documentation")}
           </figcaption>
         </figure>
       </div>

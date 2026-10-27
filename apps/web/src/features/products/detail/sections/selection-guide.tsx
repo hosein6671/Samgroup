@@ -3,11 +3,14 @@ import type { ReactNode } from "react";
 import { BrandedPhoto } from "@/features/home/branded-photo";
 
 import type { ProductDetailEditorial } from "../product-detail-content";
+import { ordinal } from "@/i18n/translate";
 
 export function ProductSelectionGuide({
   editorial,
+  locale = "en",
 }: {
   readonly editorial: ProductDetailEditorial;
+  readonly locale?: string;
 }): ReactNode {
   return (
     <section className="fs-sec pd-selection" data-surface="light">
@@ -30,7 +33,7 @@ export function ProductSelectionGuide({
           <ol className="pd-criteria">
             {editorial.selection.criteria.map((criterion, index) => (
               <li key={criterion.title}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
+                <span>{ordinal(locale, index + 1)}</span>
                 <div>
                   <h3>{criterion.title}</h3>
                   <p>{criterion.detail}</p>
