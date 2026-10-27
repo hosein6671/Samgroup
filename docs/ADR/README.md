@@ -30,8 +30,8 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-024](./ADR-024-unified-catalogue-editor-proposal.md)             | Unified catalogue editor, Admin user management and activity/security audit                                                               | Accepted |
 | [ADR-025](./ADR-025-versioned-blog-editorial-drafts.md)               | Versioned blog drafts preserve the published projection until an explicit, atomic publish                                                 | Accepted |
 | [ADR-026](./ADR-026-admin-managed-segment-creation.md)                | Admin-only create-and-list for Segment rows from `/admin`; closes ADR-008 §7's Admin/API-writes deferral                                  | Accepted |
-| [ADR-027](./ADR-027-localized-product-editorial-content.md)           | Localized product description, applications, features, FAQ and SEO, plus a guarded content import CLI                                     | Proposed |
-| [ADR-028](./ADR-028-product-grade-display-label.md)                   | Public display label for Product Grades, keeping the verbatim source label for identity and provenance                                    | Proposed |
+| [ADR-027](./ADR-027-localized-product-editorial-content.md)           | Localized product description, applications, features, FAQ and SEO, plus a guarded content import CLI                                     | Accepted |
+| [ADR-028](./ADR-028-product-grade-display-label.md)                   | Public display label for Product Grades, keeping the verbatim source label for identity and provenance                                    | Accepted |
 
 **ADR-021 is reserved, not free.** No file carries that number yet, but two live documents already
 cite it for the policy-revision decision — [`docs/legal/DRAFT-privacy-policy-REVIEW-ONLY.md`](../legal/DRAFT-privacy-policy-REVIEW-ONLY.md)

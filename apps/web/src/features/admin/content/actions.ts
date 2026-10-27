@@ -84,12 +84,26 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
         .filter((value) => typeof value === "string" && value.trim())
         .map((value) => String(value).trim());
   }
+  // A product's review state travels beside its content, never inside it (ADR-027 §3).
+  let translationStatus: string | undefined;
+  if (product && fields && typeof fields === "object" && "translationStatus" in fields) {
+    const { translationStatus: status, ...rest } = fields as Record<string, unknown>;
+    if (status === "machine_draft" || status === "human_reviewed") translationStatus = status;
+    fields = rest;
+  }
   const accessToken = await getAdminAccessToken();
   if (!accessToken) return { ...previous, saved: false, message: "Sign in again before saving." };
   const result = await apiPatch<{ revision: string; slug?: string }>(
-    `/admin/${product ? "products" : blog ? "blog/posts" : "content"}/${encodeURIComponent(key)}`,
+    `/admin/${product ? "products" : blog ? "blog/posts" : "content"}/${encodeURIComponent(key)}${
+      product && locale !== undefined ? `?locale=${encodeURIComponent(locale)}` : ""
+    }`,
     product || blog
-      ? { content: fields, action, revision: Number(previous.revision) }
+      ? {
+          content: fields,
+          action,
+          revision: Number(previous.revision),
+          ...(translationStatus !== undefined ? { translationStatus } : {}),
+        }
       : {
           fields,
           action,
@@ -137,7 +151,7 @@ export async function saveContent(previous: EditState, form: FormData): Promise<
     }
     if (key.startsWith("category-")) revalidatePath("/sitemap.xml");
     if (product && result.data.slug) {
-      revalidatePath(`/en/products/${result.data.slug}`);
+      revalidatePath(`/${locale ?? "en"}/products/${result.data.slug}`);
       revalidatePath("/en/products", "layout");
       revalidatePath("/admin/catalog/products");
     } else if (blog && result.data.slug) {

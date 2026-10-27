@@ -57,3 +57,23 @@ export const PRODUCT_EDITOR_SCHEMA: EditorField[] = [
     ],
   },
 ];
+
+/**
+ * A non-default locale's product editor (ADR-027 §3): the same sections and SEO, no name — the
+ * catalogue name is the same in every locale and the API never writes it from here — and the
+ * review state that decides whether this language is advertised to search engines.
+ */
+export const PRODUCT_LOCALIZATION_EDITOR_SCHEMA: EditorField[] = [
+  {
+    name: "translationStatus",
+    label: "Review state",
+    type: "select",
+    description:
+      "Machine draft is published but not advertised as an alternate language to search engines.",
+    options: [
+      { label: "Machine draft", value: "machine_draft" },
+      { label: "Reviewed by a person", value: "human_reviewed" },
+    ],
+  },
+  ...PRODUCT_EDITOR_SCHEMA.filter((field) => field.name !== "name"),
+];

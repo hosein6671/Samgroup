@@ -571,6 +571,7 @@ model Product {
   claims         ProductClaim[]
   copy           ProductCopy[]
   editorialDraft ProductEditorialDraft?
+  editorialLocalizations ProductEditorialLocalization[]
   segments       ProductSegment[]
   inquiries      Inquiry[]        @relation("InquiryRelatedProduct")
 
@@ -591,6 +592,28 @@ model ProductEditorialDraft {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_editorial_drafts")
+}
+
+/// Editorial content for ONE non-default locale of a Product (ADR-027).
+///
+/// The default locale never has a row here — a trigger refuses it — because its content
+/// already lives in `ProductEditorialDraft` and the `Product` columns. Name and slug are not
+/// part of this content: they are not translated by ADR-027. The localized description is a
+/// `ContentTranslation` row, and the localized SEO a `SeoMeta` row, as for every other entity.
+model ProductEditorialLocalization {
+  productId         String            @map("product_id") @db.Uuid
+  locale            String
+  revision          Int               @default(0)
+  content           Json
+  publishedSections Json?             @map("published_sections")
+  translationStatus TranslationStatus @default(MACHINE_DRAFT) @map("translation_status")
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  localeRef Locale  @relation(fields: [locale], references: [code], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([productId, locale])
+  @@map("product_editorial_localizations")
 }
 
 /// One technical fact about a Product, or about ONE GRADE of a Product.
@@ -768,6 +791,8 @@ model ProductGrade {
   productId   String       @map("product_id") @db.Uuid
   /// The exact label the source states. Verbatim.
   label       String
+  /// Public presentation label (ADR-028). NULL = show `label`. Never an import identity.
+  displayLabel String?     @map("display_label") @db.VarChar(100)
   /// NULL = not yet safely classified. See GradeSystem.
   gradeSystem GradeSystem? @map("grade_system")
   sortOrder   Int          @map("sort_order")
@@ -1475,6 +1500,7 @@ model Locale {
   contentTranslations     ContentTranslation[]
   redirects               Redirect[]
   newsletterSubscriptions NewsletterSubscription[]
+  productEditorialLocalizations ProductEditorialLocalization[]
 
   @@index([isActive, sortOrder])
   @@map("locales")

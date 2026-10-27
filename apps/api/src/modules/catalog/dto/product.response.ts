@@ -160,6 +160,8 @@ export type ProductGradeSummaryResponse = {
 
 export type ProductDetailResponse = {
   editorial?: import("@sam-group/types").ProductEditorialSections;
+  /** The locale `editorial` is written in (ADR-027 §4). Present exactly when `editorial` is. */
+  editorialLocale?: string;
   id: string;
   name: string;
   slug: string;

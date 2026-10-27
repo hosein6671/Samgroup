@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
 import { PrismaService } from "../../prisma/prisma.service";
+import type { Prisma, TranslationStatus } from "../../prisma/generated/client";
 
 import type { ContentEntityType } from "./content-entity-type";
 import type { ResolvedLocale } from "../locale/resolved-locale";
@@ -224,6 +225,48 @@ export class ContentTranslationService {
     });
 
     return matches.map((match) => match.entityId);
+  }
+
+  /** One translated field's stored value, or null when the locale has none (ADR-027 editor). */
+  async readField(
+    entityType: ContentEntityType,
+    entityId: string,
+    locale: string,
+    field: string,
+  ): Promise<string | null> {
+    const row = await this.prisma.contentTranslation.findUnique({
+      where: { entityType_entityId_locale_field: { entityType, entityId, locale, field } },
+      select: { value: true },
+    });
+    return row?.value ?? null;
+  }
+
+  /**
+   * Writes, or removes, one translated field inside the caller's transaction (ADR-027 §3).
+   *
+   * An empty value removes the row instead of storing "": an absent translation is what the
+   * read path already treats as "fall back to the default locale", and an empty string would
+   * instead publish a blank field.
+   */
+  async publishField(
+    entityType: ContentEntityType,
+    entityId: string,
+    locale: string,
+    field: string,
+    value: string,
+    translationStatus: TranslationStatus,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const where = { entityType_entityId_locale_field: { entityType, entityId, locale, field } };
+    if (value.trim() === "") {
+      await tx.contentTranslation.deleteMany({ where: { entityType, entityId, locale, field } });
+      return;
+    }
+    await tx.contentTranslation.upsert({
+      where,
+      create: { entityType, entityId, locale, field, value, translationStatus },
+      update: { value, translationStatus },
+    });
   }
 }
 

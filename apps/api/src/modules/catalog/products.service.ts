@@ -144,7 +144,7 @@ const PUBLIC_SPECIFICATION_SELECT = {
   numericMax: true,
   pairFirst: true,
   pairSecond: true,
-  productGrade: { select: { label: true, gradeSystem: true } },
+  productGrade: { select: { label: true, displayLabel: true, gradeSystem: true } },
   // Selected for the service's own internal use only — correlating an approved Specification
   // back to which of the Product's `grades` it belongs to (`toGradeSummaryResponse`'s
   // `hasApprovedData`). Never read onto the wire: `toSpecificationResponse` below does not
@@ -204,7 +204,8 @@ function toSpecificationResponse(row: PublicSpecificationRow): ProductSpecificat
       row.productGrade === null
         ? null
         : {
-            label: row.productGrade.label,
+            // ADR-028: the public display label when one is set, the verbatim label otherwise.
+            label: row.productGrade.displayLabel ?? row.productGrade.label,
             gradeSystem:
               row.productGrade.gradeSystem === null
                 ? null
@@ -223,12 +224,12 @@ function toSpecificationResponse(row: PublicSpecificationRow): ProductSpecificat
  * second, wider query is issued to answer it.
  */
 function toGradeSummaryResponse(
-  grade: { id: string; label: string; gradeSystem: string | null },
+  grade: { id: string; label: string; displayLabel: string | null; gradeSystem: string | null },
   approvedGradeIds: ReadonlySet<string>,
 ): ProductGradeSummaryResponse {
   return {
     id: grade.id,
-    label: grade.label,
+    label: grade.displayLabel ?? grade.label,
     gradeSystem:
       grade.gradeSystem === null
         ? null
@@ -263,7 +264,7 @@ const PRODUCT_DETAIL_SELECT = {
   // whose data is under review" if the API never names a grade that has nothing published yet.
   grades: {
     orderBy: { sortOrder: "asc" },
-    select: { id: true, label: true, gradeSystem: true },
+    select: { id: true, label: true, displayLabel: true, gradeSystem: true },
   },
   specifications: {
     // Approved and live only. A product whose technical data has been imported but not yet
@@ -491,6 +492,29 @@ export class ProductsService {
     const copy = await this.approvedCopy([product.id], locale);
     const description = copy.get(product.id) ?? translated.description;
 
+    /*
+     * The editorial sections for the requested locale (ADR-027 §4): a non-default locale's own
+     * published sections when it has them, otherwise the default locale's, and `editorialLocale`
+     * says which one was actually served so the page can mark fallback text with its language.
+     */
+    const localizedSections = locale.isDefault
+      ? null
+      : (
+          await this.prisma.productEditorialLocalization.findUnique({
+            where: { productId_locale: { productId: product.id, locale: locale.code } },
+            select: { publishedSections: true },
+          })
+        )?.publishedSections;
+    const editorial =
+      localizedSections !== null && localizedSections !== undefined
+        ? { editorial: productEditorialSections(localizedSections), editorialLocale: locale.code }
+        : product.editorialDraft?.publishedSections
+          ? {
+              editorial: productEditorialSections(product.editorialDraft.publishedSections),
+              editorialLocale: locale.defaultCode,
+            }
+          : {};
+
     // Sequential rather than folded into the Promise.all above, because §11 falls the meta
     // title back to the entity's name and the meta description to its description — both of
     // which must be the REQUESTED locale's values, so the overlay has to have happened first.
@@ -509,9 +533,7 @@ export class ProductsService {
 
     return {
       product: {
-        ...(locale.code === "en" && product.editorialDraft?.publishedSections
-          ? { editorial: productEditorialSections(product.editorialDraft.publishedSections) }
-          : {}),
+        ...editorial,
         id: translated.id,
         name: translated.name,
         slug: translated.slug,

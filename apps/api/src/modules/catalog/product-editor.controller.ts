@@ -24,16 +24,23 @@ import { RolesGuard } from "../identity/guards/roles.guard";
 import type { AuthenticatedUser } from "../identity/authenticated-user";
 import {
   ProductEditorialEdit,
+  ProductEditorLocaleQuery,
   ProductEditorQuery,
   ProductSegmentsEdit,
 } from "./product-editor.dto";
 import { ProductEditorService } from "./product-editor.service";
+import { ProductEditorLocalizationService } from "./product-editor-localization.service";
+import { LocaleResolutionService } from "../../common/locale/locale-resolution.service";
 
 @Controller("admin/products")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.CONTENT_MANAGER)
 export class ProductEditorController {
-  constructor(private readonly editor: ProductEditorService) {}
+  constructor(
+    private readonly editor: ProductEditorService,
+    private readonly localized: ProductEditorLocalizationService,
+    private readonly locales: LocaleResolutionService,
+  ) {}
   @Get()
   @Header("Cache-Control", "no-store")
   async list(@Query() query: ProductEditorQuery): Promise<ReturnType<typeof withMeta>> {
@@ -42,8 +49,13 @@ export class ProductEditorController {
   }
   @Get(":id")
   @Header("Cache-Control", "no-store")
-  get(@Param("id", ParseUUIDPipe) id: string): Promise<Record<string, unknown>> {
-    return this.editor.get(id);
+  async get(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Query() query: ProductEditorLocaleQuery,
+  ): Promise<Record<string, unknown>> {
+    // An unknown or inactive locale is refused by the resolver (400), never treated as default.
+    const locale = await this.locales.resolve(query.locale);
+    return locale.isDefault ? this.editor.get(id) : this.localized.get(id, locale.code);
   }
   @Get(":id/images")
   @Header("Cache-Control", "no-store")
@@ -98,11 +110,15 @@ export class ProductEditorController {
   }
   @Patch(":id")
   @Header("Cache-Control", "no-store")
-  save(
+  async save(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() actor: AuthenticatedUser,
     @Body() body: ProductEditorialEdit,
+    @Query() query: ProductEditorLocaleQuery,
   ): Promise<{ revision: string; slug: string }> {
-    return this.editor.save(id, actor.id, body);
+    const locale = await this.locales.resolve(query.locale);
+    return locale.isDefault
+      ? this.editor.save(id, actor.id, body)
+      : this.localized.save(id, locale.code, actor.id, body);
   }
 }

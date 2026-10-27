@@ -202,8 +202,13 @@ export type ProductEditorialSections = {
 };
 
 export type ProductDetailResponse = {
-  /** Published English editorial content only; absent until first publication. */
+  /**
+   * Published editorial sections for the requested locale, or the default locale's when that
+   * locale has none (ADR-027 §4); absent until first publication in either.
+   */
   editorial?: ProductEditorialSections;
+  /** The locale `editorial` is actually written in. Present exactly when `editorial` is. */
+  editorialLocale?: string;
   id: string;
   name: string;
   slug: string;

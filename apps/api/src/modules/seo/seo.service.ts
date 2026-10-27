@@ -118,17 +118,21 @@ export class SeoService {
     private readonly translations: ContentTranslationService,
   ) {}
 
-  async readProductEditorial(id: string): Promise<EditableSeo> {
-    return this.readEditorial("Product", id);
+  async readProductEditorial(id: string, locale = "en"): Promise<EditableSeo> {
+    return this.readEditorial("Product", id, locale);
   }
 
   async readBlogEditorial(id: string): Promise<EditableSeo> {
     return this.readEditorial("BlogPost", id);
   }
 
-  private async readEditorial(entityType: ContentEntityType, id: string): Promise<EditableSeo> {
+  private async readEditorial(
+    entityType: ContentEntityType,
+    id: string,
+    locale = "en",
+  ): Promise<EditableSeo> {
     const record = await this.prisma.seoMeta.findUnique({
-      where: { entityType_entityId_locale: { entityType, entityId: id, locale: "en" } },
+      where: { entityType_entityId_locale: { entityType, entityId: id, locale } },
     });
     return {
       metaTitle: record?.metaTitle ?? "",
@@ -149,8 +153,9 @@ export class SeoService {
     id: string,
     input: EditableSeo,
     tx: Prisma.TransactionClient,
+    locale = "en",
   ): Promise<void> {
-    return this.publishEditorial("Product", id, input, tx);
+    return this.publishEditorial("Product", id, input, tx, locale);
   }
 
   async publishBlogEditorial(
@@ -166,6 +171,7 @@ export class SeoService {
     id: string,
     input: EditableSeo,
     tx: Prisma.TransactionClient,
+    locale = "en",
   ): Promise<void> {
     const data = {
       metaTitle: input.metaTitle || null,
@@ -181,8 +187,8 @@ export class SeoService {
       keywords: input.keywords,
     };
     await tx.seoMeta.upsert({
-      where: { entityType_entityId_locale: { entityType, entityId: id, locale: "en" } },
-      create: { entityType, entityId: id, locale: "en", ...data },
+      where: { entityType_entityId_locale: { entityType, entityId: id, locale } },
+      create: { entityType, entityId: id, locale, ...data },
       update: data,
     });
   }

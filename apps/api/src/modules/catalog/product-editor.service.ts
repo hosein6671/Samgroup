@@ -155,7 +155,8 @@ export class ProductEditorService {
   }
   async save(
     id: string,
-    actorId: string,
+    // Undefined only for the content import CLI, which has no signed-in user (ADR-027 §5).
+    actorId: string | undefined,
     input: ProductEditorialEdit,
   ): Promise<{ revision: string; slug: string }> {
     try {

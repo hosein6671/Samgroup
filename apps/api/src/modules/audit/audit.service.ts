@@ -7,6 +7,9 @@ import type { AlertContext } from "./security-alerts";
 export type AuditEventName =
   | "product.draft_saved"
   | "product.published"
+  | "product.localization_draft_saved"
+  | "product.localization_published"
+  | "product.grade_relabelled"
   | "product.image_uploaded"
   | "product.image_primary_changed"
   | "product.image_removed"

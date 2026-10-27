@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { AuditModule } from "../audit/audit.module";
 import { ProductEditorController } from "./product-editor.controller";
 import { ProductEditorService } from "./product-editor.service";
+import { ProductEditorLocalizationService } from "./product-editor-localization.service";
 
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
@@ -81,6 +82,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     ProductsService,
     CatalogReviewService,
     ProductEditorService,
+    ProductEditorLocalizationService,
     SegmentsAdminService,
   ],
   exports: [CategoriesService, ProductsService],

@@ -78,11 +78,22 @@ export class ProductEditorialContent {
 export class ProductEditorialEdit {
   @IsInt() @Min(0) revision!: number;
   @IsIn(["save-draft", "publish"]) action!: "save-draft" | "publish";
+  /**
+   * Review state of a NON-default locale's content (ADR-027 §4). Ignored for the default
+   * locale. Omitted keeps the stored state; a first save without it is `machine_draft`.
+   */
+  @IsOptional()
+  @IsIn(["machine_draft", "human_reviewed"])
+  translationStatus?: "machine_draft" | "human_reviewed";
   @IsDefined()
   @IsObject()
   @ValidateNested()
   @Type(() => ProductEditorialContent)
   content!: ProductEditorialContent;
+}
+/** `?locale=` on the editor's read and save; omitted means the default locale. */
+export class ProductEditorLocaleQuery {
+  @IsOptional() @IsString() @MaxLength(10) locale?: string;
 }
 export class ProductEditorQuery {
   @Type(() => Number) @IsInt() @Min(1) @Max(100000) page = 1;

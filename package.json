@@ -20,6 +20,8 @@
     "catalog:import": "tsx apps/api/src/modules/catalog/import/catalog-import.run.ts",
     "catalog:increment": "tsx apps/api/src/modules/catalog/import/incremental/catalog-increment.run.ts",
     "catalog:sources:capture": "tsx apps/api/src/modules/catalog/import/capture/source-capture.run.ts",
+    "catalog:grades:relabel": "tsx apps/api/src/modules/catalog/grade-relabel/grade-relabel.run.ts",
+    "catalog:content:import": "tsx --tsconfig apps/api/tsconfig.json apps/api/src/modules/catalog/import/content/content-import.run.ts",
     "seed:admin": "tsx prisma/seed-admin.ts",
     "seed:categories": "tsx prisma/seed-categories.ts",
     "seed:products:demo": "tsx prisma/seed-products-demo.ts",

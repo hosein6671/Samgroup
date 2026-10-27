@@ -2,12 +2,24 @@
 
 ## Status
 
-**Proposed, 27 October 2026.** The owner asked for this ADR on 27 October 2026, so that Persian
-product content can be authored, stored, published and imported. It is not accepted until the owner
-explicitly approves it. Approval of this document does not approve its implementation; code,
-migrations and the import script are separate approval gates (`CLAUDE.md` §4).
+**Accepted, 28 October 2026.** Proposed on 27 October 2026 at the owner's request, so that Persian
+product content can be authored, stored, published and imported; approved by the owner on
+28 October 2026, together with its implementation in English and Persian at once.
 
-**Amends, if accepted:** ADR-024, which gains a locale dimension for product content. Nothing in
+**Implementation notes (28 October 2026):**
+
+- The audit trail has no metadata column, so the locale cannot be stored on `product.published`.
+  A non-default locale is audited as `product.localization_published` /
+  `product.localization_draft_saved` instead; the locale itself is not recorded. Recording it needs
+  a column on `admin_audit_events` and its own decision.
+- The import CLI has no signed-in user. Its audit rows carry no actor, and `--operator <label>` is
+  required and printed in the run report, not stored.
+- `hreflang`: the API's alternates still come only from translated slugs, which ADR-027 does not
+  create, so no non-default locale is advertised yet — stricter than §4, never looser.
+- The CLI lives at `apps/api/src/modules/catalog/import/content/` and runs as
+  `pnpm catalog:content:import --file <path>`; `--locale <code>` limits a run to one locale.
+
+**Amends:** ADR-024, which gains a locale dimension for product content. Nothing in
 ADR-001 to ADR-026 is superseded. ADR-019 stays authoritative where an approved `product_copy` row
 exists.
 

@@ -120,16 +120,18 @@ export function ProductDetailTemplate({
           </section>
         )}
 
-        {locale === "en" && product.editorial && (
+        {product.editorial && (
           <>
             <ProductEditorialPoints
               locale={locale}
+              contentLocale={product.editorialLocale}
               items={product.editorial.applications}
               id="applications"
               title={t("Applications")}
             />
             <ProductEditorialPoints
               locale={locale}
+              contentLocale={product.editorialLocale}
               items={product.editorial.features}
               id="features"
               title={t("Features")}
@@ -156,8 +158,12 @@ export function ProductDetailTemplate({
         <ProductPackaging locale={locale} />
 
         <ProductTechnicalDocuments locale={locale} productSlug={product.slug} />
-        {locale === "en" && product.editorial && (
-          <ProductEditorialFaq items={product.editorial.faq} locale={locale} />
+        {product.editorial && (
+          <ProductEditorialFaq
+            items={product.editorial.faq}
+            locale={locale}
+            contentLocale={product.editorialLocale}
+          />
         )}
 
         <ClosingCta locale={locale} productSlug={product.slug} />

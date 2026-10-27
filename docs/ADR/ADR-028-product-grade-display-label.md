@@ -2,10 +2,17 @@
 
 ## Status
 
-**Proposed, 27 October 2026.** On 27 October 2026 the owner asked for the `Turbine oil` grade labels
+**Accepted, 28 October 2026.** On 27 October 2026 the owner asked for the `Turbine oil` grade labels
 `HSB-T-32` … `HSB-T-68 plus` to be shown as `T-32` … `T-68 plus` (the `HSB-` prefix removed, nothing
-else changed). This ADR is how that can be done without breaking ADR-014 or ADR-015. It is not
-accepted until the owner approves it. Its implementation is a separate gate.
+else changed). This ADR is how that can be done without breaking ADR-014 or ADR-015. Approved by the
+owner on 28 October 2026.
+
+**Implementation notes (28 October 2026):** the one-off operator script of §4 is implemented as
+`pnpm catalog:grades:relabel` (dry run by default; `--apply` needs `SAM_ALLOW_GRADE_RELABEL=true` and
+`--confirm-target sam_platform`). It finds the product by slug `turbine-oil` and name `Turbine oil`,
+and refuses unless exactly seven `HSB-` grades exist. The Admin endpoint
+`PATCH /admin/products/:id/grades/:gradeId`, and showing both labels on review screens, are not
+implemented yet.
 
 ## Context
 

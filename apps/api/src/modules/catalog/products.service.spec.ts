@@ -229,6 +229,7 @@ type Stubs = {
   translationFindFirst: jest.Mock;
   buildSeo: jest.Mock;
   queryRawUnsafe: jest.Mock;
+  localizationFindUnique: jest.Mock;
 };
 
 /** No database is reached — only the delegate methods this service calls are stubbed. */
@@ -258,9 +259,12 @@ function createService(): Stubs {
    * is this file's.
    */
   const queryRawUnsafe = jest.fn().mockResolvedValue([]);
+  // ADR-027: a non-default locale's own published sections. None unless a test sets one.
+  const localizationFindUnique = jest.fn().mockResolvedValue(null);
 
   const prisma = {
     $queryRawUnsafe: queryRawUnsafe,
+    productEditorialLocalization: { findUnique: localizationFindUnique },
     product: { count: productCount, findMany: productFindMany, findUnique: productFindUnique },
     category: { findUnique: categoryFindUnique },
     segment: { findUnique: segmentFindUnique },
@@ -286,6 +290,7 @@ function createService(): Stubs {
     service: new ProductsService(prisma, new ContentTranslationService(prisma), seo, media),
     productCount,
     queryRawUnsafe,
+    localizationFindUnique,
     productFindMany,
     productFindUnique,
     categoryFindUnique,
@@ -921,8 +926,8 @@ describe("ProductsService.findAll — localization", () => {
 });
 
 describe("ProductsService.findBySlug", () => {
-  it("serves only the published section snapshot and only in English", async () => {
-    const { service, productFindUnique } = createService();
+  it("serves only the published section snapshot, falling back to the default locale's", async () => {
+    const { service, productFindUnique, localizationFindUnique } = createService();
     const publishedSections = {
       applications: [{ title: "Published", description: "Published detail" }],
       features: [],
@@ -946,7 +951,59 @@ describe("ProductsService.findBySlug", () => {
         }),
       }),
     );
-    expect((await service.findBySlug("sn-500", FA)).product).not.toHaveProperty("editorial");
+    expect(result.product.editorialLocale).toBe("en");
+    // A locale with no sections of its own is served the default locale's, labelled as such.
+    const fallback = (await service.findBySlug("sn-500", FA)).product;
+    expect(fallback.editorial).toEqual(publishedSections);
+    expect(fallback.editorialLocale).toBe("en");
+    // A locale with its own published sections is served those.
+    const persian = {
+      applications: [{ title: "کاربرد", description: "شرح" }],
+      features: [],
+      faq: [],
+    };
+    localizationFindUnique.mockResolvedValueOnce({ publishedSections: persian });
+    const localized = (await service.findBySlug("sn-500", FA)).product;
+    expect(localized.editorial).toEqual(persian);
+    expect(localized.editorialLocale).toBe("fa");
+    expect(localizationFindUnique).toHaveBeenLastCalledWith({
+      where: { productId_locale: { productId: DETAIL_ROW.id, locale: "fa" } },
+      select: { publishedSections: true },
+    });
+  });
+
+  it("serves a grade's display label in place of its verbatim label (ADR-028)", async () => {
+    const { service, productFindUnique } = createService();
+    productFindUnique.mockResolvedValue({
+      ...DETAIL_ROW,
+      grades: [
+        { id: "grade-1", label: "HSB-T-32", displayLabel: "T-32", gradeSystem: null },
+        { id: "grade-2", label: "SAE 20W-50", displayLabel: null, gradeSystem: "SAE" },
+      ],
+      specifications: DETAIL_ROW.specifications.map((specification) =>
+        specification.productGrade
+          ? {
+              ...specification,
+              productGrade: { label: "HSB-T-32", displayLabel: "T-32", gradeSystem: null },
+            }
+          : specification,
+      ),
+    });
+    const product = (await service.findBySlug("sn-500", EN)).product;
+    expect(product.grades.map((grade) => grade.label)).toEqual(["T-32", "SAE 20W-50"]);
+    const labels = product.specifications.flatMap((specification) =>
+      specification.grade ? [specification.grade.label] : [],
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.every((label) => label === "T-32")).toBe(true);
+    expect(JSON.stringify(product)).not.toContain("HSB-");
+  });
+
+  it("serves no editorial at all when no locale has published any", async () => {
+    const { service } = createService();
+    const product = (await service.findBySlug("sn-500", FA)).product;
+    expect(product).not.toHaveProperty("editorial");
+    expect(product).not.toHaveProperty("editorialLocale");
   });
   it("reads the slug off the row itself for the default locale", async () => {
     const { service, productFindUnique, translationFindFirst } = createService();
@@ -1504,7 +1561,7 @@ describe("ProductsService.findSpecificationsBySlug", () => {
         numericMax: true,
         pairFirst: true,
         pairSecond: true,
-        productGrade: { select: { label: true, gradeSystem: true } },
+        productGrade: { select: { label: true, displayLabel: true, gradeSystem: true } },
         productGradeId: true,
       },
     });
