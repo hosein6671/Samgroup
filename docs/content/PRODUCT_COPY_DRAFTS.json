@@ -1,0 +1,2541 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-27",
+  "basedOnRegister": {
+    "path": "docs/content/PRODUCT_RESEARCH_REGISTER.json",
+    "generatedAt": "2026-08-26T22:25:43.717Z",
+    "inputManifestHash": "232c973fc07a24d4594c1e8589ece339b54dad39a3ded001d8ffbcf0c8e1f26f"
+  },
+  "policy": [
+    "Supplementary copy drafts only. Product identity stays in the 100-row catalog manifest and PRODUCT_RESEARCH_REGISTER.json; this file is never a second product database.",
+    "currentName is reproduced exactly at the start of every summary, in both locales.",
+    "Only summary and selectionNote exist per locale, matching the product_copy columns (ADR-019).",
+    "No technical value, OEM approval, performance promise or third-party brand is introduced. Withheld or conflicting facts from the register are not restated.",
+    "Every draft lands at source_recorded when loaded and stays unapprovable until a reviewer binds a captured source document (product_copy_approval_gate).",
+    "Lane B products (SAMCAT-W1-R069, R093, R162, R300) are deliberately excluded until their source ambiguities are resolved; see PRODUCT_DATA_UNRESOLVED_REGISTER.md.",
+    "Persian and English were written together with owner approval on 27 October 2026, superseding register rule 9 for this file only.",
+    "30 of the 96 products still carry open source conflicts or withheld facts (openSourceConflicts > 0). Their copy names no technical value and restates none of the conflicting facts, but a reviewer should resolve the data before approving the copy."
+  ],
+  "counts": {
+    "products": 96,
+    "locales": ["en", "fa"],
+    "drafts": 192,
+    "excludedLaneB": ["SAMCAT-W1-R069", "SAMCAT-W1-R093", "SAMCAT-W1-R162", "SAMCAT-W1-R300"],
+    "withOpenSourceConflicts": 30
+  },
+  "products": [
+    {
+      "sourceRef": "SAMCAT-W1-R003",
+      "workbookRow": 3,
+      "currentName": "CK-4 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CK-4 10W-40 is a fully synthetic diesel engine oil in the SAE 10W-40 viscosity grade, catalogued under API CK-4 — the most recent API heavy-duty diesel category in our range.",
+          "selectionNote": "Its technical table reports cold-cranking viscosity at −25 °C, Noack volatility, viscosity after 30 shear cycles (ASTM D6278), foaming tendency and copper corrosion. Confirm the API category and SAE grade your engine manufacturer specifies before ordering."
+        },
+        {
+          "locale": "fa",
+          "summary": "CK-4 10W-40 روغن موتور دیزلی تمام‌سنتتیک با درجهٔ گرانروی SAE 10W-40 است و در ردهٔ API CK-4 قرار می‌گیرد؛ تازه‌ترین ردهٔ API برای موتورهای دیزلی سنگین در سبد محصولات ما.",
+          "selectionNote": "جدول فنی این محصول ویسکوزیتهٔ استارت سرد در دمای منفی ۲۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، ویسکوزیته پس از ۳۰ چرخهٔ برش (ASTM D6278)، تمایل به کف‌کردن و خوردگی مس را گزارش می‌کند. پیش از سفارش، ردهٔ API و درجهٔ SAE مورد نیاز سازندهٔ موتور را بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R006",
+      "workbookRow": 6,
+      "currentName": "CJ-4 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CJ-4 10W-40 is a diesel engine oil built on synthetic technology, in the SAE 10W-40 viscosity grade and catalogued under API CJ-4.",
+          "selectionNote": "The technical table covers viscosity, viscosity index, Noack volatility, base number (TBN), cold-cranking viscosity at −25 °C and foaming tendency; it does not include a shear-stability or copper-corrosion result. Match the API category to your engine manufacturer's requirement."
+        },
+        {
+          "locale": "fa",
+          "summary": "CJ-4 10W-40 روغن موتور دیزلی بر پایهٔ فناوری سنتتیک، با درجهٔ گرانروی SAE 10W-40 و در ردهٔ API CJ-4 است.",
+          "selectionNote": "جدول فنی ویسکوزیته، شاخص گرانروی، تبخیرپذیری نوآک، عدد قلیایی کل (TBN)، ویسکوزیتهٔ استارت سرد در منفی ۲۵ درجهٔ سلسیوس و تمایل به کف‌کردن را دربر دارد؛ نتیجهٔ پایداری برشی و خوردگی مس در آن نیامده است. ردهٔ API را با الزام سازندهٔ موتور تطبیق دهید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R009",
+      "workbookRow": 9,
+      "currentName": "CI-4 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CI-4 10W-40 is a high-torque diesel engine oil in the SAE 10W-40 viscosity grade, catalogued under API CI-4 — the lightest of the three CI-4 viscosity grades we list as separate products.",
+          "selectionNote": "Choose between the CI-4 grades by climate and start-up conditions: this grade's cold-cranking viscosity is measured at −25 °C. The table also reports Noack volatility, TBN, shear stability after 30 cycles and copper corrosion."
+        },
+        {
+          "locale": "fa",
+          "summary": "CI-4 10W-40 روغن موتور دیزلی گشتاوربالا با درجهٔ گرانروی SAE 10W-40 و در ردهٔ API CI-4 است؛ سبک‌ترینِ سه درجهٔ گرانروی CI-4 که به‌صورت محصول جداگانه عرضه می‌کنیم.",
+          "selectionNote": "انتخاب میان درجه‌های CI-4 به اقلیم و شرایط روشن‌شدن موتور بستگی دارد: ویسکوزیتهٔ استارت سرد این درجه در دمای منفی ۲۵ درجهٔ سلسیوس اندازه‌گیری شده است. تبخیرپذیری نوآک، TBN، پایداری برشی پس از ۳۰ چرخه و خوردگی مس نیز در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R012",
+      "workbookRow": 12,
+      "currentName": "CI-4 15W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CI-4 15W-40 is a high-torque diesel engine oil in the SAE 15W-40 viscosity grade, catalogued under API CI-4 — the middle of the three CI-4 viscosity grades we list as separate products.",
+          "selectionNote": "Choose between the CI-4 grades by climate and start-up conditions: this grade's cold-cranking viscosity is measured at −20 °C. The table also reports Noack volatility, TBN, shear stability after 30 cycles and copper corrosion."
+        },
+        {
+          "locale": "fa",
+          "summary": "CI-4 15W-40 روغن موتور دیزلی گشتاوربالا با درجهٔ گرانروی SAE 15W-40 و در ردهٔ API CI-4 است؛ درجهٔ میانیِ سه درجهٔ گرانروی CI-4 که به‌صورت محصول جداگانه عرضه می‌کنیم.",
+          "selectionNote": "انتخاب میان درجه‌های CI-4 به اقلیم و شرایط روشن‌شدن موتور بستگی دارد: ویسکوزیتهٔ استارت سرد این درجه در دمای منفی ۲۰ درجهٔ سلسیوس اندازه‌گیری شده است. تبخیرپذیری نوآک، TBN، پایداری برشی پس از ۳۰ چرخه و خوردگی مس نیز در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R015",
+      "workbookRow": 15,
+      "currentName": "CI-4 20W-50",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CI-4 20W-50 is a high-torque diesel engine oil in the SAE 20W-50 viscosity grade, catalogued under API CI-4 — the heaviest of the three CI-4 viscosity grades we list as separate products.",
+          "selectionNote": "Choose between the CI-4 grades by climate and start-up conditions: this grade's cold-cranking viscosity is measured at −15 °C. The table also reports Noack volatility, TBN, shear stability after 30 cycles and copper corrosion."
+        },
+        {
+          "locale": "fa",
+          "summary": "CI-4 20W-50 روغن موتور دیزلی گشتاوربالا با درجهٔ گرانروی SAE 20W-50 و در ردهٔ API CI-4 است؛ سنگین‌ترینِ سه درجهٔ گرانروی CI-4 که به‌صورت محصول جداگانه عرضه می‌کنیم.",
+          "selectionNote": "انتخاب میان درجه‌های CI-4 به اقلیم و شرایط روشن‌شدن موتور بستگی دارد: ویسکوزیتهٔ استارت سرد این درجه در دمای منفی ۱۵ درجهٔ سلسیوس اندازه‌گیری شده است. تبخیرپذیری نوآک، TBN، پایداری برشی پس از ۳۰ چرخه و خوردگی مس نیز در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R018",
+      "workbookRow": 18,
+      "currentName": "CH-4 15W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CH-4 15W-40 is a super heavy-duty diesel engine oil in the SAE 15W-40 viscosity grade, catalogued under API CH-4.",
+          "selectionNote": "Cold-cranking viscosity for this grade is reported at −20 °C, alongside Noack volatility, TBN, shear stability and copper corrosion. Where an engine manufacturer calls for a later API diesel category, select a CI-4 or CK-4 product instead."
+        },
+        {
+          "locale": "fa",
+          "summary": "CH-4 15W-40 روغن موتور دیزلی برای کار بسیار سنگین، با درجهٔ گرانروی SAE 15W-40 و در ردهٔ API CH-4 است.",
+          "selectionNote": "ویسکوزیتهٔ استارت سرد این درجه در دمای منفی ۲۰ درجهٔ سلسیوس گزارش شده و تبخیرپذیری نوآک، TBN، پایداری برشی و خوردگی مس نیز در جدول فنی آمده است. اگر سازندهٔ موتور ردهٔ جدیدتری از API را الزامی کرده باشد، محصولات CI-4 یا CK-4 را انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R021",
+      "workbookRow": 21,
+      "currentName": "CH-4 20W-50",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CH-4 20W-50 is a super heavy-duty diesel engine oil in the SAE 20W-50 viscosity grade, catalogued under API CH-4.",
+          "selectionNote": "Cold-cranking viscosity for this grade is reported at −15 °C, alongside Noack volatility, TBN, shear stability and copper corrosion. Where an engine manufacturer calls for a later API diesel category, select a CI-4 or CK-4 product instead."
+        },
+        {
+          "locale": "fa",
+          "summary": "CH-4 20W-50 روغن موتور دیزلی برای کار بسیار سنگین، با درجهٔ گرانروی SAE 20W-50 و در ردهٔ API CH-4 است.",
+          "selectionNote": "ویسکوزیتهٔ استارت سرد این درجه در دمای منفی ۱۵ درجهٔ سلسیوس گزارش شده و تبخیرپذیری نوآک، TBN، پایداری برشی و خوردگی مس نیز در جدول فنی آمده است. اگر سازندهٔ موتور ردهٔ جدیدتری از API را الزامی کرده باشد، محصولات CI-4 یا CK-4 را انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R024",
+      "workbookRow": 24,
+      "currentName": "CF-4 15W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CF-4 15W-40 is a heavy-duty diesel engine oil in the SAE 15W-40 viscosity grade, catalogued under API CF-4.",
+          "selectionNote": "API CF-4 is an earlier diesel category, so this grade suits fleets whose manufacturer specification names CF-4. Cold-cranking viscosity is reported at −20 °C, together with TBN, volatility and shear-stability results."
+        },
+        {
+          "locale": "fa",
+          "summary": "CF-4 15W-40 روغن موتور دیزلی برای کار سنگین، با درجهٔ گرانروی SAE 15W-40 و در ردهٔ API CF-4 است.",
+          "selectionNote": "ردهٔ API CF-4 از رده‌های قدیمی‌تر دیزلی است؛ بنابراین این محصول برای ناوگان‌هایی مناسب است که دستورالعمل سازنده‌شان CF-4 را تعیین کرده است. ویسکوزیتهٔ استارت سرد در دمای منفی ۲۰ درجهٔ سلسیوس، همراه با TBN، تبخیرپذیری و پایداری برشی در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R027",
+      "workbookRow": 27,
+      "currentName": "CF-4 20W-50",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CF-4 20W-50 is a heavy-duty diesel engine oil in the SAE 20W-50 viscosity grade, catalogued under API CF-4.",
+          "selectionNote": "API CF-4 is an earlier diesel category, so this grade suits fleets whose manufacturer specification names CF-4. Cold-cranking viscosity is reported at −15 °C, together with TBN, volatility and shear-stability results."
+        },
+        {
+          "locale": "fa",
+          "summary": "CF-4 20W-50 روغن موتور دیزلی برای کار سنگین، با درجهٔ گرانروی SAE 20W-50 و در ردهٔ API CF-4 است.",
+          "selectionNote": "ردهٔ API CF-4 از رده‌های قدیمی‌تر دیزلی است؛ بنابراین این محصول برای ناوگان‌هایی مناسب است که دستورالعمل سازنده‌شان CF-4 را تعیین کرده است. ویسکوزیتهٔ استارت سرد در دمای منفی ۱۵ درجهٔ سلسیوس، همراه با TBN، تبخیرپذیری و پایداری برشی در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R030",
+      "workbookRow": 30,
+      "currentName": "CJ4 Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["CJ4 10W40", "CJ4 15W40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CJ4 Grade is a multigrade diesel engine oil for heavy-duty diesel engines, blended from fully synthetic base oil and an additive package. It is offered as CJ4 10W40 and CJ4 15W40.",
+          "selectionNote": "Each grade has its own row in the technical table — viscosity at 100 °C, viscosity index, flash point, pour point, density and TBN — so compare the two grades directly before choosing."
+        },
+        {
+          "locale": "fa",
+          "summary": "CJ4 Grade روغن موتور دیزلی چندرنجه برای موتورهای دیزلی سنگین است که از روغن پایهٔ تمام‌سنتتیک و بستهٔ افزودنی تهیه می‌شود. این محصول در دو درجهٔ CJ4 10W40 و CJ4 15W40 عرضه می‌شود.",
+          "selectionNote": "هر درجه ردیف جداگانه‌ای در جدول فنی دارد؛ ویسکوزیته در ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، چگالی و TBN. پیش از انتخاب، دو درجه را مستقیم با هم مقایسه کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R033",
+      "workbookRow": 33,
+      "currentName": "CI4 Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["CI4 10W40", "CI4 15W40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CI4 Grade is a multigrade diesel engine oil based on mineral base oil, formulated with an emphasis on alkaline reserve (TBN) to counter corrosion. It is intended for modern diesel vehicles and road-construction machinery, in CI4 10W40 and CI4 15W40.",
+          "selectionNote": "The TBN of each grade is reported in the technical table alongside viscosity, flash point, pour point and density. Select the grade according to the viscosity your equipment manufacturer specifies."
+        },
+        {
+          "locale": "fa",
+          "summary": "CI4 Grade روغن موتور دیزلی چندرنجه بر پایهٔ روغن معدنی است که با تکیه بر ذخیرهٔ قلیایی (TBN) برای مقابله با خوردگی فرموله شده است. کاربرد آن خودروهای دیزلی امروزی و ماشین‌آلات راه‌سازی است و در دو درجهٔ CI4 10W40 و CI4 15W40 عرضه می‌شود.",
+          "selectionNote": "TBN هر درجه همراه با ویسکوزیته، نقطهٔ اشتعال، نقطهٔ ریزش و چگالی در جدول فنی آمده است. درجه را بر اساس گرانروی تعیین‌شده از سوی سازندهٔ تجهیزات انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R036",
+      "workbookRow": 36,
+      "currentName": "CH-4 Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["CH4 15W40", "CH4 20W50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CH-4 Grade is a diesel engine oil for high-speed four-stroke diesel engines, including supercharged and turbocharged units, where API CH-4 performance is recommended. It is also used in civil and road works, mining and agriculture, in CH4 15W40 and CH4 20W50.",
+          "selectionNote": "Choose 15W40 or 20W50 according to ambient temperature and the manufacturer's viscosity recommendation; both grades are tabulated side by side in the technical data."
+        },
+        {
+          "locale": "fa",
+          "summary": "CH-4 Grade روغن موتور دیزلی برای موتورهای دیزلی چهارزمانهٔ پرسرعت، از جمله موتورهای سوپرشارژ و توربوشارژ است که سطح کارایی API CH-4 برای آن‌ها توصیه شده است. این روغن در عملیات عمرانی و راه‌سازی، معدن و کشاورزی نیز کاربرد دارد و در دو درجهٔ CH4 15W40 و CH4 20W50 عرضه می‌شود.",
+          "selectionNote": "انتخاب میان 15W40 و 20W50 به دمای محیط و توصیهٔ سازنده دربارهٔ گرانروی بستگی دارد؛ مشخصات هر دو درجه کنار هم در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R039",
+      "workbookRow": 39,
+      "currentName": "CD Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["CD 40", "CD 50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CD Grade is a monograde diesel engine oil based on mineral base oil, formulated with an emphasis on alkaline reserve (TBN). It is intended for road-construction machinery and naturally aspirated diesel vehicles in normal service, in CD 40 and CD 50.",
+          "selectionNote": "As a monograde oil, it suits equipment operating in a stable temperature range. Turbocharged engines usually call for a later API category; check the manufacturer's specification first."
+        },
+        {
+          "locale": "fa",
+          "summary": "CD Grade روغن موتور دیزلی تک‌درجه بر پایهٔ روغن معدنی است که با تکیه بر ذخیرهٔ قلیایی (TBN) فرموله شده است. کاربرد آن ماشین‌آلات راه‌سازی و خودروهای دیزلی بدون پرخوران در شرایط کار عادی است و در دو درجهٔ CD 40 و CD 50 عرضه می‌شود.",
+          "selectionNote": "این روغن تک‌درجه است و برای تجهیزاتی که در بازهٔ دمایی پایدار کار می‌کنند مناسب‌تر است. موتورهای توربوشارژ معمولاً ردهٔ جدیدتری از API لازم دارند؛ ابتدا دستورالعمل سازنده را بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R042",
+      "workbookRow": 42,
+      "currentName": "SN 5W-30",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SN 5W-30 is a synthetic-based gasoline engine oil in the SAE 5W-30 viscosity grade, catalogued under API SN.",
+          "selectionNote": "5W-30 is the lowest-viscosity grade in our SN range; confirm that your vehicle's handbook lists SAE 5W-30. Its technical table reports cold-cranking viscosity at −30 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SN 5W-30 روغن موتور بنزینی بر پایهٔ سنتتیک با درجهٔ گرانروی SAE 5W-30 و در ردهٔ API SN است.",
+          "selectionNote": "5W-30 کم‌گرانروترین درجه در سری SN ماست؛ بررسی کنید که دفترچهٔ خودرو SAE 5W-30 را مجاز دانسته باشد. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۳۰ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R045",
+      "workbookRow": 45,
+      "currentName": "SN 5W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SN 5W-40 is a synthetic-based gasoline engine oil in the SAE 5W-40 viscosity grade, catalogued under API SN.",
+          "selectionNote": "5W-40 pairs a 5W cold rating with a 40 hot grade; confirm the vehicle handbook allows it. Its technical table reports cold-cranking viscosity at −30 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SN 5W-40 روغن موتور بنزینی بر پایهٔ سنتتیک با درجهٔ گرانروی SAE 5W-40 و در ردهٔ API SN است.",
+          "selectionNote": "5W-40 درجهٔ سرمایی 5W را با درجهٔ گرمایی 40 همراه می‌کند؛ مجاز بودن آن را در دفترچهٔ خودرو بررسی کنید. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۳۰ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R048",
+      "workbookRow": 48,
+      "currentName": "SN 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SN 10W-40 is a synthetic-based gasoline engine oil in the SAE 10W-40 viscosity grade, catalogued under API SN.",
+          "selectionNote": "10W-40 is a widely specified all-season grade; confirm it against the vehicle handbook. Its technical table reports cold-cranking viscosity at −25 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SN 10W-40 روغن موتور بنزینی بر پایهٔ سنتتیک با درجهٔ گرانروی SAE 10W-40 و در ردهٔ API SN است.",
+          "selectionNote": "10W-40 از درجه‌های چهارفصلِ پرکاربرد است؛ آن را با دفترچهٔ خودرو تطبیق دهید. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۲۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R051",
+      "workbookRow": 51,
+      "currentName": "SM 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SM 10W-40 is a semi-synthetic gasoline engine oil in the SAE 10W-40 viscosity grade, catalogued under API SM.",
+          "selectionNote": "10W-40 is a widely specified all-season grade; confirm it against the vehicle handbook. Its technical table reports cold-cranking viscosity at −25 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SM 10W-40 روغن موتور بنزینی نیمه‌سنتتیک با درجهٔ گرانروی SAE 10W-40 و در ردهٔ API SM است.",
+          "selectionNote": "10W-40 از درجه‌های چهارفصلِ پرکاربرد است؛ آن را با دفترچهٔ خودرو تطبیق دهید. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۲۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R054",
+      "workbookRow": 54,
+      "currentName": "SM 20W-50",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SM 20W-50 is a gasoline engine oil in the SAE 20W-50 viscosity grade, catalogued under API SM.",
+          "selectionNote": "20W-50 is the heaviest grade in this line and is usually chosen for warm climates or engines whose handbook specifies it. Its technical table reports cold-cranking viscosity at −15 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SM 20W-50 روغن موتور بنزینی با درجهٔ گرانروی SAE 20W-50 و در ردهٔ API SM است.",
+          "selectionNote": "20W-50 سنگین‌ترین درجهٔ این سری است و معمولاً برای اقلیم گرم یا موتورهایی انتخاب می‌شود که دفترچه‌شان همین درجه را تعیین کرده است. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۱۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R057",
+      "workbookRow": 57,
+      "currentName": "SL 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SL 10W-40 is a gasoline engine oil in the SAE 10W-40 viscosity grade, catalogued under API SL.",
+          "selectionNote": "10W-40 is a widely specified all-season grade; confirm it against the vehicle handbook. Its technical table reports cold-cranking viscosity at −25 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SL 10W-40 روغن موتور بنزینی با درجهٔ گرانروی SAE 10W-40 و در ردهٔ API SL است.",
+          "selectionNote": "10W-40 از درجه‌های چهارفصلِ پرکاربرد است؛ آن را با دفترچهٔ خودرو تطبیق دهید. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۲۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R060",
+      "workbookRow": 60,
+      "currentName": "SL 20W-50",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SL 20W-50 is a gasoline engine oil in the SAE 20W-50 viscosity grade, catalogued under API SL.",
+          "selectionNote": "20W-50 is the heaviest grade in this line and is usually chosen for warm climates or engines whose handbook specifies it. Its technical table reports cold-cranking viscosity at −15 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SL 20W-50 روغن موتور بنزینی با درجهٔ گرانروی SAE 20W-50 و در ردهٔ API SL است.",
+          "selectionNote": "20W-50 سنگین‌ترین درجهٔ این سری است و معمولاً برای اقلیم گرم یا موتورهایی انتخاب می‌شود که دفترچه‌شان همین درجه را تعیین کرده است. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۱۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R063",
+      "workbookRow": 63,
+      "currentName": "SJ 10W-40",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SJ 10W-40 is a gasoline engine oil in the SAE 10W-40 viscosity grade, catalogued under API SJ.",
+          "selectionNote": "10W-40 is a widely specified all-season grade; confirm it against the vehicle handbook. Its technical table reports cold-cranking viscosity at −25 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SJ 10W-40 روغن موتور بنزینی با درجهٔ گرانروی SAE 10W-40 و در ردهٔ API SJ است.",
+          "selectionNote": "10W-40 از درجه‌های چهارفصلِ پرکاربرد است؛ آن را با دفترچهٔ خودرو تطبیق دهید. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۲۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R066",
+      "workbookRow": 66,
+      "currentName": "SJ 20W-50",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SJ 20W-50 is a gasoline engine oil in the SAE 20W-50 viscosity grade, catalogued under API SJ.",
+          "selectionNote": "20W-50 is the heaviest grade in this line and is usually chosen for warm climates or engines whose handbook specifies it. Its technical table reports cold-cranking viscosity at −15 °C, Noack volatility, TBN and shear stability after 30 cycles."
+        },
+        {
+          "locale": "fa",
+          "summary": "SJ 20W-50 روغن موتور بنزینی با درجهٔ گرانروی SAE 20W-50 و در ردهٔ API SJ است.",
+          "selectionNote": "20W-50 سنگین‌ترین درجهٔ این سری است و معمولاً برای اقلیم گرم یا موتورهایی انتخاب می‌شود که دفترچه‌شان همین درجه را تعیین کرده است. جدول فنی آن ویسکوزیتهٔ استارت سرد در دمای منفی ۱۵ درجهٔ سلسیوس، تبخیرپذیری نوآک، TBN و پایداری برشی پس از ۳۰ چرخه را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R072",
+      "workbookRow": 72,
+      "currentName": "SM Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SM/CF 10W40", "SM/CF 5W40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SM Grade is a multigrade gasoline engine oil blended from synthetic base oil and additives for modern gasoline cars. Its two grades, SM/CF 10W40 and SM/CF 5W40, carry a dual API SM/CF designation.",
+          "selectionNote": "The 5W40 grade is the choice where colder starts are expected; compare viscosity, pour point and TBN for both grades in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "SM Grade روغن موتور بنزینی چندرنجه است که از روغن پایهٔ سنتتیک و افزودنی‌ها برای خودروهای بنزینی امروزی تهیه می‌شود. دو درجهٔ آن، SM/CF 10W40 و SM/CF 5W40، نشان دوگانهٔ API SM/CF دارند.",
+          "selectionNote": "برای شرایطی که روشن‌شدن در هوای سردتر مطرح است، درجهٔ 5W40 مناسب‌تر است؛ ویسکوزیته، نقطهٔ ریزش و TBN هر دو درجه را در جدول فنی مقایسه کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R075",
+      "workbookRow": 75,
+      "currentName": "SL Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SL/CF 10W40", "SL/CF 20W50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SL Grade is a multigrade gasoline engine oil blended from semi-synthetic base oil and additives for gasoline cars, in SL/CF 10W40 and SL/CF 20W50.",
+          "selectionNote": "Choose 10W40 for all-season use and 20W50 for warm climates or engines whose handbook specifies it; both grades are tabulated in the technical data."
+        },
+        {
+          "locale": "fa",
+          "summary": "SL Grade روغن موتور بنزینی چندرنجه است که از روغن پایهٔ نیمه‌سنتتیک و افزودنی‌ها برای خودروهای بنزینی تهیه می‌شود و در دو درجهٔ SL/CF 10W40 و SL/CF 20W50 عرضه می‌شود.",
+          "selectionNote": "درجهٔ 10W40 برای کاربرد چهارفصل و 20W50 برای اقلیم گرم یا موتورهایی است که دفترچه‌شان این درجه را تعیین کرده است؛ مشخصات هر دو درجه در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R078",
+      "workbookRow": 78,
+      "currentName": "SJ Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SJ/CF 10W40", "SJ/CF 20W50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SJ Grade is a multigrade gasoline engine oil based on mineral base oil and additives, in SJ/CF 10W40 and SJ/CF 20W50.",
+          "selectionNote": "API SJ is an earlier gasoline category; it fits vehicles whose handbook names SJ or an earlier category. Compare the two grades' viscosity and pour point in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "SJ Grade روغن موتور بنزینی چندرنجه بر پایهٔ روغن معدنی و افزودنی‌هاست و در دو درجهٔ SJ/CF 10W40 و SJ/CF 20W50 عرضه می‌شود.",
+          "selectionNote": "API SJ از رده‌های قدیمی‌تر بنزینی است و برای خودروهایی مناسب است که دفترچه‌شان SJ یا رده‌ای قدیمی‌تر را تعیین کرده است. ویسکوزیته و نقطهٔ ریزش دو درجه را در جدول فنی مقایسه کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R081",
+      "workbookRow": 81,
+      "currentName": "SG Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SG/CD 20W50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SG Grade is a multigrade gasoline engine oil based on mineral base oil and additives, supplied as a single grade, SG/CD 20W50.",
+          "selectionNote": "SG is an older API gasoline category, typically specified for older vehicles. Check the handbook's API category before substituting it for a newer oil."
+        },
+        {
+          "locale": "fa",
+          "summary": "SG Grade روغن موتور بنزینی چندرنجه بر پایهٔ روغن معدنی و افزودنی‌هاست و تنها در یک درجه، SG/CD 20W50، عرضه می‌شود.",
+          "selectionNote": "SG از رده‌های قدیمی API برای موتورهای بنزینی است و معمولاً برای خودروهای قدیمی‌تر تعیین می‌شود. پیش از جایگزینی آن با روغنی جدیدتر، ردهٔ API درج‌شده در دفترچه را بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R084",
+      "workbookRow": 84,
+      "currentName": "SF Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SF/CC 20W50", "SF/CC 40", "SF/CC 50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SF Grade covers multigrade and monograde engine oils based on mineral base oil, for gasoline cars and light, naturally aspirated diesel vehicles in normal service. Grades: SF/CC 20W50, SF/CC 40 and SF/CC 50.",
+          "selectionNote": "Use the multigrade 20W50 where temperatures vary through the year, and the monograde 40 or 50 where the manufacturer specifies a single SAE grade."
+        },
+        {
+          "locale": "fa",
+          "summary": "SF Grade شامل روغن‌های موتور چندرنجه و تک‌درجه بر پایهٔ روغن معدنی است و برای خودروهای بنزینی و خودروهای دیزلی سبکِ بدون پرخوران در شرایط کار عادی کاربرد دارد. درجه‌ها: SF/CC 20W50، SF/CC 40 و SF/CC 50.",
+          "selectionNote": "جایی که دما در طول سال تغییر می‌کند درجهٔ چندرنجهٔ 20W50 و جایی که سازنده یک درجهٔ SAE مشخص را تعیین کرده است درجه‌های تک‌درجهٔ 40 یا 50 را به کار ببرید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R087",
+      "workbookRow": 87,
+      "currentName": "SC Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SC/CC 40", "SC/CC 50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SC Grade is a monograde engine oil based on mineral base oil, for gasoline cars and light, naturally aspirated diesel cars in normal service, in SC/CC 40 and SC/CC 50.",
+          "selectionNote": "SC/CC is one of the earliest API service designations; specify it only where the equipment documentation calls for it."
+        },
+        {
+          "locale": "fa",
+          "summary": "SC Grade روغن موتور تک‌درجه بر پایهٔ روغن معدنی است که برای خودروهای بنزینی و خودروهای دیزلی سبکِ بدون پرخوران در شرایط کار عادی کاربرد دارد و در دو درجهٔ SC/CC 40 و SC/CC 50 عرضه می‌شود.",
+          "selectionNote": "SC/CC از نخستین رده‌های خدماتی API است؛ آن را تنها در مواردی انتخاب کنید که مستندات تجهیزات همین رده را تعیین کرده باشد."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R090",
+      "workbookRow": 90,
+      "currentName": "locomotive Oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SAE 40", "SAE 15w-40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "locomotive Oil is a zinc-free engine oil for locomotive diesel engines, offered as SAE 40 and SAE 15w-40.",
+          "selectionNote": "Zinc-free formulation matters where the engine builder restricts zinc in the lubricant; confirm the locomotive manufacturer's requirement and compare the two grades in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "locomotive Oil روغن موتور بدون روی (Zinc-free) برای موتورهای دیزلی لوکوموتیو است و در دو درجهٔ SAE 40 و SAE 15w-40 عرضه می‌شود.",
+          "selectionNote": "فرمولاسیون بدون روی در موتورهایی اهمیت دارد که سازنده‌شان وجود روی در روغن را محدود کرده است؛ الزام سازندهٔ لوکوموتیو را بررسی و دو درجه را در جدول فنی مقایسه کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R096",
+      "workbookRow": 96,
+      "currentName": "SN Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["10W40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SN Grade, in our motorcycle range, is a fully synthetic oil for four-stroke motorcycles used on the race track, supplied in a single 10W40 grade.",
+          "selectionNote": "This product is separate from the SN Grade passenger-car oil of the same name; when ordering, specify the motorcycle SN Grade. Check the motorcycle manufacturer's oil requirement, including any clutch-compatibility specification."
+        },
+        {
+          "locale": "fa",
+          "summary": "SN Grade در سبد روغن‌های موتورسیکلت ما، روغنی تمام‌سنتتیک برای موتورسیکلت‌های چهارزمانه‌ای است که در پیست استفاده می‌شوند و تنها در درجهٔ 10W40 عرضه می‌شود.",
+          "selectionNote": "این محصول از روغن خودروی سواری با نام SN Grade جداست؛ هنگام سفارش، SN Grade موتورسیکلت را مشخص کنید. الزامات روغن سازندهٔ موتورسیکلت، از جمله سازگاری با کلاچ، را بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R099",
+      "workbookRow": 99,
+      "currentName": "SG Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "engine-oils",
+      "gradeLabels": ["SG 20W50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SG Grade, in our motorcycle range, is a multigrade motorcycle oil based on mineral base oil and additives, supplied as SG 20W50.",
+          "selectionNote": "This product is separate from the SG Grade passenger-car oil of the same name; specify the motorcycle SG Grade when ordering, and confirm the API category and SAE grade in the motorcycle handbook."
+        },
+        {
+          "locale": "fa",
+          "summary": "SG Grade در سبد روغن‌های موتورسیکلت ما، روغن موتورسیکلت چندرنجه بر پایهٔ روغن معدنی و افزودنی‌هاست و در درجهٔ SG 20W50 عرضه می‌شود.",
+          "selectionNote": "این محصول از روغن خودروی سواری با نام SG Grade جداست؛ هنگام سفارش SG Grade موتورسیکلت را مشخص کنید و ردهٔ API و درجهٔ SAE را با دفترچهٔ موتورسیکلت تطبیق دهید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R102",
+      "workbookRow": 102,
+      "currentName": "Extreme Pressure (EP)",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": [
+        "ISO VG 68",
+        "ISO VG 100",
+        "ISO VG 150",
+        "ISO VG 220",
+        "ISO VG 320",
+        "ISO VG 460",
+        "ISO VG 680",
+        "ISO VG 1000"
+      ],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Extreme Pressure (EP) is an industrial gear oil with extreme-pressure performance for enclosed industrial gearing, offered across eight viscosity grades from ISO VG 68 to ISO VG 1000.",
+          "selectionNote": "Select the ISO VG grade from the gearbox manufacturer's recommendation, which depends on gear speed, load and operating temperature. Each grade's four-ball weld load and foaming results are reported separately in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "Extreme Pressure (EP) روغن دندهٔ صنعتی با خاصیت فشارپذیری بالا (EP) برای جعبه‌دنده‌های بستهٔ صنعتی است و در هشت درجهٔ گرانروی، از ISO VG 68 تا ISO VG 1000، عرضه می‌شود.",
+          "selectionNote": "درجهٔ ISO VG را بر اساس توصیهٔ سازندهٔ گیربکس انتخاب کنید؛ این توصیه به سرعت دنده، بار و دمای کار بستگی دارد. نتایج آزمون جوش چهارساچمه و کف‌کردن هر درجه جداگانه در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R105",
+      "workbookRow": 105,
+      "currentName": "Polyalphaolefin (PAO)",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 150", "ISO VG 220", "ISO VG 320", "ISO VG 460"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Polyalphaolefin (PAO) is a synthetic industrial gear oil formulated on polyalphaolefin base stock, offered in ISO VG 150, 220, 320 and 460.",
+          "selectionNote": "Select the ISO VG grade the gearbox manufacturer specifies. Confirm seal and paint compatibility, and the changeover procedure, with the gearbox manufacturer before switching from a mineral oil."
+        },
+        {
+          "locale": "fa",
+          "summary": "Polyalphaolefin (PAO) روغن دندهٔ صنعتی سنتتیک بر پایهٔ پلی‌آلفااولفین است و در درجه‌های ISO VG 150، 220، 320 و 460 عرضه می‌شود.",
+          "selectionNote": "درجهٔ ISO VG تعیین‌شده از سوی سازندهٔ گیربکس را انتخاب کنید. پیش از جایگزینی روغن معدنی، سازگاری با کاسه‌نمدها و رنگ داخلی و روش تعویض را با سازندهٔ گیربکس هماهنگ کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R108",
+      "workbookRow": 108,
+      "currentName": "Polyalkylene Glycol (PAG)",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 150", "ISO VG 220", "ISO VG 320"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Polyalkylene Glycol (PAG) is a synthetic industrial gear oil formulated on polyalkylene glycol base stock, offered in ISO VG 150, 220 and 320.",
+          "selectionNote": "PAG-based oils are a distinct chemistry: before changing over from a mineral or PAO oil, confirm miscibility, seal compatibility and the flushing procedure with the gearbox manufacturer or our technical team."
+        },
+        {
+          "locale": "fa",
+          "summary": "Polyalkylene Glycol (PAG) روغن دندهٔ صنعتی سنتتیک بر پایهٔ پلی‌آلکیلن گلیکول است و در درجه‌های ISO VG 150، 220 و 320 عرضه می‌شود.",
+          "selectionNote": "روغن‌های پایهٔ PAG شیمی متفاوتی دارند؛ پیش از جایگزینی روغن معدنی یا PAO، امتزاج‌پذیری، سازگاری با کاسه‌نمدها و روش شست‌وشوی سیستم را با سازندهٔ گیربکس یا کارشناسان فنی ما بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R111",
+      "workbookRow": 111,
+      "currentName": "TURBINE TECH Radial Flow",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "TURBINE TECH Radial Flow is an industrial turbine oil for radial-flow turbines, offered in ISO VG 32 and ISO VG 46.",
+          "selectionNote": "Its data sheet covers properties that matter in turbine service — acid number, air release, water demulsibility and foaming tendency. Select the grade the turbine manufacturer specifies; our technical team can review your current oil analysis before a changeover."
+        },
+        {
+          "locale": "fa",
+          "summary": "TURBINE TECH Radial Flow روغن توربین صنعتی برای توربین‌های جریان شعاعی است و در دو درجهٔ ISO VG 32 و ISO VG 46 عرضه می‌شود.",
+          "selectionNote": "برگهٔ داده‌های آن ویژگی‌هایی را که در کار توربین اهمیت دارند پوشش می‌دهد؛ عدد اسیدی، آزادسازی هوا، جدایش آب و تمایل به کف‌کردن. درجه را مطابق دستور سازندهٔ توربین انتخاب کنید؛ کارشناسان ما پیش از تعویض روغن می‌توانند نتایج آنالیز روغن فعلی شما را بررسی کنند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R114",
+      "workbookRow": 114,
+      "currentName": "TURBINE TECH Gas Turbine (GT)",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46", "ISO VG 68", "ISO VG 100"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "TURBINE TECH Gas Turbine (GT) is an industrial turbine oil for gas-turbine service, offered in ISO VG 32, 46, 68 and 100.",
+          "selectionNote": "Gas-turbine lubrication requirements vary by turbine design; select the viscosity grade and specification set by the turbine OEM. Acid number, air release, demulsibility and foaming are among the properties reported in the technical data."
+        },
+        {
+          "locale": "fa",
+          "summary": "TURBINE TECH Gas Turbine (GT) روغن توربین صنعتی برای کار در توربین‌های گازی است و در درجه‌های ISO VG 32، 46، 68 و 100 عرضه می‌شود.",
+          "selectionNote": "الزامات روغن‌کاری توربین‌های گازی به طراحی توربین بستگی دارد؛ درجهٔ گرانروی و استانداردی را که سازندهٔ توربین تعیین کرده انتخاب کنید. عدد اسیدی، آزادسازی هوا، جدایش آب و کف‌کردن از ویژگی‌های گزارش‌شده در داده‌های فنی است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 8,
+      "withheldFacts": 8
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R117",
+      "workbookRow": 117,
+      "currentName": "COMPRESSOR TECH",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46", "ISO VG 68", "ISO VG 100"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "COMPRESSOR TECH is an industrial compressor oil offered in ISO VG 32, 46, 68 and 100.",
+          "selectionNote": "Match the grade to the compressor type and the manufacturer's recommendation. The technical data includes acid number, air release, water demulsibility and foaming results for each grade."
+        },
+        {
+          "locale": "fa",
+          "summary": "COMPRESSOR TECH روغن کمپرسور صنعتی است که در درجه‌های ISO VG 32، 46، 68 و 100 عرضه می‌شود.",
+          "selectionNote": "درجه را با نوع کمپرسور و توصیهٔ سازنده تطبیق دهید. داده‌های فنی هر درجه شامل عدد اسیدی، آزادسازی هوا، جدایش آب و نتایج آزمون کف است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 8,
+      "withheldFacts": 8
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R120",
+      "workbookRow": 120,
+      "currentName": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S)",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46", "ISO VG 68", "ISO VG 100"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S) is a synthetic industrial compressor oil formulated on polyalphaolefin base stock, offered in ISO VG 32, 46, 68 and 100.",
+          "selectionNote": "Select the grade the compressor manufacturer specifies for a synthetic oil. Confirm compatibility with the oil currently in service before topping up or changing over."
+        },
+        {
+          "locale": "fa",
+          "summary": "COMPRESSOR TECH Polyalphaolefin- Synthetic (PAO-S) روغن کمپرسور صنعتی سنتتیک بر پایهٔ پلی‌آلفااولفین است و در درجه‌های ISO VG 32، 46، 68 و 100 عرضه می‌شود.",
+          "selectionNote": "درجه‌ای را انتخاب کنید که سازندهٔ کمپرسور برای روغن سنتتیک تعیین کرده است. پیش از سرریز یا تعویض، سازگاری با روغن فعلی را بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R123",
+      "workbookRow": 123,
+      "currentName": "COMPRESSOR TECH Refrigeration Compressor Oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46", "ISO VG 68", "ISO VG 100"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "COMPRESSOR TECH Refrigeration Compressor Oil is a lubricant for refrigeration compressors, offered in ISO VG 32, 46, 68 and 100.",
+          "selectionNote": "Refrigeration-oil selection depends on the refrigerant in the system and the compressor manufacturer's specification. Tell us the refrigerant and compressor model so we can confirm suitability before supply."
+        },
+        {
+          "locale": "fa",
+          "summary": "COMPRESSOR TECH Refrigeration Compressor Oil روغن کمپرسورهای تبرید است و در درجه‌های ISO VG 32، 46، 68 و 100 عرضه می‌شود.",
+          "selectionNote": "انتخاب روغن تبرید به نوع مبرد سیستم و دستورالعمل سازندهٔ کمپرسور بستگی دارد. نوع مبرد و مدل کمپرسور را اعلام کنید تا پیش از تأمین، مناسب بودن روغن را تأیید کنیم."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R126",
+      "workbookRow": 126,
+      "currentName": "ROLLING TECH Rolling Oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 150", "ISO VG 320", "ISO VG 460"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "ROLLING TECH Rolling Oil is a metal-rolling oil offered in ISO VG 150, 320 and 460.",
+          "selectionNote": "Its technical data includes four-ball weld load and water demulsibility in addition to viscosity and flash point. Grade selection depends on the mill, the metal being rolled and the reduction; share your process details with our technical team."
+        },
+        {
+          "locale": "fa",
+          "summary": "ROLLING TECH Rolling Oil روغن نورد فلزات است و در درجه‌های ISO VG 150، 320 و 460 عرضه می‌شود.",
+          "selectionNote": "داده‌های فنی آن علاوه بر گرانروی و نقطهٔ اشتعال، بار جوش چهارساچمه و جدایش آب را نیز دربر دارد. انتخاب درجه به نوع نورد، فلز و میزان کاهش ضخامت بستگی دارد؛ جزئیات فرایند را با کارشناسان فنی ما در میان بگذارید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 6,
+      "withheldFacts": 6
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R129",
+      "workbookRow": 129,
+      "currentName": "HEAT TECH Heat Transfer Oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "HEAT TECH Heat Transfer Oil is a thermal fluid for heat-transfer systems, offered in ISO VG 32 and ISO VG 46.",
+          "selectionNote": "Heat-transfer fluid selection depends on the system's maximum bulk temperature and whether the circuit is open or closed to air. Provide your system's design conditions so we can confirm suitability; operating limits will be stated in the approved technical documentation."
+        },
+        {
+          "locale": "fa",
+          "summary": "HEAT TECH Heat Transfer Oil روغن انتقال حرارت برای سیستم‌های انتقال حرارت است و در دو درجهٔ ISO VG 32 و ISO VG 46 عرضه می‌شود.",
+          "selectionNote": "انتخاب روغن انتقال حرارت به بیشینهٔ دمای سیال در سیستم و باز یا بسته بودن مدار نسبت به هوا بستگی دارد. شرایط طراحی سیستم را اعلام کنید تا مناسب بودن روغن را بررسی کنیم؛ محدوده‌های کاری در مستندات فنی تأییدشده درج خواهد شد."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R132",
+      "workbookRow": 132,
+      "currentName": "HEAT TECH Heat Metal Oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 32", "ISO VG 46"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "HEAT TECH Heat Metal Oil is an industrial oil catalogued as a heat metal oil, offered in ISO VG 32 and ISO VG 46.",
+          "selectionNote": "Its intended process conditions are being confirmed in technical review; discuss your process with our technical team before ordering."
+        },
+        {
+          "locale": "fa",
+          "summary": "HEAT TECH Heat Metal Oil روغن صنعتی از گروه روغن‌های حرارتی فلز (Heat Metal Oil) است و در دو درجهٔ ISO VG 32 و ISO VG 46 عرضه می‌شود.",
+          "selectionNote": "شرایط فرایندی موردنظر برای این محصول در حال بررسی فنی است؛ پیش از سفارش، فرایند خود را با کارشناسان فنی ما در میان بگذارید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R135",
+      "workbookRow": 135,
+      "currentName": "CUTTING TECH Cutting Oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["ISO VG 11", "ISO VG 12", "ISO VG 15", "ISO VG 34"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CUTTING TECH Cutting Oil is a cutting oil for metalworking, offered in four viscosity variants.",
+          "selectionNote": "Choice of variant depends on the machining operation, the material and the cutting speed. Our technical team can help match a variant to your process."
+        },
+        {
+          "locale": "fa",
+          "summary": "CUTTING TECH Cutting Oil روغن برش برای فلزکاری است و در چهار گونهٔ گرانروی عرضه می‌شود.",
+          "selectionNote": "انتخاب گونهٔ مناسب به نوع عملیات ماشین‌کاری، جنس قطعه و سرعت برش بستگی دارد. کارشناسان فنی ما در تطبیق گونهٔ مناسب با فرایند شما همراهتان هستند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R138",
+      "workbookRow": 138,
+      "currentName": "FLASHING TECH Flashing Oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "FLASHING TECH Flashing Oil is an industrial oil supplied as a single product, without viscosity-grade variants.",
+          "selectionNote": "Contact our technical team with the intended system and procedure so we can confirm whether this product fits your application before supply."
+        },
+        {
+          "locale": "fa",
+          "summary": "FLASHING TECH Flashing Oil روغن صنعتی است که به‌صورت یک محصول واحد و بدون گونه‌های مختلف گرانروی عرضه می‌شود.",
+          "selectionNote": "سیستم و روش کار موردنظر را با کارشناسان فنی ما در میان بگذارید تا پیش از تأمین، مناسب بودن این محصول برای کاربرد شما بررسی شود."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 1,
+      "withheldFacts": 1
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R141",
+      "workbookRow": 141,
+      "currentName": "hydraulic oil- HL Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["HL 22", "HL 32", "HL 46", "HL 68", "HL 150"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "hydraulic oil- HL Grade is a hydraulic oil based on mineral base oil for hydraulic control systems and power transmission, also used in circulating systems. It is offered in HL 22, HL 32, HL 46, HL 68 and HL 150.",
+          "selectionNote": "Choose between the HL and HH ranges according to the hydraulic-fluid category your equipment manufacturer specifies under ISO 6743-4, then select the viscosity grade from the pump and operating-temperature requirements."
+        },
+        {
+          "locale": "fa",
+          "summary": "hydraulic oil- HL Grade روغن هیدرولیک بر پایهٔ روغن معدنی برای سیستم‌های کنترل هیدرولیکی و انتقال قدرت است و در سیستم‌های گردشی نیز به کار می‌رود. درجه‌ها: HL 22، HL 32، HL 46، HL 68 و HL 150.",
+          "selectionNote": "انتخاب میان سری HL و HH به ردهٔ سیال هیدرولیک مطابق ISO 6743-4 بستگی دارد که سازندهٔ تجهیزات تعیین کرده است؛ سپس درجهٔ گرانروی را بر اساس نوع پمپ و دمای کار انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R144",
+      "workbookRow": 144,
+      "currentName": "hydraulic Oil- HH Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["HH 22", "HH 32", "HH 46", "HH 68", "HH 150"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "hydraulic Oil- HH Grade is a hydraulic oil based on mineral base oil for hydraulic and power-transmission systems, offered in HH 22, HH 32, HH 46, HH 68 and HH 150.",
+          "selectionNote": "Confirm that the ISO 6743-4 category specified for your system is HH rather than HL or a higher category before ordering; the technical table lists viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point and density for each grade."
+        },
+        {
+          "locale": "fa",
+          "summary": "hydraulic Oil- HH Grade روغن هیدرولیک بر پایهٔ روغن معدنی برای سیستم‌های هیدرولیک و انتقال قدرت است و در درجه‌های HH 22، HH 32، HH 46، HH 68 و HH 150 عرضه می‌شود.",
+          "selectionNote": "پیش از سفارش، بررسی کنید که ردهٔ تعیین‌شده برای سیستم شما در ISO 6743-4 همان HH باشد، نه HL یا رده‌ای بالاتر. جدول فنی برای هر درجه ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش و چگالی را ارائه می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R147",
+      "workbookRow": 147,
+      "currentName": "Circulating oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["Iso-68", "Iso-100", "Iso-150", "Iso-220", "Iso-320"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Circulating oil is a lubricant for circulating lubrication systems, offered in five viscosity grades: Iso-68, Iso-100, Iso-150, Iso-220 and Iso-320.",
+          "selectionNote": "Select the grade the machine builder specifies for the circulating system. Viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point and density are tabulated for each grade."
+        },
+        {
+          "locale": "fa",
+          "summary": "Circulating oil روغن مخصوص سیستم‌های روغن‌کاری گردشی است و در پنج درجهٔ گرانروی عرضه می‌شود: Iso-68، Iso-100، Iso-150، Iso-220 و Iso-320.",
+          "selectionNote": "درجه‌ای را انتخاب کنید که سازندهٔ ماشین برای سیستم گردشی تعیین کرده است. ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش و چگالی برای هر درجه در جدول آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R150",
+      "workbookRow": 150,
+      "currentName": "Heat Transfer oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["HT 32"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Heat Transfer oil is a heat-transfer fluid based on paraffinic base oil and additives, for closed and open heat-transfer systems at atmospheric pressure. It is supplied as HT 32.",
+          "selectionNote": "Open and closed systems have different temperature limits; tell us the circuit type and maximum bulk temperature so we can confirm suitability against the approved technical documentation."
+        },
+        {
+          "locale": "fa",
+          "summary": "Heat Transfer oil روغن انتقال حرارت بر پایهٔ روغن پارافینی و افزودنی‌هاست و برای سیستم‌های انتقال حرارت باز و بسته در فشار اتمسفر کاربرد دارد. این محصول در درجهٔ HT 32 عرضه می‌شود.",
+          "selectionNote": "محدودیت دمایی سیستم‌های باز و بسته متفاوت است؛ نوع مدار و بیشینهٔ دمای سیال را اعلام کنید تا مناسب بودن روغن را بر اساس مستندات فنی تأییدشده بررسی کنیم."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R153",
+      "workbookRow": 153,
+      "currentName": "quenching oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "quenching oil is a metal-quenching oil based on paraffinic base oil and additives, supplied as a single product without grade variants.",
+          "selectionNote": "Quenching performance depends on the steel grade, part section and bath conditions. Share your heat-treatment parameters with our technical team before ordering."
+        },
+        {
+          "locale": "fa",
+          "summary": "quenching oil روغن کوئنچ (سریع‌سردکردن فلزات) بر پایهٔ روغن پارافینی و افزودنی‌هاست و به‌صورت یک محصول واحد، بدون درجه‌های مختلف، عرضه می‌شود.",
+          "selectionNote": "عملکرد کوئنچ به نوع فولاد، ضخامت قطعه و شرایط حمام بستگی دارد. پیش از سفارش، پارامترهای عملیات حرارتی خود را با کارشناسان فنی ما در میان بگذارید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R156",
+      "workbookRow": 156,
+      "currentName": "Turbine oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": [
+        "HSB-T-32",
+        "HSB-T-46",
+        "HSB-T-68",
+        "HSB-T-100",
+        "HSB-T-32 Plus",
+        "HSB-T-46 Plus",
+        "HSB-T-68 plus"
+      ],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Turbine oil is a lubricant for water, steam and gas turbines, offered in seven viscosity variants — standard versions at 32, 46, 68 and 100 and 'Plus' versions at 32, 46 and 68.",
+          "selectionNote": "Select the viscosity the turbine manufacturer specifies, and ask our technical team about the difference between the standard and Plus versions for your application."
+        },
+        {
+          "locale": "fa",
+          "summary": "Turbine oil روغن توربین‌های آبی، بخار و گازی است و در هفت گونهٔ گرانروی عرضه می‌شود؛ نسخه‌های استاندارد در 32، 46، 68 و 100 و نسخه‌های Plus در 32، 46 و 68.",
+          "selectionNote": "گرانروی تعیین‌شده از سوی سازندهٔ توربین را انتخاب کنید و دربارهٔ تفاوت نسخهٔ استاندارد و Plus برای کاربرد خود با کارشناسان فنی ما مشورت کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R159",
+      "workbookRow": 159,
+      "currentName": "Compressor oil -VB",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "industrial-oils",
+      "gradeLabels": ["VB- 22", "VB- 32", "VB- 46", "VB- 68", "VB- 100", "VB- 150"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Compressor oil -VB is a compressor oil based on synthetic base oil, for screw and reciprocating air compressors. It is offered in VB- 22, VB- 32, VB- 46, VB- 68, VB- 100 and VB- 150.",
+          "selectionNote": "Screw compressors usually run lower viscosity grades than reciprocating units; follow the compressor manufacturer's recommendation and compare grades in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "Compressor oil -VB روغن کمپرسور بر پایهٔ روغن سنتتیک برای کمپرسورهای هوای اسکرو و رفت‌وبرگشتی است و در درجه‌های VB- 22، VB- 32، VB- 46، VB- 68، VB- 100 و VB- 150 عرضه می‌شود.",
+          "selectionNote": "کمپرسورهای اسکرو معمولاً با درجه‌های گرانروی پایین‌تری نسبت به کمپرسورهای رفت‌وبرگشتی کار می‌کنند؛ توصیهٔ سازندهٔ کمپرسور را مبنا قرار دهید و درجه‌ها را در جدول فنی مقایسه کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R165",
+      "workbookRow": 165,
+      "currentName": "GL-5 75W-80",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-5 75W-80 is a manual gear oil in the SAE 75W-80 viscosity grade, catalogued under API GL-5 — the lightest grade in our GL-5 line.",
+          "selectionNote": "Some manual gearboxes specify API GL-4 rather than GL-5; check the vehicle or gearbox manual before use. Viscosity, flash point, pour point and copper corrosion are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-5 75W-80 روغن گیربکس دستی با درجهٔ گرانروی SAE 75W-80 و در ردهٔ API GL-5 است؛ سبک‌ترین درجه در سری GL-5 ما.",
+          "selectionNote": "برخی گیربکس‌های دستی به‌جای GL-5 ردهٔ API GL-4 را تعیین می‌کنند؛ پیش از استفاده، دفترچهٔ خودرو یا گیربکس را بررسی کنید. ویسکوزیته، نقطهٔ اشتعال، نقطهٔ ریزش و خوردگی مس در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R168",
+      "workbookRow": 168,
+      "currentName": "GL-5 75W-90",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-5 75W-90 is a manual gear oil in the SAE 75W-90 viscosity grade, catalogued under API GL-5 — a low-temperature 75W grade with a 90 hot viscosity.",
+          "selectionNote": "Some manual gearboxes specify API GL-4 rather than GL-5; check the vehicle or gearbox manual before use. Viscosity, flash point, pour point and copper corrosion are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-5 75W-90 روغن گیربکس دستی با درجهٔ گرانروی SAE 75W-90 و در ردهٔ API GL-5 است؛ درجه‌ای با رتبهٔ سرمایی 75W و گرانروی گرم 90.",
+          "selectionNote": "برخی گیربکس‌های دستی به‌جای GL-5 ردهٔ API GL-4 را تعیین می‌کنند؛ پیش از استفاده، دفترچهٔ خودرو یا گیربکس را بررسی کنید. ویسکوزیته، نقطهٔ اشتعال، نقطهٔ ریزش و خوردگی مس در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R171",
+      "workbookRow": 171,
+      "currentName": "GL-5 80W-90",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-5 80W-90 is a manual gear oil in the SAE 80W-90 viscosity grade, catalogued under API GL-5 — an 80W grade with a 90 hot viscosity.",
+          "selectionNote": "Some manual gearboxes specify API GL-4 rather than GL-5; check the vehicle or gearbox manual before use. Viscosity, flash point, pour point and copper corrosion are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-5 80W-90 روغن گیربکس دستی با درجهٔ گرانروی SAE 80W-90 و در ردهٔ API GL-5 است؛ درجه‌ای با رتبهٔ سرمایی 80W و گرانروی گرم 90.",
+          "selectionNote": "برخی گیربکس‌های دستی به‌جای GL-5 ردهٔ API GL-4 را تعیین می‌کنند؛ پیش از استفاده، دفترچهٔ خودرو یا گیربکس را بررسی کنید. ویسکوزیته، نقطهٔ اشتعال، نقطهٔ ریزش و خوردگی مس در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R174",
+      "workbookRow": 174,
+      "currentName": "GL-5 85W-90",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-5 85W-90 is a manual gear oil in the SAE 85W-90 viscosity grade, catalogued under API GL-5 — an 85W grade with a 90 hot viscosity.",
+          "selectionNote": "Some manual gearboxes specify API GL-4 rather than GL-5; check the vehicle or gearbox manual before use. Viscosity, flash point, pour point and copper corrosion are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-5 85W-90 روغن گیربکس دستی با درجهٔ گرانروی SAE 85W-90 و در ردهٔ API GL-5 است؛ درجه‌ای با رتبهٔ سرمایی 85W و گرانروی گرم 90.",
+          "selectionNote": "برخی گیربکس‌های دستی به‌جای GL-5 ردهٔ API GL-4 را تعیین می‌کنند؛ پیش از استفاده، دفترچهٔ خودرو یا گیربکس را بررسی کنید. ویسکوزیته، نقطهٔ اشتعال، نقطهٔ ریزش و خوردگی مس در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R177",
+      "workbookRow": 177,
+      "currentName": "GL-5 85W-140",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-5 85W-140 is a manual gear oil in the SAE 85W-140 viscosity grade, catalogued under API GL-5 — the heaviest grade in our GL-5 line.",
+          "selectionNote": "Some manual gearboxes specify API GL-4 rather than GL-5; check the vehicle or gearbox manual before use. Viscosity, flash point, pour point and copper corrosion are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-5 85W-140 روغن گیربکس دستی با درجهٔ گرانروی SAE 85W-140 و در ردهٔ API GL-5 است؛ سنگین‌ترین درجه در سری GL-5 ما.",
+          "selectionNote": "برخی گیربکس‌های دستی به‌جای GL-5 ردهٔ API GL-4 را تعیین می‌کنند؛ پیش از استفاده، دفترچهٔ خودرو یا گیربکس را بررسی کنید. ویسکوزیته، نقطهٔ اشتعال، نقطهٔ ریزش و خوردگی مس در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R180",
+      "workbookRow": 180,
+      "currentName": "DCT",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "DCT is a fully synthetic transmission fluid for dual-clutch transmissions. Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "DCT روغن گیربکس تمام‌سنتتیک برای گیربکس‌های دوکلاچه است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 1,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R183",
+      "workbookRow": 183,
+      "currentName": "DEX VI",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "DEX VI is a fully synthetic automatic transmission fluid of the DEX VI type. Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "DEX VI روغن گیربکس اتوماتیک تمام‌سنتتیک از نوع DEX VI است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R186",
+      "workbookRow": 186,
+      "currentName": "SP-4",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SP-4 is an automatic transmission fluid of the SP-4 type. Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "SP-4 روغن گیربکس اتوماتیک از نوع SP-4 است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R189",
+      "workbookRow": 189,
+      "currentName": "CVT",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CVT is a fully synthetic fluid for continuously variable transmissions (CVT). Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "CVT روغن تمام‌سنتتیک برای گیربکس‌های پیوسته‌متغیر (CVT) است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R192",
+      "workbookRow": 192,
+      "currentName": "DEX III",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "DEX III is a semi-synthetic automatic transmission fluid of the DEX III type. Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "DEX III روغن گیربکس اتوماتیک نیمه‌سنتتیک از نوع DEX III است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R195",
+      "workbookRow": 195,
+      "currentName": "MV",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "MV is a synthetic-blend automatic transmission fluid. Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "MV روغن گیربکس اتوماتیک با ترکیبی از روغن پایهٔ سنتتیک است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R198",
+      "workbookRow": 198,
+      "currentName": "AL-4",
+      "researchStatus": "official_web_verified",
+      "familyKey": "engine-oils-automotive-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "AL-4 is an automatic transmission fluid of the AL-4 type. Its technical table reports viscosity at 40 °C and 100 °C, viscosity index, flash point, pour point, appearance and copper corrosion.",
+          "selectionNote": "The product name identifies the transmission-fluid type it is formulated for; it is not a statement of OEM approval. Confirm the fluid specification in the vehicle or transmission manual before use."
+        },
+        {
+          "locale": "fa",
+          "summary": "AL-4 روغن گیربکس اتوماتیک از نوع AL-4 است. جدول فنی آن ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش، ظاهر و خوردگی مس را گزارش می‌کند.",
+          "selectionNote": "نام محصول نوع روغن گیربکسی را که برای آن فرموله شده است نشان می‌دهد و به معنای تأییدیهٔ سازندهٔ خودرو نیست. پیش از استفاده، استاندارد روغن را در دفترچهٔ خودرو یا گیربکس بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R201",
+      "workbookRow": 201,
+      "currentName": "ISO VG 32",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "ISO VG 32 is a hydraulic oil in the ISO VG 32 viscosity grade — the lowest-viscosity grade in our hydraulic line, commonly specified for cooler conditions or high-speed pumps.",
+          "selectionNote": "Select the grade from the pump manufacturer's viscosity range at your operating temperature. Density, viscosity at 40 °C and 100 °C, viscosity index, pour point and flash point are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "ISO VG 32 روغن هیدرولیک با درجهٔ گرانروی ISO VG 32 است؛ کم‌گرانروترین درجه در سری روغن‌های هیدرولیک ما که معمولاً برای شرایط خنک‌تر یا پمپ‌های پرسرعت تعیین می‌شود.",
+          "selectionNote": "درجه را بر اساس محدودهٔ گرانروی توصیه‌شدهٔ سازندهٔ پمپ در دمای کار انتخاب کنید. چگالی، ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ ریزش و نقطهٔ اشتعال در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R204",
+      "workbookRow": 204,
+      "currentName": "ISO VG 46",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "ISO VG 46 is a hydraulic oil in the ISO VG 46 viscosity grade — the mid-range grade most often specified for general industrial hydraulics.",
+          "selectionNote": "Select the grade from the pump manufacturer's viscosity range at your operating temperature. Density, viscosity at 40 °C and 100 °C, viscosity index, pour point and flash point are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "ISO VG 46 روغن هیدرولیک با درجهٔ گرانروی ISO VG 46 است؛ درجهٔ میانی که بیش از همه برای سیستم‌های هیدرولیک صنعتی عمومی تعیین می‌شود.",
+          "selectionNote": "درجه را بر اساس محدودهٔ گرانروی توصیه‌شدهٔ سازندهٔ پمپ در دمای کار انتخاب کنید. چگالی، ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ ریزش و نقطهٔ اشتعال در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R207",
+      "workbookRow": 207,
+      "currentName": "ISO VG 68",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "ISO VG 68 is a hydraulic oil in the ISO VG 68 viscosity grade — a heavier grade typically used where operating temperatures or loads are higher.",
+          "selectionNote": "Select the grade from the pump manufacturer's viscosity range at your operating temperature. Density, viscosity at 40 °C and 100 °C, viscosity index, pour point and flash point are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "ISO VG 68 روغن هیدرولیک با درجهٔ گرانروی ISO VG 68 است؛ درجه‌ای سنگین‌تر که معمولاً در دما یا بار کاری بالاتر به کار می‌رود.",
+          "selectionNote": "درجه را بر اساس محدودهٔ گرانروی توصیه‌شدهٔ سازندهٔ پمپ در دمای کار انتخاب کنید. چگالی، ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ ریزش و نقطهٔ اشتعال در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R210",
+      "workbookRow": 210,
+      "currentName": "ISO VG 100",
+      "researchStatus": "official_web_verified",
+      "familyKey": "industrial-oils-lubricants",
+      "productTypeKey": "hydraulic-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "ISO VG 100 is a hydraulic oil in the ISO VG 100 viscosity grade — the heaviest grade in our hydraulic line.",
+          "selectionNote": "Select the grade from the pump manufacturer's viscosity range at your operating temperature. Density, viscosity at 40 °C and 100 °C, viscosity index, pour point and flash point are reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "ISO VG 100 روغن هیدرولیک با درجهٔ گرانروی ISO VG 100 است؛ سنگین‌ترین درجه در سری روغن‌های هیدرولیک ما.",
+          "selectionNote": "درجه را بر اساس محدودهٔ گرانروی توصیه‌شدهٔ سازندهٔ پمپ در دمای کار انتخاب کنید. چگالی، ویسکوزیته در ۴۰ و ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ ریزش و نقطهٔ اشتعال در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R213",
+      "workbookRow": 213,
+      "currentName": "REWARD TECH Marine Special",
+      "researchStatus": "official_web_verified",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "REWARD TECH Marine Special is a marine lubricant supplied as a single product.",
+          "selectionNote": "Selection depends on the equipment and, for engines, on engine type, speed and fuel sulphur. The technical data reports base number (TBN) alongside viscosity and foaming results; share the engine maker's specification with our technical team before ordering."
+        },
+        {
+          "locale": "fa",
+          "summary": "REWARD TECH Marine Special روان‌کار دریایی است که به‌صورت یک محصول واحد عرضه می‌شود.",
+          "selectionNote": "انتخاب آن به نوع تجهیزات و در موتورها به نوع و دور موتور و میزان گوگرد سوخت بستگی دارد. داده‌های فنی، عدد قلیایی (TBN) را همراه با ویسکوزیته و نتایج آزمون کف گزارش می‌کند؛ پیش از سفارش، مشخصات سازندهٔ موتور را با کارشناسان فنی ما در میان بگذارید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 1,
+      "withheldFacts": 1
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R216",
+      "workbookRow": 216,
+      "currentName": "REWARD SUPER TECH Semi Synthetic",
+      "researchStatus": "official_web_verified",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "REWARD SUPER TECH Semi Synthetic is a semi-synthetic marine lubricant supplied as a single product.",
+          "selectionNote": "Confirm the equipment maker's viscosity and base-number requirement against the technical data before use; our technical team can compare it with the oil currently in service."
+        },
+        {
+          "locale": "fa",
+          "summary": "REWARD SUPER TECH Semi Synthetic روان‌کار دریایی نیمه‌سنتتیک است که به‌صورت یک محصول واحد عرضه می‌شود.",
+          "selectionNote": "پیش از استفاده، الزامات سازندهٔ تجهیزات دربارهٔ گرانروی و عدد قلیایی را با داده‌های فنی تطبیق دهید؛ کارشناسان ما می‌توانند آن را با روغن فعلی شما مقایسه کنند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 1,
+      "withheldFacts": 1
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R219",
+      "workbookRow": 219,
+      "currentName": "TWO-Stroke Engine Oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "TWO-Stroke Engine Oil is an oil for two-stroke gasoline engines, supplied as a single product.",
+          "selectionNote": "Follow the engine manufacturer's mixing ratio and oil specification. The technical table reports viscosity at 100 °C, viscosity index, flash point, pour point and density."
+        },
+        {
+          "locale": "fa",
+          "summary": "TWO-Stroke Engine Oil روغن موتورهای بنزینی دوزمانه است که به‌صورت یک محصول واحد عرضه می‌شود.",
+          "selectionNote": "نسبت اختلاط و استاندارد روغن را مطابق دستور سازندهٔ موتور رعایت کنید. ویسکوزیته در ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش و چگالی در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R222",
+      "workbookRow": 222,
+      "currentName": "LENJ oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": ["SAE 30", "SAE 40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "LENJ oil is an engine oil for medium-speed four-stroke diesel engines, offered in SAE 30 and SAE 40.",
+          "selectionNote": "Choose the SAE grade the engine maker specifies; the technical table lists TBN for each grade alongside viscosity, flash point and pour point."
+        },
+        {
+          "locale": "fa",
+          "summary": "LENJ oil روغن موتور برای موتورهای دیزلی چهارزمانهٔ دورمتوسط است و در دو درجهٔ SAE 30 و SAE 40 عرضه می‌شود.",
+          "selectionNote": "درجهٔ SAE تعیین‌شده از سوی سازندهٔ موتور را انتخاب کنید؛ جدول فنی TBN هر درجه را همراه با ویسکوزیته، نقطهٔ اشتعال و نقطهٔ ریزش ارائه می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R225",
+      "workbookRow": 225,
+      "currentName": "super trunk oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": ["5W50"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "super trunk oil is a lubricant for four-stroke trunk-piston engines running at medium speed on high-sulphur fuel, supplied in a single 5W50 grade.",
+          "selectionNote": "The base number (TBN) should be matched to the sulphur content of the fuel in use; compare the TBN in the technical table with the engine maker's guidance."
+        },
+        {
+          "locale": "fa",
+          "summary": "super trunk oil روان‌کار موتورهای چهارزمانهٔ پیستون‌تنه‌ای (Trunk Piston) با دور متوسط است که با سوخت پرگوگرد کار می‌کنند و در درجهٔ 5W50 عرضه می‌شود.",
+          "selectionNote": "عدد قلیایی (TBN) باید با میزان گوگرد سوخت مصرفی متناسب باشد؛ TBN درج‌شده در جدول فنی را با راهنمای سازندهٔ موتور مقایسه کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R228",
+      "workbookRow": 228,
+      "currentName": "trunk oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": ["30", "40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "trunk oil is a lubricant for medium-speed four-stroke trunk-piston engines operating on high-sulphur residual fuel, offered in grades 30 and 40.",
+          "selectionNote": "For engines on low-sulphur distillate fuel, see special trunk oil instead. Match the TBN reported in the technical table to your fuel and the engine maker's guidance."
+        },
+        {
+          "locale": "fa",
+          "summary": "trunk oil روان‌کار موتورهای چهارزمانهٔ پیستون‌تنه‌ای با دور متوسط است که با سوخت سنگین پرگوگرد کار می‌کنند و در دو درجهٔ 30 و 40 عرضه می‌شود.",
+          "selectionNote": "برای موتورهایی که با سوخت تقطیری کم‌گوگرد کار می‌کنند، special trunk oil را ببینید. TBN درج‌شده در جدول فنی را با سوخت مصرفی و راهنمای سازندهٔ موتور تطبیق دهید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R231",
+      "workbookRow": 231,
+      "currentName": "special trunk oil",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "marine-oils",
+      "gradeLabels": ["30", "40"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "special trunk oil is a lubricant for medium-speed four-stroke trunk-piston engines running on low-sulphur distillate fuels, offered in grades 30 and 40.",
+          "selectionNote": "For engines on high-sulphur residual fuel, see trunk oil or super trunk oil. The TBN of each grade is reported in the technical table."
+        },
+        {
+          "locale": "fa",
+          "summary": "special trunk oil روان‌کار موتورهای چهارزمانهٔ پیستون‌تنه‌ای با دور متوسط است که با سوخت‌های تقطیری کم‌گوگرد کار می‌کنند و در دو درجهٔ 30 و 40 عرضه می‌شود.",
+          "selectionNote": "برای موتورهایی که با سوخت سنگین پرگوگرد کار می‌کنند، trunk oil یا super trunk oil را ببینید. TBN هر درجه در جدول فنی آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R234",
+      "workbookRow": 234,
+      "currentName": "ATF Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": ["ATF-3", "ATF-2", "ATF-CVT"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "ATF Grade is a range of automatic transmission fluids blended from synthetic oil and fully hydrofinished paraffinic base oil, formulated for the lubrication requirements of specific automatic transmission units. Grades: ATF-3, ATF-2 and ATF-CVT.",
+          "selectionNote": "Each grade targets a different transmission type; the grade names are not OEM approvals. Confirm the fluid specification in the transmission manual and choose the matching grade."
+        },
+        {
+          "locale": "fa",
+          "summary": "ATF Grade مجموعه‌ای از روغن‌های گیربکس اتوماتیک است که از روغن سنتتیک و روغن پایهٔ پارافینی کاملاً هیدروفینیش‌شده تهیه و برای نیازهای روغن‌کاری گیربکس‌های اتوماتیک مشخص فرموله شده است. درجه‌ها: ATF-3، ATF-2 و ATF-CVT.",
+          "selectionNote": "هر درجه برای نوع متفاوتی از گیربکس است و نام درجه‌ها به معنای تأییدیهٔ سازندهٔ خودرو نیست. استاندارد روغن را در دفترچهٔ گیربکس بررسی و درجهٔ متناظر را انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R237",
+      "workbookRow": 237,
+      "currentName": "GL-5 Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": ["GL5 85W90", "GL5 75W80", "GL5 85W140", "GL5 140", "GL5 90"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-5 Grade is a synthetic transmission oil for certain manual gearboxes and axles, and for moderately to heavily loaded on- and off-road drivelines. Grades: GL5 85W90, GL5 75W80, GL5 85W140, GL5 140 and GL5 90.",
+          "selectionNote": "Some manual gearboxes specify API GL-4 rather than GL-5; check the gearbox manual first, then pick the multigrade or monograde viscosity the manufacturer recommends."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-5 Grade روغن انتقال قدرت سنتتیک برای برخی گیربکس‌های دستی و دیفرانسیل‌ها و برای سیستم‌های انتقال قدرت با بار متوسط تا سنگین، در جاده و خارج از جاده است. درجه‌ها: GL5 85W90، GL5 75W80، GL5 85W140، GL5 140 و GL5 90.",
+          "selectionNote": "برخی گیربکس‌های دستی به‌جای GL-5 ردهٔ API GL-4 را تعیین می‌کنند؛ ابتدا دفترچهٔ گیربکس را بررسی کنید و سپس گرانروی چندرنجه یا تک‌درجهٔ توصیه‌شده را انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R240",
+      "workbookRow": 240,
+      "currentName": "GL-4 Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": ["GL4 85W90", "GL4 75W80", "GL4 85W140"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-4 Grade is a gear oil range under API GL-4, offered in GL4 85W90, GL4 75W80 and GL4 85W140.",
+          "selectionNote": "Use it where the gearbox manufacturer specifies API GL-4. Viscosity at 100 °C, viscosity index, flash point, pour point and density are tabulated for each grade."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-4 Grade مجموعه‌ای از روغن‌های دنده در ردهٔ API GL-4 است که در درجه‌های GL4 85W90، GL4 75W80 و GL4 85W140 عرضه می‌شود.",
+          "selectionNote": "در مواردی به کار ببرید که سازندهٔ گیربکس ردهٔ API GL-4 را تعیین کرده است. ویسکوزیته در ۱۰۰ درجهٔ سلسیوس، شاخص گرانروی، نقطهٔ اشتعال، نقطهٔ ریزش و چگالی برای هر درجه در جدول آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R243",
+      "workbookRow": 243,
+      "currentName": "GL-3 Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": ["GL3 68", "GL3 100", "GL3 220", "GL3 320", "GL3 680"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-3 Grade is a gear oil for manual gearboxes and for helical and spiral gearboxes, offered in GL3 68, GL3 100, GL3 220, GL3 320 and GL3 680.",
+          "selectionNote": "The wide viscosity spread lets one range cover light to heavy gearing; select the grade the gearbox manufacturer specifies."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-3 Grade روغن دنده برای گیربکس‌های دستی و گیربکس‌های هلیکال و اسپیرال است و در درجه‌های GL3 68، GL3 100، GL3 220، GL3 320 و GL3 680 عرضه می‌شود.",
+          "selectionNote": "گسترهٔ وسیع گرانروی این سری، دنده‌های سبک تا سنگین را پوشش می‌دهد؛ درجه‌ای را انتخاب کنید که سازندهٔ گیربکس تعیین کرده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R246",
+      "workbookRow": 246,
+      "currentName": "GL-I Grade",
+      "researchStatus": "supplied_catalogue",
+      "familyKey": "marine-oils-lubricants",
+      "productTypeKey": "gear-oils",
+      "gradeLabels": ["GL1 90", "GL1 140"],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "GL-I Grade is a gear oil based on mineral base oil and additives for vehicle gearboxes under normal operating conditions, including manual, helical and spiral gearboxes. Grades: GL1 90 and GL1 140.",
+          "selectionNote": "GL-1 is the most basic API gear category; use it only where the manufacturer specifies it, and select a GL-4 or GL-5 product for gearboxes that call for higher categories."
+        },
+        {
+          "locale": "fa",
+          "summary": "GL-I Grade روغن دنده بر پایهٔ روغن معدنی و افزودنی‌ها برای گیربکس خودروها در شرایط کار عادی است و در گیربکس‌های دستی، هلیکال و اسپیرال به کار می‌رود. درجه‌ها: GL1 90 و GL1 140.",
+          "selectionNote": "GL-1 پایه‌ای‌ترین ردهٔ API برای روغن دنده است؛ آن را تنها در صورتی به کار ببرید که سازنده تعیین کرده باشد و برای گیربکس‌هایی که رده‌های بالاتر لازم دارند، محصولات GL-4 یا GL-5 را انتخاب کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 0,
+      "withheldFacts": 0
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R249",
+      "workbookRow": 249,
+      "currentName": "Ash-free Antioxidant",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Ash-free Antioxidant is a multipurpose ashless additive whose primary function is antioxidation, for formulating lubricating oils without adding metallic ash.",
+          "selectionNote": "Treat rate depends on the application and the performance required. Its specification sheet reports appearance, density, viscosity, nitrogen and sulfur content, flash point and thermal decomposition temperature."
+        },
+        {
+          "locale": "fa",
+          "summary": "Ash-free Antioxidant افزودنی چندمنظورهٔ بدون خاکستر است که کارکرد اصلی آن آنتی‌اکسیدانی است و برای فرمولاسیون روغن‌های روان‌کار بدون افزودن خاکستر فلزی به کار می‌رود.",
+          "selectionNote": "درصد مصرف به کاربرد و سطح عملکرد موردنیاز بستگی دارد. برگهٔ مشخصات آن ظاهر، چگالی، گرانروی، مقدار نیتروژن و گوگرد، نقطهٔ اشتعال و دمای تجزیهٔ حرارتی را گزارش می‌کند."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 3,
+      "withheldFacts": 3
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R252",
+      "workbookRow": 252,
+      "currentName": "Dispersant",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Dispersant is a lubricant dispersant additive that keeps contaminants suspended in the oil, for use in engine-oil formulation.",
+          "selectionNote": "Its specification sheet lists density, flash point, viscosity at 100 °C, TBN and nitrogen content. Blend trials on your own base stock are recommended before production."
+        },
+        {
+          "locale": "fa",
+          "summary": "Dispersant افزودنی پخش‌کننده (دیسپرسانت) برای روغن‌های روان‌کار است که آلاینده‌ها را در روغن معلق نگه می‌دارد و در فرمولاسیون روغن موتور به کار می‌رود.",
+          "selectionNote": "برگهٔ مشخصات آن چگالی، نقطهٔ اشتعال، ویسکوزیته در ۱۰۰ درجهٔ سلسیوس، TBN و مقدار نیتروژن را ارائه می‌کند. پیش از تولید، آزمایش اختلاط با روغن پایهٔ خودتان توصیه می‌شود."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 1,
+      "withheldFacts": 1
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R255",
+      "workbookRow": 255,
+      "currentName": "Ash-less Dispersant",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Ash-less Dispersant is a boronated, high-molecular-weight ashless dispersant prepared from highly reactive isobutylene. It contains no chlorine.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock. Boron and nitrogen contents are reported in its specification sheet."
+        },
+        {
+          "locale": "fa",
+          "summary": "Ash-less Dispersant پخش‌کنندهٔ بدون خاکسترِ بوردار با وزن مولکولی بالاست که از ایزوبوتیلن با واکنش‌پذیری بالا تهیه می‌شود و کلر ندارد.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید. مقدار بور و نیتروژن در برگهٔ مشخصات آن آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 4,
+      "withheldFacts": 2
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R258",
+      "workbookRow": 258,
+      "currentName": "Molybdenum Compound",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Molybdenum Compound is an oil-soluble, liquid, nitrogen-containing organic molybdenum additive for lubricating oils.",
+          "selectionNote": "Its specification sheet reports molybdenum, phosphorus, sulfur and nitrogen content together with compatibility information. Confirm treat rate and compatibility with the rest of your formulation through blend trials."
+        },
+        {
+          "locale": "fa",
+          "summary": "Molybdenum Compound افزودنی مولیبدن آلیِ مایع، محلول در روغن و حاوی نیتروژن برای روغن‌های روان‌کار است.",
+          "selectionNote": "برگهٔ مشخصات آن مقدار مولیبدن، فسفر، گوگرد و نیتروژن را همراه با اطلاعات سازگاری ارائه می‌کند. درصد مصرف و سازگاری با سایر اجزای فرمولاسیون را با آزمایش اختلاط تأیید کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 7,
+      "withheldFacts": 7
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R261",
+      "workbookRow": 261,
+      "currentName": "zink-ZDDP",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "zink-ZDDP is a zinc dialkyldithiophosphate (ZDDP) additive — a widely used anti-wear chemistry in lubricant formulation.",
+          "selectionNote": "Its specification sheet lists zinc, phosphorus and sulfur content, colour, density, viscosity, flash point, pH, moisture and mechanical impurities. Check phosphorus limits that apply to your target oil specification before setting the treat rate."
+        },
+        {
+          "locale": "fa",
+          "summary": "zink-ZDDP افزودنی دی‌آلکیل دی‌تیوفسفات روی (ZDDP) است؛ از ترکیبات ضدسایشِ پرکاربرد در فرمولاسیون روان‌کارها.",
+          "selectionNote": "برگهٔ مشخصات آن مقدار روی، فسفر و گوگرد، رنگ، چگالی، گرانروی، نقطهٔ اشتعال، pH، رطوبت و ناخالصی مکانیکی را ارائه می‌کند. پیش از تعیین درصد مصرف، محدودیت فسفر در استاندارد روغن هدف خود را بررسی کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 8,
+      "withheldFacts": 8
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R264",
+      "workbookRow": 264,
+      "currentName": "TB N400 Booster",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "TB N400 Booster is a super-overbased synthetic calcium sulfonate prepared from long-chain alkylbenzene sulfonic acid, used to raise the base number (TBN) of a lubricant formulation.",
+          "selectionNote": "Treat rate depends on the TBN target and the rest of the formulation. Calcium, magnesium, sulfur and water content are reported in its specification sheet."
+        },
+        {
+          "locale": "fa",
+          "summary": "TB N400 Booster کلسیم سولفونات سنتتیکِ فوق‌بازی است که از اسید آلکیل‌بنزن سولفونیک با زنجیرهٔ بلند تهیه می‌شود و برای افزایش عدد قلیایی (TBN) فرمولاسیون روان‌کار به کار می‌رود.",
+          "selectionNote": "درصد مصرف به TBN هدف و سایر اجزای فرمولاسیون بستگی دارد. مقدار کلسیم، منیزیم، گوگرد و آب در برگهٔ مشخصات آن آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 3,
+      "withheldFacts": 3
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R267",
+      "workbookRow": 267,
+      "currentName": "diesel engine oil additive package",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "diesel engine oil additive package is a combined package of zinc dithiophosphate, detergent, dispersant and antioxidant, used mainly for blending low- and mid-grade diesel engine oils.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock."
+        },
+        {
+          "locale": "fa",
+          "summary": "diesel engine oil additive package بستهٔ افزودنی ترکیبی شامل دی‌تیوفسفات روی، دترجنت، دیسپرسانت و آنتی‌اکسیدان است که عمدتاً برای تولید روغن‌های موتور دیزلی سطح پایه و میانی به کار می‌رود.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 6,
+      "withheldFacts": 3
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R270",
+      "workbookRow": 270,
+      "currentName": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive is an all-purpose engine oil additive package built mainly on high-base synthetic sulfonate and ashless dispersant, for blending diesel and gasoline engine oils across the categories in its name.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock."
+        },
+        {
+          "locale": "fa",
+          "summary": "CI-4, CH-4, CF-4, CD, SC/CC Engine oil additive بستهٔ افزودنی همه‌منظورهٔ روغن موتور است که اجزای اصلی آن سولفونات سنتتیکِ بازی و دیسپرسانت بدون خاکستر است و برای تولید روغن‌های موتور دیزلی و بنزینی در رده‌های ذکرشده در نامش به کار می‌رود.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 17,
+      "withheldFacts": 5
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R273",
+      "workbookRow": 273,
+      "currentName": "SF , SE , SC/CC Engine oil additive",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SF , SE , SC/CC Engine oil additive is an engine oil additive package designed for blending low- and mid-grade lubricating oils at a low dosage.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock."
+        },
+        {
+          "locale": "fa",
+          "summary": "SF , SE , SC/CC Engine oil additive بستهٔ افزودنی روغن موتور است که برای تولید روغن‌های روان‌کار سطح پایه و میانی با درصد مصرف کم طراحی شده است.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 13,
+      "withheldFacts": 4
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R276",
+      "workbookRow": 276,
+      "currentName": "SL , SJ , SG Engine oil additive package",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SL , SJ , SG Engine oil additive package is an additive package for formulating passenger-car engine oils across the API categories in its name.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock."
+        },
+        {
+          "locale": "fa",
+          "summary": "SL , SJ , SG Engine oil additive package بستهٔ افزودنی برای فرمولاسیون روغن موتور خودروهای سواری در رده‌های API ذکرشده در نام آن است.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 11,
+      "withheldFacts": 5
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R279",
+      "workbookRow": 279,
+      "currentName": "Universal Engine oil additive",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Universal Engine oil additive is a universal additive package for internal-combustion engine oils, intended for blending top-tier engine oils.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock. Its specification sheet includes molybdenum and boron content."
+        },
+        {
+          "locale": "fa",
+          "summary": "Universal Engine oil additive بستهٔ افزودنی جامع برای روغن‌های موتورهای احتراق داخلی است که برای تولید روغن‌های موتور سطح بالا در نظر گرفته شده است.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید. مقدار مولیبدن و بور در برگهٔ مشخصات آن آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 8,
+      "withheldFacts": 6
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R282",
+      "workbookRow": 282,
+      "currentName": "SN , SM , SL , SJ , SF…SC Engine oil additive",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "SN , SM , SL , SJ , SF…SC Engine oil additive is an all-purpose engine oil additive package built mainly on high-base synthetic sulfonate and ashless dispersant, for blending gasoline engine oils across the API categories in its name.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock."
+        },
+        {
+          "locale": "fa",
+          "summary": "SN , SM , SL , SJ , SF…SC Engine oil additive بستهٔ افزودنی همه‌منظورهٔ روغن موتور است که اجزای اصلی آن سولفونات سنتتیکِ بازی و دیسپرسانت بدون خاکستر است و برای تولید روغن‌های موتور بنزینی در رده‌های API ذکرشده در نامش به کار می‌رود.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 19,
+      "withheldFacts": 5
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R285",
+      "workbookRow": 285,
+      "currentName": "Gear oil additive",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Gear oil additive is a gear oil additive package with anti-wear, anti-rust and antioxidant functions, usable with paraffinic, intermediate and naphthenic base oils.",
+          "selectionNote": "Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock. Phosphorus, nitrogen and sulfur content are listed in its specification sheet."
+        },
+        {
+          "locale": "fa",
+          "summary": "Gear oil additive بستهٔ افزودنی روغن دنده با کارکردهای ضدسایش، ضدزنگ و آنتی‌اکسیدان است و با روغن‌های پایهٔ پارافینی، حدواسط و نفتنی قابل استفاده است.",
+          "selectionNote": "هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید. مقدار فسفر، نیتروژن و گوگرد در برگهٔ مشخصات آن آمده است."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 7,
+      "withheldFacts": 3
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R288",
+      "workbookRow": 288,
+      "currentName": "Anti-wear hydraulic oil additive package",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Anti-wear hydraulic oil additive package is an anti-wear additive package for formulating hydraulic oils.",
+          "selectionNote": "Hydraulic-oil standards and pump-maker specifications apply to the finished, blended oil, not to the additive alone. Zinc, phosphorus and calcium content are reported in its specification sheet; ask our technical team for blending guidance."
+        },
+        {
+          "locale": "fa",
+          "summary": "Anti-wear hydraulic oil additive package بستهٔ افزودنی ضدسایش برای فرمولاسیون روغن‌های هیدرولیک است.",
+          "selectionNote": "استانداردهای روغن هیدرولیک و الزامات سازندگان پمپ دربارهٔ روغن نهاییِ اختلاط‌شده صدق می‌کند، نه افزودنی به‌تنهایی. مقدار روی، فسفر و کلسیم در برگهٔ مشخصات آن آمده است؛ برای راهنمای اختلاط با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 8,
+      "withheldFacts": 3
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R291",
+      "workbookRow": 291,
+      "currentName": "Two-stroke motor oil",
+      "researchStatus": "official_web_verified",
+      "familyKey": "lubricant-additives",
+      "productTypeKey": "lubricant-additives",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Two-stroke motor oil is an additive package for formulating two-stroke engine oils: a balanced combination of detergent and dispersant with a low-ash character.",
+          "selectionNote": "Despite its name, this product is an additive for blending, not a finished engine oil. Any API or performance level achieved by a finished oil depends on the base oil and the treat rate used; it is not a property of the additive alone. Ask our technical team for blending guidance for your base stock."
+        },
+        {
+          "locale": "fa",
+          "summary": "Two-stroke motor oil بستهٔ افزودنی برای فرمولاسیون روغن موتورهای دوزمانه است؛ ترکیبی متوازن از دترجنت و دیسپرسانت با خاکستر کم.",
+          "selectionNote": "برخلاف نامش، این محصول افزودنی برای اختلاط است، نه روغن موتور آمادهٔ مصرف. هر سطح کارایی API که روغن نهایی به دست می‌آورد به روغن پایه و درصد مصرف افزودنی بستگی دارد و ویژگی خودِ افزودنی به‌تنهایی نیست. برای راهنمای اختلاط با روغن پایهٔ خود، با کارشناسان فنی ما در تماس باشید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 5,
+      "withheldFacts": 2
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R294",
+      "workbookRow": 294,
+      "currentName": "Mineral-Based",
+      "researchStatus": "official_web_verified",
+      "familyKey": "antifreeze-coolants",
+      "productTypeKey": "antifreeze-coolants",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "Mineral-Based is a mineral-based antifreeze / anti-boil engine coolant for vehicle cooling systems.",
+          "selectionNote": "Its technical data covers density, reserve alkalinity (ASTM D1121) and pH of a 33 % by volume solution in water (ASTM D1287). Follow the vehicle manufacturer's coolant specification and dilution ratio."
+        },
+        {
+          "locale": "fa",
+          "summary": "Mineral-Based ضدیخ و ضدجوش معدنی برای سیستم خنک‌کاری خودروهاست.",
+          "selectionNote": "داده‌های فنی آن چگالی، ذخیرهٔ قلیایی (ASTM D1121) و pH محلول ۳۳ درصد حجمی در آب (ASTM D1287) را دربر دارد. استاندارد مایع خنک‌کننده و نسبت رقیق‌سازی تعیین‌شده از سوی سازندهٔ خودرو را رعایت کنید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 2,
+      "withheldFacts": 2
+    },
+    {
+      "sourceRef": "SAMCAT-W1-R297",
+      "workbookRow": 297,
+      "currentName": "High-Performance",
+      "researchStatus": "official_web_verified",
+      "familyKey": "antifreeze-coolants",
+      "productTypeKey": "antifreeze-coolants",
+      "gradeLabels": [],
+      "drafts": [
+        {
+          "locale": "en",
+          "summary": "High-Performance is an antifreeze / anti-boil engine coolant for vehicle cooling systems, listed alongside our Mineral-Based coolant.",
+          "selectionNote": "Its technical data reports density, reserve alkalinity (ASTM D1121) and pH of a 33 % by volume solution (ASTM D1287). Avoid mixing coolant technologies; drain and flush before changing from a different coolant type."
+        },
+        {
+          "locale": "fa",
+          "summary": "High-Performance ضدیخ و ضدجوش برای سیستم خنک‌کاری خودروهاست و در کنار ضدیخ Mineral-Based در سبد محصولات ما قرار دارد.",
+          "selectionNote": "داده‌های فنی آن چگالی، ذخیرهٔ قلیایی (ASTM D1121) و pH محلول ۳۳ درصد حجمی (ASTM D1287) را گزارش می‌کند. از مخلوط کردن فناوری‌های مختلف ضدیخ پرهیز کنید و پیش از جایگزینی نوع دیگر، سیستم را تخلیه و شست‌وشو دهید."
+        }
+      ],
+      "prohibitedClaimsAdded": false,
+      "publicationBlockedUntilTechnicalApproval": true,
+      "reviewState": "draft_for_review",
+      "openSourceConflicts": 2,
+      "withheldFacts": 2
+    }
+  ]
+}
