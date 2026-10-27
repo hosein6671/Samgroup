@@ -222,6 +222,27 @@ describe("content import plan", () => {
     expect(replaced[0]?.edit?.revision).toBe(2);
   });
 
+  it("treats published but empty content as nothing to overwrite", async () => {
+    const empty = state({
+      locales: new Map([
+        [
+          "en",
+          {
+            revision: 4,
+            publishedSections: { applications: [], features: [], faq: [] },
+            description: "",
+            seo: { ...emptySeo, metaTitle: "CK-4 10W-40" },
+          },
+        ],
+      ]),
+    });
+    const items = await planImport(await entries({ en: block("English.") }), database(empty), {
+      replace: new Set(),
+    });
+    expect(items[0]?.action).toBe("create");
+    expect(items[0]?.edit?.revision).toBe(4);
+  });
+
   it("refuses a product whose identity does not match", async () => {
     const input = await entries({ en: block("English.") });
     for (const product of [null, state({ sourceRef: "OTHER" }), state({ name: "SN Grade " })])

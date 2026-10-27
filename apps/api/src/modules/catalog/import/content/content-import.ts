@@ -311,6 +311,24 @@ export function mergeSeo(
   return merged;
 }
 
+/**
+ * True when no editorial content of this locale exists to overwrite: the editor has never
+ * published it (a description that came with the catalogue import is base data, not editorial),
+ * or it was published empty — empty description and empty sections, an editor saving the empty
+ * form. Either way this is a first publication, not a replacement. SEO is not considered: the
+ * import keeps every stored SEO field the file does not carry.
+ */
+export function hasNoPublishedText(state: PublishedState): boolean {
+  const sections = state.publishedSections;
+  if (sections === null) return true;
+  return (
+    state.description.trim() === "" &&
+    sections.applications.length === 0 &&
+    sections.features.length === 0 &&
+    sections.faq.length === 0
+  );
+}
+
 export async function planImport(
   entries: readonly ImportEntry[],
   database: ImportDatabase,
@@ -378,7 +396,7 @@ export async function planImport(
       };
       const base = { slug: entry.slug, locale, productId: product.id, revision: state.revision };
       if (stable(target) === stable(published)) items.push({ ...base, action: "noop" });
-      else if (state.publishedSections === null) items.push({ ...base, action: "create", edit });
+      else if (hasNoPublishedText(state)) items.push({ ...base, action: "create", edit });
       else if (options.replace.has(entry.slug)) items.push({ ...base, action: "replace", edit });
       else
         items.push({
