@@ -6,6 +6,8 @@ import { TechnicalDataPendingIcon } from "@/features/site/icons";
 import type { ProductSpecificationResponse } from "@sam-group/types";
 import { translator, type Translate } from "@/i18n/translate";
 
+import { propertyLabel } from "../property-labels";
+
 /**
  * A `resultBasis` of `unspecified` is the column's own default — "no claim was made about what
  * this number is" — and is never itself a public claim, so its cell renders the same "Not
@@ -187,10 +189,11 @@ function SpecificationsPending({ t }: { readonly t: Translate }): ReactNode {
  *
  * ── Rendered verbatim, and never interpreted ────────────────────────────────
  *
- * `key`, `value` and `unit` are printed as they arrive. Nothing here maps a key to a friendlier
- * label, infers a unit, sorts by a preferred property order, or groups rows — every one of those
- * would be this component asserting technical knowledge about the catalog that no approved document
- * supplies. The API already orders the rows stably (by key, then value); that order is kept.
+ * `value` and `unit` are printed as they arrive. `key` is shown under its name from the
+ * controlled property dictionary (`../property-labels`, owner-approved 27 October 2026), and a key
+ * outside that dictionary is printed verbatim. Nothing here infers a unit, sorts by a preferred
+ * property order, or groups rows — each of those would assert technical knowledge no approved
+ * document supplies. The API already orders the rows stably (by key, then value); that order is kept.
  *
  * `grade`, `method`, `qualifier` (rendered as "Condition" — a test condition, never merged into
  * the property name or into `method`) and `resultBasis` are the same kind of verbatim field: a
@@ -255,7 +258,7 @@ export function ProductSpecifications({
             <tbody>
               {specifications.map((specification) => (
                 <tr key={specification.id}>
-                  <th scope="row">{t(specification.key)}</th>
+                  <th scope="row">{propertyLabel(specification.key, t)}</th>
                   <OptionalCell t={t}>{gradeText(specification)}</OptionalCell>
                   <td>
                     <SpecificationValue specification={specification} t={t} />
@@ -281,7 +284,7 @@ export function ProductSpecifications({
               <dl>
                 <div className="pd-spec-row pd-spec-row--property">
                   <dt>{t("Property")}</dt>
-                  <dd>{t(specification.key)}</dd>
+                  <dd>{propertyLabel(specification.key, t)}</dd>
                 </div>
                 <OptionalRow label="Grade" t={t}>
                   {gradeText(specification)}
