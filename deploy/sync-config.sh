@@ -53,7 +53,7 @@ fi
 container="$(docker create "$image")"
 docker cp "$container:/bundle/." "$work/"
 
-files="docker-compose.yml docker-compose.prod.yml deploy/compose.sh deploy/deploy.sh deploy/backup.sh deploy/rollback.sh deploy/sync-config.sh"
+files="docker-compose.yml docker-compose.prod.yml deploy/compose.sh deploy/deploy.sh deploy/backup.sh deploy/rollback.sh deploy/sync-config.sh deploy/product-content.sh"
 changed=""
 for file in $files; do
   [ -f "$work/$file" ] || { echo "Bundle is missing $file." >&2; exit 65; }

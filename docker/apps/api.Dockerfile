@@ -50,6 +50,9 @@ RUN apt-get update \
     && useradd --system --uid 1001 --gid nodejs api
 
 COPY --from=build --chown=api:nodejs /release/api ./
+# The reviewed product content file (ADR-027), so `deploy/product-content.sh` needs no file copy
+# onto the VPS. Read only by the content import CLI, never by the running API.
+COPY --chown=api:nodejs docs/content/PRODUCT_CONTENT_IMPORT.json ./content/PRODUCT_CONTENT_IMPORT.json
 
 USER api
 EXPOSE 3000
