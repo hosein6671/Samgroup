@@ -691,6 +691,89 @@
   }
 }
 
+/*
+ * Phones: each product becomes a small card — name across the top, grades under it, and the data
+ * values in a two-column grid, each labelled from its column heading (`data-label`). Nothing
+ * scrolls sideways, and the column headings stay available to assistive technology.
+ */
+@media (max-width: 720px) {
+  .pf3-table-box {
+    overflow-x: visible;
+  }
+
+  .pf3-table,
+  .pf3-table tbody,
+  .pf3-table tr,
+  .pf3-table th,
+  .pf3-table td {
+    display: block;
+  }
+
+  .pf3-table {
+    min-inline-size: 0;
+    table-layout: auto;
+  }
+
+  .pf3-table colgroup {
+    display: none;
+  }
+
+  .pf3-table thead {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .pf3-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 16px;
+    padding: 16px;
+    border-block-end: 1px solid #eef0f3;
+  }
+
+  .pf3-table tbody tr:last-child {
+    border-block-end: 0;
+  }
+
+  .pf3-table tbody th,
+  .pf3-table tbody td {
+    padding: 0;
+    border: 0;
+  }
+
+  .pf3-table tbody th,
+  .pf3-grades-cell {
+    grid-column: 1 / -1;
+  }
+
+  .pf3-num {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-inline-size: 0;
+    white-space: normal;
+  }
+
+  .pf3-grades-cell::before,
+  .pf3-num::before {
+    content: attr(data-label);
+    display: block;
+    margin-block-end: 4px;
+    font-family: var(--font-text);
+    font-size: var(--fs-text-caption);
+    color: #5a6578;
+    overflow-wrap: anywhere;
+  }
+
+  .pf3-table .pf3-go {
+    display: none;
+  }
+}
+
 @media (max-width: 600px) {
   .pf3-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

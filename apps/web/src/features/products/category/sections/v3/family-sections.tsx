@@ -81,6 +81,16 @@ export function FamilyHero({ content, family, locale }: Props): ReactNode {
   );
 }
 
+/** A data column's short heading, as the narrow layout labels each value with it. */
+function columnHeading(
+  t: ReturnType<typeof translator>,
+  column: FamilyColumnKey | undefined,
+): string {
+  if (column === undefined) return "";
+  const { label, unit } = COLUMN_LABEL[column];
+  return unit === null ? t(label) : `${t(label)} (${unit})`;
+}
+
 function spanText(column: FamilyColumnKey, span: { low: string; high: string }): string {
   return column === "pour_point" || span.low === span.high ? span.low : `${span.low}–${span.high}`;
 }
@@ -275,7 +285,7 @@ export async function FamilyCatalogue({
                                 </span>
                               </a>
                             </th>
-                            <td>
+                            <td className="pf3-grades-cell" data-label={t("Grades")}>
                               {row.grades.length > 0 ? (
                                 <ul className="pf3-grades">
                                   {row.grades.slice(0, 3).map((grade) => (
@@ -296,8 +306,12 @@ export async function FamilyCatalogue({
                               )}
                             </td>
                             {row.cells.map((cell, index) => (
-                              <td key={catalog.columns[index]} className="pf3-num" dir="ltr">
-                                {cell ?? "—"}
+                              <td
+                                key={catalog.columns[index]}
+                                className="pf3-num"
+                                data-label={columnHeading(t, catalog.columns[index])}
+                              >
+                                <bdi dir="ltr">{cell ?? "—"}</bdi>
                               </td>
                             ))}
                             <td className="pf3-go">
