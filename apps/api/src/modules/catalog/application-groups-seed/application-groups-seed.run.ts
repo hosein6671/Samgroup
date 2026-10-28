@@ -14,18 +14,21 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../../../prisma/generated/client";
 
 import {
-  FAMILY_SLUG,
-  INDUSTRIAL_GROUPS,
+  FAMILY_SEEDS,
   planSeed,
   SEED_ENABLE_ENV,
   SEED_TARGET_DATABASE,
 } from "./application-groups-seed";
 
-import type { SeedState } from "./application-groups-seed";
+import type { SeedGroup, SeedPlan, SeedState } from "./application-groups-seed";
 
-async function readState(client: PrismaClient): Promise<SeedState> {
+async function readState(
+  client: PrismaClient,
+  familySlug: string,
+  seedGroups: readonly SeedGroup[],
+): Promise<SeedState> {
   const category = await client.category.findUnique({
-    where: { slug: FAMILY_SLUG },
+    where: { slug: familySlug },
     select: { id: true },
   });
   const groups = category
@@ -43,7 +46,7 @@ async function readState(client: PrismaClient): Promise<SeedState> {
     },
     select: { entityId: true },
   });
-  const slugs = INDUSTRIAL_GROUPS.flatMap((group) => group.products);
+  const slugs = seedGroups.flatMap((group) => group.products);
   const products = await client.product.findMany({
     where: { slug: { in: slugs } },
     select: {
@@ -97,20 +100,26 @@ async function run(): Promise<number> {
     const [{ name: database } = { name: "" }] = await client.$queryRaw<
       { name: string }[]
     >`SELECT current_database() AS name`;
-    const state = await readState(client);
-    const plan = planSeed(state);
     console.log(`DATABASE  ${database}\nMODE      ${apply ? "apply" : "dry run"}`);
-    console.log(`FAMILY    ${FAMILY_SLUG}`);
-    console.log(
-      `GROUPS    create ${plan.createGroups.length}, Persian names ${plan.addFaNames.length}`,
-    );
-    console.log(
-      `PRODUCTS  assign ${plan.assign.length}, already ${plan.alreadyAssigned}, kept ${plan.keptElsewhere.length}`,
-    );
-    for (const kept of plan.keptElsewhere)
-      console.log(`  kept ${kept.productSlug} in ${kept.current} (plan: ${kept.groupSlug})`);
-    if (plan.errors.length > 0) {
-      for (const error of plan.errors) console.error(`  error ${error}`);
+    const runs: { slug: string; groups: readonly SeedGroup[]; state: SeedState; plan: SeedPlan }[] =
+      [];
+    for (const family of FAMILY_SEEDS) {
+      const state = await readState(client, family.slug, family.groups);
+      const plan = planSeed(state, family.groups, family.slug);
+      runs.push({ ...family, state, plan });
+      console.log(`FAMILY    ${family.slug}`);
+      console.log(
+        `  groups    create ${plan.createGroups.length}, Persian names ${plan.addFaNames.length}`,
+      );
+      console.log(
+        `  products  assign ${plan.assign.length}, already ${plan.alreadyAssigned}, kept ${plan.keptElsewhere.length}`,
+      );
+      for (const kept of plan.keptElsewhere)
+        console.log(`  kept ${kept.productSlug} in ${kept.current} (plan: ${kept.groupSlug})`);
+    }
+    const errors = runs.flatMap((entry) => entry.plan.errors);
+    if (errors.length > 0) {
+      for (const error of errors) console.error(`  error ${error}`);
       console.error("Nothing written.");
       return 1;
     }
@@ -128,47 +137,49 @@ async function run(): Promise<number> {
       console.error(`Apply refused:\n  ${refusals.join("\n  ")}`);
       return 1;
     }
-    const categoryId = state.categoryId as string;
     await client.$transaction(
       async (tx) => {
-        const ids = new Map([...state.groups].map(([slug, group]) => [slug, group.id]));
-        for (const [index, group] of INDUSTRIAL_GROUPS.entries()) {
-          if (ids.has(group.slug)) continue;
-          const id = randomUUID();
-          await tx.applicationGroup.create({
-            data: { id, categoryId, slug: group.slug, name: group.name, sortOrder: index + 1 },
-          });
-          await tx.adminAuditEvent.create({
-            data: { event: "application_group.created", outcome: "success", subjectId: id },
-          });
-          ids.set(group.slug, id);
-        }
-        for (const group of plan.addFaNames)
-          await tx.contentTranslation.create({
-            data: {
-              entityType: "ApplicationGroup",
-              entityId: ids.get(group.slug) as string,
-              locale: "fa",
-              field: "name",
-              value: group.fa,
-              translationStatus: "MACHINE_DRAFT",
-            },
-          });
-        for (const item of plan.assign) {
-          // Only a product that still has no group: one placed meanwhile is left alone.
-          const updated = await tx.product.updateMany({
-            where: { slug: item.productSlug, applicationGroupId: null },
-            data: { applicationGroupId: ids.get(item.groupSlug) as string },
-          });
-          if (updated.count === 1) {
-            const product = state.products.get(item.productSlug);
+        for (const { groups, state, plan } of runs) {
+          const categoryId = state.categoryId as string;
+          const ids = new Map([...state.groups].map(([slug, group]) => [slug, group.id]));
+          for (const [index, group] of groups.entries()) {
+            if (ids.has(group.slug)) continue;
+            const id = randomUUID();
+            await tx.applicationGroup.create({
+              data: { id, categoryId, slug: group.slug, name: group.name, sortOrder: index + 1 },
+            });
             await tx.adminAuditEvent.create({
+              data: { event: "application_group.created", outcome: "success", subjectId: id },
+            });
+            ids.set(group.slug, id);
+          }
+          for (const group of plan.addFaNames)
+            await tx.contentTranslation.create({
               data: {
-                event: "product.application_group_changed",
-                outcome: "success",
-                subjectId: product?.id,
+                entityType: "ApplicationGroup",
+                entityId: ids.get(group.slug) as string,
+                locale: "fa",
+                field: "name",
+                value: group.fa,
+                translationStatus: "MACHINE_DRAFT",
               },
             });
+          for (const item of plan.assign) {
+            // Only a product that still has no group: one placed meanwhile is left alone.
+            const updated = await tx.product.updateMany({
+              where: { slug: item.productSlug, applicationGroupId: null },
+              data: { applicationGroupId: ids.get(item.groupSlug) as string },
+            });
+            if (updated.count === 1) {
+              const product = state.products.get(item.productSlug);
+              await tx.adminAuditEvent.create({
+                data: {
+                  event: "product.application_group_changed",
+                  outcome: "success",
+                  subjectId: product?.id,
+                },
+              });
+            }
           }
         }
       },

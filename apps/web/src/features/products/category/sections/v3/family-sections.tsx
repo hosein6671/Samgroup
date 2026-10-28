@@ -151,6 +151,18 @@ export async function FamilyCatalogue({
 
   const grouped = catalog.sections.some((section) => section.group !== null);
 
+  if (catalog.total === 0) {
+    return (
+      <section className="fs-sec pf3-catalogue" id="catalogue" data-surface="light">
+        <div className="fs-wrap">
+          <p className="pf3-unavailable" role="status">
+            {t("No products are published in this family yet.")}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <>
       {grouped && (
@@ -201,14 +213,19 @@ export async function FamilyCatalogue({
                 key={section.group?.slug ?? "other"}
                 id={`group-${section.group?.slug ?? "other"}`}
               >
-                <div className="pf3-group-head">
-                  <h3>{section.group?.name ?? t("Other products")}</h3>
-                  <span>
-                    {section.rows.length === 1
-                      ? t("1 product")
-                      : t("{count} products", { count: formatCount(locale, section.rows.length) })}
-                  </span>
-                </div>
+                {/* A family with no groups at all is one plain list: no "Other products" heading. */}
+                {grouped && (
+                  <div className="pf3-group-head">
+                    <h3>{section.group?.name ?? t("Other products")}</h3>
+                    <span>
+                      {section.rows.length === 1
+                        ? t("1 product")
+                        : t("{count} products", {
+                            count: formatCount(locale, section.rows.length),
+                          })}
+                    </span>
+                  </div>
+                )}
                 <div className="pf3-table-box">
                   <table className="pf3-table">
                     <colgroup>

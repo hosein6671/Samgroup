@@ -1,4 +1,4 @@
-import { INDUSTRIAL_GROUPS, planSeed } from "./application-groups-seed";
+import { FAMILY_SEEDS, INDUSTRIAL_GROUPS, planSeed } from "./application-groups-seed";
 
 import type { SeedState } from "./application-groups-seed";
 
@@ -55,5 +55,21 @@ describe("planSeed (ADR-029 initial groups)", () => {
     const missing = state();
     missing.products.delete("iso-vg-32");
     expect(planSeed(missing).errors).toEqual(["No product has the slug iso-vg-32."]);
+  });
+
+  it("covers every product of the other three families exactly once", () => {
+    const counts = Object.fromEntries(
+      FAMILY_SEEDS.map((family) => {
+        const slugs = family.groups.flatMap((group) => group.products);
+        expect(new Set(slugs).size).toBe(slugs.length);
+        return [family.slug, slugs.length];
+      }),
+    );
+    expect(counts).toEqual({
+      "industrial-oils-lubricants": 26,
+      "engine-oils-automotive-lubricants": 45,
+      "marine-oils-lubricants": 12,
+      "lubricant-additives": 15,
+    });
   });
 });

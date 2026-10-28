@@ -563,5 +563,6 @@
   "Viscosity 40 °C": "گرانروی در ۴۰ درجه",
   "{count} products": "{count} محصول",
   "{count} publish typical values": "{count} محصول مقادیر نوعی منتشر کرده‌اند",
-  "Loading products…": "در حال بارگذاری محصولات…"
+  "Loading products…": "در حال بارگذاری محصولات…",
+  "No products are published in this family yet.": "هنوز محصولی در این خانواده منتشر نشده است."
 }
