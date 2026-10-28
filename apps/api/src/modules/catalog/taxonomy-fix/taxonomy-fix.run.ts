@@ -13,7 +13,13 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../../../prisma/generated/client";
 
-import { FIX_ENABLE_ENV, FIX_TARGET_DATABASE, FIXES, planFixes } from "./taxonomy-fix";
+import {
+  FIX_ENABLE_ENV,
+  FIX_TARGET_DATABASE,
+  FIXES,
+  planFixes,
+  planTypeNames,
+} from "./taxonomy-fix";
 
 import type { ProductState } from "./taxonomy-fix";
 
@@ -70,7 +76,30 @@ async function run(): Promise<number> {
       types: new Set(types.map((row) => row.slug)),
       segments: new Set(segments.map((row) => row.slug)),
     });
+    const faNames = await client.contentTranslation.findMany({
+      where: {
+        entityType: "ProductType",
+        entityId: { in: types.map((row) => row.id) },
+        locale: "fa",
+        field: "name",
+      },
+      select: { entityId: true, value: true },
+    });
+    const typeNames = planTypeNames(
+      new Map(
+        faNames.map((row) => [
+          types.find((type) => type.id === row.entityId)?.slug ?? "",
+          row.value,
+        ]),
+      ),
+      new Set(types.map((row) => row.slug)),
+    );
+    plan.errors.push(...typeNames.errors);
     console.log(`DATABASE  ${database}\nMODE      ${apply ? "apply" : "dry run"}`);
+    console.log(
+      `TYPES     Persian names to add ${typeNames.add.length}, kept ${typeNames.kept.length}`,
+    );
+    for (const kept of typeNames.kept) console.log(`  kept ${kept}`);
     console.log(
       `PRODUCTS  change ${plan.changes.length}, unchanged ${plan.unchanged}, kept ${plan.kept.length}`,
     );
@@ -88,7 +117,7 @@ async function run(): Promise<number> {
       console.error("Nothing written.");
       return 1;
     }
-    if (!apply || plan.changes.length === 0) return 0;
+    if (!apply || plan.changes.length + typeNames.add.length === 0) return 0;
     const refusals = [
       process.env[FIX_ENABLE_ENV] !== "true" ? `${FIX_ENABLE_ENV}=true is not set.` : "",
       target !== FIX_TARGET_DATABASE ? `--confirm-target ${FIX_TARGET_DATABASE} is required.` : "",
@@ -104,6 +133,17 @@ async function run(): Promise<number> {
       rows.find((row) => row.slug === slug)?.id as string;
     await client.$transaction(
       async (tx) => {
+        for (const type of typeNames.add)
+          await tx.contentTranslation.create({
+            data: {
+              entityType: "ProductType",
+              entityId: idOf(types, type.slug),
+              locale: "fa",
+              field: "name",
+              value: type.name,
+              translationStatus: "HUMAN_REVIEWED",
+            },
+          });
         for (const change of plan.changes) {
           const product = products.find((row) => row.slug === change.slug);
           if (!product) continue;
@@ -139,7 +179,7 @@ async function run(): Promise<number> {
       },
       { isolationLevel: "Serializable" },
     );
-    console.log(`WRITTEN   ${plan.changes.length}`);
+    console.log(`WRITTEN   ${plan.changes.length} products, ${typeNames.add.length} type names`);
     return 0;
   } finally {
     await client.$disconnect();

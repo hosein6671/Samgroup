@@ -49,6 +49,11 @@ ADR-007, ADR-008, ADR-020, ADR-026 and ADR-029 are unchanged.
        engines)
      - GL-5 gear oils, the moved gear oils and both coolants: `passenger-cars` and `trucks-buses`
      - `locomotive-oil` and the lubricant additives: none
+   - **Persian Product Type names**, closing that part of ADR-020's deferral: روغن موتور,
+     روغن‌های صنعتی, افزودنی‌های روان‌کار, روغن دنده, روغن دریایی, روغن هیدرولیک, ضدیخ و ضدجوش,
+     گریس — the wording Iranian lubricant makers use on their own sites (Iranol, Sepahan Oil);
+     Lubricant Additives has no counterpart there and keeps the site's existing wording. Slugs
+     are not translated. An existing Persian name is never overwritten.
 5. **Audit.** Each changed product is audited as `product.taxonomy_changed`.
 
 ## Consequences

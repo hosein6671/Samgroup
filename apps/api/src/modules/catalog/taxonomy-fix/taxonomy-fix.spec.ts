@@ -1,4 +1,4 @@
-import { FIXES, MOVED_TO_ENGINE, planFixes } from "./taxonomy-fix";
+import { FIXES, MOVED_TO_ENGINE, planFixes, planTypeNames, TYPE_NAMES_FA } from "./taxonomy-fix";
 
 import type { ProductState } from "./taxonomy-fix";
 
@@ -79,5 +79,20 @@ describe("planFixes (ADR-030 §4)", () => {
     expect(plan.changes.find((item) => item.slug === "gl-3-grade")).toBeUndefined();
     state.delete("cvt");
     expect(planFixes(state, known).errors).toContain("No product has the slug cvt.");
+  });
+
+  it("adds only missing Persian type names and never overwrites one", () => {
+    const known = new Set(Object.keys(TYPE_NAMES_FA));
+    expect(planTypeNames(new Map(), known).add).toHaveLength(8);
+    const plan = planTypeNames(
+      new Map([
+        ["greases", "گریس‌ها"],
+        ["gear-oils", "روغن دنده"],
+      ]),
+      known,
+    );
+    expect(plan.add).toHaveLength(6);
+    expect(plan.kept).toHaveLength(1);
+    expect(planTypeNames(new Map(), new Set()).errors).toHaveLength(8);
   });
 });

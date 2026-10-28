@@ -95,6 +95,41 @@ export const FIXES: readonly ProductFix[] = [
   })),
 ];
 
+/**
+ * Persian names of the eight ADR-020 Product Types, approved by the owner on 28 October 2026 in
+ * the wording Iranian lubricant makers use on their own sites (Iranol, Sepahan Oil). Lubricant
+ * Additives has no counterpart there and keeps the site's existing wording. Slugs stay English.
+ */
+export const TYPE_NAMES_FA: Readonly<Record<string, string>> = {
+  "engine-oils": "روغن موتور",
+  "industrial-oils": "روغن‌های صنعتی",
+  "lubricant-additives": "افزودنی‌های روان‌کار",
+  "gear-oils": "روغن دنده",
+  "marine-oils": "روغن دریایی",
+  "hydraulic-oils": "روغن هیدرولیک",
+  "antifreeze-coolants": "ضدیخ و ضدجوش",
+  greases: "گریس",
+};
+
+/** Which Persian type names to add: missing ones only; an existing different name is kept. */
+export function planTypeNames(
+  existing: ReadonlyMap<string, string>,
+  known: ReadonlySet<string>,
+): { add: { slug: string; name: string }[]; kept: string[]; errors: string[] } {
+  const out = {
+    add: [] as { slug: string; name: string }[],
+    kept: [] as string[],
+    errors: [] as string[],
+  };
+  for (const [slug, name] of Object.entries(TYPE_NAMES_FA)) {
+    if (!known.has(slug)) out.errors.push(`No Product Type has the slug ${slug}.`);
+    else if (!existing.has(slug)) out.add.push({ slug, name });
+    else if (existing.get(slug) !== name)
+      out.kept.push(`${slug}: Persian name is already "${String(existing.get(slug))}"`);
+  }
+  return out;
+}
+
 export type ProductState = { family: string; type: string | null; segments: readonly string[] };
 
 export type FixPlanItem = {
