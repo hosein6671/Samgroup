@@ -66,6 +66,13 @@ export type CategoryResponse = {
  * `createdAt` is modelled because it is on the wire and this type claims to be the row. Nothing in
  * `apps/web` reads it yet — the list is served in the API's default `name` order.
  */
+/** A product's application group within its family (ADR-029). */
+export type ProductApplicationGroupResponse = {
+  slug: string;
+  name: string;
+  sortOrder: number;
+};
+
 export type ProductListItemResponse = {
   id: string;
   name: string;
@@ -74,6 +81,11 @@ export type ProductListItemResponse = {
   /** The owning category's id — never its slug. Join key, not a route segment. */
   categoryId: string;
   featuredImage: ProductImageResponse | null;
+  /**
+   * The machine or application group within the product's family (ADR-029), localized; null when
+   * the product has none. `sortOrder` orders groups within the family.
+   */
+  applicationGroup: ProductApplicationGroupResponse | null;
   /** ISO 8601. */
   createdAt: string;
 };
@@ -221,6 +233,11 @@ export type ProductDetailResponse = {
   segments: ProductSegmentResponse[];
   /** Null when the product has no primary Product Type — the state of every row in Phase 1. */
   productType: ProductTypeResponse | null;
+  /**
+   * The machine or application group within the product's family (ADR-029), localized; null when
+   * the product has none. `sortOrder` orders groups within the family.
+   */
+  applicationGroup: ProductApplicationGroupResponse | null;
   /** Ordered by the grade's publishing order. Empty for a leaf product whose one distinguishing
    * grade is already in its own name rather than a separate `ProductGrade` row — this catalog
    * uses both conventions, and an empty array here means the second one, not a data gap. */

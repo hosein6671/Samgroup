@@ -160,6 +160,7 @@ const SEO: SeoFields = {
 
 const PRODUCT: ProductDetailResponse = {
   id: "00000000-0000-4000-8000-000000000001",
+  applicationGroup: null,
   name: "VERIFICATION PRODUCT",
   slug: "verification-product",
   description: null,

@@ -59,6 +59,11 @@ const PRODUCT_SEARCHABLE_FIELDS = ["name", "slug"] as const;
 const SEGMENT_TRANSLATED_FIELDS = ["name", "slug"] as const;
 const PRODUCT_TYPE_TRANSLATED_FIELDS = ["name", "slug"] as const;
 
+/** ADR-029: the group a product sits in, with the id `content_translations` keys on. */
+const APPLICATION_GROUP_SELECT = {
+  select: { id: true, slug: true, name: true, sortOrder: true },
+} as const;
+
 const PRODUCT_SELECT = {
   id: true,
   name: true,
@@ -66,6 +71,7 @@ const PRODUCT_SELECT = {
   description: true,
   categoryId: true,
   createdAt: true,
+  applicationGroup: APPLICATION_GROUP_SELECT,
 } as const;
 
 /**
@@ -240,6 +246,7 @@ function toGradeSummaryResponse(
 
 const PRODUCT_DETAIL_SELECT = {
   editorialDraft: { select: { publishedSections: true } },
+  applicationGroup: APPLICATION_GROUP_SELECT,
   id: true,
   name: true,
   slug: true,
@@ -300,6 +307,9 @@ type ProductRow = {
   categoryId: string;
   createdAt: Date;
 };
+
+/** An application group as selected; `id` is for localization only (ADR-029). */
+type ApplicationGroupRow = { id: string; slug: string; name: string; sortOrder: number };
 
 type LocalizedProductList = {
   products: ProductListItemResponse[];
@@ -395,7 +405,7 @@ export class ProductsService {
      * `products.description` becomes a projection of it rather than an independently editable
      * field — so a reviewed sentence must not be overwritten by an unreviewed translation.
      */
-    const [copy, images] = await Promise.all([
+    const [copy, images, groups] = await Promise.all([
       this.approvedCopy(
         localized.map((row) => row.id),
         locale,
@@ -403,6 +413,10 @@ export class ProductsService {
       // Product imagery is read through MediaService, not `prisma.media` — see the note on the
       // detail read below. One batched query for the whole page, not one join per row.
       this.media.findPrimaryProductImages(localized.map((row) => row.id)),
+      this.localizeApplicationGroups(
+        rows.map((row) => row.applicationGroup),
+        locale,
+      ),
     ]);
 
     return {
@@ -410,6 +424,7 @@ export class ProductsService {
         toListItem(
           { ...row, description: copy.get(row.id) ?? row.description },
           images.get(row.id),
+          row.applicationGroup ? groups.get(row.applicationGroup.id) : undefined,
         ),
       ),
       total,
@@ -441,7 +456,15 @@ export class ProductsService {
     // `segments` and `productType` are pulled out of the rest spread deliberately: what follows
     // hands `product` to localize as a Product row, and a nested relation riding along in it
     // would be a shape the translation overlay never asked for.
-    const { category, specifications, segments, productType, grades, ...product } = row;
+    const {
+      category,
+      specifications,
+      segments,
+      productType,
+      grades,
+      applicationGroup,
+      ...product
+    } = row;
 
     const [localizedProduct, localizedCategory, localizedSegments, localizedProductType, images] =
       await Promise.all([
@@ -472,6 +495,7 @@ export class ProductsService {
         // public gallery lives there too, where no caller can widen it.
         this.media.findImagesForOwner(ContentEntityType.Product, product.id),
       ]);
+    const localizedGroups = await this.localizeApplicationGroups([applicationGroup], locale);
 
     // `?? product` / `?? category` are the untranslated rows, not placeholders: localize
     // returns its input one-for-one, so these only satisfy noUncheckedIndexedAccess.
@@ -545,6 +569,9 @@ export class ProductsService {
         segments: localizedSegments.rows.map(toTaxonomyRef),
         productType:
           localizedProductType.row === null ? null : toTaxonomyRef(localizedProductType.row),
+        applicationGroup: toApplicationGroup(
+          applicationGroup ? localizedGroups.get(applicationGroup.id) : undefined,
+        ),
         grades: grades.map((grade) =>
           toGradeSummaryResponse(
             grade,
@@ -702,6 +729,32 @@ export class ProductsService {
    * with no approved copy in either locale is absent from this map, and its description is left
    * exactly as it was. Approval is what publishes copy; this method never invents any.
    */
+  /**
+   * ADR-029: the application groups of a page of products, localized once each and keyed by id.
+   *
+   * Deliberately NOT part of `localeFallback`: a group name is a navigation label, and an
+   * untranslated label must not mark the product's own, translated content as a fallback.
+   */
+  private async localizeApplicationGroups(
+    groups: readonly (ApplicationGroupRow | null | undefined)[],
+    locale: ResolvedLocale,
+  ): Promise<Map<string, ApplicationGroupRow>> {
+    const unique = [
+      ...new Map(
+        groups
+          .filter((group): group is ApplicationGroupRow => group != null)
+          .map((group) => [group.id, group]),
+      ).values(),
+    ];
+    const { rows } = await this.translations.localize(
+      ContentEntityType.ApplicationGroup,
+      unique,
+      ["name"],
+      locale,
+    );
+    return new Map(rows.map((row) => [row.id, row]));
+  }
+
   private async approvedCopy(
     productIds: readonly string[],
     locale: ResolvedLocale,
@@ -945,9 +998,16 @@ function toTaxonomyRef(row: TaxonomyRow): { name: string; slug: string } {
   return { name: row.name, slug: row.slug };
 }
 
+function toApplicationGroup(
+  group: ApplicationGroupRow | undefined,
+): ProductListItemResponse["applicationGroup"] {
+  return group ? { slug: group.slug, name: group.name, sortOrder: group.sortOrder } : null;
+}
+
 function toListItem(
   row: ProductRow,
   image?: { id: string; url: string; altText: string | null },
+  group?: ApplicationGroupRow,
 ): ProductListItemResponse {
   return {
     id: row.id,
@@ -956,6 +1016,7 @@ function toListItem(
     description: row.description,
     categoryId: row.categoryId,
     featuredImage: image ? { id: image.id, url: image.url, altText: image.altText } : null,
+    applicationGroup: toApplicationGroup(group),
     createdAt: row.createdAt.toISOString(),
   };
 }

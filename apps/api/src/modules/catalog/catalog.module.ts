@@ -3,6 +3,11 @@ import { AuditModule } from "../audit/audit.module";
 import { ProductEditorController } from "./product-editor.controller";
 import { ProductEditorService } from "./product-editor.service";
 import { ProductEditorLocalizationService } from "./product-editor-localization.service";
+import {
+  ApplicationGroupsAdminController,
+  ProductApplicationGroupController,
+} from "./application-groups-admin.controller";
+import { ApplicationGroupsAdminService } from "./application-groups-admin.service";
 
 import { ContentTranslationModule } from "../../common/content/content-translation.module";
 import { LocaleResolutionModule } from "../../common/locale/locale-resolution.module";
@@ -71,6 +76,8 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     ProductsController,
     ProductEditorController,
     SegmentsAdminController,
+    ApplicationGroupsAdminController,
+    ProductApplicationGroupController,
     CatalogReviewQueueController,
     SpecificationReviewController,
     ProductClaimReviewController,
@@ -83,6 +90,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     CatalogReviewService,
     ProductEditorService,
     ProductEditorLocalizationService,
+    ApplicationGroupsAdminService,
     SegmentsAdminService,
   ],
   exports: [CategoriesService, ProductsService],

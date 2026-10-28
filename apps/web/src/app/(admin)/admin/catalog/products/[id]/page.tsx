@@ -16,6 +16,7 @@ import { getActiveLocales } from "@/lib/locales";
 import { ProductMediaManager } from "@/features/admin/catalog/products/product-media-manager";
 import type { ProductMediaItem } from "@/features/admin/catalog/products/media-actions";
 import { ProductSegmentManager } from "@/features/admin/catalog/products/product-segment-manager";
+import { ProductApplicationGroupManager } from "@/features/admin/catalog/products/product-application-group-manager";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit product · SAM Group Admin" };
@@ -65,6 +66,10 @@ export default async function ProductEditorPage({
     assigned: string[];
     available: { id: string; name: string; slug: string }[];
   }>(`/admin/products/${encodeURIComponent(id)}/segments`, {}, { accessToken: token });
+  const applicationGroup = await apiGet<{
+    assigned: string | null;
+    available: { id: string; name: string; slug: string }[];
+  }>(`/admin/products/${encodeURIComponent(id)}/application-group`, {}, { accessToken: token });
   if (!result.ok && result.reason === "http" && result.status === 401) redirect(SESSION_END_PATH);
   return (
     <AdminShell title="Edit product" user={access.user} current="products">
@@ -114,6 +119,12 @@ export default async function ProductEditorPage({
               <ProductSegmentManager
                 productId={id}
                 initial={segments.ok ? segments.data : { assigned: [], available: [] }}
+              />
+              <ProductApplicationGroupManager
+                productId={id}
+                initial={
+                  applicationGroup.ok ? applicationGroup.data : { assigned: null, available: [] }
+                }
               />
             </>
           )}

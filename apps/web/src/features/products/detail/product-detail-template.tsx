@@ -9,25 +9,24 @@ import type { ReactNode } from "react";
 import "../../home/flagship.css";
 import "../products.css";
 import "./product-detail.css";
+import "./product-detail-v2.css";
 
 import { SiteFooter } from "@/features/site/site-footer";
 import { SiteNav, type SiteNavProps } from "@/features/site/site-nav";
-import { translator } from "@/i18n/translate";
+import { localeHref, ROUTES } from "@/features/site/site-routes";
 
 import { ClosingCta } from "../sections/closing-cta";
 
-import { getProductDetailEditorial } from "./product-detail-content";
-import { resolveActiveGrade, specificationsForGrade } from "./grade-selection";
-import { GradeSelector } from "./sections/grade-selector";
-import { ProductHero } from "./sections/hero";
-import { ProductPackaging } from "./sections/packaging";
-import { ProductSelectionGuide } from "./sections/selection-guide";
-import { ProductSpecifications } from "./sections/specifications";
-import { ProductStandards } from "./sections/standards";
-import { ProductTechnicalDocuments } from "./sections/technical-documents";
-import { ProductEditorialFaq, ProductEditorialPoints } from "./sections/editorial-sections";
+import { resolveActiveGrade } from "./grade-selection";
+import { buildSpecMatrix, keyMetrics } from "./spec-matrix";
+import { ProductDataComparison } from "./sections/data-comparison";
+import { ProductFaqDocs } from "./sections/faq-docs";
+import { ProductHeroV2 } from "./sections/hero-v2";
+import { ProductRelated } from "./sections/related";
+import { ProductSectionNav } from "./sections/section-nav";
+import { ProductUseCards } from "./sections/use-cards";
 
-import type { ProductDetailResponse } from "@sam-group/types";
+import type { ProductDetailResponse, ProductListItemResponse } from "@sam-group/types";
 
 /**
  * The Product Detail template — one component, every product.
@@ -76,93 +75,105 @@ export function ProductDetailTemplate({
   locales,
   localeFallback,
   activeGradeParam,
+  related = [],
 }: {
   readonly product: ProductDetailResponse;
   /** The active locale segment, used to compose the breadcrumb's links. */
   readonly locale: string;
   readonly locales: SiteNavProps["locales"];
-  /** The API's `meta.localeFallback`, passed through to the hero's notice. */
+  /** The API's `meta.localeFallback`. */
   readonly localeFallback: boolean;
   /** The raw `?grade=` request value, resolved here rather than at the route — see
    * `grade-selection.ts` for the resolution rule (defaults to the first published grade; never
    * a fallback to another grade's data). */
   readonly activeGradeParam: string | null;
+  /** Other products of the same application group (ADR-029), already excluding this one. */
+  readonly related?: readonly ProductListItemResponse[];
 }): ReactNode {
-  const editorial = getProductDetailEditorial(product.category.slug, locale);
-  const t = translator(locale);
   const activeGrade = resolveActiveGrade(product.grades, activeGradeParam);
-  const visibleSpecifications = specificationsForGrade(product.specifications, activeGrade);
+  const matrix = buildSpecMatrix(product.specifications, product.grades);
+  const activeColumn = activeGrade?.label ?? (product.grades.length === 0 ? "" : null);
+  const metrics = activeColumn === null ? [] : keyMetrics(matrix, activeColumn);
   const canonicalPath = `/${locale}/products/${product.slug}`;
+  const dir = locales.find((entry) => entry.code === locale)?.direction === "rtl" ? "rtl" : "ltr";
+  const quoteHref = `${localeHref(locale, ROUTES.requestQuote)}?product=${encodeURIComponent(product.slug)}`;
+  const documentsHref = `${localeHref(locale, ROUTES.contactUs)}?type=product_inquiry&product=${encodeURIComponent(product.slug)}`;
+
+  /*
+   * The fallback notice speaks about the product's OWN content. Names are never translated
+   * (ADR-027 §2) and taxonomy labels have their own approvals, so the API's flag alone would show
+   * the notice on every fully translated product; the language the editorial content was served in
+   * is the precise signal when there is any.
+   */
+  const showFallback =
+    product.editorialLocale !== undefined ? product.editorialLocale !== locale : localeFallback;
+
+  const faq = product.editorial?.faq ?? [];
+  const hasUse =
+    (product.description ?? "").trim() !== "" ||
+    (product.editorial?.applications.length ?? 0) > 0 ||
+    (product.editorial?.features.length ?? 0) > 0;
+  const sections = [
+    { id: "data", label: "Grades & data" },
+    ...(hasUse ? [{ id: "applications", label: "Applications" }] : []),
+    ...(faq.length > 0 ? [{ id: "faq", label: "FAQ" }] : []),
+    { id: "documents", label: "Documents" },
+    ...(related.length > 0 ? [{ id: "related", label: "Related" }] : []),
+  ];
 
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
-        <ProductHero
+        <ProductHeroV2
           product={product}
           locale={locale}
-          localeFallback={localeFallback}
+          dir={dir}
           activeGrade={activeGrade}
+          metrics={metrics}
+          showFallback={showFallback}
+          quoteHref={quoteHref}
         />
 
-        {product.description !== null && product.description !== "" && (
-          <section className="fs-sec pd-overview" id="overview" data-surface="light">
-            <div className="fs-wrap">
-              <header className="pd-section-head reveal-fade-rise">
-                <p className="fs-eyebrow">{t("Overview")}</p>
-                <h2 className="fs-d2">{product.name}</h2>
-              </header>
-              <p className="fs-lead pd-overview-body reveal-fade-rise" dir="auto">
-                {product.description}
-              </p>
-            </div>
-          </section>
-        )}
+        <ProductSectionNav
+          locale={locale}
+          sections={sections}
+          gradeLabel={activeGrade?.label ?? null}
+          quoteHref={quoteHref}
+        />
 
-        {product.editorial && (
-          <>
-            <ProductEditorialPoints
-              locale={locale}
-              contentLocale={product.editorialLocale}
-              items={product.editorial.applications}
-              id="applications"
-              title={t("Applications")}
-            />
-            <ProductEditorialPoints
-              locale={locale}
-              contentLocale={product.editorialLocale}
-              items={product.editorial.features}
-              id="features"
-              title={t("Features")}
-            />
-          </>
-        )}
-        <ProductSelectionGuide editorial={editorial} locale={locale} />
+        <ProductDataComparison
+          matrix={matrix}
+          locale={locale}
+          activeColumn={activeColumn}
+          canonicalPath={canonicalPath}
+        />
 
-        <ProductStandards product={product} locale={locale} />
+        <ProductUseCards
+          locale={locale}
+          dir={dir}
+          description={product.description}
+          editorial={product.editorial}
+          editorialLocale={product.editorialLocale}
+        />
 
-        {product.grades.length > 1 && (
-          <div className="fs-wrap pd-grade-selector-wrap">
-            <GradeSelector
-              grades={product.grades}
-              activeGrade={activeGrade}
-              baseHref={canonicalPath}
-              locale={locale}
-            />
-          </div>
-        )}
+        <ProductFaqDocs
+          locale={locale}
+          dir={dir}
+          faq={faq}
+          editorialLocale={product.editorialLocale}
+          documentsHref={documentsHref}
+          logisticsHref={localeHref(locale, ROUTES.exportLogistics)}
+        />
 
-        <ProductSpecifications specifications={visibleSpecifications} locale={locale} />
-
-        <ProductPackaging locale={locale} />
-
-        <ProductTechnicalDocuments locale={locale} productSlug={product.slug} />
-        {product.editorial && (
-          <ProductEditorialFaq
-            items={product.editorial.faq}
+        {product.applicationGroup !== null && (
+          <ProductRelated
             locale={locale}
-            contentLocale={product.editorialLocale}
+            groupName={product.applicationGroup.name}
+            familyName={product.category.name}
+            familySlug={product.category.slug}
+            products={related}
           />
         )}
 

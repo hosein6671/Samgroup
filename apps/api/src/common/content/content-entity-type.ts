@@ -25,6 +25,7 @@ export const ContentEntityType = {
   BlogPost: "BlogPost",
   Segment: "Segment",
   ProductType: "ProductType",
+  ApplicationGroup: "ApplicationGroup",
 } as const;
 
 export type ContentEntityType = (typeof ContentEntityType)[keyof typeof ContentEntityType];

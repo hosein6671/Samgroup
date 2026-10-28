@@ -75,7 +75,20 @@ function isProductListItem(value: unknown): value is ProductListItemResponse {
         typeof image.id === "string" &&
         typeof image.url === "string" &&
         (image.altText === null || typeof image.altText === "string"))) &&
+    isApplicationGroup(record.applicationGroup) &&
     typeof record.createdAt === "string"
+  );
+}
+
+/** ADR-029. `undefined` is accepted from an API that predates the field and read as `null`. */
+function isApplicationGroup(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  const group = value as Record<string, unknown>;
+  return (
+    typeof value === "object" &&
+    typeof group.slug === "string" &&
+    typeof group.name === "string" &&
+    typeof group.sortOrder === "number"
   );
 }
 
@@ -193,7 +206,10 @@ export async function getProducts(
     return { ok: false, reason: "api-error", status: 200 };
   }
 
-  const products = result.data;
+  const products = result.data.map((product) => ({
+    ...product,
+    applicationGroup: product.applicationGroup ?? null,
+  }));
 
   return {
     ok: true,
@@ -226,6 +242,33 @@ export async function getProductsByCategory(
   segmentSlug?: string,
 ): Promise<ProductListResult> {
   return getProducts(locale, { category: categorySlug, segment: segmentSlug });
+}
+
+/** The most pages `getAllProductsByCategory` will walk; 10 × 20 rows is far above any family. */
+const MAX_FAMILY_PAGES = 10;
+
+/**
+ * Every product of one Product Family, walking the list's pages (redesign, 28 October 2026).
+ *
+ * The redesigned family page lists the whole family grouped by application (ADR-029), so it needs
+ * all rows rather than page 1. The page size stays the endpoint's own (`limit` is deliberately not
+ * offered by this client); a failure on any page fails the whole read rather than silently showing
+ * part of a family.
+ */
+export async function getAllProductsByCategory(
+  categorySlug: string,
+  locale: string,
+): Promise<ProductListResult> {
+  const first = await getProducts(locale, { category: categorySlug });
+  if (!first.ok) return first;
+  const products = [...first.products];
+  const pages = Math.min(MAX_FAMILY_PAGES, Math.ceil(first.total / Math.max(1, first.limit)));
+  for (let page = 2; page <= pages; page += 1) {
+    const next = await getProducts(locale, { category: categorySlug, page });
+    if (!next.ok) return next;
+    products.push(...next.products);
+  }
+  return { ok: true, products, total: first.total, page: 1, limit: products.length };
 }
 
 /* ------------------------------------------------------------------- detail */
@@ -328,5 +371,10 @@ export async function getProductBySlug(slug: string, locale: string): Promise<Pr
     return { ok: false, reason: "api-error", status: 200 };
   }
 
-  return { ok: true, record: result.data, localeFallback: result.meta.localeFallback === true };
+  return {
+    ok: true,
+    // ADR-029: an API that predates the field omits it; the page reads that as "no group".
+    record: { ...result.data, applicationGroup: result.data.applicationGroup ?? null },
+    localeFallback: result.meta.localeFallback === true,
+  };
 }

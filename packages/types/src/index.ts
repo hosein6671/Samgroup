@@ -30,6 +30,7 @@ export type {
   ProductDetailResponse,
   ProductGradeSummaryResponse,
   ProductImageResponse,
+  ProductApplicationGroupResponse,
   ProductListItemResponse,
   ProductSegmentResponse,
   ProductSpecificationGradeResponse,

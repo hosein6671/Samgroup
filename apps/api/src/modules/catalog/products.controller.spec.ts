@@ -19,6 +19,7 @@ const LIST_ITEM: ProductListItemResponse = {
   description: "A Group I base oil.",
   categoryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   featuredImage: null,
+  applicationGroup: null,
   createdAt: "2026-01-15T09:30:00.000Z",
 };
 
@@ -69,6 +70,7 @@ const DETAIL: ProductDetailResponse = {
   category: { id: LIST_ITEM.categoryId, name: "Base Oils", slug: "base-oils", parentId: null },
   segments: [{ name: "Industrial", slug: "industrial" }],
   productType: { name: "Base Oil", slug: "base-oil" },
+  applicationGroup: null,
   grades: [],
   specifications: SPECIFICATIONS,
   images: [],

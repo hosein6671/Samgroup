@@ -527,9 +527,27 @@ model Category {
   parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
   children Category[] @relation("CategoryHierarchy")
   products Product[]
+  applicationGroups ApplicationGroup[]
 
   @@index([parentId])
   @@map("categories")
+}
+
+/// A machine or application group within ONE Product Family (ADR-029), e.g. "Compressors" in
+/// Industrial Oils & Lubricants. Ordered per family; the name is localized through
+/// ContentTranslation (entity type `ApplicationGroup`). The slug is never a URL path segment.
+model ApplicationGroup {
+  id         String @id @default(uuid()) @db.Uuid
+  categoryId String @map("category_id") @db.Uuid
+  slug       String
+  name       String
+  sortOrder  Int    @default(0) @map("sort_order")
+
+  category Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  products Product[]
+
+  @@unique([categoryId, slug])
+  @@map("application_groups")
 }
 
 model Product {
@@ -558,6 +576,9 @@ model Product {
   /// reference to an empty table would make Product un-insertable. Product ↔
   /// ProductType many-to-many is deferred, not omitted.
   productTypeId String?  @map("product_type_id") @db.Uuid
+  /// The machine or application group within the product's own family (ADR-029). A trigger
+  /// refuses a group of another family.
+  applicationGroupId String? @map("application_group_id") @db.Uuid
   description   String?
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
@@ -566,6 +587,7 @@ model Product {
   // unclassifying every product of a deleted type is data loss, and `category`
   // — the other classification axis — restricts for the same reason.
   productType    ProductType?     @relation(fields: [productTypeId], references: [id], onDelete: Restrict)
+  applicationGroup ApplicationGroup? @relation(fields: [applicationGroupId], references: [id], onDelete: Restrict)
   specifications Specification[]
   grades         ProductGrade[]
   claims         ProductClaim[]
@@ -580,6 +602,7 @@ model Product {
 
   @@index([categoryId])
   @@index([productTypeId])
+  @@index([applicationGroupId])
   @@map("products")
 }
 

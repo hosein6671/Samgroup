@@ -61,6 +61,7 @@ function propsFor(locale: string, slug = "base-oils"): SectionProps {
 function product(overrides: Partial<ProductListItemResponse>): ProductListItemResponse {
   return {
     id: "id-1",
+    applicationGroup: null,
     name: "Base Oil Group I",
     slug: "base-oil-group-i",
     description: "Group I paraffinic solvent-neutral base oil, published by SN designation.",

@@ -910,6 +910,7 @@ describe("ProductsService.findAll — localization", () => {
       description: "روغن پایه گروه یک.",
       categoryId: CATEGORY.id,
       featuredImage: null,
+      applicationGroup: null,
       createdAt: "2026-01-15T09:30:00.000Z",
     });
     expect(result.localeFallback).toBe(false);
@@ -1357,6 +1358,7 @@ describe("ProductsService.findBySlug — taxonomy", () => {
         { name: "Marine", slug: "marine" },
       ],
       productType: { name: "Base Oil", slug: "base-oil" },
+      applicationGroup: null,
       grades: EXPECTED_GRADES,
       specifications: EXPECTED_SPECIFICATIONS,
       images: [{ id: "media-1", url: "/img/sn-500.webp", altText: "SN 500" }],
@@ -1375,7 +1377,9 @@ describe("ProductsService.findAll — taxonomy is absent from the list", () => {
 
     const call = productFindMany.mock.calls[0]?.[0] as { select: Record<string, unknown> };
 
+    // ADR-029's single group relation is the one deliberate exception: the family page groups by it.
     expect(Object.keys(call.select).sort()).toEqual([
+      "applicationGroup",
       "categoryId",
       "createdAt",
       "description",
@@ -1391,6 +1395,7 @@ describe("ProductsService.findAll — taxonomy is absent from the list", () => {
     const result = await service.findAll(EN, {});
 
     expect(Object.keys(result.products[0] ?? {}).sort()).toEqual([
+      "applicationGroup",
       "categoryId",
       "createdAt",
       "description",
@@ -1399,6 +1404,35 @@ describe("ProductsService.findAll — taxonomy is absent from the list", () => {
       "name",
       "slug",
     ]);
+  });
+});
+
+describe("ProductsService — application group (ADR-029)", () => {
+  it("serves the localized group on list rows without raising localeFallback", async () => {
+    const { service, productFindMany, translationFindMany } = createService();
+    const group = { id: "g1", slug: "turbines", name: "Turbines", sortOrder: 2 };
+    productFindMany.mockResolvedValue([{ ...PRODUCT_ROW, applicationGroup: group }]);
+    translationFindMany.mockImplementation(async (args: { where: { entityType: string } }) =>
+      args.where.entityType === "ApplicationGroup"
+        ? [{ entityId: "g1", field: "name", value: "توربین‌ها" }]
+        : [
+            { entityId: PRODUCT_ROW.id, field: "name", value: "x" },
+            { entityId: PRODUCT_ROW.id, field: "slug", value: "x" },
+            { entityId: PRODUCT_ROW.id, field: "description", value: "x" },
+          ],
+    );
+    const result = await service.findAll(FA, {});
+    expect(result.products[0]?.applicationGroup).toEqual({
+      slug: "turbines",
+      name: "توربین‌ها",
+      sortOrder: 2,
+    });
+    expect(result.localeFallback).toBe(false);
+  });
+
+  it("serves null when the product has no group", async () => {
+    const { service } = createService();
+    expect((await service.findAll(EN, {})).products[0]?.applicationGroup).toBeNull();
   });
 });
 

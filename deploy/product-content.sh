@@ -1,6 +1,7 @@
 #!/bin/sh
-# Publishes the reviewed product content (English and Persian, ADR-027) and the Turbine oil grade
-# display labels (ADR-028) on the VPS, in one guided run:
+# Publishes the reviewed product content (English and Persian, ADR-027), the Turbine oil grade
+# display labels (ADR-028) and the Industrial Oils & Lubricants application groups (ADR-029) on
+# the VPS, in one guided run:
 #
 #   sh ./deploy/product-content.sh
 #
@@ -17,8 +18,9 @@ run() { sh ./deploy/compose.sh --profile operations run --rm -T platform-migrate
 FILE=/app/content/PRODUCT_CONTENT_IMPORT.json
 CONTENT="dist/modules/catalog/import/content/content-import.run.js"
 GRADES="dist/modules/catalog/grade-relabel/grade-relabel.run.js"
+GROUPS="dist/modules/catalog/application-groups-seed/application-groups-seed.run.js"
 
-echo "== 1/2 Product content — check only"
+echo "== 1/3 Product content — check only"
 if ! check="$(run node "$CONTENT" --file "$FILE" 2>&1)"; then
   echo "$check"
   echo
@@ -29,7 +31,7 @@ echo "$check"
 hash="$(echo "$check" | sed -n 's/^SHA-256 *//p')"
 
 echo
-echo "== 2/2 Turbine oil grade labels — check only"
+echo "== 2/3 Turbine oil grade labels — check only"
 relabel=yes
 if ! grades="$(run node "$GRADES" 2>&1)"; then
   echo "$grades"
@@ -37,6 +39,17 @@ if ! grades="$(run node "$GRADES" 2>&1)"; then
   relabel=no
 else
   echo "$grades"
+fi
+
+echo
+echo "== 3/3 Application groups — check only"
+groups=yes
+if ! seed="$(run node "$GROUPS" 2>&1)"; then
+  echo "$seed"
+  echo "Application groups will be skipped."
+  groups=no
+else
+  echo "$seed"
 fi
 
 echo
@@ -53,5 +66,10 @@ if [ "$relabel" = yes ]; then
   sh ./deploy/compose.sh --profile operations run --rm -T \
     -e SAM_ALLOW_GRADE_RELABEL=true platform-migrate \
     node "$GRADES" --apply --confirm-target sam_platform
+fi
+if [ "$groups" = yes ]; then
+  sh ./deploy/compose.sh --profile operations run --rm -T \
+    -e SAM_ALLOW_APPLICATION_GROUP_SEED=true platform-migrate \
+    node "$GROUPS" --apply --confirm-target sam_platform
 fi
 echo "Done."

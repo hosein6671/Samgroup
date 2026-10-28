@@ -19,6 +19,7 @@ import type { ProductListItemResponse } from "@sam-group/types";
 function product(overrides: Partial<ProductListItemResponse> = {}): ProductListItemResponse {
   return {
     id: "p1",
+    applicationGroup: null,
     name: "SAM Demo Engine Oil 5W-30",
     slug: "sam-demo-engine-oil-5w-30",
     description: "DEMO / PLACEHOLDER CONTENT — a seeded row, not an approved product.",

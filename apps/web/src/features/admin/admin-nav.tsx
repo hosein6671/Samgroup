@@ -59,6 +59,7 @@ export type AdminNavKey =
   | "custom-formulation-requests"
   | "catalog-review"
   | "segments"
+  | "application-groups"
   | "redirects"
   | "categories"
   | "users"
@@ -123,6 +124,13 @@ export function AdminNav({
       href: "/admin/catalog/segments",
       label: "Segments",
       current: current === "segments",
+    });
+
+  if (roleMayEnter(role, "segments"))
+    entries.push({
+      href: "/admin/catalog/application-groups",
+      label: "Application groups",
+      current: current === "application-groups",
     });
 
   if (roleMayEnter(role, "redirects"))

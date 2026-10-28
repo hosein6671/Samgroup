@@ -94,6 +94,7 @@ function listing(rows: number, page: number, total = 33, limit = 20): ProductLis
     ok: true,
     products: Array.from({ length: rows }, (_, index) => ({
       id: `id-${String(page)}-${String(index)}`,
+      applicationGroup: null,
       name: `SAM Demo ${String(index)}`,
       slug: `sam-demo-${String(page)}-${String(index)}`,
       description: null,

@@ -20,6 +20,13 @@ import type { SeoFields } from "@sam-group/types";
  * carousel, and `null` for a product with no approved image yet is the family-glyph placeholder's
  * cue, not a loading state.
  */
+/** A product's application group within its family (ADR-029). */
+export type ProductApplicationGroupResponse = {
+  slug: string;
+  name: string;
+  sortOrder: number;
+};
+
 export type ProductListItemResponse = {
   id: string;
   name: string;
@@ -28,6 +35,8 @@ export type ProductListItemResponse = {
   /** The owning category's id. Its localized name and slug come from `GET /categories`. */
   categoryId: string;
   featuredImage: ProductImageResponse | null;
+  /** ADR-029: localized; null when the product has no group. */
+  applicationGroup: ProductApplicationGroupResponse | null;
   /** ISO 8601. Serialized here rather than left as a `Date`, so the wire shape does not depend on the JSON serializer in front of it. */
   createdAt: string;
 };
@@ -173,6 +182,8 @@ export type ProductDetailResponse = {
   segments: ProductSegmentResponse[];
   /** Null when the product has no primary Product Type — the Phase 1 state of every row. */
   productType: ProductTypeResponse | null;
+  /** ADR-029: localized; null when the product has no group. */
+  applicationGroup: ProductApplicationGroupResponse | null;
   /** Ordered by `ProductGrade.sortOrder`. Empty for a leaf product whose one distinguishing
    * grade is already in its own name rather than a separate `ProductGrade` row — this catalog
    * uses both conventions, and an empty array here means the second one, not a data gap. */

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { ProductCategoryTemplate } from "@/features/products/category/category-template";
+import { ProductCategoryTemplateV3 } from "@/features/products/category/category-template-v3";
 import { getCategoryContent } from "@/features/products/category/data";
 import { resolveCategoryPage } from "@/features/products/category/resolve-category-page";
 import { ProductDetailTemplate } from "@/features/products/detail/product-detail-template";
@@ -14,7 +14,7 @@ import { resolveProduct } from "@/features/products/detail/resolve-product-page"
 import { isReservedProductSlug } from "@/features/products/reserved-slugs";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { absoluteUrl } from "@/features/seo/site";
-import { getProductsByCategory } from "@/lib/products";
+import { getAllProductsByCategory, getProductsByCategory } from "@/lib/products";
 import { getActiveLocales } from "@/lib/locales";
 import { categoryContentFor } from "@/features/products/localized-data";
 import { translator } from "@/i18n/translate";
@@ -350,13 +350,11 @@ export default async function ProductFamilyPage({
     return (
       <>
         <JsonLd data={schema} />
-        <ProductCategoryTemplate
+        <ProductCategoryTemplateV3
           locales={locales}
           content={page.content}
           family={page.family}
           locale={locale}
-          products={products}
-          activeSegment={activeSegment}
         />
       </>
     );
@@ -381,6 +379,17 @@ export default async function ProductFamilyPage({
 
   if (result.ok) {
     const product = result.record;
+    // ADR-029: the other products of this product's application group. Best effort — a failed
+    // read only omits the "More in" section; it never affects the product itself.
+    const group = product.applicationGroup;
+    const family =
+      group === null ? null : await getAllProductsByCategory(product.category.slug, locale);
+    const related =
+      family?.ok === true && group !== null
+        ? family.products.filter(
+            (item) => item.applicationGroup?.slug === group.slug && item.id !== product.id,
+          )
+        : [];
     const canonical = `/${locale}/products/${product.slug}`;
     const pageUrl = absoluteUrl(canonical);
     const editorial = getProductDetailEditorial(product.category.slug, locale);
@@ -449,6 +458,7 @@ export default async function ProductFamilyPage({
           locale={locale}
           localeFallback={result.localeFallback}
           activeGradeParam={readStringParam(query.grade)}
+          related={related}
         />
       </>
     );
