@@ -67,8 +67,8 @@ describe("planSeed (ADR-029 initial groups)", () => {
     );
     expect(counts).toEqual({
       "industrial-oils-lubricants": 26,
-      "engine-oils-automotive-lubricants": 45,
-      "marine-oils-lubricants": 12,
+      "engine-oils-automotive-lubricants": 50,
+      "marine-oils-lubricants": 7,
       "lubricant-additives": 15,
     });
   });

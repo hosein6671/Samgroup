@@ -10,6 +10,7 @@ export type AuditEventName =
   | "product.localization_draft_saved"
   | "product.localization_published"
   | "product.grade_relabelled"
+  | "product.taxonomy_changed"
   | "product.application_group_changed"
   | "application_group.created"
   | "application_group.updated"

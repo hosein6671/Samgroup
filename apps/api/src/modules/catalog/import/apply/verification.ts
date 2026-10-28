@@ -113,11 +113,14 @@ export async function runPostWriteVerification(
     await scalar(tx, `SELECT count(*)::int AS n FROM spec_property_mappings`),
     rows.specPropertyMappings.length,
   );
-  expect(
-    "product_segments",
-    await scalar(tx, `SELECT count(*)::int AS n FROM product_segments`),
-    rows.productSegments.length,
-  );
+  // ADR-030: memberships are Admin-owned after the first apply, so only a first apply is
+  // held to the planned count.
+  if (input.mode === "FIRST_APPLY")
+    expect(
+      "product_segments",
+      await scalar(tx, `SELECT count(*)::int AS n FROM product_segments`),
+      rows.productSegments.length,
+    );
   expect(
     "product_grades",
     await scalar(tx, `SELECT count(*)::int AS n FROM product_grades`),

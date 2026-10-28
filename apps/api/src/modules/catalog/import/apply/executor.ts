@@ -831,14 +831,14 @@ async function reconcileProducts(
         );
         return new Map(found.map((row) => [String(row["source_ref"]), row]));
       },
+      // ADR-030: once a product exists, its family and type are Admin-owned. They are written on
+      // insert below and no longer compared on a replay; identity columns still are.
       compare: (planned, existing) =>
         differences(
           {
             id: planned.id,
             name: planned.name,
             slug: planned.slug,
-            category_id: planned.categoryId,
-            product_type_id: planned.productTypeId,
           },
           existing,
         ),
@@ -874,6 +874,9 @@ async function reconcileProductSegments(
   rows: ApplyRows,
   mode: ApplyMode,
 ): Promise<TableOutcome> {
+  // ADR-030: Segment memberships are Admin-owned after the first apply, so a replay neither
+  // inserts the planned pairs nor treats a pair an Admin removed as a partial catalogue.
+  if (mode !== "FIRST_APPLY") return { inserted: 0, skipped: rows.productSegments.length };
   return reconcile(
     {
       table: "product_segments",

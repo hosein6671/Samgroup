@@ -33,6 +33,7 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-027](./ADR-027-localized-product-editorial-content.md)           | Localized product description, applications, features, FAQ and SEO, plus a guarded content import CLI                                     | Accepted |
 | [ADR-028](./ADR-028-product-grade-display-label.md)                   | Public display label for Product Grades, keeping the verbatim source label for identity and provenance                                    | Accepted |
 | [ADR-029](./ADR-029-product-application-groups.md)                    | Per-family application groups (machine groups) as an Admin-managed taxonomy for the Product Family page                                   | Accepted |
+| [ADR-030](./ADR-030-admin-owned-product-classification.md)            | Product Family, Product Type and Segments are Admin-owned after the initial import; five gear rows move to Engine Oils                    | Accepted |
 
 **ADR-021 is reserved, not free.** No file carries that number yet, but two live documents already
 cite it for the policy-revision decision — [`docs/legal/DRAFT-privacy-policy-REVIEW-ONLY.md`](../legal/DRAFT-privacy-policy-REVIEW-ONLY.md)

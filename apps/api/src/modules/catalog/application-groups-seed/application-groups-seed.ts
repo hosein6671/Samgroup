@@ -1,7 +1,8 @@
 /**
  * ADR-029 §3, operations gate: the initial application groups and their product assignments, as
  * the owner approved them — Industrial Oils & Lubricants with the family page redesign, and Engine
- * Oils, Marine and Lubricant Additives on 28 October 2026. Antifreeze & Coolants (two products) and
+ * Oils, Marine and Lubricant Additives on 28 October 2026. The five gear and transmission rows
+ * ADR-030 moved from Marine to Engine Oils are grouped there; run `catalog:taxonomy:fix` first. Antifreeze & Coolants (two products) and
  * Base Oils (none published) have no groups.
  *
  * Pure planning only. The plan creates missing groups, adds a missing Persian name, and assigns a
@@ -128,13 +129,24 @@ export const ENGINE_GROUPS: readonly SeedGroup[] = [
     slug: "automatic-transmission-fluids",
     name: "Automatic transmission fluids",
     fa: "روغن گیربکس اتوماتیک",
-    products: ["al-4", "cvt", "dct", "dex-iii", "dex-vi", "mv", "sp-4"],
+    products: ["al-4", "cvt", "dct", "dex-iii", "dex-vi", "mv", "sp-4", "atf-grade"],
   },
   {
     slug: "gear-oils",
     name: "Gear oils",
     fa: "روغن دنده",
-    products: ["gl-5-75w-80", "gl-5-75w-90", "gl-5-80w-90", "gl-5-85w-90", "gl-5-85w-140"],
+    products: [
+      "gl-5-75w-80",
+      "gl-5-75w-90",
+      "gl-5-80w-90",
+      "gl-5-85w-90",
+      "gl-5-85w-140",
+      // Moved from Marine by ADR-030 §4.
+      "gl-i-grade",
+      "gl-3-grade",
+      "gl-4-grade",
+      "gl-5-grade",
+    ],
   },
 ];
 
@@ -154,12 +166,6 @@ export const MARINE_GROUPS: readonly SeedGroup[] = [
       "reward-super-tech-semi-synthetic",
       "two-stroke-engine-oil",
     ],
-  },
-  {
-    slug: "gear-transmission",
-    name: "Gear & transmission",
-    fa: "روغن دنده و گیربکس",
-    products: ["gl-i-grade", "gl-3-grade", "gl-4-grade", "gl-5-grade", "atf-grade"],
   },
 ];
 
