@@ -29,7 +29,10 @@ describe("planSeed (ADR-029 initial groups)", () => {
 
   it("is a no-op once applied", () => {
     const groups = new Map(
-      INDUSTRIAL_GROUPS.map((group) => [group.slug, { id: group.slug, hasFa: true }]),
+      INDUSTRIAL_GROUPS.map((group) => [
+        group.slug,
+        { id: group.slug, hasFa: true, name: group.name, fa: group.fa },
+      ]),
     );
     const products = new Map(
       INDUSTRIAL_GROUPS.flatMap((group) =>
@@ -40,6 +43,7 @@ describe("planSeed (ADR-029 initial groups)", () => {
     expect(plan).toMatchObject({
       createGroups: [],
       addFaNames: [],
+      rename: [],
       assign: [],
       alreadyAssigned: 26,
     });
@@ -71,5 +75,19 @@ describe("planSeed (ADR-029 initial groups)", () => {
       "marine-oils-lubricants": 7,
       "lubricant-additives": 15,
     });
+  });
+
+  it("renames a group still carrying its first-seeded names, never one renamed in /admin", () => {
+    const compressors = INDUSTRIAL_GROUPS.find((group) => group.slug === "compressors");
+    const turbines = INDUSTRIAL_GROUPS.find((group) => group.slug === "turbines");
+    const groups = new Map([
+      ["compressors", { id: "c", hasFa: true, name: "Compressors", fa: "کمپرسورها" }],
+      ["turbines", { id: "t", hasFa: true, name: "Our turbines", fa: "توربین‌ها" }],
+    ]);
+    const plan = planSeed(state({ groups }));
+    expect(plan.rename).toEqual([
+      { group: compressors, name: true, fa: true },
+      { group: turbines, name: false, fa: true },
+    ]);
   });
 });

@@ -17,6 +17,8 @@ import { ProductMediaManager } from "@/features/admin/catalog/products/product-m
 import type { ProductMediaItem } from "@/features/admin/catalog/products/media-actions";
 import { ProductSegmentManager } from "@/features/admin/catalog/products/product-segment-manager";
 import { ProductApplicationGroupManager } from "@/features/admin/catalog/products/product-application-group-manager";
+import { ProductClassificationManager } from "@/features/admin/catalog/products/product-classification-manager";
+import { ADMIN_ROLE } from "@/features/admin/session/auth-api";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit product · SAM Group Admin" };
@@ -70,6 +72,16 @@ export default async function ProductEditorPage({
     assigned: string | null;
     available: { id: string; name: string; slug: string }[];
   }>(`/admin/products/${encodeURIComponent(id)}/application-group`, {}, { accessToken: token });
+  // ADR-030: family and type are Admin-only; a Content Manager never asks for them.
+  const isAdmin = access.user.role === ADMIN_ROLE;
+  const classification = isAdmin
+    ? await apiGet<{
+        categoryId: string;
+        productTypeId: string | null;
+        families: { id: string; name: string; slug: string }[];
+        types: { id: string; name: string; slug: string }[];
+      }>(`/admin/products/${encodeURIComponent(id)}/classification`, {}, { accessToken: token })
+    : null;
   if (!result.ok && result.reason === "http" && result.status === 401) redirect(SESSION_END_PATH);
   return (
     <AdminShell title="Edit product" user={access.user} current="products">
@@ -120,6 +132,9 @@ export default async function ProductEditorPage({
                 productId={id}
                 initial={segments.ok ? segments.data : { assigned: [], available: [] }}
               />
+              {classification?.ok && (
+                <ProductClassificationManager productId={id} initial={classification.data} />
+              )}
               <ProductApplicationGroupManager
                 productId={id}
                 initial={

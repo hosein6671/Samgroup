@@ -34,7 +34,7 @@ async function readState(
   const groups = category
     ? await client.applicationGroup.findMany({
         where: { categoryId: category.id },
-        select: { id: true, slug: true },
+        select: { id: true, slug: true, name: true },
       })
     : [];
   const fa = await client.contentTranslation.findMany({
@@ -44,7 +44,7 @@ async function readState(
       locale: "fa",
       field: "name",
     },
-    select: { entityId: true },
+    select: { entityId: true, value: true },
   });
   const slugs = seedGroups.flatMap((group) => group.products);
   const products = await client.product.findMany({
@@ -61,7 +61,12 @@ async function readState(
     groups: new Map(
       groups.map((group) => [
         group.slug,
-        { id: group.id, hasFa: fa.some((row) => row.entityId === group.id) },
+        {
+          id: group.id,
+          hasFa: fa.some((row) => row.entityId === group.id),
+          name: group.name,
+          fa: fa.find((row) => row.entityId === group.id)?.value,
+        },
       ]),
     ),
     products: new Map(
@@ -109,7 +114,7 @@ async function run(): Promise<number> {
       runs.push({ ...family, state, plan });
       console.log(`FAMILY    ${family.slug}`);
       console.log(
-        `  groups    create ${plan.createGroups.length}, Persian names ${plan.addFaNames.length}`,
+        `  groups    create ${plan.createGroups.length}, Persian names ${plan.addFaNames.length}, rename ${plan.rename.length}`,
       );
       console.log(
         `  products  assign ${plan.assign.length}, already ${plan.alreadyAssigned}, kept ${plan.keptElsewhere.length}`,
@@ -152,6 +157,24 @@ async function run(): Promise<number> {
               data: { event: "application_group.created", outcome: "success", subjectId: id },
             });
             ids.set(group.slug, id);
+          }
+          for (const { group, name, fa } of plan.rename) {
+            const id = ids.get(group.slug) as string;
+            if (name)
+              await tx.applicationGroup.update({ where: { id }, data: { name: group.name } });
+            if (fa)
+              await tx.contentTranslation.updateMany({
+                where: {
+                  entityType: "ApplicationGroup",
+                  entityId: id,
+                  locale: "fa",
+                  field: "name",
+                },
+                data: { value: group.fa },
+              });
+            await tx.adminAuditEvent.create({
+              data: { event: "application_group.updated", outcome: "success", subjectId: id },
+            });
           }
           for (const group of plan.addFaNames)
             await tx.contentTranslation.create({

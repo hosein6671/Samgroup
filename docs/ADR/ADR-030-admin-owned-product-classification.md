@@ -61,8 +61,10 @@ ADR-007, ADR-008, ADR-020, ADR-026 and ADR-029 are unchanged.
 - Classification can be corrected without a new import plan or a patch kind for it.
 - A replay of the ratified import no longer guards classification. The trade-off is deliberate:
   the importer guards source facts, and classification is not one.
-- Editing Product Family and Product Type in the `/admin` product editor is the next
-  implementation gate. Segments and application groups are already editable there.
+- Product Family and Product Type are edited in the `/admin` product editor, by Admin only
+  (`GET`/`PATCH /admin/products/:id/classification`, audited as `product.taxonomy_changed`). A
+  family move clears the product's application group; Segments and groups stay editable by
+  Content Manager as before.
 
 ## Alternatives considered
 

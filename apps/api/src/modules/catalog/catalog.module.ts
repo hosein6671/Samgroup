@@ -3,6 +3,8 @@ import { AuditModule } from "../audit/audit.module";
 import { ProductEditorController } from "./product-editor.controller";
 import { ProductEditorService } from "./product-editor.service";
 import { ProductEditorLocalizationService } from "./product-editor-localization.service";
+import { ProductClassificationController } from "./product-classification.controller";
+import { ProductClassificationService } from "./product-classification.service";
 import {
   ApplicationGroupsAdminController,
   ProductApplicationGroupController,
@@ -78,6 +80,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     SegmentsAdminController,
     ApplicationGroupsAdminController,
     ProductApplicationGroupController,
+    ProductClassificationController,
     CatalogReviewQueueController,
     SpecificationReviewController,
     ProductClaimReviewController,
@@ -91,6 +94,7 @@ import { CatalogReviewService } from "./review/catalog-review.service";
     ProductEditorService,
     ProductEditorLocalizationService,
     ApplicationGroupsAdminService,
+    ProductClassificationService,
     SegmentsAdminService,
   ],
   exports: [CategoriesService, ProductsService],

@@ -13,13 +13,25 @@ export const SEED_ENABLE_ENV = "SAM_ALLOW_APPLICATION_GROUP_SEED";
 export const SEED_TARGET_DATABASE = "sam_platform";
 export const FAMILY_SLUG = "industrial-oils-lubricants";
 
-export type SeedGroup = { slug: string; name: string; fa: string; products: readonly string[] };
+export type SeedGroup = {
+  slug: string;
+  name: string;
+  fa: string;
+  /**
+   * The names this group was first seeded with, before the owner aligned them with Iranian
+   * market wording (28 October 2026). A group still carrying them is renamed; a group someone
+   * renamed in `/admin` keeps its name.
+   */
+  previous?: { name: string; fa: string };
+  products: readonly string[];
+};
 
 export const INDUSTRIAL_GROUPS: readonly SeedGroup[] = [
   {
     slug: "compressors",
-    name: "Compressors",
-    fa: "کمپرسورها",
+    name: "Compressor oils",
+    fa: "روغن کمپرسور",
+    previous: { name: "Compressors", fa: "کمپرسورها" },
     products: [
       "compressor-tech",
       "compressor-tech-polyalphaolefin-synthetic-pao-s",
@@ -30,14 +42,16 @@ export const INDUSTRIAL_GROUPS: readonly SeedGroup[] = [
   },
   {
     slug: "turbines",
-    name: "Turbines",
-    fa: "توربین‌ها",
+    name: "Turbine oils",
+    fa: "روغن توربین",
+    previous: { name: "Turbines", fa: "توربین‌ها" },
     products: ["turbine-oil", "turbine-tech-gas-turbine-gt", "turbine-tech-radial-flow"],
   },
   {
     slug: "hydraulics",
-    name: "Hydraulics",
-    fa: "هیدرولیک",
+    name: "Hydraulic oils",
+    fa: "روغن هیدرولیک",
+    previous: { name: "Hydraulics", fa: "هیدرولیک" },
     products: [
       "hydraulic-oil-hh-grade",
       "hydraulic-oil-hl-grade",
@@ -49,21 +63,30 @@ export const INDUSTRIAL_GROUPS: readonly SeedGroup[] = [
   },
   {
     slug: "gears-synthetics",
-    name: "Gears & synthetics",
-    fa: "دنده و روغن‌های سنتتیک",
+    name: "Industrial gear oils",
+    fa: "روغن دنده صنعتی",
+    previous: { name: "Gears & synthetics", fa: "دنده و روغن‌های سنتتیک" },
     products: ["extreme-pressure-ep", "polyalphaolefin-pao", "polyalkylene-glycol-pag"],
   },
-  { slug: "circulating", name: "Circulating", fa: "روغن‌های گردشی", products: ["circulating-oil"] },
+  {
+    slug: "circulating",
+    name: "Circulating oils",
+    fa: "روغن گردشی",
+    previous: { name: "Circulating", fa: "روغن‌های گردشی" },
+    products: ["circulating-oil"],
+  },
   {
     slug: "heat-transfer",
-    name: "Heat transfer",
-    fa: "انتقال حرارت",
+    name: "Heat transfer oils",
+    fa: "روغن انتقال حرارت",
+    previous: { name: "Heat transfer", fa: "انتقال حرارت" },
     products: ["heat-tech-heat-transfer-oil", "heat-tech-heat-metal-oil", "heat-transfer-oil"],
   },
   {
     slug: "metalworking",
-    name: "Metalworking",
-    fa: "فلزکاری",
+    name: "Metalworking oils",
+    fa: "روغن عملیات فلزکاری",
+    previous: { name: "Metalworking", fa: "فلزکاری" },
     products: [
       "cutting-tech-cutting-oil",
       "quenching-oil",
@@ -71,14 +94,21 @@ export const INDUSTRIAL_GROUPS: readonly SeedGroup[] = [
       "flashing-tech-flashing-oil",
     ],
   },
-  { slug: "greases", name: "Greases", fa: "گریس‌ها", products: ["grease-based-on-calcium"] },
+  {
+    slug: "greases",
+    name: "Greases",
+    fa: "گریس",
+    previous: { name: "Greases", fa: "گریس‌ها" },
+    products: ["grease-based-on-calcium"],
+  },
 ];
 
 export const ENGINE_GROUPS: readonly SeedGroup[] = [
   {
     slug: "passenger-car-gasoline",
-    name: "Passenger car (gasoline)",
-    fa: "خودروی سواری بنزینی",
+    name: "Gasoline engine oils",
+    fa: "روغن موتور بنزینی",
+    previous: { name: "Passenger car (gasoline)", fa: "خودروی سواری بنزینی" },
     products: [
       "sc-grade",
       "sf-grade",
@@ -100,8 +130,9 @@ export const ENGINE_GROUPS: readonly SeedGroup[] = [
   },
   {
     slug: "heavy-duty-diesel",
-    name: "Heavy-duty diesel",
-    fa: "دیزلی سنگین",
+    name: "Diesel engine oils",
+    fa: "روغن موتور دیزلی",
+    previous: { name: "Heavy-duty diesel", fa: "دیزلی سنگین" },
     products: [
       "cd-grade",
       "cf-4-15w-40",
@@ -121,20 +152,23 @@ export const ENGINE_GROUPS: readonly SeedGroup[] = [
   },
   {
     slug: "motorcycle",
-    name: "Motorcycle",
-    fa: "موتورسیکلت",
+    name: "Motorcycle oils",
+    fa: "روغن موتور سیکلت",
+    previous: { name: "Motorcycle", fa: "موتورسیکلت" },
     products: ["racing-grade", "sg-grade-motorcycle", "sn-grade-motorcycle"],
   },
   {
     slug: "automatic-transmission-fluids",
     name: "Automatic transmission fluids",
-    fa: "روغن گیربکس اتوماتیک",
+    fa: "روغن دنده اتوماتیک",
+    previous: { name: "Automatic transmission fluids", fa: "روغن گیربکس اتوماتیک" },
     products: ["al-4", "cvt", "dct", "dex-iii", "dex-vi", "mv", "sp-4", "atf-grade"],
   },
   {
     slug: "gear-oils",
-    name: "Gear oils",
-    fa: "روغن دنده",
+    name: "Automotive gear oils",
+    fa: "روغن دنده خودرو",
+    previous: { name: "Gear oils", fa: "روغن دنده" },
     products: [
       "gl-5-75w-80",
       "gl-5-75w-90",
@@ -153,14 +187,16 @@ export const ENGINE_GROUPS: readonly SeedGroup[] = [
 export const MARINE_GROUPS: readonly SeedGroup[] = [
   {
     slug: "medium-speed-engines",
-    name: "Medium-speed engines",
-    fa: "موتورهای دیزل دورمتوسط",
+    name: "Trunk-piston engines (medium speed)",
+    fa: "ترانک‌پیستون (دور متوسط)",
+    previous: { name: "Medium-speed engines", fa: "موتورهای دیزل دورمتوسط" },
     products: ["lenj-oil", "trunk-oil", "special-trunk-oil", "super-trunk-oil"],
   },
   {
     slug: "other-marine-oils",
     name: "Other marine oils",
-    fa: "سایر روان‌کارهای دریایی",
+    fa: "سایر روغن‌های دریایی",
+    previous: { name: "Other marine oils", fa: "سایر روان‌کارهای دریایی" },
     products: [
       "reward-tech-marine-special",
       "reward-super-tech-semi-synthetic",
@@ -217,7 +253,7 @@ export type SeedState = {
   /** Null when the family itself is missing. */
   categoryId: string | null;
   /** Existing groups of the family by slug, with whether a Persian name exists. */
-  groups: Map<string, { id: string; hasFa: boolean }>;
+  groups: Map<string, { id: string; hasFa: boolean; name?: string; fa?: string }>;
   /** Products by slug: their family and current group (null when none). */
   products: Map<string, { id: string; categoryId: string; groupSlug: string | null }>;
 };
@@ -226,6 +262,8 @@ export type SeedPlan = {
   errors: string[];
   createGroups: SeedGroup[];
   addFaNames: SeedGroup[];
+  /** Existing groups whose English (`name`) or Persian (`fa`) name still is the first-seeded one. */
+  rename: { group: SeedGroup; name: boolean; fa: boolean }[];
   assign: { productSlug: string; groupSlug: string }[];
   alreadyAssigned: number;
   keptElsewhere: { productSlug: string; groupSlug: string; current: string }[];
@@ -240,6 +278,7 @@ export function planSeed(
     errors: [],
     createGroups: [],
     addFaNames: [],
+    rename: [],
     assign: [],
     alreadyAssigned: 0,
     keptElsewhere: [],
@@ -252,6 +291,12 @@ export function planSeed(
     const existing = state.groups.get(group.slug);
     if (!existing) plan.createGroups.push(group);
     if (!existing || !existing.hasFa) plan.addFaNames.push(group);
+    if (existing && group.previous) {
+      const name = existing.name === group.previous.name && group.previous.name !== group.name;
+      const fa =
+        existing.hasFa && existing.fa === group.previous.fa && group.previous.fa !== group.fa;
+      if (name || fa) plan.rename.push({ group, name, fa });
+    }
     for (const productSlug of group.products) {
       const product = state.products.get(productSlug);
       if (!product) {
