@@ -5305,26 +5305,17 @@ html.fs-parallax .fs-branded-photo > img {
     flex: 1 1 13rem;
     justify-content: center;
   }
+  /* Whole facts wrap to a new row when they do not fit; a label never breaks inside itself. */
   .fs-cine-facts {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: space-between;
-    gap: 12px;
+    gap: 14px 12px;
   }
   .fs-cine-facts > div {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-  }
-  /* One line each: "مرحله / سفارشی‌سازی" broke in two at 375px (owner, 31 October 2026). */
-  .fs-cine-facts dt {
-    white-space: nowrap;
-  }
-}
-/* The three facts need ~300px on one row; the narrowest phones wrap them instead. */
-@media (max-width: 360px) {
-  .fs-cine-facts {
-    flex-wrap: wrap;
   }
 }
 
@@ -5338,4 +5329,40 @@ html.fs-parallax .fs-branded-photo > img {
   text-align: justify;
   text-align-last: start;
   hyphens: none;
+}
+
+/*
+ * The hero's fact bar on one line (owner, 1 November 2026): "Customization / steps" and the
+ * "PORTFOLIO / AT A / GLANCE" title each broke over two or three lines at 1440px, in both languages.
+ * Labels, title and button never wrap inside themselves; the bar drops its least useful parts
+ * instead as the screen narrows — the title under 1500px, the family reel under 1300px.
+ */
+.fs-cine-bar-title,
+.fs-cine-facts dt,
+.fs-cine-explore {
+  max-width: none;
+  white-space: nowrap;
+}
+@media (min-width: 961px) {
+  .fs-cine-facts {
+    flex-wrap: nowrap;
+    gap: clamp(20px, 2.4vw, 40px);
+  }
+}
+@media (min-width: 1301px) and (max-width: 1500px) {
+  .fs-cine-bar-in {
+    grid-template-columns: 1fr auto auto;
+  }
+  .fs-cine-bar-title {
+    display: none;
+  }
+}
+@media (min-width: 961px) and (max-width: 1300px) {
+  .fs-cine-bar-in {
+    grid-template-columns: 1fr auto;
+  }
+  .fs-cine-bar-title,
+  .fs-cine-reel {
+    display: none;
+  }
 }
