@@ -4331,9 +4331,11 @@
 .fs-who2-title {
   max-width: 14ch;
 }
+/* Three equal columns (owner, 1 November 2026): the 6/3/3 mosaic squeezed the second and third
+   captions into ~230px at laptop widths, where Persian text ran ragged and loose. */
 .fs-who2-row {
   display: grid;
-  grid-template-columns: 6fr 3fr 3fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(16px, 1.6vw, 28px);
   margin-top: clamp(56px, 6vw, 96px);
   align-items: start;
@@ -4392,8 +4394,8 @@
 }
 .fs-who2-cell p {
   margin: 8px 0 0;
-  max-width: 40ch;
   color: var(--color-text-secondary);
+  text-align: start;
 }
 @media (max-width: 960px) {
   .fs-who2-top,
@@ -5320,12 +5322,25 @@ html.fs-parallax .fs-branded-photo > img {
 }
 
 /*
- * Persian running text is set justified, the way Iranian sites set it, so a paragraph's left edge
- * lines up with its right edge instead of leaving a ragged gap on the left (owner, 31 October
- * 2026). The last line stays start-aligned, so one-line labels are unchanged. `:where` keeps the
- * rule at element specificity: any component that sets its own alignment still wins.
+ * Persian long-form text is set justified, the way Iranian sites set it, so a paragraph's left
+ * edge lines up with its right edge (owner, 31 October 2026). Only blocks wide enough to carry
+ * many words per line: in a narrow column, justification opened wide gaps between Persian words
+ * (owner, 1 November 2026), so short captions, side leads and labels stay start-aligned.
  */
-:where([dir="rtl"] main) :is(p, li, dd, blockquote) {
+[dir="rtl"]
+  :is(
+    .pr-family-desc,
+    .pl-card-summary,
+    .pd2-lead,
+    .pd2-card-text,
+    .pf3-sublead,
+    .ab-who-prose p,
+    .ab-commitment-body p,
+    .in-post-content p,
+    .in-post-content li,
+    .fq-answers p,
+    .pc-faq-answer p
+  ) {
   text-align: justify;
   text-align-last: start;
   hyphens: none;
