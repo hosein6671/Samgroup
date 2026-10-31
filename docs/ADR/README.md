@@ -34,13 +34,14 @@ Each ADR captures a decision that was genuinely contested — where more than on
 | [ADR-028](./ADR-028-product-grade-display-label.md)                   | Public display label for Product Grades, keeping the verbatim source label for identity and provenance                                    | Accepted |
 | [ADR-029](./ADR-029-product-application-groups.md)                    | Per-family application groups (machine groups) as an Admin-managed taxonomy for the Product Family page                                   | Accepted |
 | [ADR-030](./ADR-030-admin-owned-product-classification.md)            | Product Family, Product Type and Segments are Admin-owned after the initial import; five gear rows move to Engine Oils                    | Accepted |
+| [ADR-031](./ADR-031-release-image-registry-on-vps.md)                 | Release images are copied to a registry on the VPS and pulled from there, because the VPS cannot download from GHCR reliably              | Accepted |
 
 **ADR-021 is reserved, not free.** No file carries that number yet, but two live documents already
 cite it for the policy-revision decision — [`docs/legal/DRAFT-privacy-policy-REVIEW-ONLY.md`](../legal/DRAFT-privacy-policy-REVIEW-ONLY.md)
 (publication blocker 6) and [`docs/legal/OWNER-QUESTIONNAIRE-privacy-policy.md`](../legal/OWNER-QUESTIONNAIRE-privacy-policy.md)
 (question 21). Do not assign it to anything else.
 
-These twenty-four accepted decisions, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
+These twenty-five accepted decisions, together with the folder structure, API strategy, and CMS strategy documented elsewhere in `docs/`, make up the frozen architecture — see [`CLAUDE.md`](../../CLAUDE.md) and [`AI_CONTEXT.md`](../../AI_CONTEXT.md) at the repo root for what "frozen" means in practice.
 
 ## Adding a new ADR
 

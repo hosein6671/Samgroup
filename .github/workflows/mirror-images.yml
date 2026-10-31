@@ -1,0 +1,91 @@
+name: Mirror images to VPS registry
+
+# ADR-031. The VPS cannot download image layers from GitHub's image storage reliably, so every
+# published release is copied, unchanged and under the same SHA tag, to the registry on the VPS
+# itself (deploy/registry.sh). A deploy then pulls from that server. Copying is a separate workflow
+# so a slow or failed upload never marks the build itself as failed, and can be re-run on its own:
+# Actions -> "Mirror images to VPS registry" -> Run workflow, with the commit SHA.
+#
+# Needs three repository secrets; without them it does nothing:
+#   SAM_REGISTRY           host:port of the VPS registry, e.g. samgp.com:5443
+#   SAM_REGISTRY_USER      the login created by `deploy/registry.sh setup`
+#   SAM_REGISTRY_PASSWORD  its password
+
+on:
+  workflow_run:
+    workflows: [Release images]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full commit SHA of a published release
+        required: true
+
+concurrency:
+  group: mirror-images
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  mirror:
+    name: Copy release images to the VPS registry
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SAM_REGISTRY: ${{ secrets.SAM_REGISTRY }}
+      SHA: ${{ github.event.inputs.sha || github.event.workflow_run.head_sha }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "$SAM_REGISTRY" ]; then
+            echo "SAM_REGISTRY is not set; nothing to mirror."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        if: steps.config.outputs.enabled == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the VPS registry
+        if: steps.config.outputs.enabled == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ secrets.SAM_REGISTRY }}
+          username: ${{ secrets.SAM_REGISTRY_USER }}
+          password: ${{ secrets.SAM_REGISTRY_PASSWORD }}
+
+      - name: Set up Buildx
+        if: steps.config.outputs.enabled == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      # A straight copy of each image's manifest and layers; nothing is rebuilt. The link to Iran
+      # drops connections, so each image is retried; layers already copied are not sent again.
+      - name: Copy api, web, cms and the deploy bundle
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          set -u
+          for name in api web cms deploy; do
+            src="ghcr.io/${{ steps.config.outputs.owner }}/sam-group-platform/$name:$SHA"
+            dst="$SAM_REGISTRY/sam-group-platform/$name:$SHA"
+            ok=false
+            for attempt in 1 2 3 4 5; do
+              if docker buildx imagetools create --tag "$dst" "$src"; then ok=true; break; fi
+              echo "Attempt $attempt for $name failed; retrying in 30s."
+              sleep 30
+            done
+            [ "$ok" = true ] || { echo "Could not copy $name." >&2; exit 1; }
+          done
+          echo "Copied all four images for $SHA."

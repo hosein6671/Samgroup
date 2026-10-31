@@ -170,6 +170,23 @@ Payload's admin UI gets its **own subdomain** because Payload's admin route also
 
 ---
 
+### Release image registry on the VPS (ADR-031)
+
+Since 1 November 2026 the VPS pulls release images from a registry on itself, not from GHCR: the
+VPS stopped being able to download image layers from GitHub (every layer stalled at
+`Pulling fs layer`). See [ADR-031](./ADR/ADR-031-release-image-registry-on-vps.md).
+
+- `deploy/registry.sh setup <user>` creates the login, starts `registry:2` on `PUBLIC_HOST:5443`
+  with the site's Let's Encrypt certificate, and installs a certbot hook that restarts it after a
+  renewal. `start` and `status` do what they say.
+- `.github/workflows/mirror-images.yml` copies `api`, `web`, `cms` and `deploy` for every published
+  release to it, under the same SHA, using the `SAM_REGISTRY`, `SAM_REGISTRY_USER` and
+  `SAM_REGISTRY_PASSWORD` repository secrets. Re-run it by hand for one SHA from the Actions tab.
+- The VPS `.env` sets `SAM_IMAGE_PREFIX=<PUBLIC_HOST>:5443/sam-group-platform`, after a one-time
+  `docker login <PUBLIC_HOST>:5443`. Deploying is unchanged: `./deploy/deploy.sh <sha>`, once the
+  mirror workflow for that SHA has finished.
+- Old tags are not pruned yet (ADR-031 consequences).
+
 ## Application authentication
 
 `apps/api` issues the platform's access tokens, and that adds exactly one runtime variable — process-scoped and injected at deploy time like every other secret:
