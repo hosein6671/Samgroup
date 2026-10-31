@@ -5327,3 +5327,15 @@ html.fs-parallax .fs-branded-photo > img {
     flex-wrap: wrap;
   }
 }
+
+/*
+ * Persian running text is set justified, the way Iranian sites set it, so a paragraph's left edge
+ * lines up with its right edge instead of leaving a ragged gap on the left (owner, 31 October
+ * 2026). The last line stays start-aligned, so one-line labels are unchanged. `:where` keeps the
+ * rule at element specificity: any component that sets its own alignment still wins.
+ */
+:where([dir="rtl"] main) :is(p, li, dd, blockquote) {
+  text-align: justify;
+  text-align-last: start;
+  hyphens: none;
+}

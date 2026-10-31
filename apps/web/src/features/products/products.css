@@ -453,6 +453,13 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* Persian descriptors are shown whole: a sentence cut off with "…" read as broken text on /fa
+   (owner, 31 October 2026). The grid still stretches every card in a row to one height. */
+[dir="rtl"] .pr-family-desc {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
 
 /*
  * A fixed-length preview, not the full range list — the six full taxonomies are what the Family
