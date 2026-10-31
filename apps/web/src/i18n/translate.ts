@@ -61,11 +61,16 @@ export function formatCount(locale: string, value: number, grouping = false): st
 }
 
 /**
- * A two-digit ordinal in the locale's own digits — `01` in English, `۰۱` in Persian. The site's
- * numbered rows and counters use it in place of `String(n).padStart(2, "0")`.
+ * A row number in the locale's own digits — `01` in English, `۱` in Persian. The site's numbered
+ * rows and counters use it in place of `String(n).padStart(2, "0")`.
+ *
+ * The leading zero is a Latin typographic convention; Persian writing does not number with it, and
+ * `۰۱` read as a translation (owner, 31 October 2026). Locales that keep Latin digits keep it.
  */
 export function ordinal(locale: string, value: number): string {
-  return formatCount(locale, value).padStart(2, formatCount(locale, 0));
+  const zero = formatCount(locale, 0);
+  const digits = formatCount(locale, value);
+  return zero === "0" ? digits.padStart(2, zero) : digits;
 }
 
 /**
@@ -75,5 +80,6 @@ export function ordinal(locale: string, value: number): string {
 export function localDigits(locale: string, text: string): string {
   if (!/^\d+$/.test(text)) return text;
   const zero = formatCount(locale, 0);
-  return zero === "0" ? text : text.replace(/\d/g, (d) => formatCount(locale, Number(d)));
+  // No leading zero outside Latin digits, as `ordinal` above: "01" becomes "۱".
+  return zero === "0" ? text : formatCount(locale, Number(text));
 }

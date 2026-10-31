@@ -564,5 +564,11 @@
   "{count} products": "{count} محصول",
   "{count} publish typical values": "{count} محصول مقادیر نوعی منتشر کرده‌اند",
   "Loading products…": "در حال بارگذاری محصولات…",
-  "No products are published in this family yet.": "هنوز محصولی در این خانواده منتشر نشده است."
+  "No products are published in this family yet.": "هنوز محصولی در این خانواده منتشر نشده است.",
+  "at {temperature}": "در دمای {temperature}",
+  "After shear, 30 cycles (ASTM D6278)": "پس از برش، ۳۰ چرخه (ASTM D6278)",
+  "minutes": "دقیقه",
+  "%wt": "٪ وزنی",
+  "This page could not be found.": "این صفحه پیدا نشد.",
+  "The address may have changed, or the page has not been published yet.": "ممکن است نشانی صفحه عوض شده باشد یا این صفحه هنوز منتشر نشده باشد."
 }

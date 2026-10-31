@@ -10,6 +10,8 @@ import { formatCount, ordinal } from "@/i18n/translate";
 import { categoryContentFor, familiesFor } from "../localized-data";
 import { isolateLatin } from "@/i18n/bidi";
 
+import type { FamilyPhoto } from "../family-photos";
+
 /**
  * 2 · The register — the six product families, image-led.
  *
@@ -45,7 +47,12 @@ const RANGE_PREVIEW_COUNT = 3;
 export function ProductRegister({
   locale,
   editorial,
-}: { readonly locale: string } & { readonly editorial?: StructuralFields }): ReactNode {
+  photos = {},
+}: { readonly locale: string } & {
+  readonly editorial?: StructuralFields;
+  /** Admin-uploaded family photographs (`family-photos.ts`); they replace the built-in ones. */
+  readonly photos?: Readonly<Record<string, FamilyPhoto>>;
+}): ReactNode {
   const copy = structuralSection("products-landing", "register", editorial);
 
   return (
@@ -63,7 +70,10 @@ export function ProductRegister({
 
         <div className="pr-family-grid reveal-stagger">
           {familiesFor(locale).map((family, i) => {
-            const image = categoryContentFor(family.id, locale)?.hero.image;
+            const uploaded = photos[family.id];
+            const image = uploaded
+              ? { src: uploaded.src, alt: uploaded.alt, caption: "" }
+              : categoryContentFor(family.id, locale)?.hero.image;
             const FamilyIcon = familyIconFor(family.id);
             const preview = family.ranges.slice(0, RANGE_PREVIEW_COUNT);
             const more = family.ranges.length - preview.length;

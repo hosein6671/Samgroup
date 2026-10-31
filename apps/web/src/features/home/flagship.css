@@ -669,15 +669,34 @@
   z-index: 110;
   border-bottom: 1px solid transparent;
   transition:
-    background var(--t-mid),
-    backdrop-filter var(--t-mid),
     border-color var(--t-mid),
     transform 420ms var(--e-entrance);
 }
+/*
+ * The frosted bar is painted by a layer behind the bar's contents, never by the bar itself.
+ *
+ * `backdrop-filter` on `.fs-nav` makes the bar the containing block of every `position: fixed`
+ * descendant. The mobile drawer is one (`inset: 78px 0 0`), so once the page was scrolled and the
+ * bar turned solid, the drawer resolved against the 79px bar instead of the viewport and was 37px
+ * tall: only its first link showed. Measured on samgp.com/fa at 375×812, 31 October 2026.
+ */
+.fs-nav::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: transparent;
+  transition:
+    background var(--t-mid),
+    backdrop-filter var(--t-mid);
+  pointer-events: none;
+}
 .fs-nav[data-solid="true"] {
+  border-bottom-color: rgba(199, 205, 214, 0.16);
+}
+.fs-nav[data-solid="true"]::before {
   background: rgba(3, 11, 31, 0.72);
   backdrop-filter: blur(22px) saturate(1.3);
-  border-bottom-color: rgba(199, 205, 214, 0.16);
 }
 /* Retracts on the way down so it never sits between the reader and an oversized headline. */
 .fs-nav[data-hidden="true"] {
@@ -5253,4 +5272,58 @@ html.fs-parallax .fs-branded-photo > img {
 [dir="rtl"] .ltr-run {
   direction: ltr;
   unicode-bidi: isolate;
+}
+
+/*
+ * Phones and small tablets: the text column and the action rows use the whole width.
+ *
+ * The reading measures above (56ch leads, 16em/18em headings, 14ch fact labels) are for a desktop
+ * column beside an image. Under 860px nothing sits beside the text, so a capped heading or lead
+ * left the far side of the screen empty — the left half on /fa at 760px, which the owner reported
+ * on 31 October 2026. Buttons in a row share the width instead of huddling at the start, and the
+ * hero's three facts become three equal columns.
+ */
+@media (max-width: 860px) {
+  [dir] main :is(h1, h2, h3, p, dt, dd, .fs-d1, .fs-d2, .fs-d3, .fs-lead) {
+    max-width: none !important;
+  }
+  main
+    :is(
+      .fs-cine-cta,
+      .fs-cf-cta,
+      .ab-hero-actions,
+      .pr-hero-actions,
+      .pf3-actions,
+      .el-actions,
+      .el-close-actions,
+      .cs-hero-actions,
+      .qc-hero-actions,
+      .fs-cta-actions,
+      .pd2-hero-actions
+    )
+    > :is(.fs-btn, a) {
+    flex: 1 1 13rem;
+    justify-content: center;
+  }
+  .fs-cine-facts {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .fs-cine-facts > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  /* One line each: "مرحله / سفارشی‌سازی" broke in two at 375px (owner, 31 October 2026). */
+  .fs-cine-facts dt {
+    white-space: nowrap;
+  }
+}
+/* The three facts need ~300px on one row; the narrowest phones wrap them instead. */
+@media (max-width: 360px) {
+  .fs-cine-facts {
+    flex-wrap: wrap;
+  }
 }

@@ -56,8 +56,8 @@ export default async function CategoryImagesPage(): Promise<ReactNode> {
   return (
     <AdminShell current="categories" title="Product Family images" user={access.user}>
       <p className="ad-note">
-        The "process" photograph shown on each Product Family page's applications section. A family
-        with no image here shows a labelled placeholder on the public site.
+        Each Product Family's photograph: the large image at the top of its family page and its card
+        on the Products page. A family with no image here keeps its built-in photograph.
       </p>
       {rows === null ? (
         <section className="ad-notice">

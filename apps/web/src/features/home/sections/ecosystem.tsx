@@ -9,7 +9,7 @@ import { useMemo, useState, type ReactNode } from "react";
 
 import { Arrow } from "@/features/site/logo-mark";
 import { localeHref, productFamilyByKey } from "@/features/site/site-routes";
-import { formatCount } from "@/i18n/translate";
+import { ordinal } from "@/i18n/translate";
 
 import { FAMILIES } from "../home-data";
 import { RichText } from "@/features/site/rich-text";
@@ -142,8 +142,7 @@ export function Ecosystem({
                   <div className="k">
                     {/* "Family 0" + "1" reads "Family 01"; the number is set in the page's own digits. */}
                     {copy.text("family_0").replace(/[0۰]$/, "")}
-                    {formatCount(locale, index + 1).padStart(2, formatCount(locale, 0))} ·{" "}
-                    {current.sub}
+                    {ordinal(locale, index + 1)} · {current.sub}
                   </div>
                   <h3>{current.name}</h3>
                   <p>

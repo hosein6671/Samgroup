@@ -35,8 +35,12 @@
 .pr-family-grid {
   gap: 24px !important;
 }
+/* A fixed height across the full card width. `max-height` on a 4:3 box shrank its width with it,
+   so the photo stopped short of the card's far edge (the left edge on /fa) at every width. */
 .pr-family-photo {
-  max-height: 220px;
+  inline-size: 100%;
+  aspect-ratio: auto;
+  block-size: 220px;
 }
 .pr-family-photo img {
   object-fit: cover;
@@ -212,7 +216,7 @@
     grid-template-columns: 1fr !important;
   }
   .pr-family-photo {
-    max-height: 210px;
+    block-size: 210px;
   }
   .pf-workspace {
     grid-template-columns: 1fr;

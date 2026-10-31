@@ -26,7 +26,7 @@ export function BrandedPhoto({
     <figure className={`fs-branded-photo ${className}`}>
       <Image src={src} alt={alt} fill sizes={sizes} />
       <PhotoBrand />
-      <figcaption>{caption}</figcaption>
+      {caption !== "" && <figcaption>{caption}</figcaption>}
     </figure>
   );
 }

@@ -31,6 +31,8 @@ type Props = {
 export function FamilyHero({ content, family, locale }: Props): ReactNode {
   const t = translator(locale);
   const { hero } = content;
+  // The photograph uploaded in Admin → Product Family images wins over the built-in one.
+  const image = content.processImage ?? hero.image;
   return (
     <section className="fs-sec pf3-hero" data-surface="midnight">
       <div className="fs-blueprint" aria-hidden="true" />
@@ -61,11 +63,11 @@ export function FamilyHero({ content, family, locale }: Props): ReactNode {
           </div>
         </div>
         <figure className="pf3-hero-media">
-          {hero.image ? (
+          {image ? (
             <span className="pf3-hero-frame">
               <Image
-                src={hero.image.src}
-                alt={hero.image.alt}
+                src={image.src}
+                alt={image.alt}
                 fill
                 priority
                 sizes="(max-width: 960px) calc(100vw - 40px), 40vw"

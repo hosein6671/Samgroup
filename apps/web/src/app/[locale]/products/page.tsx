@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { FAMILIES } from "@/features/products/products-data";
+import { getFamilyPhotos } from "@/features/products/family-photos";
 import { ProductsExperience } from "@/features/products/products-experience";
 import { JsonLd, type JsonLdObject } from "@/features/seo/json-ld";
 import { absoluteUrl } from "@/features/seo/site";
@@ -116,9 +117,10 @@ export default async function ProductsPage({
 }): Promise<ReactNode> {
   const { locale } = await params;
   // Independent reads — the editorial content does not depend on the locale set — run together.
-  const [locales, editorial] = await Promise.all([
+  const [locales, editorial, familyPhotos] = await Promise.all([
     getActiveLocales(),
     publishedStructural("products-landing", locale),
+    getFamilyPhotos(locale),
   ]);
   const canonical = `/${locale}/products`;
   const pageUrl = absoluteUrl(canonical);
@@ -144,7 +146,12 @@ export default async function ProductsPage({
   return (
     <>
       <JsonLd data={schema} />
-      <ProductsExperience editorial={editorial?.fields} locale={locale} locales={locales} />
+      <ProductsExperience
+        editorial={editorial?.fields}
+        familyPhotos={familyPhotos}
+        locale={locale}
+        locales={locales}
+      />
     </>
   );
 }

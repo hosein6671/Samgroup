@@ -7,6 +7,7 @@ import { translator } from "@/i18n/translate";
 import { BidiText } from "../bidi-text";
 import { gradeSlug } from "../grade-selection";
 import { propertyLabel } from "../property-labels";
+import { displayUnit } from "../spec-display";
 import { ProductGallery } from "./gallery";
 
 import type { KeyMetric } from "../spec-matrix";
@@ -143,7 +144,9 @@ export function ProductHeroV2({
                 <span className="pd2-metric-name">{propertyLabel(metric.key, t)}</span>
                 <span className="pd2-metric-value" dir="ltr">
                   {metric.value}
-                  {metric.unit !== null && <span className="pd2-metric-unit">{metric.unit}</span>}
+                  {metric.unit !== null && (
+                    <span className="pd2-metric-unit">{displayUnit(metric.unit, t)}</span>
+                  )}
                 </span>
                 {metric.position !== null && (
                   <span className="pd2-metric-track" aria-hidden="true">

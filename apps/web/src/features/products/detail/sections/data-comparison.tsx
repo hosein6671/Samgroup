@@ -5,6 +5,7 @@ import { translator } from "@/i18n/translate";
 
 import { gradeSlug } from "../grade-selection";
 import { propertyLabel } from "../property-labels";
+import { displayUnit, SpecQualifier } from "../spec-display";
 
 import type { SpecMatrix } from "../spec-matrix";
 
@@ -69,7 +70,9 @@ export function ProductDataComparison({
                       key={column}
                       scope="col"
                       data-active={column === activeColumn && graded ? "true" : undefined}
-                      dir="ltr"
+                      // A grade label is Latin; the single unnamed column is a word in the page's
+                      // language ("مقدار"), which must keep the page's direction.
+                      dir={column === "" ? undefined : "ltr"}
                     >
                       {graded && matrix.columns.length > 1 ? (
                         <a
@@ -94,11 +97,13 @@ export function ProductDataComparison({
                     <th scope="row">
                       {propertyLabel(row.key, t)}
                       {row.qualifier !== null && row.qualifier !== "" && (
-                        <span className="pd2-qualifier">{t(row.qualifier)}</span>
+                        <span className="pd2-qualifier">
+                          <SpecQualifier qualifier={row.qualifier} t={t} />
+                        </span>
                       )}
                       {row.unit !== null && (
-                        <span className="pd2-unit" dir="ltr">
-                          {row.unit}
+                        <span className="pd2-unit">
+                          <bdi dir="ltr">{displayUnit(row.unit, t)}</bdi>
                         </span>
                       )}
                     </th>

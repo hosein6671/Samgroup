@@ -124,11 +124,13 @@ export function ProductCard({
        * mid-word or mid-clause and change what a sentence appears to say — which on a description
        * that opens with a placeholder disclaimer would be the one sentence worth not shortening.
        * The full text stays in the document; only its rendered height is bounded.
+       *
+       * It takes the page's direction, not `dir="auto"`: a Persian description opens with the
+       * product's Latin name ("AL-4 روغن…"), and `auto` read that first word and laid the whole
+       * Persian paragraph out left to right.
        */}
       {product.description !== null && product.description !== "" && (
-        <p className="pl-card-summary" dir="auto">
-          {product.description}
-        </p>
+        <p className="pl-card-summary">{product.description}</p>
       )}
     </article>
   );

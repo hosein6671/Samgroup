@@ -496,9 +496,8 @@
   color: var(--fs-navy-2);
 }
 
-[dir="rtl"] .pf3-go svg {
-  transform: scaleX(-1);
-}
+/* The row arrow is an `Arrow`, already mirrored on RTL pages by the global `.fs-ar` rule in
+   flagship.css; a second flip here pointed it back to the right on /fa. */
 
 .pf3-unavailable {
   margin: 0;

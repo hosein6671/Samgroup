@@ -27,6 +27,8 @@ import { FinderTeaser } from "./sections/finder-teaser";
 import { ProductsHero } from "./sections/hero";
 import { ProductRegister } from "./sections/register";
 
+import type { FamilyPhoto } from "./family-photos";
+
 /**
  * The Products landing page.
  *
@@ -61,16 +63,20 @@ import { ProductRegister } from "./sections/register";
  */
 export function ProductsExperience({
   editorial,
+  familyPhotos,
   locale,
   locales,
-}: SiteNavProps & { editorial?: StructuralFields }): ReactNode {
+}: SiteNavProps & {
+  editorial?: StructuralFields;
+  familyPhotos?: Readonly<Record<string, FamilyPhoto>>;
+}): ReactNode {
   return (
     <div data-brand="flagship">
       <SiteNav locale={locale} locales={locales} />
 
       <main id="main-content">
         <ProductsHero editorial={editorial} locale={locale} />
-        <ProductRegister editorial={editorial} locale={locale} />
+        <ProductRegister editorial={editorial} locale={locale} photos={familyPhotos} />
         <CatalogueStructure editorial={editorial} locale={locale} />
         <FinderTeaser editorial={editorial} locale={locale} />
         <Documentation editorial={editorial} locale={locale} />

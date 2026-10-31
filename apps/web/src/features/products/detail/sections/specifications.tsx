@@ -7,6 +7,7 @@ import type { ProductSpecificationResponse } from "@sam-group/types";
 import { translator, type Translate } from "@/i18n/translate";
 
 import { propertyLabel } from "../property-labels";
+import { displayUnit, SpecQualifier } from "../spec-display";
 
 /**
  * A `resultBasis` of `unspecified` is the column's own default — "no claim was made about what
@@ -59,7 +60,7 @@ function SpecificationValue({
       <span dir="ltr">
         {specification.value}
         {specification.unit !== null && specification.unit !== "" && (
-          <span className="pd-unit">{specification.unit}</span>
+          <span className="pd-unit">{displayUnit(specification.unit, t)}</span>
         )}
       </span>
     </>
@@ -129,8 +130,10 @@ function conditionText(
   t: Translate,
 ): ReactNode | null {
   return specification.qualifier === null || specification.qualifier === "" ? null : (
-    // A test condition reads in its own direction — "@ 100 °C" must not mirror inside RTL text.
-    <span dir="auto">{t(specification.qualifier)}</span>
+    // A test condition keeps its numbers left to right inside RTL text (`spec-display.tsx`).
+    <span>
+      <SpecQualifier qualifier={specification.qualifier} t={t} />
+    </span>
   );
 }
 

@@ -1,5 +1,7 @@
 import type { ProductGradeSummaryResponse, ProductSpecificationResponse } from "@sam-group/types";
 
+import { unitSymbol } from "./spec-units";
+
 /**
  * The property × grade view of a product's published specifications (redesign, 28 October 2026).
  *
@@ -60,7 +62,8 @@ export function buildSpecMatrix(
     groups.set(id, [...(groups.get(id) ?? []), specification]);
   }
   const rows = [...groups.entries()].map(([id, items]): SpecMatrixRow => {
-    const units = new Set(items.map((item) => item.unit ?? ""));
+    // `Cst` and `cSt` are one unit; compare and print the standard symbol (`spec-units.ts`).
+    const units = new Set(items.map((item) => (item.unit ? unitSymbol(item.unit) : "")));
     const sharedUnit = units.size === 1 ? [...units][0] || null : null;
     const methods = new Set(items.map((item) => item.method).filter((method) => method));
     const cells = new Map<string, string>();
@@ -68,7 +71,8 @@ export function buildSpecMatrix(
       const column = item.grade?.label ?? (grades.length > 0 ? null : "");
       // A product-level value on a graded product applies to every grade.
       const targets = column === null ? columns : [column];
-      const text = sharedUnit === null && item.unit ? `${item.value} ${item.unit}` : item.value;
+      const text =
+        sharedUnit === null && item.unit ? `${item.value} ${unitSymbol(item.unit)}` : item.value;
       for (const target of targets) if (!cells.has(target)) cells.set(target, text);
     }
     const first = items[0] as ProductSpecificationResponse;

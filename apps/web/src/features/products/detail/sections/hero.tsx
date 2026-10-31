@@ -84,9 +84,7 @@ export function ProductHero({
           <h1 className="fs-d1 pd-title">{product.name}</h1>
 
           {product.description !== null && product.description !== "" && (
-            <p className="fs-lead pd-lead" dir="auto">
-              {product.description}
-            </p>
+            <p className="fs-lead pd-lead">{product.description}</p>
           )}
 
           {(product.segments.length > 0 ||
