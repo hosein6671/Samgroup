@@ -4363,9 +4363,10 @@
   transform: translateY(-4px);
   box-shadow: 0 28px 54px -28px rgba(4, 15, 35, 0.45);
 }
-/* One shared photo shape, so the three captions start on the same line. */
+/* One shared photo height, so the three captions start on the same line. The height is the one
+   the photos had before the cards (owner, 1 November 2026: the photo size must not change). */
 .fs-who2-photo {
-  aspect-ratio: 16 / 11;
+  height: clamp(300px, 30vw, 440px);
   border: 0;
   border-radius: 0;
 }
@@ -4417,7 +4418,8 @@
     grid-template-columns: 1fr;
   }
   .fs-who2-photo {
-    aspect-ratio: 16 / 10;
+    height: auto;
+    aspect-ratio: 4 / 3;
   }
 }
 
