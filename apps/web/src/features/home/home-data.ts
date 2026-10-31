@@ -159,13 +159,13 @@ export const WHO_WE_ARE: readonly WhoWeAreClaim[] = [
   {
     term: "We formulate",
     detail: "Products developed against a stated technical and commercial requirement.",
-    src: "/images/home/lab-refrigerator-compressor-oil.webp",
+    src: "/images/home/lab-refrigerator-compressor-oil-4x3.webp",
     photo: "who_we_are_2",
   },
   {
     term: "We supply",
     detail: "Packaging and volumes arranged around the product and the route it travels.",
-    src: "/images/home/journey-requirement-to-supply.webp",
+    src: "/images/home/journey-requirement-to-supply-4x3.webp",
     photo: "who_we_are_3",
   },
 ];

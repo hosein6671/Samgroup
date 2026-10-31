@@ -3890,16 +3890,6 @@
   background: #d9dde3;
   isolation: isolate;
 }
-/* `PhotoFrame whole`: the photograph fitted inside the frame, over a blurred copy of itself. */
-.fs-photo--whole > img:not(.fs-photo-backdrop) {
-  object-fit: contain;
-}
-.fs-photo--whole > img.fs-photo-backdrop {
-  object-fit: cover;
-  filter: blur(24px) saturate(1.1) brightness(0.85);
-  transform: scale(1.15);
-  transition: none;
-}
 /* Zoomed photographs get their own compositor layer: scaled inside a rounded, clipped frame they
    were re-rasterised every frame and shimmered on Windows. */
 .fs-photo > img {
@@ -4373,10 +4363,10 @@
   transform: translateY(-4px);
   box-shadow: 0 28px 54px -28px rgba(4, 15, 35, 0.45);
 }
-/* One shared, taller frame, so the three captions start on the same line; each photo is shown
-   whole inside it (owner, 1 November 2026: no photo cut in half). */
+/* One 4:3 frame for all three photos (owner, 1 November 2026), and every photo is supplied at
+   4:3, so the frame shows each one whole; Admin names the shape beside each upload field. */
 .fs-who2-photo {
-  height: clamp(360px, 34vw, 500px);
+  aspect-ratio: 4 / 3;
   border: 0;
   border-radius: 0;
 }
@@ -4402,9 +4392,7 @@
 .fs-who2-cell:hover .fs-photo > img {
   transform: scale(1.05);
 }
-.fs-who2-cell:hover .fs-photo > img.fs-photo-backdrop {
-  transform: scale(1.15);
-}
+
 .fs-who2-cell h3 {
   margin: 0;
   font-family: var(--font-display);
@@ -4431,8 +4419,7 @@
     grid-template-columns: 1fr;
   }
   .fs-who2-photo {
-    height: auto;
-    aspect-ratio: 4 / 3.4;
+    aspect-ratio: 4 / 3;
   }
 }
 

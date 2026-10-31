@@ -67,7 +67,6 @@ export function WhoWeAre({
                     src={photo.src}
                     alt={photo.alt}
                     className="fs-who2-photo"
-                    whole
                     sizes="(max-width: 960px) calc(100vw - 40px), 34vw"
                   />
                   <figcaption>

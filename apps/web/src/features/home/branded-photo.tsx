@@ -52,26 +52,15 @@ export function PhotoFrame({
   className,
   sizes,
   priority = false,
-  whole = false,
 }: {
   readonly src: string;
   readonly alt: string;
   readonly className?: string;
   readonly sizes: string;
   readonly priority?: boolean;
-  /**
-   * Show the whole photograph, never cropped: it is fitted inside the frame, and a blurred copy of
-   * the same image fills the rest of the frame behind it. For frames of one shared size holding
-   * photographs of different shapes, any of which an editor can replace in Admin.
-   */
-  readonly whole?: boolean;
 }): ReactNode {
-  const frame = className === undefined ? "fs-photo" : `fs-photo ${className}`;
   return (
-    <div className={whole ? `${frame} fs-photo--whole` : frame}>
-      {whole && (
-        <Image className="fs-photo-backdrop" src={src} alt="" aria-hidden fill sizes="64px" />
-      )}
+    <div className={className === undefined ? "fs-photo" : `fs-photo ${className}`}>
       <Image src={src} alt={alt} fill sizes={sizes} priority={priority} />
       <PhotoBrand />
     </div>
