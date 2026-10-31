@@ -103,7 +103,7 @@ export function ProductDataComparison({
                       )}
                       {row.unit !== null && (
                         <span className="pd2-unit">
-                          <bdi dir="ltr">{displayUnit(row.unit, t)}</bdi>
+                          <bdi>{displayUnit(row.unit, t)}</bdi>
                         </span>
                       )}
                     </th>
