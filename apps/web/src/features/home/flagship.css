@@ -4331,14 +4331,14 @@
 .fs-who2-title {
   max-width: 14ch;
 }
-/* Three equal columns (owner, 1 November 2026): the 6/3/3 mosaic squeezed the second and third
-   captions into ~230px at laptop widths, where Persian text ran ragged and loose. */
+/* Three equal cards (owner-approved, 1 November 2026): the 6/3/3 mosaic squeezed the second and
+   third captions into ~230px at laptop widths, where the text ran ragged and loose. */
 .fs-who2-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 1.6vw, 28px);
+  gap: clamp(16px, 1.8vw, 24px);
   margin-top: clamp(56px, 6vw, 96px);
-  align-items: start;
+  align-items: stretch;
 }
 .fs-who2-row[data-count="2"] {
   grid-template-columns: 1fr 1fr;
@@ -4348,26 +4348,37 @@
 }
 .fs-who2-cell {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(6, 19, 70, 0.09);
+  border-radius: 20px;
+  box-shadow: 0 18px 40px -28px rgba(4, 15, 35, 0.35);
+  transition:
+    transform 0.4s var(--e-entrance),
+    box-shadow 0.4s var(--e-entrance);
 }
-/* One shared photo height, so the three captions start on the same line. */
+.fs-who2-cell:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 54px -28px rgba(4, 15, 35, 0.45);
+}
+/* One shared photo shape, so the three captions start on the same line. */
 .fs-who2-photo {
-  height: clamp(300px, 30vw, 440px);
+  aspect-ratio: 16 / 11;
+  border: 0;
+  border-radius: 0;
 }
 .fs-who2-cell figcaption {
   position: relative;
-  padding-top: 20px;
+  padding: 22px 24px 26px;
 }
-.fs-who2-cell figcaption::before,
 .fs-who2-cell figcaption::after {
   content: "";
   position: absolute;
   inset-inline-start: 0;
   top: 0;
-  height: 1px;
-}
-.fs-who2-cell figcaption::before {
-  width: 100%;
-  background: var(--color-border-hairline);
+  height: 3px;
 }
 .fs-who2-cell figcaption::after {
   width: 0;
@@ -4381,7 +4392,7 @@
   transform: scale(1.05);
 }
 .fs-who2-cell h3 {
-  margin: 18px 0 0;
+  margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
   font-size: var(--fs-text-subheading);
@@ -4393,7 +4404,9 @@
   text-transform: uppercase;
 }
 .fs-who2-cell p {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
+  font-size: var(--fs-text-body);
+  line-height: 1.85;
   color: var(--color-text-secondary);
   text-align: start;
 }
@@ -4404,8 +4417,7 @@
     grid-template-columns: 1fr;
   }
   .fs-who2-photo {
-    height: auto;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
   }
 }
 
