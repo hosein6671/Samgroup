@@ -382,7 +382,10 @@ export function SiteNav({ locale, locales }: SiteNavProps): ReactNode {
                 <circle cx="12" cy="12" r="9" />
                 <path d="M3 12h18M12 3a15 15 0 010 18a15 15 0 010-18" />
               </svg>
-              <span>{locale.toUpperCase()}</span>
+              {/* The language's own name from the locale table, not its ISO code. */}
+              <span>
+                {locales.find((entry) => entry.code === locale)?.nativeName ?? locale.toUpperCase()}
+              </span>
             </button>
 
             {/*
@@ -606,9 +609,7 @@ function LanguageMenu({
           }}
         >
           {choice.nativeName}
-          <span>
-            {choice.code.toUpperCase()} · {choice.direction.toUpperCase()}
-          </span>
+          <span>{choice.code.toUpperCase()}</span>
         </a>
       ))}
     </div>
