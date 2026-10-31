@@ -67,11 +67,8 @@ export function WhoWeAre({
                     src={photo.src}
                     alt={photo.alt}
                     className="fs-who2-photo"
-                    sizes={
-                      i === 0
-                        ? "(max-width: 960px) calc(100vw - 40px), 50vw"
-                        : "(max-width: 960px) calc(100vw - 40px), 25vw"
-                    }
+                    whole
+                    sizes="(max-width: 960px) calc(100vw - 40px), 34vw"
                   />
                   <figcaption>
                     <h3>{claim.term}</h3>
