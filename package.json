@@ -32,8 +32,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "7.9.1",
-    "@prisma/client": "7.9.1",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "argon2": "0.44.0"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
-    "prisma": "7.9.1",
+    "prisma": "7.10.1",
     "tsx": "^4.23.11",
     "turbo": "^2.10.8"
   }

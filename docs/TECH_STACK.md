@@ -61,8 +61,8 @@ approval.
 
 ## CMS
 
-- Payload CMS **3.88.0** (pinned when `apps/cms` was scaffolded, 16 August 2026)
-- **`@payloadcms/storage-s3` 3.88.0** — the official S3-compatible storage adapter, version-matched
+- Payload CMS **3.92.1** (pinned at 3.88.0 when `apps/cms` was scaffolded, 16 August 2026; raised to 3.92.1 on 1 November 2026 for the security fixes in 3.90, with migration `20261101_150943_payload_3_92` for the columns and indexes it adds)
+- **`@payloadcms/storage-s3` 3.92.1** — the official S3-compatible storage adapter, version-matched
   to the core. Editorial media goes to object storage rather than a container disk, which
   [DEVOPS.md](./DEVOPS.md) §Object storage requires; Payload's default `staticDir` handling is
   exactly what that rule forbids. It targets MinIO in development through process-scoped
@@ -73,10 +73,11 @@ approval.
 ### `apps/cms` runs its own Next.js version — approved, and intentional
 
 Payload 3 **is** a Next.js application, so `apps/cms` has a `next` dependency of its own, and
-`@payloadcms/next@3.88.0` supports only a narrow set of Next releases:
-`>=15.2.9 <15.3 || >=15.3.9 <15.4 || >=15.4.11 <15.5 || >=16.2.6 <17`. **`apps/web`'s 15.5.x line is
-not in it**, so the two applications cannot share a version. `apps/cms` is pinned to **Next 16.2.12**
-— the lowest patch of the earliest 16.x line Payload validated.
+`@payloadcms/next@3.92.1` supports only a narrow set of Next releases:
+`>=15.2.9 <15.3 || >=15.3.9 <15.4 || >=15.4.11 <15.5 || >=16.3.3 <17`. **`apps/web`'s 15.5.x line is
+not in it**, so the two applications cannot share a version. `apps/cms` is pinned to **Next 16.4.3**
+and `apps/web` to **Next 15.5.28** (1 November 2026: both raised within their own lines for the
+image-optimizer and server-action security fixes; previously 16.2.12 and 15.5.23).
 
 **This is a CMS package-compatibility requirement, not a platform-wide upgrade.** `apps/web` stays on
 its current version and **must not** be moved to match: the two are separate packages with separate
