@@ -21,6 +21,9 @@
 
 resolver 127.0.0.11 valid=10s ipv6=off;
 
+# No nginx version in the Server header or on error pages.
+server_tokens off;
+
 # WebSocket upgrades must be conditional — see the same map in
 # default.conf.template. Sending `Connection: upgrade` unconditionally breaks
 # upstream keep-alive against Node servers.
@@ -65,9 +68,9 @@ server {
     ssl_session_cache   shared:SSL:10m;
     ssl_session_timeout 1d;
 
-    # Enable only after HTTPS is confirmed working end to end — browsers cache
-    # this for max-age, so turning it on prematurely is painful to reverse.
-    # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    # HTTPS-only for a year. Enabled 1 November 2026, after months of HTTPS working end to end.
+    # Without includeSubDomains: every subdomain is HTTPS too, but that is not promised here.
+    add_header Strict-Transport-Security "max-age=31536000" always;
 
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -96,9 +99,11 @@ server {
         add_header Cache-Control "public, max-age=3600";
     }
 
+    # The NestJS API is not public (1 November 2026). `web` reaches it server-side on the internal
+    # network (API_INTERNAL_URL=http://api:3000) for every page, form and Admin call; no browser
+    # ever needs it, so from outside it is simply absent.
     location /api/ {
-        set $api_upstream ${SAM_API_UPSTREAM};
-        proxy_pass $api_upstream;
+        return 404;
     }
 
     location / {

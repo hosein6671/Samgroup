@@ -223,7 +223,9 @@ The admin area sits outside the localized public route tree, is excluded from `s
 
 ## Transport & Network
 
-- HTTPS enforced everywhere (Nginx terminates TLS)
+- HTTPS enforced everywhere (Nginx terminates TLS); HSTS (`max-age=31536000`, no `includeSubDomains`) on `samgp.com` since 1 November 2026
+- **The NestJS API is not reachable from the internet** (1 November 2026): nginx answers `404` for `/api/`. `web` calls `api` server-side on the internal network for every page, form and Admin request, and passes the visitor's address (the last `X-Forwarded-For` entry nginx appended) on writes, so the API's one-hop `trust proxy` still rate-limits per visitor
+- No software versions in public headers: `server_tokens off` in nginx, `poweredByHeader: false` in `web` and `cms`
 - CORS restricted to known frontend origins — no wildcard `*` in production
 - **Login is rate limited on its own budget** — 5 attempts per 15 minutes per client, per [API_CONTRACT_FINAL.md](./API_CONTRACT_FINAL.md) §Rate limits, and deliberately **not** sharing the form-submission bucket: one bucket would let submission volume lock staff out of the Admin surface, and let credential stuffing consume a lead's ability to submit
 - Rate limiting on every public submission endpoint — Inquiry (incl. Sample Request), Custom Formulation Request, Distributor Application, Job Application, Download Request, and Newsletter Subscription — to prevent spam/abuse. Newsletter sign-up needs it most: an ungated email field is the easiest abuse surface on the site

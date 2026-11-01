@@ -12,6 +12,8 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   output: "standalone",
+  // No `X-Powered-By: Next.js` on cms.samgp.com.
+  poweredByHeader: false,
 };
 
 export default withPayload(nextConfig);

@@ -2,6 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { apiGet, apiPost, apiPostNoContent } from "./api-client";
 
+/** The incoming request's headers, as `next/headers` would serve them inside a server action. */
+const incoming = vi.hoisted(() => ({ current: null as Headers | null }));
+vi.mock("next/headers", () => ({
+  headers: async () => {
+    if (incoming.current === null) throw new Error("outside a request");
+    return incoming.current;
+  },
+}));
+
 /**
  * The API client, including the two capabilities this gate added.
  *
@@ -212,5 +221,32 @@ describe("authenticated server requests", () => {
     await apiGet("/auth/me", undefined, { accessToken: "T" });
 
     expect((spy.mock.calls[0]?.[1] as RequestInit).cache).toBe("no-store");
+  });
+});
+
+describe("visitor address on writes", () => {
+  afterEach(() => {
+    incoming.current = null;
+  });
+
+  it("passes on only the address nginx appended, for a POST", async () => {
+    incoming.current = new Headers({ "x-forwarded-for": "6.6.6.6, 203.0.113.9" });
+    const spy = stubFetch(() => json({ data: null, meta: {} }));
+
+    await apiPost("/inquiries", {});
+
+    expect(headerOf(spy.mock.calls[0]?.[1] as RequestInit, "x-forwarded-for")).toBe("203.0.113.9");
+  });
+
+  it("sends none on a GET, and none outside a request", async () => {
+    incoming.current = new Headers({ "x-forwarded-for": "203.0.113.9" });
+    const spy = stubFetch(() => json({ data: null, meta: {} }));
+    await apiGet("/products");
+    incoming.current = null;
+    await apiPost("/inquiries", {});
+
+    for (const call of spy.mock.calls) {
+      expect(headerOf(call[1] as RequestInit, "x-forwarded-for")).toBeNull();
+    }
   });
 });

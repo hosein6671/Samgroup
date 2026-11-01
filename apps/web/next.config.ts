@@ -8,6 +8,8 @@ import type { NextConfig } from "next";
  */
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // No `X-Powered-By: Next.js` on public responses.
+  poweredByHeader: false,
   // ADR-005 runs the public site as its own Node container on the VPS. Standalone output traces
   // only the runtime files the image needs, instead of copying the entire workspace dependency
   // tree into every release image.

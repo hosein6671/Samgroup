@@ -150,13 +150,13 @@ Because `web` and `api` are served from a single origin behind `nginx`, browser 
 
 Nginx is the single entry point. Everything below is served over HTTPS; port 80 redirects to 443.
 
-| Host / path        | Upstream                                              |
-| ------------------ | ----------------------------------------------------- |
-| `<domain>/`        | `web` — public site                                   |
-| `<domain>/api/*`   | `api` — same origin as `web`, so no CORS between them |
-| `<domain>/admin/*` | `web` — the Admin Dashboard area                      |
-| `<domain>/media/*` | `minio`, public bucket only, cached                   |
-| `cms.<domain>`     | `cms` — Payload's admin UI                            |
+| Host / path        | Upstream                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| `<domain>/`        | `web` — public site                                                                  |
+| `<domain>/api/*`   | **closed: 404** (1 November 2026) — `web` reaches `api` on the internal network only |
+| `<domain>/admin/*` | `web` — the Admin Dashboard area                                                     |
+| `<domain>/media/*` | `minio`, public bucket only, cached                                                  |
+| `cms.<domain>`     | `cms` — Payload's admin UI                                                           |
 
 Payload's admin UI gets its **own subdomain** because Payload's admin route also defaults to `/admin`, which would collide with the Admin Dashboard that `apps/web` already serves there. The split also keeps the two admin surfaces in separate cookie scopes. See [ADR-005](./ADR/ADR-005-vps-docker-deployment.md).
 

@@ -409,9 +409,42 @@ type Transport =
   | { readonly kind: "response"; readonly response: Response }
   | { readonly kind: "unreachable"; readonly detail: string };
 
+/**
+ * The visitor's address, for a write made on a visitor's behalf (a form, a login).
+ *
+ * `/api/` is not public (1 November 2026): every call reaches NestJS from this server over the
+ * internal network, so without this the API would see `web`'s own address for every visitor and
+ * the login and form rate limits (`throttle.config.ts`) would budget the whole site as one client.
+ * nginx appends the connecting peer to `X-Forwarded-For`, so the last entry is the real visitor;
+ * only that one entry is passed on, and the API trusts exactly one hop (`trust-proxy.ts`), which is
+ * now this server. Outside a request (build, prerender) there is no visitor and nothing is sent.
+ */
+async function visitorAddress(): Promise<string | null> {
+  try {
+    const { headers } = await import("next/headers");
+    const incoming = await headers();
+    const forwarded = incoming
+      .get("x-forwarded-for")
+      ?.split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry !== "");
+    return forwarded?.at(-1) ?? incoming.get("x-real-ip") ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** The request headers, assembled per call. `Authorization` appears only when a token was passed. */
-function composeHeaders(method: HttpMethod, options: RequestOptions | undefined): HeadersInit {
+function composeHeaders(
+  method: HttpMethod,
+  options: RequestOptions | undefined,
+  visitor: string | null = null,
+): HeadersInit {
   const headers: Record<string, string> = { accept: "application/json" };
+
+  if (visitor !== null) {
+    headers["x-forwarded-for"] = visitor;
+  }
 
   if (method !== "GET") {
     headers["content-type"] = "application/json";
@@ -457,7 +490,7 @@ async function send(
       // uncached, and this gate does not rely on that remaining true. An authenticated request
       // must never be cached at all, so this is now load-bearing rather than merely explicit.
       cache: "no-store",
-      headers: composeHeaders(method, options),
+      headers: composeHeaders(method, options, method === "GET" ? null : await visitorAddress()),
       body: method === "GET" ? undefined : JSON.stringify(body),
       // Node 18+ and every runtime this app targets; it needs no AbortController plumbing.
       signal: AbortSignal.timeout(TIMEOUT_MS),
