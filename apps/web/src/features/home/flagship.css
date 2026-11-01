@@ -5395,3 +5395,14 @@ html.fs-parallax .fs-branded-photo > img {
     display: none;
   }
 }
+
+/*
+ * No swipe-back from a sideways scroll (owner, 1 November 2026: on /fa a page "suddenly went back
+ * to the previous one"). A horizontal trackpad or touch scroll that reached the edge of a scrolling
+ * table or chip row carried over to the page, and the browser read it as its back gesture. The
+ * page itself never scrolls sideways, so nothing is lost by stopping it here.
+ */
+html,
+body {
+  overscroll-behavior-x: none;
+}
